@@ -1,0 +1,33 @@
+<?php
+
+use App\Http\Controllers\Api\TerminalCheckInController;
+use App\Http\Controllers\Api\TerminalProvisioningController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
+Route::middleware(['web', 'auth', 'verified', 'role:member'])
+    ->prefix('member')
+    ->group(function () {
+        Route::get('me', function (Request $request) {
+            $user = $request->user();
+
+            return response()->json([
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role?->value ?? (string) $user->role,
+            ]);
+        })->name('api.member.me');
+    });
+
+Route::middleware(['web', 'auth', 'verified', 'role:admin,manager'])
+    ->group(function () {
+        Route::get('terminals', [TerminalProvisioningController::class, 'index'])->name('api.terminals.index');
+        Route::post('terminal-provisioning', [TerminalProvisioningController::class, 'store'])->name('api.terminals.provision');
+        Route::post('terminals/{terminal}/revoke-token', [TerminalProvisioningController::class, 'revokeToken'])->name('api.terminals.revoke-token');
+        Route::delete('terminals/{terminal}', [TerminalProvisioningController::class, 'decommission'])->name('api.terminals.decommission');
+    });
+
+Route::middleware(['terminal.auth'])
+    ->post('checkin', [TerminalCheckInController::class, 'store'])
+    ->name('api.terminals.checkin');

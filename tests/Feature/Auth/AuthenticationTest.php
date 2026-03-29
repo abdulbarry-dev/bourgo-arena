@@ -10,7 +10,7 @@ test('login screen can be rendered', function () {
 });
 
 test('users can authenticate using the login screen', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->manager()->create();
 
     $response = $this->post(route('login.store'), [
         'email' => $user->email,
@@ -22,6 +22,24 @@ test('users can authenticate using the login screen', function () {
         ->assertRedirect(route('dashboard', absolute: false));
 
     $this->assertAuthenticated();
+});
+
+test('members can authenticate but are forbidden from the dashboard', function () {
+    $user = User::factory()->member()->create();
+
+    $response = $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
+    $response
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('dashboard', absolute: false));
+
+    $this->assertAuthenticated();
+
+    $dashboardResponse = $this->get(route('dashboard'));
+    $dashboardResponse->assertForbidden();
 });
 
 test('users can not authenticate with invalid password', function () {
@@ -57,7 +75,7 @@ test('users with two factor enabled are redirected to two factor challenge', fun
 });
 
 test('users can logout', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->manager()->create();
 
     $response = $this->actingAs($user)->post(route('logout'));
 
