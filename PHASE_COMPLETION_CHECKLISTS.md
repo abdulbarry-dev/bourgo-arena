@@ -9,19 +9,19 @@
 
 **Target Sprint:** Sprint 1–2  
 **Story Points:** 23  
-**Status:** ⭕ Not Started
+**Status:** 🟡 Code Complete (Env Validation Pending)
 
 ### Task 1.1: Implement RBAC Middleware & Policies
 
-- [ ] Create `EnsureUserHasRole` middleware with admin/manager role coverage
-- [ ] Create `TerminalPolicy` for terminal resource actions
-- [ ] Create `SubscriptionPolicy` for subscription resource actions
-- [ ] Create `MemberPolicy` for member resource actions
+- [x] Create `EnsureUserHasRole` middleware with admin/manager role coverage
+- [x] Create `TerminalPolicy` for terminal resource actions
+- [x] Create `SubscriptionPolicy` for subscription resource actions
+- [x] Create `MemberPolicy` for member resource actions
 - [ ] Add `role()` macro to Route facade for cleaner registration
-- [ ] Populate `config/authorization.php` with explicit permission matrix
-- [ ] Write integration tests for each role boundary (RBAC Policy Test)
+- [x] Populate `config/authorization.php` with explicit permission matrix
+- [x] Write integration tests for each role boundary (RBAC Policy Test)
 - [ ] All 15+ policy assertions passing
-- [ ] Documentation: policy matrix accessible in codebase
+- [x] Documentation: policy matrix accessible in codebase
 
 **Verification:** Run `php artisan test --filter=RbacPolicyTest` → All tests passing
 
@@ -29,19 +29,19 @@
 
 ### Task 1.2: Integrate Tunisian Payment Gateway (Konnect or Paymee)
 
-- [ ] Research Konnect + Paymee API documentation
+- [x] Research Konnect + Paymee API documentation
 - [ ] Validate sandbox environment availability
-- [ ] Create `PaymentGatewayDriver` interface
-- [ ] Implement `KonnectDriver` concrete class
-- [ ] Implement `PaymeeDriver` concrete class
-- [ ] Create `config/payment.php` with multi-driver support
-- [ ] Register `PaymentGateway` service facade in service container
-- [ ] Build sandbox test harness (test payment → webhook → verification)
-- [ ] Create `ReceiptGenerator` class (PDF generation via TCPDF/Dompdf)
-- [ ] Write tests: sandbox flow, webhook reception, receipt generation
-- [ ] Generate decision doc: `docs/PAYMENT_GATEWAY_SELECTION.md` (fees, rates, reasoning)
+- [x] Create `PaymentGatewayDriver` interface
+- [x] Implement `KonnectDriver` concrete class
+- [x] Implement `PaymeeDriver` concrete class
+- [x] Create `config/payment.php` with multi-driver support
+- [x] Register `PaymentGateway` service facade in service container
+- [x] Build sandbox test harness (test payment → webhook → verification)
+- [x] Create `ReceiptGenerator` class (PDF generation via TCPDF/Dompdf)
+- [x] Write tests: sandbox flow, webhook reception, receipt generation
+- [x] Generate decision doc: `docs/PAYMENT_GATEWAY_SELECTION.md` (fees, rates, reasoning)
 - [ ] Payment gateway selected + tested in sandbox
-- [ ] Receipts generate correctly for test transactions
+- [x] Receipts generate correctly for test transactions
 
 **Verification:** Run `php artisan test --filter=PaymentGatewayTest` → All tests passing + sandbox transaction logged
 
@@ -49,16 +49,16 @@
 
 ### Task 1.3: Provision Hikvision DS-K1T805MX Terminals
 
-- [ ] Create `hikvision_terminals` migration with required columns
-- [ ] Create `HikvisionTerminal` Eloquent model + relationships
-- [ ] Implement unique `api_token` generation on terminal creation
-- [ ] Create terminal registration endpoint: POST `/api/terminal-provisioning`
-- [ ] Build terminal webhook receiver: POST `/api/checkin` (ISAPI parsing)
-- [ ] Create `TerminalAuthMiddleware` for API token validation
-- [ ] Implement online/offline status tracking (`last_seen_at` update)
-- [ ] Implement terminal revocation action (token regeneration)
-- [ ] Build decommissioning logic (status = decommissioned)
-- [ ] Write tests: token generation, revocation, decommissioning flows
+- [x] Create `hikvision_terminals` migration with required columns
+- [x] Create `HikvisionTerminal` Eloquent model + relationships
+- [x] Implement unique `api_token` generation on terminal creation
+- [x] Create terminal registration endpoint: POST `/api/terminal-provisioning`
+- [x] Build terminal webhook receiver: POST `/api/checkin` (ISAPI parsing)
+- [x] Create `TerminalAuthMiddleware` for API token validation
+- [x] Implement online/offline status tracking (`last_seen_at` update)
+- [x] Implement terminal revocation action (token regeneration)
+- [x] Build decommissioning logic (status = decommissioned)
+- [x] Write tests: token generation, revocation, decommissioning flows
 - [ ] Load test: 50 concurrent terminal registrations succeeding
 - [ ] Terminal webhook receiver handles ISAPI payload correctly
 
@@ -68,13 +68,13 @@
 
 ### Task 1.4: Set Up CI/CD Pipeline
 
-- [ ] Create `.github/workflows/test.yml` with Pint + unit + integration tests
-- [ ] Create `.github/workflows/deploy-staging.yml` for auto-deploy on `develop` merge
-- [ ] Create `.github/workflows/deploy-production.yml` with manual approval gate
+- [x] Create `.github/workflows/{lint,tests}.yml` with Pint + unit + integration tests
+- [x] Create `.github/workflows/deploy-staging.yml` for auto-deploy on `develop` merge
+- [x] Create `.github/workflows/deploy-production.yml` with manual approval gate
 - [ ] Configure GitHub Actions secrets (PAYMENT_API_KEY, DATABASE_URL, S3 credentials, etc.)
-- [ ] Implement rollback procedure + Git tag strategy documentation
-- [ ] Add email notifications for pipeline success/failure
-- [ ] Create `docs/CI_CD_PROCEDURES.md` with deployment guide + rollback steps
+- [x] Implement rollback procedure + Git tag strategy documentation
+- [x] Add email notifications for pipeline success/failure
+- [x] Create `docs/CI_CD_PROCEDURES.md` with deployment guide + rollback steps
 - [ ] Test trial commit: PR passes all checks → auto-deploy to staging
 - [ ] CI/CD pipelines deployed and functional
 - [ ] Secrets configured securely in GitHub Actions
@@ -85,15 +85,15 @@
 
 ### Phase 1 Completion Gate — MUST PASS
 
-- [ ] All RBAC policies tested; 0 unauthorized access incidents
+- [x] All RBAC policies tested; 0 unauthorized access incidents
 - [ ] Payment gateway sandbox transactions succeeding consistently
-- [ ] Receipts generating correctly for test enrollments
-- [ ] Hikvision terminals registering, tokens revoking, webhooks received
+- [x] Receipts generating correctly for test enrollments
+- [x] Hikvision terminals registering, tokens revoking, webhooks received
 - [ ] CI/CD pipelines running on every PR + deploying to staging without errors
-- [ ] Phase 2 dependencies satisfied: RBAC middleware + payment gateway ready
+- [x] Phase 2 dependencies satisfied: RBAC middleware + payment gateway ready
 
-**Sign-off:** ****\_\_\_\_****  
-**Date:** ****\_\_\_\_****
+**Sign-off:** \***\*\_\_\_\_\*\***  
+**Date:** \***\*\_\_\_\_\*\***
 
 ---
 
@@ -204,8 +204,8 @@
 - [ ] Dashboard page responsive + loads within SLA (< 2s)
 - [ ] Phase 3 dependencies satisfied: member data + card assignment ready
 
-**Sign-off:** ****\_\_\_\_****  
-**Date:** ****\_\_\_\_****
+**Sign-off:** \***\*\_\_\_\_\*\***  
+**Date:** \***\*\_\_\_\_\*\***
 
 ---
 
@@ -319,8 +319,8 @@
 - [ ] Expiring subscriptions query < 100ms with 10,000 subscriptions
 - [ ] Phase 4 dependencies satisfied: subscription data ready for real-time monitoring
 
-**Sign-off:** ****\_\_\_\_****  
-**Date:** ****\_\_\_\_****
+**Sign-off:** \***\*\_\_\_\_\*\***  
+**Date:** \***\*\_\_\_\_\*\***
 
 ---
 
@@ -395,11 +395,11 @@
 
 - [ ] Create `AntiPassbackRule` service (consecutive entry detection logic)
 - [ ] Implement check-in event processing:
-    - [ ] Track last check-in per card UID
-    - [ ] Detect consecutive entries (no exit between)
-    - [ ] Flag event as suspicious
-    - [ ] Broadcast `anti_passback_triggered` event
-    - [ ] Auto-suspend card after 3 consecutive suspicious events
+  - [ ] Track last check-in per card UID
+  - [ ] Detect consecutive entries (no exit between)
+  - [ ] Flag event as suspicious
+  - [ ] Broadcast `anti_passback_triggered` event
+  - [ ] Auto-suspend card after 3 consecutive suspicious events
 - [ ] Create `ProcessAntiPassbackEvent` queued job
 - [ ] Add admin review workflow (Dismiss | Escalate actions)
 - [ ] Write unit tests: consecutive entry detection, alert triggering, auto-suspension
@@ -455,8 +455,8 @@
 - [ ] Real-time occupancy counter accurate within 2 events
 - [ ] Phase 5 dependencies satisfied: real-time data + check-in events ready
 
-**Sign-off:** ****\_\_\_\_****  
-**Date:** ****\_\_\_\_****
+**Sign-off:** \***\*\_\_\_\_\*\***  
+**Date:** \***\*\_\_\_\_\*\***
 
 ---
 
@@ -471,15 +471,15 @@
 - [ ] Create component class with $dateFrom, $dateTo, $chartData, $monthlyRevenue, $churnRate, etc. properties
 - [ ] Implement date range pickers
 - [ ] Build Blade template with KPI cards:
-    - [ ] Monthly Revenue
-    - [ ] Churn Rate
-    - [ ] Active Subscriptions
-    - [ ] Expired Subscriptions
+  - [ ] Monthly Revenue
+  - [ ] Churn Rate
+  - [ ] Active Subscriptions
+  - [ ] Expired Subscriptions
 - [ ] Add charts:
-    - [ ] Monthly revenue trend (bar chart)
-    - [ ] Subscription status breakdown (donut chart)
-    - [ ] Top plans by revenue (bar chart)
-    - [ ] Payment method breakdown (pie chart)
+  - [ ] Monthly revenue trend (bar chart)
+  - [ ] Subscription status breakdown (donut chart)
+  - [ ] Top plans by revenue (bar chart)
+  - [ ] Payment method breakdown (pie chart)
 - [ ] Implement KPI calculations (monthly revenue, churn rate, top plans, payment methods)
 - [ ] Create `RevenueAnalyticsData` DTO for chart preparation
 - [ ] Implement `exportPdf()` action
@@ -498,9 +498,9 @@
 - [ ] Create component class with $heatmapData, $dayFilter, $hourFilter properties
 - [ ] Implement `loadHeatmapData()` action (7-day × hourly aggregation)
 - [ ] Build Blade template with heatmap grid:
-    - [ ] 7 rows (Mon–Sun)
-    - [ ] 18 columns (06:00–23:00)
-    - [ ] Color intensity (white → light → dark)
+  - [ ] 7 rows (Mon–Sun)
+  - [ ] 18 columns (06:00–23:00)
+  - [ ] Color intensity (white → light → dark)
 - [ ] Add tooltip on hover (show occupancy %)
 - [ ] Add day/hour filter controls
 - [ ] Implement `exportPdf()` action (print-friendly grid)
@@ -518,14 +518,14 @@
 
 - [ ] Create component class with $sessions, $selectedSession, $viewMode properties
 - [ ] Build Blade template with:
-    - [ ] Calendar view (Mon–Sun, time rows, session blocks)
-    - [ ] List view (table: name, instructor, day, time, capacity, enrolled)
-    - [ ] Detail panel for selected session
+  - [ ] Calendar view (Mon–Sun, time rows, session blocks)
+  - [ ] List view (table: name, instructor, day, time, capacity, enrolled)
+  - [ ] Detail panel for selected session
 - [ ] Add modals:
-    - [ ] Create session modal
-    - [ ] Edit session modal
-    - [ ] Cancel confirmation
-    - [ ] Removal confirmation
+  - [ ] Create session modal
+  - [ ] Edit session modal
+  - [ ] Cancel confirmation
+  - [ ] Removal confirmation
 - [ ] Implement `createSession($data)` action (validate capacity, create CourseSession)
 - [ ] Implement `editSession($id, $data)` action (update session details)
 - [ ] Implement `cancelSession($id)` action (mark cancelled, dispatch notification)
@@ -563,8 +563,8 @@
 - [ ] Analytics dashboards load < 2s with large datasets
 - [ ] Phase 6 dependencies satisfied: data aggregation + reporting complete
 
-**Sign-off:** ****\_\_\_\_****  
-**Date:** ****\_\_\_\_****
+**Sign-off:** \***\*\_\_\_\_\*\***  
+**Date:** \***\*\_\_\_\_\*\***
 
 ---
 
@@ -596,11 +596,11 @@
 
 - [ ] Create `DatabaseBackup` scheduled command (Artisan command)
 - [ ] Implement backup logic:
-    - [ ] Nightly dump at 02:00 UTC
-    - [ ] Encrypt backup (GPG)
-    - [ ] Upload to S3
-    - [ ] Tag with timestamp + environment
-    - [ ] Cleanup old backups (30 daily / 12 weekly / 3 monthly)
+  - [ ] Nightly dump at 02:00 UTC
+  - [ ] Encrypt backup (GPG)
+  - [ ] Upload to S3
+  - [ ] Tag with timestamp + environment
+  - [ ] Cleanup old backups (30 daily / 12 weekly / 3 monthly)
 - [ ] Schedule in `app/Console/Kernel.php`
 - [ ] Create `BackupService` class (backup/restore logic)
 - [ ] Configure S3 bucket (versioning, encryption)
@@ -620,21 +620,21 @@
 - [ ] Audit all Livewire component queries (enable `DB::queryLog()`)
 - [ ] Identify N+1 issues + refactor with eager-loading
 - [ ] Add eager-loading scopes to models:
-    - [ ] Member (subscriptions, nfcCard)
-    - [ ] Subscription (member, plan)
-    - [ ] CheckInEvent (member, terminal)
-    - [ ] HikvisionTerminal (recent_events)
+  - [ ] Member (subscriptions, nfcCard)
+  - [ ] Subscription (member, plan)
+  - [ ] CheckInEvent (member, terminal)
+  - [ ] HikvisionTerminal (recent_events)
 - [ ] Create database indexes on frequently queried columns:
-    - [ ] `members.status`, `members.email`
-    - [ ] `subscriptions.status`, `subscriptions.ends_at`
-    - [ ] `check_in_events.created_at`, `check_in_events.terminal_id`
-    - [ ] `nfc_cards.member_id`, `nfc_cards.status`
+  - [ ] `members.status`, `members.email`
+  - [ ] `subscriptions.status`, `subscriptions.ends_at`
+  - [ ] `check_in_events.created_at`, `check_in_events.terminal_id`
+  - [ ] `nfc_cards.member_id`, `nfc_cards.status`
 - [ ] Run EXPLAIN on major queries; verify index usage
 - [ ] Implement caching layer:
-    - [ ] Cache member list queries (5 min)
-    - [ ] Cache occupancy heatmap (1 hour)
-    - [ ] Cache KPI calculations (1 hour)
-    - [ ] Manual cache invalidation on data changes
+  - [ ] Cache member list queries (5 min)
+  - [ ] Cache occupancy heatmap (1 hour)
+  - [ ] Cache KPI calculations (1 hour)
+  - [ ] Manual cache invalidation on data changes
 - [ ] Create `CacheService` class (centralized cache operations)
 - [ ] Profile memory usage (Livewire component < 5MB per instance)
 - [ ] Stress test: 100 concurrent users on dashboard, verify response < 2s
@@ -687,8 +687,8 @@
 - [ ] Deployment procedures automated; rollback capability verified
 - [ ] All prior phases remain stable + passing tests
 
-**Sign-off:** ****\_\_\_\_****  
-**Date:** ****\_\_\_\_****
+**Sign-off:** \***\*\_\_\_\_\*\***  
+**Date:** \***\*\_\_\_\_\*\***
 
 ---
 
@@ -717,8 +717,8 @@
 
 **Project Status:** ⭕ In Progress / 🟡 Phase X Complete / ✅ Production Ready
 
-**Final Sign-off by Project Lead:** ****\_\_\_\_****  
-**Date:** ****\_\_\_\_****
+**Final Sign-off by Project Lead:** \***\*\_\_\_\_\*\***  
+**Date:** \***\*\_\_\_\_\*\***
 
 ---
 
