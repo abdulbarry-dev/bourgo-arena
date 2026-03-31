@@ -9,7 +9,7 @@
 
 **Target Sprint:** Sprint 1–2  
 **Story Points:** 23  
-**Status:** 🟡 Code Complete (Env Validation Pending)
+**Status:** 🟢 DONE
 
 ### Task 1.1: Implement RBAC Middleware & Policies
 
@@ -17,10 +17,10 @@
 - [x] Create `TerminalPolicy` for terminal resource actions
 - [x] Create `SubscriptionPolicy` for subscription resource actions
 - [x] Create `MemberPolicy` for member resource actions
-- [ ] Add `role()` macro to Route facade for cleaner registration
+- [x] Add `role()` macro to Route facade for cleaner registration
 - [x] Populate `config/authorization.php` with explicit permission matrix
 - [x] Write integration tests for each role boundary (RBAC Policy Test)
-- [ ] All 15+ policy assertions passing
+- [x] All 15+ policy assertions passing
 - [x] Documentation: policy matrix accessible in codebase
 
 **Verification:** Run `php artisan test --filter=RbacPolicyTest` → All tests passing
@@ -30,7 +30,7 @@
 ### Task 1.2: Integrate Tunisian Payment Gateway (Konnect or Paymee)
 
 - [x] Research Konnect + Paymee API documentation
-- [ ] Validate sandbox environment availability
+- [x] Validate sandbox environment availability
 - [x] Create `PaymentGatewayDriver` interface
 - [x] Implement `KonnectDriver` concrete class
 - [x] Implement `PaymeeDriver` concrete class
@@ -40,7 +40,7 @@
 - [x] Create `ReceiptGenerator` class (PDF generation via TCPDF/Dompdf)
 - [x] Write tests: sandbox flow, webhook reception, receipt generation
 - [x] Generate decision doc: `docs/PAYMENT_GATEWAY_SELECTION.md` (fees, rates, reasoning)
-- [ ] Payment gateway selected + tested in sandbox
+- [x] Payment gateway selected + tested in sandbox
 - [x] Receipts generate correctly for test transactions
 
 **Verification:** Run `php artisan test --filter=PaymentGatewayTest` → All tests passing + sandbox transaction logged
@@ -59,8 +59,8 @@
 - [x] Implement terminal revocation action (token regeneration)
 - [x] Build decommissioning logic (status = decommissioned)
 - [x] Write tests: token generation, revocation, decommissioning flows
-- [ ] Load test: 50 concurrent terminal registrations succeeding
-- [ ] Terminal webhook receiver handles ISAPI payload correctly
+- [x] Load test: 50 concurrent terminal registrations succeeding
+- [x] Terminal webhook receiver handles ISAPI payload correctly
 
 **Verification:** Run `php artisan test --filter=TerminalProvisioningTest` → All tests passing + load test results logged
 
@@ -71,13 +71,13 @@
 - [x] Create `.github/workflows/{lint,tests}.yml` with Pint + unit + integration tests
 - [x] Create `.github/workflows/deploy-staging.yml` for auto-deploy on `develop` merge
 - [x] Create `.github/workflows/deploy-production.yml` with manual approval gate
-- [ ] Configure GitHub Actions secrets (PAYMENT_API_KEY, DATABASE_URL, S3 credentials, etc.)
+- [x] Configure GitHub Actions secrets (PAYMENT_API_KEY, DATABASE_URL, S3 credentials, etc.)
 - [x] Implement rollback procedure + Git tag strategy documentation
 - [x] Add email notifications for pipeline success/failure
 - [x] Create `docs/CI_CD_PROCEDURES.md` with deployment guide + rollback steps
-- [ ] Test trial commit: PR passes all checks → auto-deploy to staging
-- [ ] CI/CD pipelines deployed and functional
-- [ ] Secrets configured securely in GitHub Actions
+- [x] Test trial commit: PR passes all checks → auto-deploy to staging
+- [x] CI/CD pipelines deployed and functional
+- [x] Secrets configured securely in GitHub Actions
 
 **Verification:** Create trial commit → PR auto-checks triggered + deploy logs available
 
@@ -86,10 +86,10 @@
 ### Phase 1 Completion Gate — MUST PASS
 
 - [x] All RBAC policies tested; 0 unauthorized access incidents
-- [ ] Payment gateway sandbox transactions succeeding consistently
+- [x] Payment gateway sandbox transactions succeeding consistently
 - [x] Receipts generating correctly for test enrollments
 - [x] Hikvision terminals registering, tokens revoking, webhooks received
-- [ ] CI/CD pipelines running on every PR + deploying to staging without errors
+- [x] CI/CD pipelines running on every PR + deploying to staging without errors
 - [x] Phase 2 dependencies satisfied: RBAC middleware + payment gateway ready
 
 **Sign-off:** \***\*\_\_\_\_\*\***  

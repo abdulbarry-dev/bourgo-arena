@@ -15,6 +15,17 @@ class TerminalCheckInController extends Controller
         /** @var HikvisionTerminal $terminal */
         $terminal = $request->attributes->get('terminal');
 
+        // Handle ISAPI JSON payload format from Hikvision
+        if ($request->has('AccessControllerEvent')) {
+            $isapiEvent = $request->input('AccessControllerEvent');
+            $request->merge([
+                'card_uid' => $isapiEvent['cardNo'] ?? null,
+                'result' => ($isapiEvent['subEventType'] ?? null) === 75 ? 'authorized' : 'denied', // 75 is typical access granted
+                'denial_reason' => ($isapiEvent['subEventType'] ?? null) !== 75 ? 'invalid_card' : null,
+                'checked_in_at' => $request->input('dateTime') ?? now(),
+            ]);
+        }
+
         $validated = $request->validate([
             'member_id' => ['nullable', 'integer', 'exists:members,id'],
             'card_uid' => ['required', 'string', 'max:255'],
