@@ -2,10 +2,10 @@
 
 namespace App\Http\Resources\Api;
 
+use App\Http\Resources\BaseJsonResource;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
 
-class TerminalResource extends JsonResource
+class TerminalResource extends BaseJsonResource
 {
     /**
      * Transform the resource into an array.

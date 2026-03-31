@@ -2,10 +2,10 @@
 
 namespace App\Http\Resources\Api;
 
+use App\Http\Resources\BaseJsonResource;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
 
-class HikvisionTerminalResource extends JsonResource
+class HikvisionTerminalResource extends BaseJsonResource
 {
     public function toArray(Request $request): array
     {

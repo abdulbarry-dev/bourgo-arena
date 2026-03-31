@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\Api;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\BaseFormRequest;
 
-class StoreTerminalCheckInRequest extends FormRequest
+class StoreTerminalCheckInRequest extends BaseFormRequest
 {
     public function authorize(): bool
     {

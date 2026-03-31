@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Http\Requests\BaseFormRequest;
 use App\Models\HikvisionTerminal;
-use Illuminate\Foundation\Http\FormRequest;
 
-class StoreTerminalProvisioningRequest extends FormRequest
+class StoreTerminalProvisioningRequest extends BaseFormRequest
 {
     public function authorize(): bool
     {
