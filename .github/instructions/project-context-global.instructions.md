@@ -37,6 +37,14 @@ applyTo: "**"
 - If code conflicts with `docs/database.schema.md`, surface the conflict and ask for a decision before migrations or model changes.
 - Role mapping rule for current implementation: treat glossary `manager` as the primary admin role (formerly `staff`).
 
+## Architecture & Code Organization Rules
+
+- **Thin Controllers:** Controllers must exclusively handle HTTP request routing and extracting the input. They should not contain business logic, database queries/repository logic, or complex data transformations.
+- **Separation of Concerns:**
+    - **Validation:** Always use dedicated Form Request classes (`app/Http/Requests`) for validation and authorization logic, never inline in the controller.
+    - **Business Logic:** Delegate core business logic and database interactions to dedicated Service classes or Actions (`app/Services` or `app/Actions`).
+    - **Response Formatting:** Always use API Resource classes (`app/Http/Resources`) to format outgoing JSON responses.
+
 ## Existing Priority Rule Alignment
 
 - Keep alignment with the admin-first rule in `.github/instructions/admin-dashboard-first.instructions.md`.
