@@ -28,7 +28,7 @@ applyTo: "**"
 ## Enforcement Rules
 
 - **Phase sequencing:** Follow `implementation-plan.md` strictly for phase ordering, dependencies, and deliverables.
-- **Completion verification:** Use `PHASE_COMPLETION_CHECKLISTS.md` to track completed sub-tasks per phase before moving to the next.
+- **Completion verification:** Update checklists directly in `implementation-plan.md` to track completed sub-tasks per phase before moving to the next.
 - Use glossary terms exactly as defined in `docs/domain.glossory.md` for entities, statuses, and access terms.
 - Follow component ownership in `docs/liviwire.component.regsitery.md`; do not duplicate business logic across components.
 - Apply UX decisions from `docs/ux.rules.md` for all admin dashboard UI changes.
