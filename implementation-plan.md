@@ -310,30 +310,30 @@ public string $cardStatus = 'active'; // active | suspended | lost
 - Member must exist and be in <= active state
 
 **Implementation:**
-- [ ] Create component with UID input field (text or NFC scan compatible)
-- [ ] Add real-time UID validation: check uniqueness on blur, show inline error if duplicate
-- [ ] Build Blade template: UID input field, card status selector (Flux UI), assign button
-- [ ] Implement assignment action: create NfcCard record, log event (assigned_by, assigned_at), update member status if pending → active, dispatch notification job
-- [ ] Add success feedback: "Card assigned successfully — member notified"
-- [ ] Test: verify UID validation, duplicate detection, event logging, member notification job dispatched
+- [x] Create component with UID input field (text or NFC scan compatible)
+- [x] Add real-time UID validation: check uniqueness on blur, show inline error if duplicate
+- [x] Build Blade template: UID input field, card status selector (Flux UI), assign button
+- [x] Implement assignment action: create NfcCard record, log event (assigned_by, assigned_at), update member status if pending → active, dispatch notification job
+- [x] Add success feedback: "Card assigned successfully — member notified"
+- [x] Test: verify UID validation, duplicate detection, event logging, member notification job dispatched
 
 **Deliverables:**
 - `/app/Livewire/Admin/Members/NfcCardAssignment.php`
 - `/resources/views/livewire/admin/members/nfc-card-assignment.blade.php`
-- `/app/Jobs/NotifyMemberCardAssigned.php` (push + email)
+- `/app/Jobs/NotifyMemberCardAssigned.php` (email implemented, push pending infrastructure)
 - `/tests/Feature/Livewire/NfcCardAssignmentTest.php` (UID validation, duplicate detection, assignment logic, notification job)
 
 #### 2.5 Layout & Integration
 
-- [ ] Create dashboard page: `resources/views/livewire/admin/members/dashboard.blade.php` (two-column: MemberTable + MemberDetailPanel)
-- [ ] Add route: `Route::get('/admin/members', MemberTable::class)->role('admin', 'manager')->name('admin.members')`
-- [ ] Implement responsive layout: full-width on desktop, stacked modal on mobile (MemberDetailPanel as modal)
-- [ ] Test page load performance: < 2s initial load with 1000+ members
+- [x] Create dashboard page: `resources/views/livewire/admin/members/dashboard.blade.php` (two-column: MemberTable + MemberDetailPanel)
+- [x] Add route: `Route::view('/admin/members', 'livewire.admin.members.dashboard')->role('admin', 'manager')->name('admin.members')`
+- [x] Implement responsive layout: full-width on desktop, stacked modal on mobile (MemberDetailPanel as modal)
+- [x] Test page load performance: < 2s initial load with 1000+ members (verified in `tests/Feature/Performance/MemberDashboardPerformanceTest.php`)
 
 **Deliverables:**
 - `/resources/views/livewire/admin/members/dashboard.blade.php`
 - `/routes/admin.php` (members routes)
-- Performance test: EXPLAIN on member queries, verify index usage
+- Performance test: EXPLAIN on member queries, verify index usage (verified in `tests/Feature/Performance/MemberTablePerformanceTest.php`)
 
 ### Dependencies
 
@@ -344,8 +344,8 @@ public string $cardStatus = 'active'; // active | suspended | lost
 
 - [x] `MemberTable` component: searchable, filterable, paginated, exports CSV
 - [x] `MemberDetailPanel` component: member profile, actions (suspend, activate, reset password), integrates with MemberTable
-- [ ] `NfcCardAssignment` component: UID entry, duplicate validation, assignment logging
-- [ ] Dashboard page: responsive two-column layout (desktop) / modal (mobile)
+- [x] `NfcCardAssignment` component: UID entry, duplicate validation, assignment logging
+- [x] Dashboard page: responsive two-column layout (desktop) / modal (mobile)
 - [ ] Full test coverage: unit + integration + E2E on member workflows
 
 ### Testing Strategy
@@ -363,8 +363,8 @@ public string $cardStatus = 'active'; // active | suspended | lost
 - Full member workflow: view list → click member → assign card → receive notification
 
 **Performance Tests:**
-- Member search with 1000+ records → < 500ms query time
-- CSV export of 500 members → < 2s generation
+- Member search with 1000+ records → < 500ms query time (verified in `tests/Feature/Performance/MemberTablePerformanceTest.php`)
+- CSV export of 500 members → < 2s generation (verified in `tests/Feature/Performance/MemberTablePerformanceTest.php`)
 
 **Success Criteria:**
 - All component tests passing (30+ test cases)

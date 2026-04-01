@@ -50,6 +50,8 @@ class MemberTable extends Component
 
     public function selectMember(int $memberId): void
     {
+        session(['members.selected_member_id' => $memberId]);
+
         $this->dispatch('member-selected', memberId: $memberId);
     }
 

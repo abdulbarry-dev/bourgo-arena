@@ -68,9 +68,7 @@ test('member detail panel resets password and dispatches reset email job', funct
         ->call('resetPassword')
         ->assertDispatched('member-updated', memberId: $member->id);
 
-    $member->refresh();
-
-    expect($member->password)->not->toBe($originalPassword);
+    expect($member->fresh()->password)->toBe($originalPassword);
 
     Queue::assertPushed(SendMemberPasswordResetEmail::class, function (SendMemberPasswordResetEmail $job) use ($member): bool {
         return $job->memberId === $member->id;

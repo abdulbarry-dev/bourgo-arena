@@ -5,7 +5,6 @@ namespace App\Livewire\Admin\Members;
 use App\Jobs\SendMemberPasswordResetEmail;
 use App\Models\Member;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -28,8 +27,10 @@ class MemberDetailPanel extends Component
 
     public function mount(?int $memberId = null): void
     {
-        if ($memberId !== null) {
-            $this->loadMember($memberId);
+        $resolvedMemberId = $memberId ?? session('members.selected_member_id');
+
+        if ($resolvedMemberId !== null) {
+            $this->loadMember((int) $resolvedMemberId);
         }
     }
 
@@ -37,6 +38,8 @@ class MemberDetailPanel extends Component
     public function loadMember(int $memberId): void
     {
         $this->memberId = $memberId;
+
+        session(['members.selected_member_id' => $memberId]);
 
         $this->member = Member::query()
             ->with([
@@ -91,15 +94,12 @@ class MemberDetailPanel extends Component
 
         $this->authorize('resetPassword', Member::class);
 
-        $temporaryPassword = Str::password(14);
-
-        $member->update(['password' => $temporaryPassword]);
-
-        SendMemberPasswordResetEmail::dispatch($member->id, $temporaryPassword);
+        SendMemberPasswordResetEmail::dispatch($member->id);
 
         $this->showResetPasswordModal = false;
 
         $this->dispatch('member-updated', memberId: $member->id);
+        $this->dispatch('toast', message: 'Password reset email sent to member', type: 'success');
     }
 
     public function delete(): void

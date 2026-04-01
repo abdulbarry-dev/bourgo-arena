@@ -167,7 +167,7 @@
     <flux:modal wire:model="showResetPasswordModal" class="max-w-md">
         <div class="space-y-4">
             <flux:heading size="lg">{{ __('Reset member password?') }}</flux:heading>
-            <flux:text>{{ __('A new temporary password will be generated and emailed to the member.') }}</flux:text>
+            <flux:text>{{ __('A secure password reset request email will be sent to the member.') }}</flux:text>
 
             <div class="flex justify-end gap-2">
                 <flux:button variant="filled" wire:click="$set('showResetPasswordModal', false)">{{ __('Cancel') }}</flux:button>

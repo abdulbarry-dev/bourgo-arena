@@ -8,7 +8,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Mail;
 
-class SendMemberPasswordResetEmail implements ShouldQueue
+class NotifyMemberCardAssigned implements ShouldQueue
 {
     use Queueable;
 
@@ -35,20 +35,23 @@ class SendMemberPasswordResetEmail implements ShouldQueue
      */
     public function handle(): void
     {
-        $member = Member::query()->find($this->memberId);
+        $member = Member::query()
+            ->with('nfcCard')
+            ->find($this->memberId);
 
         if ($member === null) {
             return;
         }
 
+        $cardUid = $member->nfcCard?->uid ?? 'N/A';
+        $cardStatus = $member->nfcCard?->status ?? 'N/A';
+
         Mail::raw(
-            'A password reset was requested by Bourgo Arena administration for your account. '
-            .'Please use the member forgot-password flow to set a new password. '
-            .'If you did not request this, contact support immediately.',
+            "Your NFC card has been assigned. UID: {$cardUid}. Status: {$cardStatus}.",
             function ($message) use ($member): void {
                 $message
                     ->to($member->email)
-                    ->subject('Bourgo Arena password reset request');
+                    ->subject('Your Bourgo Arena NFC card has been assigned');
             },
         );
     }
