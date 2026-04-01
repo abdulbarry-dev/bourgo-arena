@@ -2,11 +2,16 @@
 
 namespace App\Models;
 
+use Database\Factories\CheckInEventFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CheckInEvent extends Model
 {
+    /** @use HasFactory<CheckInEventFactory> */
+    use HasFactory;
+
     protected $fillable = [
         'member_id',
         'card_uid',
@@ -23,7 +28,7 @@ class CheckInEvent extends Model
         'created_at' => 'datetime',
     ];
 
-    const UPDATED_AT = null;
+    public const UPDATED_AT = null;
 
     public function member(): BelongsTo
     {

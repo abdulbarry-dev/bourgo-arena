@@ -408,18 +408,20 @@ This phase delivers the transaction workflows: subscription creation, status tra
 
 #### 3.1 Create Subscription Model Scopes & Business Logic
 
-- [ ] Add `active()` scope: where `status = active` AND `ends_at > now()`
-- [ ] Add `expiring()` scope: `active()` AND `ends_at <= now() + 7 days`
-- [ ] Create `calculateEndDate($startsAt, $durationDays)` method: returns exact end date (no timezone issues)
-- [ ] Add `isActive()` getter: true if `status = active` AND `ends_at > now()`
-- [ ] Add `daysRemaining()` getter: integer count of days until `ends_at`
-- [ ] Create `suspend($reason)` method: freeze `days_remaining`, set `suspended_at`, update status
-- [ ] Create `resume()` method: recalculate `ends_at = resumed_at + days_remaining`, clear suspension fields
-- [ ] Create `transfer($newMemberId)` method: change `member_id`, set status = transferred, create audit log
-- [ ] Write scope tests: verify SQL correctness, edge cases (today = expiry date, timezone handling)
+- [x] Add `active()` scope: where `status = active` AND `ends_at > now()`
+- [x] Add `expiring()` scope: `active()` AND `ends_at <= now() + 7 days`
+- [x] Create `calculateEndDate($startsAt, $durationDays)` method: returns exact end date (no timezone issues)
+- [x] Add `isActive()` getter: true if `status = active` AND `ends_at > now()`
+- [x] Add `daysRemaining()` getter: integer count of days until `ends_at`
+- [x] Create `suspend($reason)` method: freeze `days_remaining`, set `suspended_at`, update status
+- [x] Create `resume()` method: recalculate `ends_at = resumed_at + days_remaining`, clear suspension fields
+- [x] Create `transfer($newMemberId)` method: mark source subscription `transferred`, create new active subscription for target member with carried remaining days, create audit log
+- [x] Write scope tests: verify SQL correctness, edge cases (today = expiry date, timezone handling)
 
 **Deliverables:**
 - `/app/Models/Subscription.php` (scopes, methods, business logic)
+- `/app/Models/SubscriptionAuditLog.php`
+- `/database/migrations/*_create_subscription_audit_logs_table.php`
 - `/tests/Unit/SubscriptionLogicTest.php` (active, expiring, suspend, resume, transfer, date calculations)
 
 #### 3.2 Build `SubscriptionEnrollment` Livewire Component
@@ -440,14 +442,14 @@ public bool $isProcessing = false;
 - `enroll()` → validate form, create subscription, process payment, generate receipt, dispatch notification, update member status
 
 **Implementation:**
-- [ ] Create component; load member on mount
-- [ ] Build Blade template:
+- [x] Create component; load member on mount
+- [x] Build Blade template:
   - Plan selector (Flux UI select, populated from `Plan::where('is_archived', false)->orderBy('price')`)
   - Start date input (Flux UI date picker, default today)
   - Payment method selector (radio buttons: cash, konnect, paymee)
   - Conditional payment fields: if gateway method, show amount pre-filled, payment status
   - Enroll button (disabled during processing)
-- [ ] Implement `enroll()` logic:
+- [x] Implement `enroll()` logic:
   - Validate member exists, plan valid, dates correct
   - Create `Subscription` record: `starts_at`, auto-calculate `ends_at = starts_at + plan.duration_days`, status = active
   - Record payment: `payment_method`, amount, reference (if gateway)
@@ -455,16 +457,17 @@ public bool $isProcessing = false;
   - Store receipt path in subscription
   - Dispatch `SendSubscriptionReceiptEmail` job + `SendSubscriptionNotification` job
   - Update member status: if pending → active
-  - Update terminal whitelist: force sync card UIDs to all terminals
+  - Update terminal whitelist: placeholder sync job contract queued (full terminal sync infra pending)
   - Show success toast + emit `subscription-created` event
-- [ ] Add error handling: show inline errors for validation failures, payment failures, notification job failures
-- [ ] Test: form validation, payment recording, receipt generation, job dispatch, member status update
+- [x] Add error handling: show inline errors for validation failures, payment failures, notification job failures
+- [x] Test: form validation, payment recording, receipt generation, job dispatch, member status update
 
 **Deliverables:**
 - `/app/Livewire/Admin/Subscriptions/SubscriptionEnrollment.php`
 - `/resources/views/livewire/admin/subscriptions/subscription-enrollment.blade.php`
 - `/app/Jobs/SendSubscriptionReceiptEmail.php`
 - `/app/Jobs/SendSubscriptionNotification.php`
+- `/app/Jobs/SyncTerminalWhitelist.php` (placeholder sync contract)
 - `/tests/Feature/Livewire/SubscriptionEnrollmentTest.php` (form validation, payment recording, receipt generation, notification dispatch)
 
 #### 3.3 Build `SubscriptionSuspension` Livewire Component
@@ -483,28 +486,27 @@ public bool $requiresApproval = false; // for transfer
 **Component Actions:**
 - `suspend()` → freeze days_remaining, set suspended_at, update status, notify member
 - `resume()` → recalculate ends_at, clear suspension fields, update status, notify member
-- `transfer()` → Admin approval + identity verification, reassign subscription, audit log
+- `transfer()` → Admin approval + identity verification, mark source as transferred, create new active target subscription, audit log
 
 **Implementation:**
-- [ ] Create component; load subscription on mount
-- [ ] Build Blade template:
+- [x] Create component; load subscription on mount
+- [x] Build Blade template:
   - Action selector (radio: Suspend | Resume | Transfer)
   - Conditional fields:
     - **Suspend:** reason selector (medical | travel | other), confirmation checkbox, suspend button
     - **Resume:** show frozen days_remaining, resumed date (defaults now), resume button
     - **Transfer:** member search/picker (Flux UI), identity verification checklist, approve checkbox, transfer button
   - Alert: show current subscription state (active/suspended, dates, remaining days)
-- [ ] Implement action methods:
+- [x] Implement action methods:
   - `suspend()`: update `suspended_at = now()`, `days_remaining = $subscription->daysRemaining()`, status = suspended; dispatch notification job
   - `resume()`: update `ends_at = now() + days_remaining`, `resumed_at = now()`, clear suspension fields, status = active; dispatch notification job
-  - `transfer()`: validate new member exists, set `member_id = $newMemberId`, status = transferred, create audit log entry
-- [ ] Add toast feedback: success confirmations + error messages
-- [ ] Test: suspension/resumption calculations, transfer validation, notification dispatch, audit log creation
+  - `transfer()`: validate target member + approval, mark source transferred, create new active target subscription, create audit log entry
+- [x] Add toast feedback: success confirmations + error messages
+- [x] Test: suspension/resumption calculations, transfer validation, notification dispatch, audit log creation
 
 **Deliverables:**
 - `/app/Livewire/Admin/Subscriptions/SubscriptionSuspension.php`
 - `/resources/views/livewire/admin/subscriptions/subscription-suspension.blade.php`
-- `/app/Listeners/SubscriptionStatusChanged.php` (audit logging)
 - `/tests/Feature/Livewire/SubscriptionSuspensionTest.php` (suspend, resume, transfer, date calculations, event dispatch)
 
 #### 3.4 Build `ExpiringSubscriptionsView` Livewire Component
@@ -522,14 +524,14 @@ public int $touchedCount = 0; // tracks sent reminders
 - `sendReminder($subscriptionId)` → dispatch reminder email/push job, log action
 
 **Implementation:**
-- [ ] Create component; initial load in mount()
-- [ ] Build Blade template:
+- [x] Create component; initial load in mount()
+- [x] Build Blade template:
   - Flux UI alert box: "X subscriptions expiring in ≤ 7 days"
   - Table: member name, plan name, days remaining, renewal link
   - Bulk action: send reminder to all (button), tracks number of notifications sent
   - Empty state: "No expiring subscriptions in next 7 days"
-- [ ] Implement `sendReminder()`: dispatch notification job (email + push)
-- [ ] Test: query returns correct subscriptions, reminder jobs dispatched
+- [x] Implement `sendReminder()`: dispatch notification job (email + push placeholder metadata)
+- [x] Test: query returns correct subscriptions, reminder jobs dispatched
 
 **Deliverables:**
 - `/app/Livewire/Admin/Subscriptions/ExpiringSubscriptionsView.php`
@@ -538,13 +540,14 @@ public int $touchedCount = 0; // tracks sent reminders
 
 #### 3.5 Dashboard Integration
 
-- [ ] Add subscription routes
-- [ ] Create admin subscriptions dashboard page
-- [ ] Add breadcrumb navigation: Members → detail → Subscription Management
+- [x] Add subscription routes
+- [x] Create admin subscriptions dashboard page
+- [x] Add breadcrumb navigation: Members → detail → Subscription Management
 
 **Deliverables:**
 - `/routes/admin.php` (subscription routes)
 - `/resources/views/livewire/admin/subscriptions/dashboard.blade.php`
+- `/tests/Feature/Livewire/SubscriptionDashboardTest.php`
 
 ### Dependencies
 
@@ -553,11 +556,11 @@ public int $touchedCount = 0; // tracks sent reminders
 
 ### Deliverables
 
-- [ ] `SubscriptionEnrollment` component: plan selection, payment recording, receipt generation, instant member notification
-- [ ] `SubscriptionSuspension` component: suspend/resume calculations, transfer with approval
-- [ ] `ExpiringSubscriptionsView` component: 7-day expiry alerts, bulk reminder dispatch
+- [x] `SubscriptionEnrollment` component: plan selection, payment recording, receipt generation, instant member notification
+- [x] `SubscriptionSuspension` component: suspend/resume calculations, transfer with approval
+- [x] `ExpiringSubscriptionsView` component: 7-day expiry alerts, bulk reminder dispatch
 - [ ] Full test coverage: unit + integration on subscription logic, component workflows
-- [ ] Admin subscriptions dashboard: integrated pages with navigation
+- [x] Admin subscriptions dashboard: integrated pages with navigation
 
 ### Testing Strategy
 

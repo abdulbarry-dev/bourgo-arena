@@ -18,6 +18,9 @@
                     <flux:sidebar.item icon="user-group" :href="route('admin.members')" :current="request()->routeIs('admin.members')" wire:navigate>
                         {{ __('Members') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="credit-card" :href="route('admin.subscriptions')" :current="request()->routeIs('admin.subscriptions')" wire:navigate>
+                        {{ __('Subscriptions') }}
+                    </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 

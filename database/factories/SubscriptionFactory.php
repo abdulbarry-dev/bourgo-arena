@@ -48,4 +48,29 @@ class SubscriptionFactory extends Factory
             'days_remaining' => 10,
         ]);
     }
+
+    public function suspendedWithRemaining(int $days): static
+    {
+        return $this->state([
+            'status' => 'suspended',
+            'suspended_at' => now(),
+            'days_remaining' => max(0, $days),
+        ]);
+    }
+
+    public function expiringSoon(): static
+    {
+        return $this->state([
+            'status' => 'active',
+            'ends_at' => now()->addDays(7)->toDateString(),
+        ]);
+    }
+
+    public function expired(): static
+    {
+        return $this->state([
+            'status' => 'expired',
+            'ends_at' => now()->subDay()->toDateString(),
+        ]);
+    }
 }

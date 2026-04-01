@@ -1,0 +1,262 @@
+<?php
+
+namespace App\Livewire\Admin\Subscriptions;
+
+use App\Jobs\SendSubscriptionNotification;
+use App\Jobs\SyncTerminalWhitelist;
+use App\Models\Member;
+use App\Models\Subscription;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Collection;
+use Illuminate\Validation\Rule;
+use Illuminate\View\View;
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
+use Livewire\Component;
+
+class SubscriptionSuspension extends Component
+{
+    use AuthorizesRequests;
+
+    public ?int $subscriptionId = null;
+
+    public string $action = '';
+
+    public string $suspensionReason = '';
+
+    public ?int $transferToMemberId = null;
+
+    public bool $requiresApproval = false;
+
+    public function mount(?int $subscriptionId = null): void
+    {
+        $this->subscriptionId = $subscriptionId ?? session('subscriptions.selected_subscription_id');
+    }
+
+    #[On('subscription-selected')]
+    public function setSubscription(int $subscriptionId): void
+    {
+        $this->subscriptionId = $subscriptionId;
+        session(['subscriptions.selected_subscription_id' => $subscriptionId]);
+    }
+
+    public function suspend(): void
+    {
+        $this->authorize('suspend', Subscription::class);
+
+        $subscription = $this->selectedSubscription;
+
+        if ($subscription === null) {
+            $this->addError('subscriptionId', __('Select a subscription first.'));
+
+            return;
+        }
+
+        $this->validate($this->suspendRules());
+
+        if ($subscription->status !== 'active') {
+            $this->addError('subscriptionId', __('Only active subscriptions can be suspended.'));
+
+            return;
+        }
+
+        $subscription->suspend($this->suspensionReason, auth()->id());
+
+        SendSubscriptionNotification::dispatch(
+            $subscription->id,
+            'suspended',
+            null,
+            [
+                'push_intent' => true,
+                'push_status' => 'pending-infrastructure',
+                'reason' => $this->suspensionReason,
+            ],
+        );
+        SyncTerminalWhitelist::dispatch(
+            $subscription->member_id,
+            $subscription->id,
+            ['trigger' => 'subscription_suspended'],
+        );
+
+        $this->suspensionReason = '';
+        $this->action = '';
+
+        $this->dispatch('subscription-updated', subscriptionId: $subscription->id);
+        $this->dispatch('toast', message: 'Subscription suspended successfully', type: 'success');
+    }
+
+    public function resume(): void
+    {
+        $this->authorize('resume', Subscription::class);
+
+        $subscription = $this->selectedSubscription;
+
+        if ($subscription === null) {
+            $this->addError('subscriptionId', __('Select a subscription first.'));
+
+            return;
+        }
+
+        if ($subscription->status !== 'suspended') {
+            $this->addError('subscriptionId', __('Only suspended subscriptions can be resumed.'));
+
+            return;
+        }
+
+        $subscription->resume(auth()->id());
+
+        SendSubscriptionNotification::dispatch(
+            $subscription->id,
+            'resumed',
+            null,
+            [
+                'push_intent' => true,
+                'push_status' => 'pending-infrastructure',
+            ],
+        );
+        SyncTerminalWhitelist::dispatch(
+            $subscription->member_id,
+            $subscription->id,
+            ['trigger' => 'subscription_resumed'],
+        );
+
+        $this->action = '';
+
+        $this->dispatch('subscription-updated', subscriptionId: $subscription->id);
+        $this->dispatch('toast', message: 'Subscription resumed successfully', type: 'success');
+    }
+
+    public function transfer(): void
+    {
+        $this->authorize('transfer', Subscription::class);
+
+        $subscription = $this->selectedSubscription;
+
+        if ($subscription === null) {
+            $this->addError('subscriptionId', __('Select a subscription first.'));
+
+            return;
+        }
+
+        if (! in_array($subscription->status, ['active', 'suspended'], true)) {
+            $this->addError('subscriptionId', __('Only active or suspended subscriptions can be transferred.'));
+
+            return;
+        }
+
+        $this->validate($this->transferRules($subscription->member_id));
+
+        $oldMemberId = $subscription->member_id;
+        $newSubscription = $subscription->transfer((int) $this->transferToMemberId, auth()->id());
+
+        SendSubscriptionNotification::dispatch(
+            $subscription->id,
+            'transferred-from',
+            $oldMemberId,
+            [
+                'push_intent' => true,
+                'push_status' => 'pending-infrastructure',
+                'new_member_id' => $newSubscription->member_id,
+                'new_subscription_id' => $newSubscription->id,
+            ],
+        );
+        SendSubscriptionNotification::dispatch(
+            $newSubscription->id,
+            'transferred-to',
+            $newSubscription->member_id,
+            [
+                'push_intent' => true,
+                'push_status' => 'pending-infrastructure',
+                'from_member_id' => $oldMemberId,
+                'source_subscription_id' => $subscription->id,
+            ],
+        );
+
+        SyncTerminalWhitelist::dispatch(
+            $oldMemberId,
+            $subscription->id,
+            ['trigger' => 'subscription_transferred_from'],
+        );
+        SyncTerminalWhitelist::dispatch(
+            $newSubscription->member_id,
+            $newSubscription->id,
+            ['trigger' => 'subscription_transferred_to'],
+        );
+
+        $this->subscriptionId = $newSubscription->id;
+        session(['subscriptions.selected_subscription_id' => $newSubscription->id]);
+
+        $this->action = '';
+        $this->transferToMemberId = null;
+        $this->requiresApproval = false;
+
+        $this->dispatch('subscription-updated', subscriptionId: $newSubscription->id);
+        $this->dispatch('toast', message: 'Subscription transferred successfully', type: 'success');
+    }
+
+    #[Computed]
+    public function selectedSubscription(): ?Subscription
+    {
+        if ($this->subscriptionId === null) {
+            return null;
+        }
+
+        return Subscription::query()
+            ->with([
+                'member',
+                'plan',
+                'auditLogs' => function ($query): void {
+                    $query->with('performedBy')->limit(8);
+                },
+            ])
+            ->find($this->subscriptionId);
+    }
+
+    #[Computed]
+    public function availableMembers(): Collection
+    {
+        if ($this->selectedSubscription === null) {
+            return collect();
+        }
+
+        return Member::query()
+            ->whereNull('deleted_at')
+            ->whereKeyNot($this->selectedSubscription->member_id)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+    }
+
+    /**
+     * @return array<string, array<int, mixed>>
+     */
+    protected function suspendRules(): array
+    {
+        return [
+            'suspensionReason' => [
+                'required',
+                Rule::in(['medical', 'travel', 'other']),
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, array<int, mixed>>
+     */
+    protected function transferRules(int $currentMemberId): array
+    {
+        return [
+            'transferToMemberId' => [
+                'required',
+                'integer',
+                Rule::exists('members', 'id')->whereNull('deleted_at'),
+                Rule::notIn([$currentMemberId]),
+            ],
+            'requiresApproval' => ['accepted'],
+        ];
+    }
+
+    public function render(): View
+    {
+        return view('livewire.admin.subscriptions.subscription-suspension');
+    }
+}
