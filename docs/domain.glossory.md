@@ -18,6 +18,7 @@ A registered gym customer with a physical NFC card and a mobile app account.
 - Statuses: `pending` → `active` → `suspended` → `expired`
 - `pending`: registered but NFC card not yet assigned
 - RGPD consent timestamp is stored at registration
+- Member records are soft-deleted (`deleted_at`) to preserve operational and audit history
 
 ### Subscription
 

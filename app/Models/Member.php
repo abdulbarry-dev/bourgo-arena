@@ -8,12 +8,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 
 class Member extends Model
 {
     /** @use HasFactory<MemberFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -49,9 +50,42 @@ class Member extends Model
         return $this->hasMany(Subscription::class);
     }
 
+    public function activeSubscription(): HasOne
+    {
+        return $this->hasOne(Subscription::class)
+            ->where('status', 'active')
+            ->whereDate('ends_at', '>', now());
+    }
+
+    public function checkInEvents(): HasMany
+    {
+        return $this->hasMany(CheckInEvent::class);
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', 'active');
+    }
+
+    public function scopeByStatus(Builder $query, array|string $status): Builder
+    {
+        if (is_array($status)) {
+            return $query->whereIn('status', $status);
+        }
+
+        return $query->where('status', $status);
+    }
+
+    public function scopeByPlan(Builder $query, int $planId): Builder
+    {
+        return $query->whereHas('activeSubscription', function (Builder $query) use ($planId): void {
+            $query->where('plan_id', $planId);
+        });
+    }
+
+    public function scopeWithDetails(Builder $query): Builder
+    {
+        return $query->with(['activeSubscription', 'nfcCard']);
     }
 
     public function scopeSearchable(Builder $query, ?string $term): Builder

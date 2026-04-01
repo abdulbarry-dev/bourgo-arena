@@ -14,7 +14,7 @@ it('accepts ISAPI JSON payload for checkin', function () {
             'majorEventType' => 5,
             'subEventType' => 75,
             'currentVerifyMode' => 'card',
-        ]
+        ],
     ];
 
     $response = $this->withHeader('Authorization', 'Bearer valid-terminal-token')

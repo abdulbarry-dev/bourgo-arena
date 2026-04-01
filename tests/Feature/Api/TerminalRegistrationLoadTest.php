@@ -8,14 +8,14 @@ it('handles 50 rapid sequential terminal registrations', function () {
     for ($i = 0; $i < 50; $i++) {
         $response = $this->actingAs($admin)->postJson('/api/terminal-provisioning', [
             'name' => "Terminal {$i}",
-            'ip_address' => "10.0.0." . ($i + 1),
+            'ip_address' => '10.0.0.'.($i + 1),
             'serial_number' => "HKV-TERM-LOAD-{$i}",
             'location' => 'Load Test Location',
             'terminal_type' => 'entry',
         ]);
-        
+
         $response->assertCreated();
     }
-    
+
     $this->assertDatabaseCount('hikvision_terminals', 50);
 });

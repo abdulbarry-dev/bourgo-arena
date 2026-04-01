@@ -40,7 +40,10 @@ HikvisionTerminal ── CheckInEvent[]  (one-to-many)
 | `rgpd_consented_at`         | timestamp nullable                             | required before activation |
 | `password`                  | string                                         | hashed                     |
 | `remember_token`            | string nullable                                |                            |
+| `deleted_at`                | timestamp nullable                             | soft-delete marker         |
 | `created_at` / `updated_at` | timestamps                                     |                            |
+
+> Member records use soft deletes (`deleted_at`) to preserve historical subscriptions and check-in history.
 
 **Relationships:**
 

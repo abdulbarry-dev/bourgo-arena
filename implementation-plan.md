@@ -212,12 +212,12 @@ This phase delivers the primary member admin workflow, enabling managers to sear
 
 #### 2.1 Create Member Model Scopes & Queries
 
-- [x] Add `searchable()` scope: search by name (full-text), email, phone number
-- [x] Add `byStatus()` scope: filter by member status (pending, active, suspended, expired)
-- [x] Add `byPlan()` scope: filter by subscription plan ID
-- [x] Add eager-loading scope: `with('activeSubscription', 'nfcCard')` to prevent N+1
-- [x] Create member resource class: `MemberDetailResource` (profile + subscription + recent check-ins)
-- [x] Write scope tests: verify each scope produces expected SQL, returns correct records
+- [ ] Add `searchable()` scope: search by name (full-text), email, phone number
+- [ ] Add `byStatus()` scope: filter by member status (pending, active, suspended, expired)
+- [ ] Add `byPlan()` scope: filter by subscription plan ID
+- [ ] Add eager-loading scope: `with('activeSubscription', 'nfcCard')` to prevent N+1
+- [ ] Create member resource class: `MemberDetailResource` (profile + subscription + recent check-ins)
+- [ ] Write scope tests: verify each scope produces expected SQL, returns correct records
 
 **Deliverables:**
 - `/app/Models/Member.php` (scopes + relationships updated)
@@ -310,12 +310,12 @@ public string $cardStatus = 'active'; // active | suspended | lost
 - Member must exist and be in <= active state
 
 **Implementation:**
-- [x] Create component with UID input field (text or NFC scan compatible)
-- [x] Add real-time UID validation: check uniqueness on blur, show inline error if duplicate
-- [x] Build Blade template: UID input field, card status selector (Flux UI), assign button
-- [x] Implement assignment action: create NfcCard record, log event (assigned_by, assigned_at), update member status if pending → active, dispatch notification job
-- [x] Add success feedback: "Card assigned successfully — member notified"
-- [x] Test: verify UID validation, duplicate detection, event logging, member notification job dispatched
+- [ ] Create component with UID input field (text or NFC scan compatible)
+- [ ] Add real-time UID validation: check uniqueness on blur, show inline error if duplicate
+- [ ] Build Blade template: UID input field, card status selector (Flux UI), assign button
+- [ ] Implement assignment action: create NfcCard record, log event (assigned_by, assigned_at), update member status if pending → active, dispatch notification job
+- [ ] Add success feedback: "Card assigned successfully — member notified"
+- [ ] Test: verify UID validation, duplicate detection, event logging, member notification job dispatched
 
 **Deliverables:**
 - `/app/Livewire/Admin/Members/NfcCardAssignment.php`
@@ -325,10 +325,10 @@ public string $cardStatus = 'active'; // active | suspended | lost
 
 #### 2.5 Layout & Integration
 
-- [x] Create dashboard page: `resources/views/livewire/admin/members/dashboard.blade.php` (two-column: MemberTable + MemberDetailPanel)
-- [x] Add route: `Route::get('/admin/members', MemberTable::class)->role('admin', 'manager')->name('admin.members')`
-- [x] Implement responsive layout: full-width on desktop, stacked modal on mobile (MemberDetailPanel as modal)
-- [x] Test page load performance: < 2s initial load with 1000+ members
+- [ ] Create dashboard page: `resources/views/livewire/admin/members/dashboard.blade.php` (two-column: MemberTable + MemberDetailPanel)
+- [ ] Add route: `Route::get('/admin/members', MemberTable::class)->role('admin', 'manager')->name('admin.members')`
+- [ ] Implement responsive layout: full-width on desktop, stacked modal on mobile (MemberDetailPanel as modal)
+- [ ] Test page load performance: < 2s initial load with 1000+ members
 
 **Deliverables:**
 - `/resources/views/livewire/admin/members/dashboard.blade.php`
@@ -344,9 +344,9 @@ public string $cardStatus = 'active'; // active | suspended | lost
 
 - [x] `MemberTable` component: searchable, filterable, paginated, exports CSV
 - [x] `MemberDetailPanel` component: member profile, actions (suspend, activate, reset password), integrates with MemberTable
-- [x] `NfcCardAssignment` component: UID entry, duplicate validation, assignment logging
-- [x] Dashboard page: responsive two-column layout (desktop) / modal (mobile)
-- [x] Full test coverage: unit + integration + E2E on member workflows
+- [ ] `NfcCardAssignment` component: UID entry, duplicate validation, assignment logging
+- [ ] Dashboard page: responsive two-column layout (desktop) / modal (mobile)
+- [ ] Full test coverage: unit + integration + E2E on member workflows
 
 ### Testing Strategy
 
@@ -408,15 +408,15 @@ This phase delivers the transaction workflows: subscription creation, status tra
 
 #### 3.1 Create Subscription Model Scopes & Business Logic
 
-- [x] Add `active()` scope: where `status = active` AND `ends_at > now()`
-- [x] Add `expiring()` scope: `active()` AND `ends_at <= now() + 7 days`
-- [x] Create `calculateEndDate($startsAt, $durationDays)` method: returns exact end date (no timezone issues)
-- [x] Add `isActive()` getter: true if `status = active` AND `ends_at > now()`
-- [x] Add `daysRemaining()` getter: integer count of days until `ends_at`
-- [x] Create `suspend($reason)` method: freeze `days_remaining`, set `suspended_at`, update status
-- [x] Create `resume()` method: recalculate `ends_at = resumed_at + days_remaining`, clear suspension fields
-- [x] Create `transfer($newMemberId)` method: change `member_id`, set status = transferred, create audit log
-- [x] Write scope tests: verify SQL correctness, edge cases (today = expiry date, timezone handling)
+- [ ] Add `active()` scope: where `status = active` AND `ends_at > now()`
+- [ ] Add `expiring()` scope: `active()` AND `ends_at <= now() + 7 days`
+- [ ] Create `calculateEndDate($startsAt, $durationDays)` method: returns exact end date (no timezone issues)
+- [ ] Add `isActive()` getter: true if `status = active` AND `ends_at > now()`
+- [ ] Add `daysRemaining()` getter: integer count of days until `ends_at`
+- [ ] Create `suspend($reason)` method: freeze `days_remaining`, set `suspended_at`, update status
+- [ ] Create `resume()` method: recalculate `ends_at = resumed_at + days_remaining`, clear suspension fields
+- [ ] Create `transfer($newMemberId)` method: change `member_id`, set status = transferred, create audit log
+- [ ] Write scope tests: verify SQL correctness, edge cases (today = expiry date, timezone handling)
 
 **Deliverables:**
 - `/app/Models/Subscription.php` (scopes, methods, business logic)
@@ -440,14 +440,14 @@ public bool $isProcessing = false;
 - `enroll()` → validate form, create subscription, process payment, generate receipt, dispatch notification, update member status
 
 **Implementation:**
-- [x] Create component; load member on mount
-- [x] Build Blade template:
+- [ ] Create component; load member on mount
+- [ ] Build Blade template:
   - Plan selector (Flux UI select, populated from `Plan::where('is_archived', false)->orderBy('price')`)
   - Start date input (Flux UI date picker, default today)
   - Payment method selector (radio buttons: cash, konnect, paymee)
   - Conditional payment fields: if gateway method, show amount pre-filled, payment status
   - Enroll button (disabled during processing)
-- [x] Implement `enroll()` logic:
+- [ ] Implement `enroll()` logic:
   - Validate member exists, plan valid, dates correct
   - Create `Subscription` record: `starts_at`, auto-calculate `ends_at = starts_at + plan.duration_days`, status = active
   - Record payment: `payment_method`, amount, reference (if gateway)
@@ -457,8 +457,8 @@ public bool $isProcessing = false;
   - Update member status: if pending → active
   - Update terminal whitelist: force sync card UIDs to all terminals
   - Show success toast + emit `subscription-created` event
-- [x] Add error handling: show inline errors for validation failures, payment failures, notification job failures
-- [x] Test: form validation, payment recording, receipt generation, job dispatch, member status update
+- [ ] Add error handling: show inline errors for validation failures, payment failures, notification job failures
+- [ ] Test: form validation, payment recording, receipt generation, job dispatch, member status update
 
 **Deliverables:**
 - `/app/Livewire/Admin/Subscriptions/SubscriptionEnrollment.php`
@@ -486,20 +486,20 @@ public bool $requiresApproval = false; // for transfer
 - `transfer()` → Admin approval + identity verification, reassign subscription, audit log
 
 **Implementation:**
-- [x] Create component; load subscription on mount
-- [x] Build Blade template:
+- [ ] Create component; load subscription on mount
+- [ ] Build Blade template:
   - Action selector (radio: Suspend | Resume | Transfer)
   - Conditional fields:
     - **Suspend:** reason selector (medical | travel | other), confirmation checkbox, suspend button
     - **Resume:** show frozen days_remaining, resumed date (defaults now), resume button
     - **Transfer:** member search/picker (Flux UI), identity verification checklist, approve checkbox, transfer button
   - Alert: show current subscription state (active/suspended, dates, remaining days)
-- [x] Implement action methods:
+- [ ] Implement action methods:
   - `suspend()`: update `suspended_at = now()`, `days_remaining = $subscription->daysRemaining()`, status = suspended; dispatch notification job
   - `resume()`: update `ends_at = now() + days_remaining`, `resumed_at = now()`, clear suspension fields, status = active; dispatch notification job
   - `transfer()`: validate new member exists, set `member_id = $newMemberId`, status = transferred, create audit log entry
-- [x] Add toast feedback: success confirmations + error messages
-- [x] Test: suspension/resumption calculations, transfer validation, notification dispatch, audit log creation
+- [ ] Add toast feedback: success confirmations + error messages
+- [ ] Test: suspension/resumption calculations, transfer validation, notification dispatch, audit log creation
 
 **Deliverables:**
 - `/app/Livewire/Admin/Subscriptions/SubscriptionSuspension.php`
@@ -522,14 +522,14 @@ public int $touchedCount = 0; // tracks sent reminders
 - `sendReminder($subscriptionId)` → dispatch reminder email/push job, log action
 
 **Implementation:**
-- [x] Create component; initial load in mount()
-- [x] Build Blade template:
+- [ ] Create component; initial load in mount()
+- [ ] Build Blade template:
   - Flux UI alert box: "X subscriptions expiring in ≤ 7 days"
   - Table: member name, plan name, days remaining, renewal link
   - Bulk action: send reminder to all (button), tracks number of notifications sent
   - Empty state: "No expiring subscriptions in next 7 days"
-- [x] Implement `sendReminder()`: dispatch notification job (email + push)
-- [x] Test: query returns correct subscriptions, reminder jobs dispatched
+- [ ] Implement `sendReminder()`: dispatch notification job (email + push)
+- [ ] Test: query returns correct subscriptions, reminder jobs dispatched
 
 **Deliverables:**
 - `/app/Livewire/Admin/Subscriptions/ExpiringSubscriptionsView.php`
@@ -538,9 +538,9 @@ public int $touchedCount = 0; // tracks sent reminders
 
 #### 3.5 Dashboard Integration
 
-- [x] Add subscription routes
-- [x] Create admin subscriptions dashboard page
-- [x] Add breadcrumb navigation: Members → detail → Subscription Management
+- [ ] Add subscription routes
+- [ ] Create admin subscriptions dashboard page
+- [ ] Add breadcrumb navigation: Members → detail → Subscription Management
 
 **Deliverables:**
 - `/routes/admin.php` (subscription routes)
@@ -553,11 +553,11 @@ public int $touchedCount = 0; // tracks sent reminders
 
 ### Deliverables
 
-- [x] `SubscriptionEnrollment` component: plan selection, payment recording, receipt generation, instant member notification
-- [x] `SubscriptionSuspension` component: suspend/resume calculations, transfer with approval
-- [x] `ExpiringSubscriptionsView` component: 7-day expiry alerts, bulk reminder dispatch
-- [x] Full test coverage: unit + integration on subscription logic, component workflows
-- [x] Admin subscriptions dashboard: integrated pages with navigation
+- [ ] `SubscriptionEnrollment` component: plan selection, payment recording, receipt generation, instant member notification
+- [ ] `SubscriptionSuspension` component: suspend/resume calculations, transfer with approval
+- [ ] `ExpiringSubscriptionsView` component: 7-day expiry alerts, bulk reminder dispatch
+- [ ] Full test coverage: unit + integration on subscription logic, component workflows
+- [ ] Admin subscriptions dashboard: integrated pages with navigation
 
 ### Testing Strategy
 
@@ -620,12 +620,12 @@ This phase delivers operational dashboards: live occupancy counters, check-in ev
 
 #### 4.1 Implement Real-Time WebSocket Infrastructure
 
-- [x] Configure Laravel Echo + Pusher or equivalent (Reverb for local development)
-- [x] Set up WebSocket server (Redis backed message queue)
-- [x] Create `CheckInProcessed` broadcast event: fired when check-in is authorized or denied
-- [x] Implement terminal webhook receiver (from Phase 1); parse ISAPI payload → create CheckInEvent + broadcast
-- [x] Store broadcast credentials in `.env` (BROADCAST_DRIVER, BROADCAST_HOST, etc.)
-- [x] Test WebSocket under load: 50+ concurrent connections, < 1s message latency
+- [ ] Configure Laravel Echo + Pusher or equivalent (Reverb for local development)
+- [ ] Set up WebSocket server (Redis backed message queue)
+- [ ] Create `CheckInProcessed` broadcast event: fired when check-in is authorized or denied
+- [ ] Implement terminal webhook receiver (from Phase 1); parse ISAPI payload → create CheckInEvent + broadcast
+- [ ] Store broadcast credentials in `.env` (BROADCAST_DRIVER, BROADCAST_HOST, etc.)
+- [ ] Test WebSocket under load: 50+ concurrent connections, < 1s message latency
 
 **Deliverables:**
 - `/config/broadcasting.php` (WebSocket configuration)
@@ -654,16 +654,16 @@ public bool $isWebSocketConnected = false;
 Uses `#[On('echo:checkins,CheckInProcessed')]` listener — updates recentEvents + occupancyCount + alerts without full page reload
 
 **Implementation:**
-- [x] Create component with WebSocket listener
-- [x] Build Blade template:
+- [ ] Create component with WebSocket listener
+- [ ] Build Blade template:
   - **Header:** occupancy counter (large number + icon), WebSocket status badge (green = connected, red = disconnected)
   - **Recent Events List:** 20 most recent check-ins (member name, result icon green/red, time, terminal, denial reason if denied)
   - **Terminal Status Grid:** card per terminal (name, online/offline, last seen timestamp)
   - **Alerts Section:** list of terminals with > 3 denials in last 5 min, each with acknowledge button
   - **Empty State:** "No check-ins yet today"
-- [x] Implement WebSocket listener: update recentEvents + occupancyCount on CheckInProcessed event
-- [x] Add polling fallback: if WebSocket disconnects, poll `/api/check-in/recent` every 5 sec to maintain fresh data
-- [x] Test: occupancy count accuracy, WebSocket message delivery, fallback polling, alert triggering
+- [ ] Implement WebSocket listener: update recentEvents + occupancyCount on CheckInProcessed event
+- [ ] Add polling fallback: if WebSocket disconnects, poll `/api/check-in/recent` every 5 sec to maintain fresh data
+- [ ] Test: occupancy count accuracy, WebSocket message delivery, fallback polling, alert triggering
 
 **Deliverables:**
 - `/app/Livewire/Admin/AccessControl/CheckInMonitor.php`
@@ -689,19 +689,19 @@ public int $perPage = 50;
 - `exportPdf()` → generate PDF report of filtered events
 
 **Implementation:**
-- [x] Create component with date range pickers (Flux UI), member search, result filter
-- [x] Build Blade template:
+- [ ] Create component with date range pickers (Flux UI), member search, result filter
+- [ ] Build Blade template:
   - Filter controls (Flux UI field, input, select)
   - Table: member name, card UID, timestamp, result (Authorized/Denied), terminal name, denial reason (if denied)
   - Pagination: 50 records per page
   - Export buttons (CSV + PDF)
   - Empty state: "No check-in events for selected filters"
-- [x] Implement queries: CheckInEvent scoped by date, member, result with eager-loaded relations
-- [x] Implement exports:
+- [ ] Implement queries: CheckInEvent scoped by date, member, result with eager-loaded relations
+- [ ] Implement exports:
   - CSV: tab-separated, includes all columns
   - PDF: branded report template, date range header, total count summary
-- [x] Add audit note: "This log is immutable — records cannot be modified or deleted"
-- [x] Test: filter accuracy, export generation, no N+1 queries
+- [ ] Add audit note: "This log is immutable — records cannot be modified or deleted"
+- [ ] Test: filter accuracy, export generation, no N+1 queries
 
 **Deliverables:**
 - `/app/Livewire/Admin/AccessControl/AuditLog.php`
@@ -712,14 +712,14 @@ public int $perPage = 50;
 
 #### 4.4 Implement Anti-Passback Fraud Detection
 
-- [x] Create `AntiPassbackRule` service: detects consecutive entries (no exit between)
-- [x] Implement check-in event processing:
-  - [x] Track last check-in event per card UID (entry or exit status)
-  - [x] On new event: if terminal_type = entry AND last event of same card = entry (no exit), flag as suspicious
-  - [x] Create alert: `anti_passback_triggered` event broadcast to admin dashboard
-  - [x] Auto-suspend card after 3 consecutive suspicious events (pending review status)
-- [x] Add review workflow: admin can Dismiss (clear flag) or Escalate (permanent suspension)
-- [x] Write anti-passback tests: consecutive entry detection, alert triggering, auto-suspension
+- [ ] Create `AntiPassbackRule` service: detects consecutive entries (no exit between)
+- [ ] Implement check-in event processing:
+  - [ ] Track last check-in event per card UID (entry or exit status)
+  - [ ] On new event: if terminal_type = entry AND last event of same card = entry (no exit), flag as suspicious
+  - [ ] Create alert: `anti_passback_triggered` event broadcast to admin dashboard
+  - [ ] Auto-suspend card after 3 consecutive suspicious events (pending review status)
+- [ ] Add review workflow: admin can Dismiss (clear flag) or Escalate (permanent suspension)
+- [ ] Write anti-passback tests: consecutive entry detection, alert triggering, auto-suspension
 
 **Deliverables:**
 - `/app/Services/AntiPassbackRule.php` (detection logic)
@@ -740,13 +740,13 @@ public Collection $alerts; // suspicious events not yet reviewed
 - `escalate($cardUid)` → permanently suspend card, notify member
 
 **Implementation:**
-- [x] Create component; listen to `anti-passback-triggered` event for real-time updates
-- [x] Build Blade template:
+- [ ] Create component; listen to `anti-passback-triggered` event for real-time updates
+- [ ] Build Blade template:
   - Alert list: member name, card UID, event count, most recent event time, action buttons (Dismiss | Escalate)
   - Empty state: "No suspicious activities detected"
   - Batch action: "Dismiss all" button
-- [x] Implement dismiss/escalate: update card status, log admin action, dispatch notification job
-- [x] Test: alert creation, dismiss logic, escalation logic, card suspension
+- [ ] Implement dismiss/escalate: update card status, log admin action, dispatch notification job
+- [ ] Test: alert creation, dismiss logic, escalation logic, card suspension
 
 **Deliverables:**
 - `/app/Livewire/Admin/AccessControl/AntiPassbackAlerts.php`
@@ -755,9 +755,9 @@ public Collection $alerts; // suspicious events not yet reviewed
 
 #### 4.6 Dashboard Integration
 
-- [x] Create access control dashboard: CheckInMonitor (top) + AuditLog tab + AntiPassbackAlerts tab
-- [x] Add real-time refresh for monitoring area (WebSocket-driven)
-- [x] Add breadcrumb navigation
+- [ ] Create access control dashboard: CheckInMonitor (top) + AuditLog tab + AntiPassbackAlerts tab
+- [ ] Add real-time refresh for monitoring area (WebSocket-driven)
+- [ ] Add breadcrumb navigation
 
 **Deliverables:**
 - `/resources/views/livewire/admin/access-control/dashboard.blade.php`
@@ -770,12 +770,12 @@ public Collection $alerts; // suspicious events not yet reviewed
 
 ### Deliverables
 
-- [x] `CheckInMonitor` component: real-time feed, occupancy counter, terminal status, alerts
-- [x] `AuditLog` component: immutable event log with filters, CSV + PDF export
-- [x] `AntiPassbackAlerts` component: suspicious event queue with dismiss/escalate actions
-- [x] Anti-passback fraud detection service + queued jobs
-- [x] Full test coverage: unit + integration + real-time WebSocket tests
-- [x] Admin access control dashboard: integrated pages with navigation
+- [ ] `CheckInMonitor` component: real-time feed, occupancy counter, terminal status, alerts
+- [ ] `AuditLog` component: immutable event log with filters, CSV + PDF export
+- [ ] `AntiPassbackAlerts` component: suspicious event queue with dismiss/escalate actions
+- [ ] Anti-passback fraud detection service + queued jobs
+- [ ] Full test coverage: unit + integration + real-time WebSocket tests
+- [ ] Admin access control dashboard: integrated pages with navigation
 
 ### Testing Strategy
 
@@ -867,15 +867,15 @@ public int $expiredSubscriptions = 0;
 - **Payment Method Breakdown:** cash vs konnect vs paymee (pie chart)
 
 **Implementation:**
-- [x] Create component with date range pickers
-- [x] Build Blade template:
+- [ ] Create component with date range pickers
+- [ ] Build Blade template:
   - KPI cards: Monthly Revenue, Churn Rate, Active Subscriptions, Expired Subscriptions
   - Charts: Revenue trend (bar), Status breakdown (donut), Top plans (bar), Payment methods (pie)
   - Filter controls: date range
   - Export buttons: PDF + CSV
-- [x] Implement data loading: Subscription query with aggregations; support large datasets (10,000+ records) efficiently
-- [x] Add Chart.js integration via Alpine.js or Livewire component prop
-- [x] Test: KPI accuracy, chart data correctness, export generation, performance
+- [ ] Implement data loading: Subscription query with aggregations; support large datasets (10,000+ records) efficiently
+- [ ] Add Chart.js integration via Alpine.js or Livewire component prop
+- [ ] Test: KPI accuracy, chart data correctness, export generation, performance
 
 **Deliverables:**
 - `/app/Livewire/Admin/Analytics/RevenueAnalytics.php`
@@ -903,15 +903,15 @@ public ?int $hourFilter = null; // 0–17 (06:00–23:00)
 - Occupancy % = (concurrent members / assumed capacity 100) × 100, capped at 100%
 
 **Implementation:**
-- [x] Create component; load heatmap data on mount
-- [x] Build Blade template:
+- [ ] Create component; load heatmap data on mount
+- [ ] Build Blade template:
   - Heatmap grid: 7 rows (Mon–Sun) × 18 columns (06:00–23:00)
   - Color intensity: 0% white → 50% light → 100% dark
   - Tooltip on hover: "Monday 09:00 – 47 members (47%)"
   - Filter controls: day picker, hour picker (optional)
   - Export button: PDF (print-friendly grid)
-- [x] Implement data loading: CheckInEvent aggregation query; cache results (valid for 1 hour)
-- [x] Test: occupancy calculation accuracy, heatmap rendering, export quality
+- [ ] Implement data loading: CheckInEvent aggregation query; cache results (valid for 1 hour)
+- [ ] Test: occupancy calculation accuracy, heatmap rendering, export quality
 
 **Deliverables:**
 - `/app/Livewire/Admin/Analytics/OccupancyHeatmap.php`
@@ -937,18 +937,18 @@ public string $viewMode = 'calendar'; // calendar | list
 - `removeEnrollment($bookingId)` → cancel specific member's booking, notify waitlisted next member if applicable
 
 **Implementation:**
-- [x] Create component; load sessions on mount
-- [x] Build Blade template:
+- [ ] Create component; load sessions on mount
+- [ ] Build Blade template:
   - **Calendar View:** 7-column grid (Mon–Sun), time rows (06:00–23:00), session blocks showing class name + enrolled count / capacity
   - **List View:** table with Name, Instructor, Day, Time, Duration, Capacity, Enrolled, Actions
   - **Detail Panel:** session form (name, instructor, day, time, duration, capacity), enrolled members list, action buttons (edit, cancel, export)
   - **Modals:** create session modal, edit session modal, cancel confirmation, removal confirmation
-- [x] Implement CRUD actions:
+- [ ] Implement CRUD actions:
   - Create: validate capacity > 0, time slot not overlapping; create CourseSession record
   - Edit: update session (cannot change time retroactively if past sessions exist; update future only)
   - Cancel: set `is_cancelled = true`, `cancelled_at = now()`, dispatch notification job to all enrolled members
   - Remove enrollment: cancel booking, check waitlist for next member, notify if promoted from waitlist
-- [x] Test: session creation, edit validation, cancellation notifications, enrollment removal
+- [ ] Test: session creation, edit validation, cancellation notifications, enrollment removal
 
 **Deliverables:**
 - `/app/Livewire/Admin/Scheduling/CourseSchedule.php`
@@ -959,9 +959,9 @@ public string $viewMode = 'calendar'; // calendar | list
 
 #### 5.4 Dashboard Integration
 
-- [x] Create analytics dashboard: RevenueAnalytics + OccupancyHeatmap tabs
-- [x] Create scheduling dashboard: CourseSchedule page
-- [x] Add breadcrumb navigation
+- [ ] Create analytics dashboard: RevenueAnalytics + OccupancyHeatmap tabs
+- [ ] Create scheduling dashboard: CourseSchedule page
+- [ ] Add breadcrumb navigation
 
 **Deliverables:**
 - `/resources/views/livewire/admin/analytics/dashboard.blade.php`
@@ -975,11 +975,11 @@ public string $viewMode = 'calendar'; // calendar | list
 
 ### Deliverables
 
-- [x] `RevenueAnalytics` component: KPI cards, trend charts, export (PDF + CSV)
-- [x] `OccupancyHeatmap` component: 7-day × hourly grid, tooltips, export
-- [x] `CourseSchedule` component: calendar view, CRUD operations, enrollment management
-- [x] Full test coverage: unit + integration on all calculations and workflows
-- [x] Admin analytics + scheduling dashboards: integrated pages with navigation
+- [ ] `RevenueAnalytics` component: KPI cards, trend charts, export (PDF + CSV)
+- [ ] `OccupancyHeatmap` component: 7-day × hourly grid, tooltips, export
+- [ ] `CourseSchedule` component: calendar view, CRUD operations, enrollment management
+- [ ] Full test coverage: unit + integration on all calculations and workflows
+- [ ] Admin analytics + scheduling dashboards: integrated pages with navigation
 
 ### Testing Strategy
 
@@ -1043,15 +1043,15 @@ This phase is non-blocking and can run in parallel with Phase 5. Focuses on oper
 **Objective:** Offload heavy tasks (emails, notifications, report generation) to queues; keep API response times under 500ms.
 
 **Tasks:**
-- [x] Configure Redis for queue backend (already in project? verify `config/queue.php`)
-- [x] Set up separate job queues: `default` (high priority), `notifications` (medium), `reports` (low priority)
-- [x] Install Laravel Horizon: `composer require laravel/horizon`
-- [x] Configure Horizon dashboard: `/admin/horizon` (only admin access via middleware)
-- [x] Implement failed job handler: retry logic (up to 3 attempts), dead-letter queue for persistent failures
-- [x] Create job list: all notification, email, report generation, terminal sync jobs with retry counts
-- [x] Add health monitoring: Horizon dashboard alert if queue depth > 1000 or failed jobs accumulating
-- [x] Document queue architecture: job priorities, estimated processing times, monitoring procedures
-- [x] Test: dispatch 1000 jobs across queues, verify processing within SLA, check Horizon dashboard
+- [ ] Configure Redis for queue backend (already in project? verify `config/queue.php`)
+- [ ] Set up separate job queues: `default` (high priority), `notifications` (medium), `reports` (low priority)
+- [ ] Install Laravel Horizon: `composer require laravel/horizon`
+- [ ] Configure Horizon dashboard: `/admin/horizon` (only admin access via middleware)
+- [ ] Implement failed job handler: retry logic (up to 3 attempts), dead-letter queue for persistent failures
+- [ ] Create job list: all notification, email, report generation, terminal sync jobs with retry counts
+- [ ] Add health monitoring: Horizon dashboard alert if queue depth > 1000 or failed jobs accumulating
+- [ ] Document queue architecture: job priorities, estimated processing times, monitoring procedures
+- [ ] Test: dispatch 1000 jobs across queues, verify processing within SLA, check Horizon dashboard
 
 **Deliverables:**
 - `/config/queue.php` (queue configuration + retry policies)
@@ -1065,18 +1065,18 @@ This phase is non-blocking and can run in parallel with Phase 5. Focuses on oper
 **Objective:** Nightly database backups with disaster recovery capability; 30/12/3 retention policy.
 
 **Tasks:**
-- [x] Create `DatabaseBackup` scheduled command (Laravel artisan command)
-- [x] Implement backup logic:
-  - [x] Nightly dump at 02:00 UTC (MySQL dump or Laravel backup package)
-  - [x] Encrypt backup (GPG or similar)
-  - [x] Upload to S3 or equivalent remote storage
-  - [x] Tag backup with timestamp + environment (staging/production)
-  - [x] Cleanup old backups per policy (30 daily / 12 weekly / 3 monthly)
-- [x] Schedule via `app/Console/Kernel.php`: `$schedule->command('backup:database')->dailyAt('02:00');`
-- [x] Implement restore procedure: documented steps + test restore quarterly
-- [x] Email backup success/failure to ops team
-- [x] Add monitoring: alert if backup > 24 hrs overdue
-- [x] Test: create backup, verify size/integrity, restore to separate DB, verify data completeness
+- [ ] Create `DatabaseBackup` scheduled command (Laravel artisan command)
+- [ ] Implement backup logic:
+  - [ ] Nightly dump at 02:00 UTC (MySQL dump or Laravel backup package)
+  - [ ] Encrypt backup (GPG or similar)
+  - [ ] Upload to S3 or equivalent remote storage
+  - [ ] Tag backup with timestamp + environment (staging/production)
+  - [ ] Cleanup old backups per policy (30 daily / 12 weekly / 3 monthly)
+- [ ] Schedule via `app/Console/Kernel.php`: `$schedule->command('backup:database')->dailyAt('02:00');`
+- [ ] Implement restore procedure: documented steps + test restore quarterly
+- [ ] Email backup success/failure to ops team
+- [ ] Add monitoring: alert if backup > 24 hrs overdue
+- [ ] Test: create backup, verify size/integrity, restore to separate DB, verify data completeness
 
 **Deliverables:**
 - `/app/Console/Commands/BackupDatabaseCommand.php`
@@ -1090,22 +1090,22 @@ This phase is non-blocking and can run in parallel with Phase 5. Focuses on oper
 **Objective:** Ensure admin dashboard queries stay under SLA (< 500ms for check-in, < 2s for analytics).
 
 **Tasks:**
-- [x] Audit all Livewire component queries: run with `DB::enableQueryLog()`, identify N+1 issues
-- [x] Add eager-loading scopes to models (Member, Subscription, CheckInEvent, HikvisionTerminal)
-- [x] Create database indexes on frequently queried columns:
-  - [x] `members.status`, `members.email`
-  - [x] `subscriptions.status`, `subscriptions.ends_at`
-  - [x] `check_in_events.created_at`, `check_in_events.terminal_id`
-  - [x] `nfc_cards.member_id`, `nfc_cards.status`
-  - [x] Run EXPLAIN on each major query; verify index usage
-- [x] Implement caching layer:
-  - [x] Cache member list queries (valid 5 min)
-  - [x] Cache occupancy heatmap (valid 1 hour)
-  - [x] Cache KPI calculations (valid 1 hour)
-  - [x] Add manual cache invalidation on data changes
-- [x] Profile memory usage: verify Livewire component memory < 5MB per instance
-- [x] Stress test: 100 concurrent users on dashboard, verify response times < 2s
-- [x] Document cache invalidation strategy: when to bust cache on data mutations
+- [ ] Audit all Livewire component queries: run with `DB::enableQueryLog()`, identify N+1 issues
+- [ ] Add eager-loading scopes to models (Member, Subscription, CheckInEvent, HikvisionTerminal)
+- [ ] Create database indexes on frequently queried columns:
+  - [ ] `members.status`, `members.email`
+  - [ ] `subscriptions.status`, `subscriptions.ends_at`
+  - [ ] `check_in_events.created_at`, `check_in_events.terminal_id`
+  - [ ] `nfc_cards.member_id`, `nfc_cards.status`
+  - [ ] Run EXPLAIN on each major query; verify index usage
+- [ ] Implement caching layer:
+  - [ ] Cache member list queries (valid 5 min)
+  - [ ] Cache occupancy heatmap (valid 1 hour)
+  - [ ] Cache KPI calculations (valid 1 hour)
+  - [ ] Add manual cache invalidation on data changes
+- [ ] Profile memory usage: verify Livewire component memory < 5MB per instance
+- [ ] Stress test: 100 concurrent users on dashboard, verify response times < 2s
+- [ ] Document cache invalidation strategy: when to bust cache on data mutations
 
 **Deliverables:**
 - Database indexes created (migrations)
@@ -1118,15 +1118,15 @@ This phase is non-blocking and can run in parallel with Phase 5. Focuses on oper
 **Objective:** Ensure safe, automated deployments with automatic rollback on test failure.
 
 **Tasks:**
-- [x] Add code coverage reporting: Pest + coverage report to PR (target > 80%)
-- [x] Add performance regression testing: compare request times vs baseline; fail if > 10% slower
-- [x] Add dependency vulnerability scanning: `composer audit` in CI, fail if vulnerabilities found
-- [x] Implement database migration safety: pre-production backup before migration, rollback on failure
-- [x] Add secrets rotation: monthly reminder to rotate API keys; automated key rotation for non-critical keys
-- [x] Create deployment checklist: pre-deploy validation (migrations dry-run, config validation, health checks)
-- [x] Implement blue-green deployment (if infrastructure allows) or rolling deployment
-- [x] Add post-deployment smoke tests: verify key admin pages load, health checks pass
-- [x] Document rollback procedure: git tag strategy, database rollback steps
+- [ ] Add code coverage reporting: Pest + coverage report to PR (target > 80%)
+- [ ] Add performance regression testing: compare request times vs baseline; fail if > 10% slower
+- [ ] Add dependency vulnerability scanning: `composer audit` in CI, fail if vulnerabilities found
+- [ ] Implement database migration safety: pre-production backup before migration, rollback on failure
+- [ ] Add secrets rotation: monthly reminder to rotate API keys; automated key rotation for non-critical keys
+- [ ] Create deployment checklist: pre-deploy validation (migrations dry-run, config validation, health checks)
+- [ ] Implement blue-green deployment (if infrastructure allows) or rolling deployment
+- [ ] Add post-deployment smoke tests: verify key admin pages load, health checks pass
+- [ ] Document rollback procedure: git tag strategy, database rollback steps
 
 **Deliverables:**
 - Updated `.github/workflows/{test, deploy}.yml` with coverage, performance, vulnerability checks
@@ -1136,10 +1136,10 @@ This phase is non-blocking and can run in parallel with Phase 5. Focuses on oper
 
 #### 6.5 Optimization Audit & Documentation
 
-- [x] Run full application audit: performance profiling, memory leaks, database efficiency
-- [x] Document performance baselines: key metrics (check-in latency, dashboard load time, bulk operation time)
-- [x] Create monitoring dashboard: Horizon queue depth, backup job status, database size trend, API response times
-- [x] Write optimization runbook: how to identify and fix common performance bottlenecks
+- [ ] Run full application audit: performance profiling, memory leaks, database efficiency
+- [ ] Document performance baselines: key metrics (check-in latency, dashboard load time, bulk operation time)
+- [ ] Create monitoring dashboard: Horizon queue depth, backup job status, database size trend, API response times
+- [ ] Write optimization runbook: how to identify and fix common performance bottlenecks
 
 **Deliverables:**
 - `/docs/PERFORMANCE_BASELINES.md` (target metrics, measurement procedures)
@@ -1152,13 +1152,13 @@ This phase is non-blocking and can run in parallel with Phase 5. Focuses on oper
 
 ### Deliverables
 
-- [x] Laravel Horizon deployed; queue monitoring dashboard accessible
-- [x] Automated backup system running nightly; restore procedure tested quarterly
-- [x] Database indexes created; queries optimized (no N+1, eager-loading applied)
-- [x] Caching layer implemented; cache invalidation strategy documented
-- [x] CI/CD pipelines enhanced with coverage, performance, security checks
-- [x] Performance baselines documented; monitoring dashboard set up
-- [x] Deployment procedures automated; blue-green or rolling deployment implemented
+- [ ] Laravel Horizon deployed; queue monitoring dashboard accessible
+- [ ] Automated backup system running nightly; restore procedure tested quarterly
+- [ ] Database indexes created; queries optimized (no N+1, eager-loading applied)
+- [ ] Caching layer implemented; cache invalidation strategy documented
+- [ ] CI/CD pipelines enhanced with coverage, performance, security checks
+- [ ] Performance baselines documented; monitoring dashboard set up
+- [ ] Deployment procedures automated; blue-green or rolling deployment implemented
 
 ### Testing Strategy
 
