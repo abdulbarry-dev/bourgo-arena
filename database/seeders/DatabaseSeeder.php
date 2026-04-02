@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
             ManagerUserSeeder::class,
             AdminUserSeeder::class,
             PlanCatalogSeeder::class,
-            PhaseThreeDemoSeeder::class,
+            SubscriptionLifecycleSeeder::class,
         ]);
     }
 }

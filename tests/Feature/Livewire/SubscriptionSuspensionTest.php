@@ -32,6 +32,7 @@ test('manager can suspend an active subscription and queue notifications', funct
         ->set('subscriptionId', $subscription->id)
         ->set('action', 'suspend')
         ->set('suspensionReason', 'medical')
+        ->set('confirmSuspension', true)
         ->call('suspend')
         ->assertHasNoErrors()
         ->assertDispatched('subscription-updated', subscriptionId: $subscription->id);
@@ -110,6 +111,47 @@ test('manager can resume a suspended subscription and restore remaining days', f
     );
 
     Carbon::setTestNow();
+});
+
+test('suspension requires explicit confirmation checkbox', function () {
+    $manager = User::factory()->manager()->create();
+    $subscription = Subscription::factory()->create([
+        'status' => 'active',
+        'ends_at' => now()->addDays(10)->toDateString(),
+    ]);
+
+    $this->actingAs($manager);
+
+    Livewire::test(SubscriptionSuspension::class)
+        ->set('subscriptionId', $subscription->id)
+        ->set('action', 'suspend')
+        ->set('suspensionReason', 'medical')
+        ->set('confirmSuspension', false)
+        ->call('suspend')
+        ->assertHasErrors(['confirmSuspension']);
+});
+
+test('member selection loads active subscription context for suspension actions', function () {
+    $manager = User::factory()->manager()->create();
+    $member = Member::factory()->create(['status' => 'active']);
+
+    $activeSubscription = Subscription::factory()->create([
+        'member_id' => $member->id,
+        'status' => 'active',
+        'ends_at' => now()->addDays(20)->toDateString(),
+    ]);
+
+    Subscription::factory()->create([
+        'member_id' => $member->id,
+        'status' => 'suspended',
+        'days_remaining' => 5,
+    ]);
+
+    $this->actingAs($manager);
+
+    Livewire::test(SubscriptionSuspension::class)
+        ->call('setSubscriptionFromMember', $member->id)
+        ->assertSet('subscriptionId', $activeSubscription->id);
 });
 
 test('admin can transfer subscription to another member with approval confirmation', function () {
@@ -196,6 +238,36 @@ test('manager cannot transfer subscription', function () {
         ->set('requiresApproval', true)
         ->call('transfer')
         ->assertForbidden();
+});
+
+test('cannot transfer subscription to a member with an active subscription', function () {
+    $admin = User::factory()->admin()->create();
+    $sourceMember = Member::factory()->create(['status' => 'active']);
+    $targetMember = Member::factory()->create(['status' => 'active']);
+    $plan = Plan::factory()->create();
+
+    $subscription = Subscription::factory()->create([
+        'member_id' => $sourceMember->id,
+        'status' => 'active',
+        'plan_id' => $plan->id,
+    ]);
+
+    Subscription::factory()->create([
+        'member_id' => $targetMember->id,
+        'status' => 'active',
+        'plan_id' => $plan->id,
+        'ends_at' => now()->addDays(15)->toDateString(),
+    ]);
+
+    $this->actingAs($admin);
+
+    Livewire::test(SubscriptionSuspension::class)
+        ->set('subscriptionId', $subscription->id)
+        ->set('action', 'transfer')
+        ->set('transferToMemberId', $targetMember->id)
+        ->set('requiresApproval', true)
+        ->call('transfer')
+        ->assertHasErrors(['transferToMemberId']);
 });
 
 test('transfer requires explicit approval confirmation', function () {

@@ -223,13 +223,23 @@ it('transfer validates target member and source state', function () {
 
     $admin = User::factory()->admin()->create();
     $targetMember = Member::factory()->active()->create();
+    $occupiedTargetMember = Member::factory()->active()->create();
     $active = Subscription::factory()->create(['status' => 'active', 'ends_at' => '2026-04-20']);
     $expired = Subscription::factory()->expired()->create();
+
+    Subscription::factory()->create([
+        'member_id' => $occupiedTargetMember->id,
+        'status' => 'active',
+        'ends_at' => '2026-04-25',
+    ]);
 
     expect(fn () => $active->transfer($active->member_id, $admin->id))
         ->toThrow(InvalidArgumentException::class);
 
     expect(fn () => $active->transfer(999999, $admin->id))
+        ->toThrow(InvalidArgumentException::class);
+
+    expect(fn () => $active->transfer($occupiedTargetMember->id, $admin->id))
         ->toThrow(InvalidArgumentException::class);
 
     expect(fn () => $expired->transfer($targetMember->id, $admin->id))

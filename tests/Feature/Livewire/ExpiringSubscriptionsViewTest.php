@@ -54,6 +54,7 @@ test('expiring subscriptions view only lists active subscriptions ending within 
     Livewire::test(ExpiringSubscriptionsView::class)
         ->assertSee('Expiring Soon Member')
         ->assertSee('Boundary Member')
+        ->assertSee(route('admin.members', ['member' => $expiringMember->id]))
         ->assertDontSee('Future Member')
         ->assertDontSee('Suspended Member')
         ->assertSet('touchedCount', 0);

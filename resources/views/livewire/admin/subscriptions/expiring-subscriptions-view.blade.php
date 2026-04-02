@@ -52,10 +52,20 @@
                                 <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ $subscription->ends_at?->toDateString() }}</td>
                                 <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ $subscription->daysRemaining() }}</td>
                                 <td class="px-4 py-3">
-                                    <flux:button wire:click="sendReminder({{ $subscription->id }})" wire:loading.attr="disabled" wire:target="sendReminder({{ $subscription->id }})" size="sm">
-                                        <span wire:loading.remove wire:target="sendReminder({{ $subscription->id }})">{{ __('Send Reminder') }}</span>
-                                        <span wire:loading wire:target="sendReminder({{ $subscription->id }})">{{ __('Queueing...') }}</span>
-                                    </flux:button>
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <flux:button wire:click="sendReminder({{ $subscription->id }})" wire:loading.attr="disabled" wire:target="sendReminder({{ $subscription->id }})" size="sm">
+                                            <span wire:loading.remove wire:target="sendReminder({{ $subscription->id }})">{{ __('Send Reminder') }}</span>
+                                            <span wire:loading wire:target="sendReminder({{ $subscription->id }})">{{ __('Queueing...') }}</span>
+                                        </flux:button>
+
+                                        <a
+                                            href="{{ route('admin.members', ['member' => $subscription->member_id]) }}"
+                                            wire:navigate
+                                            class="text-xs font-medium text-zinc-700 underline underline-offset-2 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-zinc-100"
+                                        >
+                                            {{ __('Open Member') }}
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach

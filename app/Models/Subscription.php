@@ -150,6 +150,10 @@ class Subscription extends Model
             throw new InvalidArgumentException('The target member for transfer does not exist.');
         }
 
+        if (self::query()->where('member_id', $newMemberId)->active()->exists()) {
+            throw new InvalidArgumentException('The target member already has an active subscription.');
+        }
+
         if (! in_array($this->status, ['active', 'suspended'], true)) {
             throw new InvalidArgumentException('Only active or suspended subscriptions can be transferred.');
         }

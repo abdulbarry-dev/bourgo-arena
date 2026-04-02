@@ -34,7 +34,12 @@
                     <flux:select wire:model="planId">
                         <option value="">{{ __('Select a plan') }}</option>
                         @foreach ($this->plans as $plan)
-                            <option value="{{ $plan->id }}">{{ $plan->name }} ({{ number_format((float) $plan->price, 3) }} TND)</option>
+                            <option value="{{ $plan->id }}">
+                                {{ $plan->name }} ({{ number_format((float) $plan->price, 3) }} TND)
+                                @if (! empty($plan->included_services))
+                                    · {{ implode(', ', $plan->included_services) }}
+                                @endif
+                            </option>
                         @endforeach
                     </flux:select>
                     <flux:error name="planId" />
@@ -73,12 +78,18 @@
             <flux:error name="memberId" />
             <flux:error name="startsAt" />
             <flux:error name="paymentReference" />
+            <flux:error name="enroll" />
 
             @if ($this->selectedPlan !== null)
                 <div class="rounded-lg border border-dashed border-zinc-300 px-3 py-2 dark:border-zinc-700">
                     <flux:text>
                         {{ __('Selected plan duration: :days days · Amount: :amount TND', ['days' => $this->selectedPlan->duration_days, 'amount' => number_format((float) $this->selectedPlan->price, 3)]) }}
                     </flux:text>
+                    @if (! empty($this->selectedPlan->included_services))
+                        <flux:text variant="subtle" class="mt-1">
+                            {{ __('Included services: :services', ['services' => implode(', ', $this->selectedPlan->included_services)]) }}
+                        </flux:text>
+                    @endif
                 </div>
             @endif
 

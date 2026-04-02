@@ -24,6 +24,17 @@ test('member detail panel can load selected member details', function () {
         ->assertSee('Selected Member');
 });
 
+test('member detail panel can load member from query parameter context', function () {
+    $this->actingAs(User::factory()->manager()->create());
+
+    $member = Member::factory()->active()->create(['name' => 'Query Param Member']);
+
+    Livewire::withQueryParams(['member' => $member->id])
+        ->test(MemberDetailPanel::class)
+        ->assertSet('memberId', $member->id)
+        ->assertSee('Query Param Member');
+});
+
 test('member detail panel can suspend a member', function () {
     $this->actingAs(User::factory()->manager()->create());
 
@@ -73,6 +84,31 @@ test('member detail panel resets password and dispatches reset email job', funct
     Queue::assertPushed(SendMemberPasswordResetEmail::class, function (SendMemberPasswordResetEmail $job) use ($member): bool {
         return $job->memberId === $member->id;
     });
+});
+
+test('member detail panel refreshes from subscription created event payload', function () {
+    $this->actingAs(User::factory()->manager()->create());
+
+    $member = Member::factory()->active()->create();
+
+    Livewire::test(MemberDetailPanel::class)
+        ->call('refreshFromSubscriptionCreated', $member->id)
+        ->assertSet('memberId', $member->id);
+});
+
+test('member detail panel refreshes from subscription updated event payload', function () {
+    $this->actingAs(User::factory()->manager()->create());
+
+    $member = Member::factory()->active()->create();
+    $subscription = Subscription::factory()->create([
+        'member_id' => $member->id,
+        'status' => 'active',
+        'ends_at' => now()->addDays(14),
+    ]);
+
+    Livewire::test(MemberDetailPanel::class)
+        ->call('refreshFromSubscriptionUpdated', $subscription->id)
+        ->assertSet('memberId', $member->id);
 });
 
 test('admin can delete member from detail panel', function () {

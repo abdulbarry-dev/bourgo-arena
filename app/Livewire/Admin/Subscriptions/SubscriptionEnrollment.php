@@ -13,10 +13,12 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use Throwable;
 
 class SubscriptionEnrollment extends Component
 {
@@ -152,6 +154,12 @@ class SubscriptionEnrollment extends Component
 
             $this->dispatch('subscription-created', memberId: $member->id, subscriptionId: $subscription->id);
             $this->dispatch('toast', message: 'Subscription enrolled successfully', type: 'success');
+        } catch (ValidationException $exception) {
+            throw $exception;
+        } catch (Throwable $exception) {
+            report($exception);
+
+            $this->addError('enroll', __('Enrollment could not be completed right now. Please try again.'));
         } finally {
             $this->isProcessing = false;
         }
@@ -175,7 +183,7 @@ class SubscriptionEnrollment extends Component
         return Plan::query()
             ->where('is_archived', false)
             ->orderBy('price')
-            ->get(['id', 'name', 'price', 'duration_days']);
+            ->get(['id', 'name', 'price', 'duration_days', 'included_services']);
     }
 
     #[Computed]

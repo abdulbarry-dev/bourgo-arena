@@ -4,6 +4,7 @@ namespace App\Livewire\Admin\Members;
 
 use App\Jobs\SendMemberPasswordResetEmail;
 use App\Models\Member;
+use App\Models\Subscription;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\View\View;
 use Livewire\Attributes\On;
@@ -27,7 +28,11 @@ class MemberDetailPanel extends Component
 
     public function mount(?int $memberId = null): void
     {
-        $resolvedMemberId = $memberId ?? session('members.selected_member_id');
+        $memberFromQuery = request()->query('member');
+
+        $resolvedMemberId = $memberId
+            ?? (is_numeric($memberFromQuery) ? (int) $memberFromQuery : null)
+            ?? session('members.selected_member_id');
 
         if ($resolvedMemberId !== null) {
             $this->loadMember((int) $resolvedMemberId);
@@ -54,6 +59,34 @@ class MemberDetailPanel extends Component
                 },
             ])
             ->find($memberId);
+    }
+
+    #[On('subscription-created')]
+    public function refreshFromSubscriptionCreated(int $memberId): void
+    {
+        if ($this->memberId !== null && $this->memberId !== $memberId) {
+            return;
+        }
+
+        $this->loadMember($memberId);
+    }
+
+    #[On('subscription-updated')]
+    public function refreshFromSubscriptionUpdated(int $subscriptionId): void
+    {
+        $memberId = Subscription::query()
+            ->whereKey($subscriptionId)
+            ->value('member_id');
+
+        if ($memberId === null) {
+            return;
+        }
+
+        if ($this->memberId !== null && $this->memberId !== (int) $memberId) {
+            return;
+        }
+
+        $this->loadMember((int) $memberId);
     }
 
     public function suspend(): void

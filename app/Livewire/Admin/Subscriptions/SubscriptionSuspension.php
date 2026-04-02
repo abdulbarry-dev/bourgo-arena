@@ -24,6 +24,8 @@ class SubscriptionSuspension extends Component
 
     public string $suspensionReason = '';
 
+    public bool $confirmSuspension = false;
+
     public ?int $transferToMemberId = null;
 
     public bool $requiresApproval = false;
@@ -40,6 +42,26 @@ class SubscriptionSuspension extends Component
         session(['subscriptions.selected_subscription_id' => $subscriptionId]);
     }
 
+    #[On('member-selected')]
+    public function setSubscriptionFromMember(int $memberId): void
+    {
+        $subscription = Subscription::query()
+            ->where('member_id', $memberId)
+            ->whereIn('status', ['active', 'suspended'])
+            ->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")
+            ->orderByDesc('ends_at')
+            ->first();
+
+        if ($subscription === null) {
+            $this->subscriptionId = null;
+            session()->forget('subscriptions.selected_subscription_id');
+
+            return;
+        }
+
+        $this->setSubscription($subscription->id);
+    }
+
     public function suspend(): void
     {
         $this->authorize('suspend', Subscription::class);
@@ -47,7 +69,7 @@ class SubscriptionSuspension extends Component
         $subscription = $this->selectedSubscription;
 
         if ($subscription === null) {
-            $this->addError('subscriptionId', __('Select a subscription first.'));
+            $this->addError('subscriptionId', 'Select a subscription first.');
 
             return;
         }
@@ -55,7 +77,7 @@ class SubscriptionSuspension extends Component
         $this->validate($this->suspendRules());
 
         if ($subscription->status !== 'active') {
-            $this->addError('subscriptionId', __('Only active subscriptions can be suspended.'));
+            $this->addError('subscriptionId', 'Only active subscriptions can be suspended.');
 
             return;
         }
@@ -79,6 +101,7 @@ class SubscriptionSuspension extends Component
         );
 
         $this->suspensionReason = '';
+        $this->confirmSuspension = false;
         $this->action = '';
 
         $this->dispatch('subscription-updated', subscriptionId: $subscription->id);
@@ -92,13 +115,13 @@ class SubscriptionSuspension extends Component
         $subscription = $this->selectedSubscription;
 
         if ($subscription === null) {
-            $this->addError('subscriptionId', __('Select a subscription first.'));
+            $this->addError('subscriptionId', 'Select a subscription first.');
 
             return;
         }
 
         if ($subscription->status !== 'suspended') {
-            $this->addError('subscriptionId', __('Only suspended subscriptions can be resumed.'));
+            $this->addError('subscriptionId', 'Only suspended subscriptions can be resumed.');
 
             return;
         }
@@ -133,18 +156,24 @@ class SubscriptionSuspension extends Component
         $subscription = $this->selectedSubscription;
 
         if ($subscription === null) {
-            $this->addError('subscriptionId', __('Select a subscription first.'));
+            $this->addError('subscriptionId', 'Select a subscription first.');
 
             return;
         }
 
         if (! in_array($subscription->status, ['active', 'suspended'], true)) {
-            $this->addError('subscriptionId', __('Only active or suspended subscriptions can be transferred.'));
+            $this->addError('subscriptionId', 'Only active or suspended subscriptions can be transferred.');
 
             return;
         }
 
         $this->validate($this->transferRules($subscription->member_id));
+
+        if (Subscription::query()->where('member_id', (int) $this->transferToMemberId)->active()->exists()) {
+            $this->addError('transferToMemberId', 'The selected member already has an active subscription.');
+
+            return;
+        }
 
         $oldMemberId = $subscription->member_id;
         $newSubscription = $subscription->transfer((int) $this->transferToMemberId, auth()->id());
@@ -222,6 +251,7 @@ class SubscriptionSuspension extends Component
         return Member::query()
             ->whereNull('deleted_at')
             ->whereKeyNot($this->selectedSubscription->member_id)
+            ->whereDoesntHave('activeSubscription')
             ->orderBy('name')
             ->get(['id', 'name']);
     }
@@ -236,6 +266,7 @@ class SubscriptionSuspension extends Component
                 'required',
                 Rule::in(['medical', 'travel', 'other']),
             ],
+            'confirmSuspension' => ['accepted'],
         ];
     }
 
@@ -250,6 +281,20 @@ class SubscriptionSuspension extends Component
                 'integer',
                 Rule::exists('members', 'id')->whereNull('deleted_at'),
                 Rule::notIn([$currentMemberId]),
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (! is_numeric($value)) {
+                        return;
+                    }
+
+                    $hasActiveSubscription = Subscription::query()
+                        ->where('member_id', (int) $value)
+                        ->active()
+                        ->exists();
+
+                    if ($hasActiveSubscription) {
+                        $fail('The selected member already has an active subscription.');
+                    }
+                },
             ],
             'requiresApproval' => ['accepted'],
         ];

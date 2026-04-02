@@ -67,6 +67,9 @@
                         <flux:error name="suspensionReason" />
                     </flux:field>
 
+                    <flux:checkbox wire:model="confirmSuspension" :label="__('I confirm this suspension request has been verified with the member')" />
+                    <flux:error name="confirmSuspension" />
+
                     <flux:button wire:click="suspend" variant="primary" wire:loading.attr="disabled" wire:target="suspend">
                         <span wire:loading.remove wire:target="suspend">{{ __('Suspend Subscription') }}</span>
                         <span wire:loading wire:target="suspend">{{ __('Suspending...') }}</span>

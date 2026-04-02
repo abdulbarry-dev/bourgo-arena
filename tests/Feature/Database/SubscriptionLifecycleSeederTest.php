@@ -6,10 +6,10 @@ use App\Models\Member;
 use App\Models\NfcCard;
 use App\Models\Plan;
 use App\Models\Subscription;
-use Database\Seeders\PhaseThreeDemoSeeder;
+use Database\Seeders\SubscriptionLifecycleSeeder;
 
-test('phase three demo seeder creates actionable dashboard data', function () {
-    $this->seed(PhaseThreeDemoSeeder::class);
+test('subscription lifecycle seeder creates actionable dashboard data', function () {
+    $this->seed(SubscriptionLifecycleSeeder::class);
 
     expect(Plan::query()->where('is_archived', false)->count())->toBeGreaterThanOrEqual(4)
         ->and(Member::query()->count())->toBeGreaterThanOrEqual(30)
