@@ -207,6 +207,46 @@
 
 ---
 
+### `Admin\Plans\PlanTable`
+
+**File:** `app/Livewire/Admin/Plans/PlanTable.php`
+**View:** `resources/views/livewire/admin/plans/plan-table.blade.php`
+
+**Owns:** Plan catalog browsing (search/filter/sort/pagination) and page-level navigation links for create/view/edit
+**Does NOT:** Perform plan create/update/delete persistence directly
+
+| Property        | Type   | Description                           |
+| --------------- | ------ | ------------------------------------- |
+| `$search`       | string | Search term by plan name              |
+| `$statusFilter` | string | `active` / `archived` / `all`         |
+| `$sortBy`       | string | Sort column for table data            |
+
+---
+
+### `Admin\Plans\PlanForm`
+
+**File:** `app/Livewire/Admin/Plans/PlanForm.php`
+**View:** `resources/views/livewire/admin/plans/plan-form.blade.php`
+
+**Owns:** Admin-only manual plan create/update/delete workflow
+**Does NOT:** Enroll subscriptions or modify subscription lifecycle states
+
+| Property                | Type       | Description                                                |
+| ----------------------- | ---------- | ---------------------------------------------------------- |
+| `$planId`               | int\|null  | Null in create mode, set in edit mode                     |
+| `$name`                 | string     | Plan display name                                          |
+| `$price`                | string     | TND amount with up to 3 decimals                           |
+| `$durationDays`         | int\|string | Duration in days                                          |
+| `$includedServicesInput`| string     | Fully customizable comma/newline separated services list   |
+| `$isArchived`           | bool       | Active/archive flag                                        |
+
+| Action     | Description                                                     |
+| ---------- | --------------------------------------------------------------- |
+| `save()`   | Creates or updates plan based on mode with validation/toast     |
+| `delete()` | Permanently deletes plan when no subscriptions are linked       |
+
+---
+
 ### `Admin\AccessControl\CheckInMonitor`
 
 **File:** `app/Livewire/Admin/AccessControl/CheckInMonitor.php`

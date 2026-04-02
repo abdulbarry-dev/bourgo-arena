@@ -9,6 +9,10 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-2">
+                <flux:button variant="subtle" icon="clipboard-document-list" :href="route('admin.plans')" wire:navigate>
+                    {{ __('Manage Plans') }}
+                </flux:button>
+
                 <flux:button variant="subtle" icon="clock" :href="route('admin.subscriptions.expiring')" wire:navigate>
                     {{ __('Expiring Subscriptions') }}
                 </flux:button>

@@ -546,6 +546,8 @@ public int $touchedCount = 0; // tracks sent reminders
 - [x] Refactor subscriptions index to table-focused page with dedicated route links (enroll/detail/actions/expiring)
 - [x] Add dedicated subscription routes: `/subscriptions/enroll`, `/subscriptions/{subscription}`, `/subscriptions/{subscription}/actions`, `/subscriptions/expiring`
 - [x] Add subscriptions table component for search/filter/sort and row-level page navigation
+- [x] Add admin plan management routes/pages (`/plans`, `/plans/create`, `/plans/{plan}`, `/plans/{plan}/edit`) with manager read-only access
+- [x] Add plan components for table browsing and admin manual create/update/delete flows
 
 **Deliverables:**
 - `/routes/admin.php` (subscription routes)

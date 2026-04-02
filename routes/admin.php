@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Member;
+use App\Models\Plan;
 use App\Models\Subscription;
 use Illuminate\Support\Facades\Route;
 
@@ -65,3 +66,29 @@ Route::get('/subscriptions/{subscription}/actions', function (Subscription $subs
 })
     ->role('admin', 'manager')
     ->name('admin.subscriptions.actions');
+
+Route::view('/plans', 'livewire.admin.plans.dashboard')
+    ->role('admin', 'manager')
+    ->name('admin.plans');
+
+Route::view('/plans/create', 'livewire.admin.plans.create')
+    ->role('admin')
+    ->name('admin.plans.create');
+
+Route::get('/plans/{plan}', function (Plan $plan) {
+    $plan->loadCount('subscriptions');
+
+    return view('livewire.admin.plans.detail', [
+        'plan' => $plan,
+    ]);
+})
+    ->role('admin', 'manager')
+    ->name('admin.plans.show');
+
+Route::get('/plans/{plan}/edit', function (Plan $plan) {
+    return view('livewire.admin.plans.edit', [
+        'plan' => $plan,
+    ]);
+})
+    ->role('admin')
+    ->name('admin.plans.edit');
