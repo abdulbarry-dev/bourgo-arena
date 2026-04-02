@@ -543,6 +543,9 @@ public int $touchedCount = 0; // tracks sent reminders
 - [x] Add subscription routes
 - [x] Create admin subscriptions dashboard page
 - [x] Add breadcrumb navigation: Members → detail → Subscription Management
+- [x] Refactor subscriptions index to table-focused page with dedicated route links (enroll/detail/actions/expiring)
+- [x] Add dedicated subscription routes: `/subscriptions/enroll`, `/subscriptions/{subscription}`, `/subscriptions/{subscription}/actions`, `/subscriptions/expiring`
+- [x] Add subscriptions table component for search/filter/sort and row-level page navigation
 
 **Deliverables:**
 - `/routes/admin.php` (subscription routes)

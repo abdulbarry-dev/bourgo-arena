@@ -129,11 +129,39 @@
 
 ---
 
+### `Admin\Subscriptions\SubscriptionTable`
+
+**File:** `app/Livewire/Admin/Subscriptions/SubscriptionTable.php`
+**View:** `resources/views/livewire/admin/subscriptions/subscription-table.blade.php`
+
+**Owns:** Subscription index browsing (search/filter/sort/pagination) and navigation entry points to dedicated subscription detail/actions pages
+**Does NOT:** Perform enrollment, suspend/resume/transfer actions, or send reminders
+
+| Property         | Type      | Description                                                   |
+| ---------------- | --------- | ------------------------------------------------------------- |
+| `$search`        | string    | Member/plan search term                                       |
+| `$statusFilter`  | string    | `active` / `suspended` / `expired` / `transferred`           |
+| `$planFilter`    | int\|null | Optional plan filter                                          |
+| `$sortBy`        | string    | Sort column (`member`, `plan`, `status`, `starts_at`, `ends_at`) |
+| `$sortDirection` | string    | `asc` / `desc`                                                |
+
+| Action           | Description                                             |
+| ---------------- | ------------------------------------------------------- |
+| `sort($column)`  | Toggles sort direction on supported columns             |
+| `refreshTable()` | Refreshes the table when subscription mutation events fire |
+
+| Listens                    | Source Components                            |
+| -------------------------- | -------------------------------------------- |
+| `subscription-created`     | `Admin\Subscriptions\SubscriptionEnrollment` |
+| `subscription-updated`     | `Admin\Subscriptions\SubscriptionSuspension` |
+
+---
+
 ### `Admin\Subscriptions\SubscriptionEnrollment`
 
 **File:** `app/Livewire/Admin/Subscriptions/SubscriptionEnrollment.php`
 
-**Owns:** New subscription creation and payment recording
+**Owns:** New subscription creation and payment recording (standalone enroll page or preselected member context)
 **Does NOT:** Handle renewals (that's mobile), handle suspension logic
 
 | Property            | Type         | Description                   |

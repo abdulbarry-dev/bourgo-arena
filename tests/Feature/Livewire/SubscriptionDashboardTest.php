@@ -6,10 +6,10 @@ test('admin can view subscriptions dashboard page', function () {
     $this->actingAs(User::factory()->admin()->create())
         ->get(route('admin.subscriptions'))
         ->assertOk()
-        ->assertSee('Subscription Management')
-        ->assertSee('Subscription Enrollment')
+        ->assertSee('Subscriptions')
+        ->assertSee('Enroll Subscription')
         ->assertSee('Expiring Subscriptions')
-        ->assertSee('Member Detail');
+        ->assertSee('No subscriptions found');
 });
 
 test('manager can view subscriptions dashboard page', function () {

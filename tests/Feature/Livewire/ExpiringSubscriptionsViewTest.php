@@ -21,7 +21,7 @@ test('expiring subscriptions view only lists active subscriptions ending within 
     $futureMember = Member::factory()->create(['name' => 'Future Member', 'status' => 'active']);
     $suspendedMember = Member::factory()->create(['name' => 'Suspended Member', 'status' => 'active']);
 
-    Subscription::factory()->create([
+    $expiringSubscription = Subscription::factory()->create([
         'member_id' => $expiringMember->id,
         'plan_id' => $plan->id,
         'status' => 'active',
@@ -54,7 +54,7 @@ test('expiring subscriptions view only lists active subscriptions ending within 
     Livewire::test(ExpiringSubscriptionsView::class)
         ->assertSee('Expiring Soon Member')
         ->assertSee('Boundary Member')
-        ->assertSee(route('admin.members', ['member' => $expiringMember->id]))
+        ->assertSee(route('admin.subscriptions.show', $expiringSubscription))
         ->assertDontSee('Future Member')
         ->assertDontSee('Suspended Member')
         ->assertSet('touchedCount', 0);

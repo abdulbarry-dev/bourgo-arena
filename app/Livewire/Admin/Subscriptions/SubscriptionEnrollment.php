@@ -9,6 +9,7 @@ use App\Models\Member;
 use App\Models\Plan;
 use App\Models\Subscription;
 use App\Services\ReceiptGenerator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -38,7 +39,15 @@ class SubscriptionEnrollment extends Component
 
     public function mount(?int $memberId = null): void
     {
-        $this->memberId = $memberId ?? session('members.selected_member_id');
+        $memberIdFromQuery = request()->integer('member');
+
+        $this->memberId = $memberId
+            ?? ($memberIdFromQuery > 0 ? $memberIdFromQuery : session('members.selected_member_id'));
+
+        if ($this->memberId !== null) {
+            session(['members.selected_member_id' => $this->memberId]);
+        }
+
         $this->startsAt = now()->toDateString();
     }
 
@@ -47,6 +56,19 @@ class SubscriptionEnrollment extends Component
     {
         $this->memberId = $memberId;
         session(['members.selected_member_id' => $memberId]);
+    }
+
+    public function updatedMemberId(mixed $value): void
+    {
+        if ($value === null || $value === '') {
+            $this->memberId = null;
+            session()->forget('members.selected_member_id');
+
+            return;
+        }
+
+        $this->memberId = (int) $value;
+        session(['members.selected_member_id' => $this->memberId]);
     }
 
     public function updatedPaymentMethod(): void
@@ -173,8 +195,25 @@ class SubscriptionEnrollment extends Component
         }
 
         return Member::query()
+            ->whereNull('deleted_at')
             ->with('activeSubscription.plan')
             ->find($this->memberId);
+    }
+
+    #[Computed]
+    public function eligibleMembers(): Collection
+    {
+        return Member::query()
+            ->whereNull('deleted_at')
+            ->where(function (Builder $query): void {
+                $query->whereDoesntHave('activeSubscription');
+
+                if ($this->memberId !== null) {
+                    $query->orWhere('id', $this->memberId);
+                }
+            })
+            ->orderBy('name')
+            ->get(['id', 'name', 'email', 'status']);
     }
 
     #[Computed]

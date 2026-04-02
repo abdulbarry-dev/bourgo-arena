@@ -59,11 +59,11 @@
                                         </flux:button>
 
                                         <a
-                                            href="{{ route('admin.members', ['member' => $subscription->member_id]) }}"
+                                            href="{{ route('admin.subscriptions.show', $subscription) }}"
                                             wire:navigate
                                             class="text-xs font-medium text-zinc-700 underline underline-offset-2 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-zinc-100"
                                         >
-                                            {{ __('Open Member') }}
+                                            {{ __('Open Subscription') }}
                                         </a>
                                     </div>
                                 </td>
