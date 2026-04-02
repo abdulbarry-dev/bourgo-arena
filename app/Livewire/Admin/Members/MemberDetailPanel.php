@@ -95,14 +95,20 @@ class MemberDetailPanel extends Component
 
         $this->authorize('suspend', $member);
 
-        if ($member->status !== 'suspended') {
-            $member->update(['status' => 'suspended']);
+        if ($member->status === 'suspended') {
+            $this->showSuspendModal = false;
+            $this->dispatch('toast', message: 'Member is already suspended.', type: 'info');
+
+            return;
         }
+
+        $member->update(['status' => 'suspended']);
 
         $this->showSuspendModal = false;
 
         $this->loadMember($member->id);
         $this->dispatch('member-updated', memberId: $member->id);
+        $this->dispatch('toast', message: 'Member suspended successfully.', type: 'success');
     }
 
     public function activate(): void
@@ -111,14 +117,20 @@ class MemberDetailPanel extends Component
 
         $this->authorize('activate', $member);
 
-        if ($member->status !== 'active') {
-            $member->update(['status' => 'active']);
+        if ($member->status === 'active') {
+            $this->showActivateModal = false;
+            $this->dispatch('toast', message: 'Member is already active.', type: 'info');
+
+            return;
         }
+
+        $member->update(['status' => 'active']);
 
         $this->showActivateModal = false;
 
         $this->loadMember($member->id);
         $this->dispatch('member-updated', memberId: $member->id);
+        $this->dispatch('toast', message: 'Member activated successfully.', type: 'success');
     }
 
     public function resetPassword(): void
@@ -132,7 +144,7 @@ class MemberDetailPanel extends Component
         $this->showResetPasswordModal = false;
 
         $this->dispatch('member-updated', memberId: $member->id);
-        $this->dispatch('toast', message: 'Password reset email sent to member', type: 'success');
+        $this->dispatch('toast', message: 'Password reset email sent successfully.', type: 'success');
     }
 
     public function delete(): void
@@ -145,6 +157,12 @@ class MemberDetailPanel extends Component
 
         $member->delete();
 
+        session()->forget('members.selected_member_id');
+        session()->flash('toast', [
+            'message' => 'Member deleted successfully.',
+            'type' => 'success',
+        ]);
+
         $this->reset(
             'memberId',
             'member',
@@ -155,6 +173,8 @@ class MemberDetailPanel extends Component
         );
 
         $this->dispatch('member-updated', memberId: $deletedMemberId);
+
+        $this->redirectRoute('admin.members');
     }
 
     public function render(): View

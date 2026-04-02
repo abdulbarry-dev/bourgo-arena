@@ -29,11 +29,11 @@ class MemberPolicy
 
     /**
      * Determine if user can create a member.
-     * Only Admin can create members (manager can only manage existing).
+     * Admin and Manager can create members.
      */
     public function create(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->isStaff();
     }
 
     /**

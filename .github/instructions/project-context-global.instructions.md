@@ -32,6 +32,7 @@ applyTo: "**"
 - Use glossary terms exactly as defined in `docs/domain.glossory.md` for entities, statuses, and access terms.
 - Follow component ownership in `docs/liviwire.component.regsitery.md`; do not duplicate business logic across components.
 - Apply UX decisions from `docs/ux.rules.md` for all admin dashboard UI changes.
+- For validated mutating actions in admin workflows (create, update, suspend, activate, transfer, delete, assign), dispatch professional user-facing toast feedback for success and relevant no-op/info outcomes.
 - Respect backlog sequencing in `docs/product.backlog.md`, including admin-first prioritization.
 - Use `docs/database.schema.md` as schema authority for tables, columns, types, and relationships.
 - If code conflicts with `docs/database.schema.md`, surface the conflict and ask for a decision before migrations or model changes.

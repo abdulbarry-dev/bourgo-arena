@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\Member\MemberDeviceTokenController;
+use App\Http\Controllers\Api\Member\MemberNotificationController;
 use App\Http\Controllers\Api\TerminalCheckInController;
 use App\Http\Controllers\Api\TerminalProvisioningController;
 use Illuminate\Http\Request;
@@ -18,6 +20,13 @@ Route::middleware(['web', 'auth', 'verified', 'role:member'])
                 'role' => $user->role?->value ?? (string) $user->role,
             ]);
         })->name('api.member.me');
+
+        Route::post('device-tokens', [MemberDeviceTokenController::class, 'store'])
+            ->name('api.member.device-tokens.store');
+        Route::delete('device-tokens/{token}', [MemberDeviceTokenController::class, 'destroy'])
+            ->name('api.member.device-tokens.destroy');
+        Route::get('notifications', [MemberNotificationController::class, 'index'])
+            ->name('api.member.notifications.index');
     });
 
 Route::middleware(['web', 'auth', 'verified', 'role:admin,manager'])

@@ -87,9 +87,29 @@ test('member table dispatches member selected event', function () {
 
     $member = Member::factory()->create();
 
-    Livewire::test(MemberTable::class)
+    Livewire::test(MemberTable::class, ['selectionEnabled' => true])
         ->call('selectMember', $member->id)
         ->assertDispatched('member-selected', memberId: $member->id);
+});
+
+test('member table does not dispatch selected event when selection mode is disabled', function () {
+    $this->actingAs(User::factory()->manager()->create());
+
+    $member = Member::factory()->create();
+
+    Livewire::test(MemberTable::class)
+        ->call('selectMember', $member->id)
+        ->assertNotDispatched('member-selected');
+});
+
+test('member table renders detail view action link per row', function () {
+    $this->actingAs(User::factory()->manager()->create());
+
+    $member = Member::factory()->create();
+
+    Livewire::test(MemberTable::class)
+        ->assertSee('Actions')
+        ->assertSee(route('admin.members.show', $member));
 });
 
 test('member table toggles sorting direction on repeated column sort', function () {

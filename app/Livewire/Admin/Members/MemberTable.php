@@ -29,9 +29,16 @@ class MemberTable extends Component
 
     public int $perPage = 50;
 
+    public bool $selectionEnabled = false;
+
     public string $sortBy = 'name';
 
     public string $sortDirection = 'asc';
+
+    public function mount(bool $selectionEnabled = false): void
+    {
+        $this->selectionEnabled = $selectionEnabled;
+    }
 
     public function updatedSearch(): void
     {
@@ -50,6 +57,10 @@ class MemberTable extends Component
 
     public function selectMember(int $memberId): void
     {
+        if (! $this->selectionEnabled) {
+            return;
+        }
+
         session(['members.selected_member_id' => $memberId]);
 
         $this->dispatch('member-selected', memberId: $memberId);

@@ -62,6 +62,21 @@ class Member extends Model
         return $this->hasMany(CheckInEvent::class);
     }
 
+    public function onboardingTokens(): HasMany
+    {
+        return $this->hasMany(MemberOnboardingToken::class);
+    }
+
+    public function deviceTokens(): HasMany
+    {
+        return $this->hasMany(MemberDeviceToken::class);
+    }
+
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(MemberNotification::class);
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', 'active');

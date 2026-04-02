@@ -12,19 +12,21 @@
     @else
         <div class="flex flex-wrap items-center gap-2">
             @can('suspend', $member)
-                @if ($member->status !== 'suspended')
-                    <flux:button variant="danger" wire:click="$set('showSuspendModal', true)">
-                        {{ __('Suspend') }}
-                    </flux:button>
-                @endif
+                <flux:button variant="danger" wire:click="$set('showSuspendModal', true)" :disabled="$member->status === 'suspended'">
+                    {{ __('Suspend') }}
+                </flux:button>
             @endcan
 
             @can('activate', $member)
-                @if ($member->status !== 'active')
-                    <flux:button variant="primary" wire:click="$set('showActivateModal', true)">
-                        {{ __('Activate') }}
-                    </flux:button>
-                @endif
+                <flux:button variant="primary" wire:click="$set('showActivateModal', true)" :disabled="$member->status === 'active'">
+                    {{ __('Activate') }}
+                </flux:button>
+            @endcan
+
+            @can('assign', \App\Models\NfcCard::class)
+                <flux:button variant="subtle" icon="credit-card" :href="route('admin.members.assign-card', $member)" wire:navigate>
+                    {{ __('Assign Card') }}
+                </flux:button>
             @endcan
 
             @can('resetPassword', \App\Models\Member::class)

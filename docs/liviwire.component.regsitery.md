@@ -78,6 +78,34 @@
 
 ---
 
+### `Admin\Members\AddMemberForm`
+
+**File:** `app/Livewire/Admin/Members/AddMemberForm.php`
+**View:** `resources/views/livewire/admin/members/add-member-form.blade.php`
+
+**Owns:** Manual member creation workflow from dashboard and onboarding dispatch orchestration
+**Does NOT:** Assign NFC cards, mutate subscriptions, or manage terminal check-ins
+
+| Property            | Type   | Description                               |
+| ------------------- | ------ | ----------------------------------------- |
+| `$name`             | string | Member full name                          |
+| `$email`            | string | Unique member email                       |
+| `$phone`            | string | Unique member phone (SMS channel target)  |
+| `$dateOfBirth`      | string | Date of birth                             |
+| `$gender`           | string | `male` / `female`                         |
+| `$emergencyContact` | string | Optional emergency contact                |
+
+| Action     | Description                                                                 |
+| ---------- | --------------------------------------------------------------------------- |
+| `create()` | Creates pending member, creates onboarding token, queues email/sms/push jobs |
+
+| Emits            | When                                         |
+| ---------------- | -------------------------------------------- |
+| `member-created` | On success — passes `memberId`               |
+| `toast`          | Success and failure UX feedback to ToastManager |
+
+---
+
 ### `Admin\Members\NfcCardAssignment`
 
 **File:** `app/Livewire/Admin/Members/NfcCardAssignment.php`

@@ -13,7 +13,7 @@
                 <flux:navbar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                     {{ __('Dashboard') }}
                 </flux:navbar.item>
-                <flux:navbar.item icon="user-group" :href="route('admin.members')" :current="request()->routeIs('admin.members')" wire:navigate>
+                <flux:navbar.item icon="user-group" :href="route('admin.members')" :current="request()->routeIs('admin.members*')" wire:navigate>
                     {{ __('Members') }}
                 </flux:navbar.item>
                 <flux:navbar.item icon="credit-card" :href="route('admin.subscriptions')" :current="request()->routeIs('admin.subscriptions')" wire:navigate>
@@ -62,7 +62,7 @@
                     <flux:sidebar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                         {{ __('Dashboard')  }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="user-group" :href="route('admin.members')" :current="request()->routeIs('admin.members')" wire:navigate>
+                    <flux:sidebar.item icon="user-group" :href="route('admin.members')" :current="request()->routeIs('admin.members*')" wire:navigate>
                         {{ __('Members') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="credit-card" :href="route('admin.subscriptions')" :current="request()->routeIs('admin.subscriptions')" wire:navigate>

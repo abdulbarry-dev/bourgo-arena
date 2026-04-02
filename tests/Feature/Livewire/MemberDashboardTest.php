@@ -7,7 +7,9 @@ test('admin can view members dashboard page', function () {
         ->get(route('admin.members'))
         ->assertOk()
         ->assertSee('Member Management')
-        ->assertSee('NFC Card Assignment');
+        ->assertSee('Add Member')
+        ->assertSee('Browse members and open each profile page')
+        ->assertDontSee('NFC Card Assignment');
 });
 
 test('manager can view members dashboard page', function () {

@@ -35,6 +35,27 @@ test('member detail panel can load member from query parameter context', functio
         ->assertSee('Query Param Member');
 });
 
+test('member detail panel keeps suspend and activate actions visible for suspended members', function () {
+    $this->actingAs(User::factory()->manager()->create());
+
+    $member = Member::factory()->create(['status' => 'suspended']);
+
+    Livewire::test(MemberDetailPanel::class)
+        ->call('loadMember', $member->id)
+        ->assertSee('Suspend')
+        ->assertSee('Activate');
+});
+
+test('member detail panel renders assign card route action', function () {
+    $this->actingAs(User::factory()->manager()->create());
+
+    $member = Member::factory()->create(['status' => 'active']);
+
+    Livewire::test(MemberDetailPanel::class)
+        ->call('loadMember', $member->id)
+        ->assertSee(route('admin.members.assign-card', $member));
+});
+
 test('member detail panel can suspend a member', function () {
     $this->actingAs(User::factory()->manager()->create());
 
@@ -43,7 +64,8 @@ test('member detail panel can suspend a member', function () {
     Livewire::test(MemberDetailPanel::class)
         ->call('loadMember', $member->id)
         ->call('suspend')
-        ->assertDispatched('member-updated', memberId: $member->id);
+        ->assertDispatched('member-updated', memberId: $member->id)
+        ->assertDispatched('toast', message: 'Member suspended successfully.', type: 'success');
 
     $this->assertDatabaseHas('members', [
         'id' => $member->id,
@@ -59,7 +81,8 @@ test('member detail panel can activate a suspended member', function () {
     Livewire::test(MemberDetailPanel::class)
         ->call('loadMember', $member->id)
         ->call('activate')
-        ->assertDispatched('member-updated', memberId: $member->id);
+        ->assertDispatched('member-updated', memberId: $member->id)
+        ->assertDispatched('toast', message: 'Member activated successfully.', type: 'success');
 
     $this->assertDatabaseHas('members', [
         'id' => $member->id,
@@ -77,7 +100,8 @@ test('member detail panel resets password and dispatches reset email job', funct
     Livewire::test(MemberDetailPanel::class)
         ->call('loadMember', $member->id)
         ->call('resetPassword')
-        ->assertDispatched('member-updated', memberId: $member->id);
+        ->assertDispatched('member-updated', memberId: $member->id)
+        ->assertDispatched('toast', message: 'Password reset email sent successfully.', type: 'success');
 
     expect($member->fresh()->password)->toBe($originalPassword);
 
@@ -120,7 +144,12 @@ test('admin can delete member from detail panel', function () {
         ->call('loadMember', $member->id)
         ->call('delete')
         ->assertDispatched('member-updated', memberId: $member->id)
-        ->assertSet('member', null);
+        ->assertRedirect(route('admin.members'));
+
+    expect(session('toast'))->toBe([
+        'message' => 'Member deleted successfully.',
+        'type' => 'success',
+    ]);
 
     $this->assertSoftDeleted('members', ['id' => $member->id]);
 });

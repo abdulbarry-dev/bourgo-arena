@@ -27,7 +27,7 @@
 
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-5">
             <div class="space-y-6 lg:col-span-3">
-                <livewire:admin.members.member-table :key="'subscription-dashboard-member-table'" />
+                <livewire:admin.members.member-table :selection-enabled="true" :key="'subscription-dashboard-member-table'" />
                 <livewire:admin.subscriptions.expiring-subscriptions-view :key="'subscription-dashboard-expiring'" />
             </div>
 

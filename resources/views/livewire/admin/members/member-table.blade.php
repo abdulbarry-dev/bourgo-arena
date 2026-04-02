@@ -106,14 +106,22 @@
                                 @endif
                             </button>
                         </th>
+                        <th class="px-4 py-3 text-right font-medium text-zinc-700 dark:text-zinc-200">
+                            {{ __('Actions') }}
+                        </th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-zinc-100 bg-white dark:divide-zinc-800 dark:bg-zinc-900/40">
                     @forelse ($this->members as $member)
                         <tr
                             wire:key="member-row-{{ $member->id }}"
-                            wire:click="selectMember({{ $member->id }})"
-                            class="cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/70"
+                            @if ($selectionEnabled)
+                                wire:click="selectMember({{ $member->id }})"
+                            @endif
+                            @class([
+                                'transition-colors',
+                                'cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/70' => $selectionEnabled,
+                            ])
                         >
                             <td class="px-4 py-3 font-medium text-zinc-900 dark:text-zinc-100">{{ $member->name }}</td>
                             <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ $member->email }}</td>
@@ -121,10 +129,21 @@
                             <td class="px-4 py-3 capitalize text-zinc-700 dark:text-zinc-200">{{ $member->status }}</td>
                             <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ $member->activeSubscription?->plan?->name ?? __('No active plan') }}</td>
                             <td class="px-4 py-3 capitalize text-zinc-600 dark:text-zinc-300">{{ $member->nfcCard?->status ?? __('Unassigned') }}</td>
+                            <td class="px-4 py-3 text-right">
+                                <flux:button
+                                    variant="subtle"
+                                    size="sm"
+                                    icon="eye"
+                                    :href="route('admin.members.show', $member)"
+                                    wire:navigate
+                                    x-on:click.stop
+                                    aria-label="{{ __('View member details for :name', ['name' => $member->name]) }}"
+                                />
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-4 py-10 text-center">
+                            <td colspan="7" class="px-4 py-10 text-center">
                                 <flux:heading size="sm">{{ __('No members found') }}</flux:heading>
                                 <flux:text variant="subtle">{{ __('Try adjusting your search or filters.') }}</flux:text>
                             </td>

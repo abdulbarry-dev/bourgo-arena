@@ -82,6 +82,20 @@ test('selecting another member resets card status to active', function () {
         ->assertSet('cardStatus', 'active');
 });
 
+test('nfc card assignment mount prefers explicit member id over session context', function () {
+    $this->actingAs(User::factory()->manager()->create());
+
+    $sessionMember = Member::factory()->create(['status' => 'active', 'name' => 'Session Member']);
+    $routeMember = Member::factory()->create(['status' => 'active', 'name' => 'Route Member']);
+
+    session(['members.selected_member_id' => $sessionMember->id]);
+
+    Livewire::test(NfcCardAssignment::class, ['memberId' => $routeMember->id])
+        ->assertSet('memberId', $routeMember->id)
+        ->assertSee('Route Member')
+        ->assertDontSee('Session Member');
+});
+
 test('cannot assign card to suspended member', function () {
     $this->actingAs(User::factory()->manager()->create());
 

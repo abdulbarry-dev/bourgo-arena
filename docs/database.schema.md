@@ -11,6 +11,9 @@
 ```
 Member ──────────── NfcCard          (one-to-one)
 Member ──────────── Subscription[]   (one-to-many, one active at a time)
+Member ──────────── MemberOnboardingToken[] (one-to-many)
+Member ──────────── MemberDeviceToken[] (one-to-many)
+Member ──────────── MemberNotification[] (one-to-many)
 Subscription ──────── Plan           (many-to-one)
 Member ──────────── Booking[]        (one-to-many)
 Booking ──────────── CourseSession   (many-to-one)
@@ -52,6 +55,74 @@ hasOne(NfcCard::class)
 hasMany(Subscription::class)
 hasMany(CheckInEvent::class)
 hasMany(Booking::class)
+hasMany(MemberOnboardingToken::class)
+hasMany(MemberDeviceToken::class)
+hasMany(MemberNotification::class)
+```
+
+---
+
+### `member_onboarding_tokens`
+
+| Column                      | Type                   | Notes                                       |
+| --------------------------- | ---------------------- | ------------------------------------------- |
+| `id`                        | bigint PK              |                                             |
+| `member_id`                 | bigint FK → members.id |                                             |
+| `email`                     | string                 | member email snapshot at token creation     |
+| `token_hash`                | string(64) unique      | SHA-256 hash of onboarding token            |
+| `expires_at`                | timestamp              | default flow uses 24-hour validity          |
+| `used_at`                   | timestamp nullable     | set when password setup is completed        |
+| `created_at` / `updated_at` | timestamps             |                                             |
+
+**Relationships:**
+
+```php
+belongsTo(Member::class)
+```
+
+---
+
+### `member_device_tokens`
+
+| Column                      | Type                   | Notes                                      |
+| --------------------------- | ---------------------- | ------------------------------------------ |
+| `id`                        | bigint PK              |                                            |
+| `member_id`                 | bigint FK → members.id |                                            |
+| `token`                     | string unique          | push device token (FCM token)              |
+| `provider`                  | string                 | default `fcm`                              |
+| `device_type`               | string nullable        | `android` \/ `ios` \/ `web`                |
+| `is_active`                 | boolean                | default true                               |
+| `last_used_at`              | timestamp nullable     | token heartbeat / deactivation audit       |
+| `created_at` / `updated_at` | timestamps             |                                            |
+
+**Relationships:**
+
+```php
+belongsTo(Member::class)
+```
+
+---
+
+### `member_notifications`
+
+| Column                      | Type                   | Notes                                     |
+| --------------------------- | ---------------------- | ----------------------------------------- |
+| `id`                        | bigint PK              |                                           |
+| `member_id`                 | bigint FK → members.id |                                           |
+| `type`                      | string                 | domain event key, e.g. `member_welcome`   |
+| `title`                     | string                 | short notification title                  |
+| `message`                   | text                   | full notification body                    |
+| `channel`                   | string                 | `in_app`, `push`, `sms`, or `email`       |
+| `status`                    | string                 | `queued`, `delivered`, or `failed`        |
+| `is_read`                   | boolean                | read-state in member mobile account       |
+| `metadata`                  | json nullable          | channel/provider specific context          |
+| `delivered_at`              | timestamp nullable     | set when message is delivered/persisted    |
+| `created_at` / `updated_at` | timestamps             |                                           |
+
+**Relationships:**
+
+```php
+belongsTo(Member::class)
 ```
 
 ---
