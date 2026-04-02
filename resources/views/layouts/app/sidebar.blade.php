@@ -21,6 +21,9 @@
                     <flux:sidebar.item icon="credit-card" :href="route('admin.subscriptions')" :current="request()->routeIs('admin.subscriptions*')" wire:navigate>
                         {{ __('Subscriptions') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.plans')" :current="request()->routeIs('admin.plans*')" wire:navigate>
+                        {{ __('Plans') }}
+                    </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 
