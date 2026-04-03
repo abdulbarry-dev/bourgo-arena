@@ -24,6 +24,9 @@
                     <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.plans')" :current="request()->routeIs('admin.plans*')" wire:navigate>
                         {{ __('Plans') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="shield-check" :href="route('admin.access-control.dashboard')" :current="request()->routeIs('admin.access-control.*')" wire:navigate>
+                        {{ __('Access Control') }}
+                    </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 
