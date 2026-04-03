@@ -697,19 +697,19 @@ public int $perPage = 50;
 - `exportPdf()` → generate PDF report of filtered events
 
 **Implementation:**
-- [ ] Create component with date range pickers (Flux UI), member search, result filter
-- [ ] Build Blade template:
+- [x] Create component with date range pickers (Flux UI), member search, result filter
+- [x] Build Blade template:
   - Filter controls (Flux UI field, input, select)
   - Table: member name, card UID, timestamp, result (Authorized/Denied), terminal name, denial reason (if denied)
   - Pagination: 50 records per page
   - Export buttons (CSV + PDF)
   - Empty state: "No check-in events for selected filters"
-- [ ] Implement queries: CheckInEvent scoped by date, member, result with eager-loaded relations
-- [ ] Implement exports:
+- [x] Implement queries: CheckInEvent scoped by date, member, result with eager-loaded relations
+- [x] Implement exports:
   - CSV: tab-separated, includes all columns
   - PDF: branded report template, date range header, total count summary
-- [ ] Add audit note: "This log is immutable — records cannot be modified or deleted"
-- [ ] Test: filter accuracy, export generation, no N+1 queries
+- [x] Add audit note: "This log is immutable — records cannot be modified or deleted"
+- [x] Test: filter accuracy, export generation, no N+1 queries
 
 **Deliverables:**
 - `/app/Livewire/Admin/AccessControl/AuditLog.php`
@@ -720,14 +720,14 @@ public int $perPage = 50;
 
 #### 4.4 Implement Anti-Passback Fraud Detection
 
-- [ ] Create `AntiPassbackRule` service: detects consecutive entries (no exit between)
-- [ ] Implement check-in event processing:
-  - [ ] Track last check-in event per card UID (entry or exit status)
-  - [ ] On new event: if terminal_type = entry AND last event of same card = entry (no exit), flag as suspicious
-  - [ ] Create alert: `anti_passback_triggered` event broadcast to admin dashboard
-  - [ ] Auto-suspend card after 3 consecutive suspicious events (pending review status)
-- [ ] Add review workflow: admin can Dismiss (clear flag) or Escalate (permanent suspension)
-- [ ] Write anti-passback tests: consecutive entry detection, alert triggering, auto-suspension
+- [x] Create `AntiPassbackRule` service: detects consecutive entries (no exit between)
+- [x] Implement check-in event processing:
+  - [x] Track last check-in event per card UID (entry or exit status)
+  - [x] On new event: if terminal_type = entry AND last event of same card = entry (no exit), flag as suspicious
+  - [x] Create alert: `anti_passback_triggered` event broadcast to admin dashboard
+  - [x] Auto-suspend card after 3 consecutive suspicious events (pending review status)
+- [x] Add review workflow: admin can Dismiss (clear flag) or Escalate (permanent suspension)
+- [x] Write anti-passback tests: consecutive entry detection, alert triggering, auto-suspension
 
 **Deliverables:**
 - `/app/Services/AntiPassbackRule.php` (detection logic)
@@ -748,13 +748,13 @@ public Collection $alerts; // suspicious events not yet reviewed
 - `escalate($cardUid)` → permanently suspend card, notify member
 
 **Implementation:**
-- [ ] Create component; listen to `anti-passback-triggered` event for real-time updates
-- [ ] Build Blade template:
+- [x] Create component; listen to `anti-passback-triggered` event for real-time updates
+- [x] Build Blade template:
   - Alert list: member name, card UID, event count, most recent event time, action buttons (Dismiss | Escalate)
   - Empty state: "No suspicious activities detected"
   - Batch action: "Dismiss all" button
-- [ ] Implement dismiss/escalate: update card status, log admin action, dispatch notification job
-- [ ] Test: alert creation, dismiss logic, escalation logic, card suspension
+- [x] Implement dismiss/escalate: update card status, log admin action, dispatch notification job
+- [x] Test: alert creation, dismiss logic, escalation logic, card suspension
 
 **Deliverables:**
 - `/app/Livewire/Admin/AccessControl/AntiPassbackAlerts.php`
@@ -763,9 +763,9 @@ public Collection $alerts; // suspicious events not yet reviewed
 
 #### 4.6 Dashboard Integration
 
-- [ ] Create access control dashboard: CheckInMonitor (top) + AuditLog tab + AntiPassbackAlerts tab
-- [ ] Add real-time refresh for monitoring area (WebSocket-driven)
-- [ ] Add breadcrumb navigation
+- [x] Create access control dashboard: CheckInMonitor (top) + AuditLog tab + AntiPassbackAlerts tab
+- [x] Add real-time refresh for monitoring area (WebSocket-driven)
+- [x] Add breadcrumb navigation
 
 **Deliverables:**
 - `/resources/views/livewire/admin/access-control/dashboard.blade.php`
@@ -778,12 +778,12 @@ public Collection $alerts; // suspicious events not yet reviewed
 
 ### Deliverables
 
-- [ ] `CheckInMonitor` component: real-time feed, occupancy counter, terminal status, alerts
-- [ ] `AuditLog` component: immutable event log with filters, CSV + PDF export
-- [ ] `AntiPassbackAlerts` component: suspicious event queue with dismiss/escalate actions
-- [ ] Anti-passback fraud detection service + queued jobs
-- [ ] Full test coverage: unit + integration + real-time WebSocket tests
-- [ ] Admin access control dashboard: integrated pages with navigation
+- [x] `CheckInMonitor` component: real-time feed, occupancy counter, terminal status, alerts
+- [x] `AuditLog` component: immutable event log with filters, CSV + PDF export
+- [x] `AntiPassbackAlerts` component: suspicious event queue with dismiss/escalate actions
+- [x] Anti-passback fraud detection service + queued jobs
+- [x] Full test coverage: unit + integration + real-time WebSocket tests
+- [x] Admin access control dashboard: integrated pages with navigation
 
 ### Testing Strategy
 
