@@ -48,10 +48,10 @@ class Create extends Component
             'status' => 'offline',
         ]);
 
-        Flux::toast(
-            text: __('Terminal created successfully. API token has been automatically generated.'),
-            heading: __('Success'),
-            variant: 'success'
+        $this->dispatch(
+            'toast',
+            message: __('Terminal created successfully. API token has been automatically generated.'),
+            type: 'success'
         );
 
         $this->redirectRoute('admin.terminals.index', navigate: true);

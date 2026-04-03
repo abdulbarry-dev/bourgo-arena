@@ -69,10 +69,10 @@ class Index extends Component
 
             Flux::modal('confirm-decommission')->close();
 
-            Flux::toast(
-                text: __('Terminal decommissioned successfully. It will no longer process checks.'),
-                heading: __('Decommissioned'),
-                variant: 'success'
+            $this->dispatch(
+                'toast',
+                message: __('Terminal decommissioned successfully. It will no longer process checks.'),
+                type: 'success'
             );
         }
     }
@@ -94,10 +94,10 @@ class Index extends Component
 
             Flux::modal('confirm-reactivate')->close();
 
-            Flux::toast(
-                text: __('Terminal restored successfully. Access sync jobs have been queued for active members.'),
-                heading: __('Restored'),
-                variant: 'success'
+            $this->dispatch(
+                'toast',
+                message: __('Terminal restored successfully. Access sync jobs have been queued for active members.'),
+                type: 'success'
             );
         }
     }
