@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\CheckInEvent;
+use App\Models\NfcCard;
 use Illuminate\Support\Facades\Log;
 
 class AntiPassbackRule
@@ -31,8 +32,6 @@ class AntiPassbackRule
             return false;
         }
 
-        // We assume terminal_id links to a terminal that has a 'type' (entry/exit)
-        // Since terminal_type is not directly on the event, we query it
         $lastTerminalType = $lastEvent->terminal ? $lastEvent->terminal->type : 'entry';
 
         if ($lastTerminalType === 'entry') {
@@ -43,5 +42,30 @@ class AntiPassbackRule
         }
 
         return false;
+    }
+
+    /**
+     * Handles a suspicious event by checking if we have reached 3 consecutive suspicious events.
+     * If so, automatically suspends the NFC card.
+     */
+    public function handleSuspiciousEvent(CheckInEvent $event): void
+    {
+        // Get the last 3 events for this card
+        $lastThreeEvents = CheckInEvent::where('card_uid', $event->card_uid)
+            ->latest('checked_in_at')
+            ->limit(3)
+            ->get();
+
+        // If we have 3 events, and all are suspicious
+        if ($lastThreeEvents->count() === 3 && $lastThreeEvents->every(fn ($e) => $e->is_suspicious)) {
+            Log::warning("Auto-suspending card {$event->card_uid} due to 3 consecutive suspicious check-ins.");
+
+            $card = NfcCard::where('uid', $event->card_uid)->first();
+            if ($card) {
+                // Suspended for pending review
+                $card->status = 'suspended';
+                $card->save();
+            }
+        }
     }
 }

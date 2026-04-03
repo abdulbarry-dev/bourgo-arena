@@ -29,6 +29,10 @@ class ProcessTerminalCheckInAction
 
         $terminal->markSeen();
 
+        if ($isSuspicious) {
+            app(AntiPassbackRule::class)->handleSuspiciousEvent($event);
+        }
+
         event(CheckInProcessed::fromCheckInEvent($event, $terminal));
 
         return $event;

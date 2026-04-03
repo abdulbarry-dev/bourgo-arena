@@ -1,5 +1,12 @@
 <div>
-    <h2 class="text-xl text-gray-900 font-bold mb-4">Anti-Passback Alerts</h2>
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl text-gray-900 font-bold">Anti-Passback Alerts</h2>
+        @if($alerts->count() > 0)
+            <button wire:click="dismissAllAlerts" class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded border border-gray-300">
+                Dismiss All
+            </button>
+        @endif
+    </div>
 
     <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
         <p class="text-sm text-yellow-700">Flags members swiping 'entry' consecutively without an 'exit'.</p>

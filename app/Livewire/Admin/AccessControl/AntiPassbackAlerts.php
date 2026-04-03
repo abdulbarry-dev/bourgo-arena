@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\AccessControl;
 
+use App\Jobs\NotifyMemberCardSuspended;
 use App\Models\CheckInEvent;
 use App\Models\NfcCard;
 use Illuminate\Support\Collection;
@@ -39,25 +40,34 @@ class AntiPassbackAlerts extends Component
     {
         $event = CheckInEvent::find($eventId);
         if ($event) {
-            // DB does not allow 'updated_at' update but we want to mark it as not suspicious manually
-            // In a strict append-only setup, we might insert an 'AuditDismiss' record instead.
-            // For simplicity in UI logic:
+            // CheckInEvent doesn't have updated_at
             $event->is_suspicious = false;
             $event->save();
             $this->loadAlerts();
         }
     }
 
+    public function dismissAllAlerts()
+    {
+        $suspiciousEventIds = $this->alerts->pluck('id');
+        CheckInEvent::whereIn('id', $suspiciousEventIds)->update(['is_suspicious' => false]);
+        $this->loadAlerts();
+    }
+
     public function escalateAndSuspend($cardUid)
     {
-        $card = NfcCard::where('uid', $cardUid)->first();
+        $card = NfcCard::with('member')->where('uid', $cardUid)->first();
         if ($card) {
             $card->status = 'suspended';
             $card->save();
 
             if ($card->member) {
                 // Log logic / change member status to pending review
+                \Log::info("Admin manually suspended card due to anti-passback. Member: {$card->member->id}");
             }
+
+            // Dispatch notification job
+            NotifyMemberCardSuspended::dispatch($card);
         }
         $this->loadAlerts();
     }
