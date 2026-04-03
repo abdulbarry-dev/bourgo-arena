@@ -29,69 +29,48 @@
         </div>
     @endif
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="col-span-1 flex flex-col gap-4">
-            <flux:heading size="md">{{ __('Terminals') }}</flux:heading>
-            <flux:card class="!p-0 overflow-hidden">
-                <ul role="list" class="divide-y divide-zinc-200 dark:divide-zinc-700">
-                    @forelse($terminalStatuses as $id => $status)
-                        <li class="px-4 py-4">
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">{{ $status['name'] }}</span>
-                                <flux:badge size="sm" color="{{ $status['status'] === 'online' ? 'green' : 'red' }}">
-                                    {{ ucfirst($status['status']) }}
-                                </flux:badge>
-                            </div>
-                            <div class="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-                                {{ __('Last seen:') }} {{ $status['last_seen_at'] }}
-                            </div>
-                        </li>
-                    @empty
-                        <li class="px-4 py-6 text-center text-zinc-500 dark:text-zinc-400 text-sm">{{ __('No terminals registered.') }}</li>
-                    @endforelse
-                </ul>
-            </flux:card>
-        </div>
-
-        <div class="col-span-2 flex flex-col gap-4">
-            <flux:heading size="md">{{ __('Recent Check-ins') }}</flux:heading>
-            <flux:card class="!p-0 overflow-hidden">
-                <ul role="list" class="divide-y divide-zinc-200 dark:divide-zinc-700" wire:poll.5s="loadEvents">
-                    @forelse($recentEvents as $event)
-                        <li class="px-4 py-4" wire:key="event-{{ $event->id }}">
-                            <div class="flex items-center justify-between gap-4">
-                                <div class="flex items-center gap-3 overflow-hidden">
-                                    <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full {{ $event->result === 'authorized' ? 'bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-green-400' : 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400' }}">
-                                        @if($event->result === 'authorized')
-                                            <flux:icon.check class="h-4 w-4" />
-                                        @else
-                                            <flux:icon.x-mark class="h-4 w-4" />
+    <div class="flex flex-col gap-4">
+        <flux:heading size="md">{{ __('Recent Check-ins') }}</flux:heading>
+        <flux:card class="!p-0 overflow-hidden">
+            <ul role="list" class="divide-y divide-zinc-200 dark:divide-zinc-700">
+                @forelse($events as $event)
+                    <li class="px-4 py-4" wire:key="event-{{ $event->id }}">
+                        <div class="flex items-center justify-between gap-4">
+                            <div class="flex items-center gap-3 overflow-hidden">
+                                <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full {{ $event->result === 'authorized' ? 'bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-green-400' : 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400' }}">
+                                    @if($event->result === 'authorized')
+                                        <flux:icon.check class="h-4 w-4" />
+                                    @else
+                                        <flux:icon.x-mark class="h-4 w-4" />
+                                    @endif
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
+                                        {{ $event->member ? $event->member->name : __('Unknown User') }}
+                                        <span class="text-zinc-500 dark:text-zinc-400 text-xs ml-1 w-full truncate">({{ $event->card_uid }})</span>
+                                    </p>
+                                    <div class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 truncate">
+                                        {{ __('Terminal:') }} {{ $event->terminal ? $event->terminal->name : __('Unknown') }}
+                                        @if($event->result !== 'authorized')
+                                            <span class="mx-1">&middot;</span>
+                                            <span class="text-red-600 dark:text-red-400">{{ __('Reason:') }} {{ $event->denial_reason }}</span>
                                         @endif
                                     </div>
-                                    <div class="min-w-0">
-                                        <p class="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
-                                            {{ $event->member ? $event->member->name : __('Unknown User') }}
-                                            <span class="text-zinc-500 dark:text-zinc-400 text-xs ml-1 w-full truncate">({{ $event->card_uid }})</span>
-                                        </p>
-                                        <div class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 truncate">
-                                            {{ __('Terminal:') }} {{ $event->terminal ? $event->terminal->name : __('Unknown') }}
-                                            @if($event->result !== 'authorized')
-                                                <span class="mx-1">&middot;</span>
-                                                <span class="text-red-600 dark:text-red-400">{{ __('Reason:') }} {{ $event->denial_reason }}</span>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="text-xs text-zinc-500 dark:text-zinc-400 whitespace-nowrap flex-shrink-0">
-                                    {{ $event->checked_in_at->diffForHumans() }}
                                 </div>
                             </div>
-                        </li>
-                    @empty
-                        <li class="px-4 py-8 text-center text-zinc-500 dark:text-zinc-400 text-sm">{{ __('No recent events today.') }}</li>
-                    @endforelse
-                </ul>
-            </flux:card>
+                            <div class="text-xs text-zinc-500 dark:text-zinc-400 whitespace-nowrap flex-shrink-0">
+                                {{ $event->checked_in_at->diffForHumans() }}
+                            </div>
+                        </div>
+                    </li>
+                @empty
+                    <li class="px-4 py-8 text-center text-zinc-500 dark:text-zinc-400 text-sm">{{ __('No recent events today.') }}</li>
+                @endforelse
+            </ul>
+        </flux:card>
+
+        <div class="mt-4">
+            {{ $events->links() }}
         </div>
     </div>
 </div>

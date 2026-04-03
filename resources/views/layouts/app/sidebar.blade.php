@@ -24,12 +24,23 @@
                     <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.plans')" :current="request()->routeIs('admin.plans*')" wire:navigate>
                         {{ __('Plans') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="shield-check" :href="route('admin.access-control.dashboard')" :current="request()->routeIs('admin.access-control.*')" wire:navigate>
+                    <flux:sidebar.item 
+                        icon="shield-check" 
+                        :href="route('admin.access-control.dashboard')" 
+                        :current="request()->routeIs('admin.access-control.*')" 
+                        :badge="\App\Models\CheckInEvent::where('is_suspicious', true)->where('result', 'denied')->count() ?: null" 
+                        wire:navigate
+                    >
                         {{ __('Access Control') }}
                     </flux:sidebar.item>
+                    @if(auth()->check() && auth()->user()->isAdmin())
+                        <flux:sidebar.item icon="device-tablet" :href="route('admin.terminals.index')" :current="request()->routeIs('admin.terminals.*')" wire:navigate>
+                            {{ __('Terminals') }}
+                        </flux:sidebar.item>
+                    @endif
                 </flux:sidebar.group>
             </flux:sidebar.nav>
-
+ 
             <flux:spacer />
 
             <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />

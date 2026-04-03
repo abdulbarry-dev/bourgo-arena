@@ -20,6 +20,16 @@ class AuditLog extends Component
 
     public $perPage = 50;
 
+    public ?int $selectedEventId = null;
+
+    public bool $showDetailsModal = false;
+
+    public function viewDetails($id)
+    {
+        $this->selectedEventId = $id;
+        $this->showDetailsModal = true;
+    }
+
     public function updating($property)
     {
         if (in_array($property, ['dateFrom', 'dateTo', 'memberSearch', 'resultFilter'])) {

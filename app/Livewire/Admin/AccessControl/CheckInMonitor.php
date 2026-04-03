@@ -3,17 +3,15 @@
 namespace App\Livewire\Admin\AccessControl;
 
 use App\Models\CheckInEvent;
-use App\Models\HikvisionTerminal;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class CheckInMonitor extends Component
 {
-    public $recentEvents;
+    use WithPagination;
 
     public int $occupancyCount = 0;
-
-    public array $terminalStatuses = [];
 
     public int $alertCount = 0;
 
@@ -21,27 +19,16 @@ class CheckInMonitor extends Component
 
     public function mount()
     {
-        $this->loadEvents();
         $this->loadOccupancy();
-        $this->loadTerminalStatuses();
         $this->loadAlerts();
     }
 
     #[On('echo-private:checkins,CheckInProcessed')]
     public function handleCheckInProcessed($eventData)
     {
-        // $this->isWebSocketConnected = true; can be handled by alpine client-side
-        $this->loadEvents();
+        $this->resetPage();
         $this->loadOccupancy();
         $this->loadAlerts();
-    }
-
-    public function loadEvents()
-    {
-        $this->recentEvents = CheckInEvent::with(['member', 'terminal'])
-            ->latest('checked_in_at')
-            ->limit(20)
-            ->get();
     }
 
     public function loadOccupancy()
@@ -51,18 +38,6 @@ class CheckInMonitor extends Component
         $this->occupancyCount = CheckInEvent::where('result', 'authorized')
             ->whereDate('checked_in_at', today())
             ->count();
-    }
-
-    public function loadTerminalStatuses()
-    {
-        $terminals = HikvisionTerminal::all();
-        foreach ($terminals as $terminal) {
-            $this->terminalStatuses[$terminal->id] = [
-                'name' => $terminal->name,
-                'status' => $terminal->status,
-                'last_seen_at' => $terminal->last_seen_at?->diffForHumans() ?? 'Never',
-            ];
-        }
     }
 
     public function loadAlerts()
@@ -81,6 +56,10 @@ class CheckInMonitor extends Component
 
     public function render()
     {
-        return view('livewire.admin.access-control.check-in-monitor')->layout('layouts.app');
+        return view('livewire.admin.access-control.check-in-monitor', [
+            'events' => CheckInEvent::with(['member', 'terminal'])
+                ->latest('checked_in_at')
+                ->paginate(5),
+        ])->layout('layouts.app');
     }
 }

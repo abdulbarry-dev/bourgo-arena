@@ -1,5 +1,7 @@
 <?php
 
+use App\Livewire\Admin\Terminals\Create;
+use App\Livewire\Admin\Terminals\Index;
 use App\Models\Member;
 use App\Models\Plan;
 use App\Models\Subscription;
@@ -93,6 +95,22 @@ Route::get('/plans/{plan}/edit', function (Plan $plan) {
     ->role('admin')
     ->name('admin.plans.edit');
 
-Route::view('/access-control', 'livewire.admin.access-control.dashboard')
+Route::view('/access-control', 'livewire.admin.access-control.check-in-monitor-page')
     ->role('admin', 'manager')
     ->name('admin.access-control.dashboard');
+
+Route::view('/access-control/alerts', 'livewire.admin.access-control.anti-passback-alerts-page')
+    ->role('admin', 'manager')
+    ->name('admin.access-control.alerts');
+
+Route::view('/access-control/logs', 'livewire.admin.access-control.audit-logs-page')
+    ->role('admin', 'manager')
+    ->name('admin.access-control.logs');
+
+Route::get('/terminals', Index::class)
+    ->role('admin')
+    ->name('admin.terminals.index');
+
+Route::get('/terminals/create', Create::class)
+    ->role('admin')
+    ->name('admin.terminals.create');
