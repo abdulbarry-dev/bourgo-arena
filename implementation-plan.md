@@ -628,12 +628,12 @@ This phase delivers operational dashboards: live occupancy counters, check-in ev
 
 #### 4.1 Implement Real-Time WebSocket Infrastructure
 
-- [ ] Configure Laravel Echo + Pusher or equivalent (Reverb for local development)
-- [ ] Set up WebSocket server (Redis backed message queue)
-- [ ] Create `CheckInProcessed` broadcast event: fired when check-in is authorized or denied
-- [ ] Implement terminal webhook receiver (from Phase 1); parse ISAPI payload → create CheckInEvent + broadcast
-- [ ] Store broadcast credentials in `.env` (BROADCAST_DRIVER, BROADCAST_HOST, etc.)
-- [ ] Test WebSocket under load: 50+ concurrent connections, < 1s message latency
+- [x] Configure Laravel Echo + Pusher or equivalent (Reverb for local development)
+- [x] Set up WebSocket server (Redis backed message queue)
+- [x] Create `CheckInProcessed` broadcast event: fired when check-in is authorized or denied
+- [x] Implement terminal webhook receiver (from Phase 1); parse ISAPI payload → create CheckInEvent + broadcast
+- [x] Store broadcast credentials in `.env` (BROADCAST_DRIVER, BROADCAST_HOST, etc.)
+- [x] Test WebSocket under load: 50+ concurrent connections, < 1s message latency
 
 **Deliverables:**
 - `/config/broadcasting.php` (WebSocket configuration)
@@ -662,16 +662,16 @@ public bool $isWebSocketConnected = false;
 Uses `#[On('echo:checkins,CheckInProcessed')]` listener — updates recentEvents + occupancyCount + alerts without full page reload
 
 **Implementation:**
-- [ ] Create component with WebSocket listener
-- [ ] Build Blade template:
+- [x] Create component with WebSocket listener
+- [x] Build Blade template:
   - **Header:** occupancy counter (large number + icon), WebSocket status badge (green = connected, red = disconnected)
   - **Recent Events List:** 20 most recent check-ins (member name, result icon green/red, time, terminal, denial reason if denied)
   - **Terminal Status Grid:** card per terminal (name, online/offline, last seen timestamp)
   - **Alerts Section:** list of terminals with > 3 denials in last 5 min, each with acknowledge button
   - **Empty State:** "No check-ins yet today"
-- [ ] Implement WebSocket listener: update recentEvents + occupancyCount on CheckInProcessed event
-- [ ] Add polling fallback: if WebSocket disconnects, poll `/api/check-in/recent` every 5 sec to maintain fresh data
-- [ ] Test: occupancy count accuracy, WebSocket message delivery, fallback polling, alert triggering
+- [x] Implement WebSocket listener: update recentEvents + occupancyCount on CheckInProcessed event
+- [x] Add polling fallback: if WebSocket disconnects, poll `/api/check-in/recent` every 5 sec to maintain fresh data
+- [x] Test: occupancy count accuracy, WebSocket message delivery, fallback polling, alert triggering
 
 **Deliverables:**
 - `/app/Livewire/Admin/AccessControl/CheckInMonitor.php`

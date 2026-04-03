@@ -92,3 +92,7 @@ Route::get('/plans/{plan}/edit', function (Plan $plan) {
 })
     ->role('admin')
     ->name('admin.plans.edit');
+
+Route::view('/access-control', 'livewire.admin.access-control.dashboard')
+    ->role('admin', 'manager')
+    ->name('admin.access-control.dashboard');

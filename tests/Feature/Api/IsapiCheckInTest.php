@@ -1,12 +1,16 @@
 <?php
 
+use App\Events\CheckInProcessed;
 use App\Models\HikvisionTerminal;
+use Illuminate\Support\Facades\Event;
 
 it('accepts ISAPI JSON payload for checkin', function () {
     $terminal = HikvisionTerminal::factory()->create([
         'api_token' => 'valid-terminal-token',
         'status' => 'offline',
     ]);
+
+    Event::fake([CheckInProcessed::class]);
 
     $payload = [
         'AccessControllerEvent' => [
@@ -27,4 +31,15 @@ it('accepts ISAPI JSON payload for checkin', function () {
         'card_uid' => '123456789',
         'result' => 'authorized', // Default success on subEventType 75 (access granted)
     ]);
+
+    Event::assertDispatched(CheckInProcessed::class, function (CheckInProcessed $event) use ($terminal): bool {
+        $payload = $event->broadcastWith();
+
+        return $payload['terminal_id'] === $terminal->id
+            && $payload['terminal_name'] === $terminal->name
+            && $payload['terminal_type'] === $terminal->terminal_type
+            && $payload['card_uid'] === '123456789'
+            && $payload['result'] === 'authorized'
+            && array_key_exists('checked_in_at', $payload);
+    });
 });

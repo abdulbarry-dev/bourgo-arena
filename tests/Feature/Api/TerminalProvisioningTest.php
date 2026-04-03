@@ -1,7 +1,9 @@
 <?php
 
+use App\Events\CheckInProcessed;
 use App\Models\HikvisionTerminal;
 use App\Models\User;
+use Illuminate\Support\Facades\Event;
 
 it('allows admin to provision a terminal and returns api token', function () {
     $admin = User::factory()->admin()->create();
@@ -84,6 +86,8 @@ it('accepts registered terminal checkin and updates status', function () {
         'last_seen_at' => null,
     ]);
 
+    Event::fake([CheckInProcessed::class]);
+
     $response = $this->withHeader('Authorization', 'Bearer valid-terminal-token')
         ->postJson('/api/checkin', [
             'card_uid' => 'CARD-002',
@@ -101,6 +105,14 @@ it('accepts registered terminal checkin and updates status', function () {
         'card_uid' => 'CARD-002',
         'result' => 'authorized',
     ]);
+
+    Event::assertDispatched(CheckInProcessed::class, function (CheckInProcessed $event) use ($terminal): bool {
+        $payload = $event->broadcastWith();
+
+        return $payload['terminal_id'] === $terminal->id
+            && $payload['card_uid'] === 'CARD-002'
+            && $payload['result'] === 'authorized';
+    });
 });
 
 it('rejects decommissioned terminal checkin with 401', function () {
