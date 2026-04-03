@@ -181,6 +181,19 @@
                 <flux:separator variant="subtle" />
 
                 <div class="space-y-4">
+                    <flux:heading size="md" class="text-zinc-900 dark:text-zinc-100">{{ __('Connection Status') }}</flux:heading>
+                    <p class="text-sm text-zinc-500">
+                        {{ __('Manually override the current connection status to force it online or offline.') }}
+                    </p>
+                    
+                    <flux:button wire:click="toggleConnectionStatus" variant="subtle" class="w-full">
+                        {{ $selectedTerminal->status === 'online' ? __('Mark as Offline') : __('Mark as Online') }}
+                    </flux:button>
+                </div>
+
+                <flux:separator variant="subtle" />
+
+                <div class="space-y-4">
                     <flux:heading size="md" class="text-red-600 dark:text-red-400">{{ __('Danger Zone') }}</flux:heading>
                     <p class="text-sm text-zinc-500">
                         {{ __('Decommissioning this terminal will permanently disable it from accepting check-ins while preserving audit history. This cannot be undone automatically.') }}

@@ -60,6 +60,20 @@ class Index extends Component
         $this->showFlyout = true;
     }
 
+    public function toggleConnectionStatus()
+    {
+        if ($this->selectedTerminal && $this->selectedTerminal->status !== 'decommissioned') {
+            $newStatus = $this->selectedTerminal->status === 'online' ? 'offline' : 'online';
+            $this->selectedTerminal->update(['status' => $newStatus]);
+
+            $this->dispatch(
+                'toast',
+                message: __('Terminal status manually updated to :status.', ['status' => $newStatus]),
+                type: 'success'
+            );
+        }
+    }
+
     public function decommissionTerminal()
     {
         if ($this->selectedTerminal) {
