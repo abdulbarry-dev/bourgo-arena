@@ -1,44 +1,58 @@
 <div>
-    <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl text-gray-900 font-bold">Anti-Passback Alerts</h2>
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+        <flux:heading size="lg">{{ __('Anti-Passback Alerts') }}</flux:heading>
         @if($alerts->count() > 0)
-            <button wire:click="dismissAllAlerts" class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded border border-gray-300">
-                Dismiss All
-            </button>
+            <flux:button size="sm" variant="subtle" wire:click="dismissAllAlerts">
+                {{ __('Dismiss All') }}
+            </flux:button>
         @endif
     </div>
 
-    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
-        <p class="text-sm text-yellow-700">Flags members swiping 'entry' consecutively without an 'exit'.</p>
+    <div class="mb-4 rounded-lg bg-orange-50 p-4 border border-orange-200 dark:bg-orange-900/20 dark:border-orange-800">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <flux:icon.information-circle class="h-5 w-5 text-orange-400" />
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium text-orange-800 dark:text-orange-200">
+                    {{ __('Flags members swiping \'entry\' consecutively without an \'exit\'.') }}
+                </p>
+            </div>
+        </div>
     </div>
 
-    <div class="bg-white shadow overflow-hidden sm:rounded-md mt-4">
-        <ul role="list" class="divide-y divide-gray-200">
+    <flux:card class="!p-0 overflow-hidden">
+        <ul role="list" class="divide-y divide-zinc-200 dark:divide-zinc-700">
             @forelse($alerts as $alert)
-                <li class="px-4 py-4 sm:px-6">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center">
-                            <p class="text-sm font-medium text-indigo-600 truncate">
-                                {{ $alert->member ? $alert->member->name : 'Unknown' }}
-                                <span class="text-gray-500 text-xs ml-1">({{ $alert->card_uid }})</span>
-                            </p>
+                <li class="px-4 py-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <flux:icon.shield-exclamation class="h-8 w-8 text-orange-500" />
+                            <div>
+                                <p class="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                    {{ $alert->member ? $alert->member->name : __('Unknown') }}
+                                    <span class="text-zinc-500 dark:text-zinc-400 text-xs ml-1">({{ $alert->card_uid }})</span>
+                                </p>
+                                <div class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                                    {{ __('Terminal:') }} {{ $alert->terminal ? $alert->terminal->name : __('Unknown') }}
+                                    <span class="mx-1">&middot;</span>
+                                    {{ $alert->checked_in_at }}
+                                </div>
+                            </div>
                         </div>
-                        <div class="ml-2 flex-shrink-0 flex gap-2">
-                            <button wire:click="dismissAlert({{ $alert->id }})" class="bg-transparent border border-gray-300 text-gray-700 hover:bg-gray-50 px-3 py-1 text-sm rounded">Dismiss</button>
-                            <button wire:click="escalateAndSuspend('{{ $alert->card_uid }}')" class="bg-red-600 text-white hover:bg-red-700 px-3 py-1 text-sm rounded">Suspend Card</button>
-                        </div>
-                    </div>
-                    <div class="mt-2 sm:flex sm:justify-between">
-                        <div class="sm:flex">
-                            <p class="flex items-center text-sm text-gray-500">
-                                Terminal: {{ $alert->terminal ? $alert->terminal->name : 'Unknown' }} | At: {{ $alert->checked_in_at }}
-                            </p>
+                        <div class="flex items-center gap-2 mt-2 sm:mt-0">
+                            <flux:button size="sm" variant="subtle" wire:click="dismissAlert({{ $alert->id }})">
+                                {{ __('Dismiss') }}
+                            </flux:button>
+                            <flux:button size="sm" variant="danger" wire:click="escalateAndSuspend('{{ $alert->card_uid }}')">
+                                {{ __('Suspend Card') }}
+                            </flux:button>
                         </div>
                     </div>
                 </li>
             @empty
-                <li class="px-4 py-4 text-center text-gray-500 text-sm">No suspicious check-ins detected.</li>
+                <li class="px-4 py-8 text-center text-zinc-500 dark:text-zinc-400 text-sm">{{ __('No suspicious check-ins detected.') }}</li>
             @endforelse
         </ul>
-    </div>
+    </flux:card>
 </div>

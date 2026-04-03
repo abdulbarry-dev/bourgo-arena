@@ -1,34 +1,30 @@
-<div>
-    <nav class="flex mb-4" aria-label="Breadcrumb">
-        <ol role="list" class="flex items-center space-x-4">
-            <li>
-                <div class="flex items-center">
-                    <a href="{{ route('admin.members') }}" class="text-sm font-medium text-gray-500 hover:text-gray-700">Admin</a>
-                </div>
-            </li>
-            <li>
-                <div class="flex items-center">
-                    <svg class="h-5 w-5 flex-shrink-0 text-gray-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                        <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z" />
-                    </svg>
-                    <span class="ml-4 text-sm font-medium text-gray-700" aria-current="page">Access Control</span>
-                </div>
-            </li>
-        </ol>
-    </nav>
+<x-layouts::app :title="__('Access Control')">
+    <section class="max-w-7xl mx-auto flex w-full flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+        <nav aria-label="{{ __('Breadcrumb') }}" class="text-sm text-zinc-600 dark:text-zinc-300">
+            <ol class="flex flex-wrap items-center gap-2">
+                <li>
+                    <a href="{{ route('dashboard') }}" wire:navigate class="font-medium text-zinc-700 transition hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-zinc-100">
+                        {{ __('Dashboard') }}
+                    </a>
+                </li>
+                <li aria-hidden="true" class="text-zinc-400 dark:text-zinc-500">/</li>
+                <li class="font-medium text-zinc-900 dark:text-zinc-100">{{ __('Access Control') }}</li>
+            </ol>
+        </nav>
 
-    <h1 class="text-3xl font-bold tracking-tight text-gray-900 mb-6">Access Control Dashboard</h1>
-    
-    <div class="mb-8">
-        <livewire:admin.access-control.check-in-monitor />
-    </div>
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div class="space-y-1">
+                <flux:heading size="xl">{{ __('Access Control Dashboard') }}</flux:heading>
+                <flux:text variant="subtle">{{ __('Monitor real-time check-ins, resolve anti-passback alerts, and view the audit log.') }}</flux:text>
+            </div>
+        </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div>
+        <div class="flex flex-col gap-8">
+            <livewire:admin.access-control.check-in-monitor />
+            
+            <livewire:admin.access-control.anti-passback-alerts />
+            
             <livewire:admin.access-control.audit-log />
         </div>
-        <div>
-            <livewire:admin.access-control.anti-passback-alerts />
-        </div>
-    </div>
-</div>
+    </section>
+</x-layouts::app>

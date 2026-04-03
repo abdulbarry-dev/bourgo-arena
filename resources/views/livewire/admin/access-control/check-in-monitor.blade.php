@@ -1,114 +1,97 @@
 <div>
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl flex font-bold tracking-tight text-gray-900">
-            Check-In Monitor
-            <span class="ml-4 flex h-3 w-3 mt-2 rounded-full {{ $isWebSocketConnected ? 'bg-green-500' : 'bg-red-500' }}"></span>
-        </h1>
-        
-        <div class="bg-white px-4 py-2 rounded shadow text-center">
-            <span class="text-sm text-gray-500 block">Current Occupancy</span>
-            <span class="text-2xl font-extrabold text-blue-600">{{ $occupancyCount }}</span>
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
+        <div class="flex items-center gap-3">
+            <flux:heading size="lg">{{ __('Check-In Monitor') }}</flux:heading>
+            <div class="flex h-2.5 w-2.5 rounded-full {{ $isWebSocketConnected ? 'bg-green-500' : 'bg-red-500' }}" title="{{ $isWebSocketConnected ? 'Connected' : 'Disconnected' }}"></div>
         </div>
+        
+        <flux:card class="!p-3 text-center sm:min-w-[150px]">
+            <flux:text variant="subtle" size="sm">{{ __('Current Occupancy') }}</flux:text>
+            <div class="text-2xl font-extrabold text-blue-600 dark:text-blue-400 mt-1">{{ $occupancyCount }}</div>
+        </flux:card>
     </div>
 
     @if($alertCount > 0)
-        <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6 relative">
-            <div class="flex items-center">
+        <div class="mb-6 rounded-lg bg-red-50 p-4 border border-red-200 dark:bg-red-900/20 dark:border-red-800 relative">
+            <div class="flex items-start">
                 <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                    </svg>
+                    <flux:icon.exclamation-triangle class="h-5 w-5 text-red-400" />
                 </div>
-                <div class="ml-3">
-                    <p class="text-sm text-red-700">
-                        {{ $alertCount }} denied events in the last 5 minutes.
+                <div class="ml-3 w-full flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                    <p class="text-sm font-medium text-red-800 dark:text-red-200">
+                        {{ $alertCount }} {{ __('denied events in the last 5 minutes.') }}
                     </p>
+                    <flux:button size="sm" variant="danger" wire:click="acknowledgeAlert">
+                        {{ __('Acknowledge') }}
+                    </flux:button>
                 </div>
-                <button wire:click="acknowledgeAlert" class="absolute top-4 right-4 text-sm text-red-600 hover:text-red-500">
-                    Acknowledge
-                </button>
             </div>
         </div>
     @endif
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Terminal Statuses -->
-        <div class="col-span-1">
-            <h2 class="text-lg font-medium text-gray-900 mb-4">Terminals</h2>
-            <div class="bg-white shadow overflow-hidden sm:rounded-md">
-                <ul role="list" class="divide-y divide-gray-200">
+        <div class="col-span-1 flex flex-col gap-4">
+            <flux:heading size="md">{{ __('Terminals') }}</flux:heading>
+            <flux:card class="!p-0 overflow-hidden">
+                <ul role="list" class="divide-y divide-zinc-200 dark:divide-zinc-700">
                     @forelse($terminalStatuses as $id => $status)
-                        <li class="px-4 py-4 sm:px-6">
+                        <li class="px-4 py-4">
                             <div class="flex items-center justify-between">
-                                <p class="text-sm font-medium text-blue-600 truncate">{{ $status['name'] }}</p>
-                                <div class="ml-2 flex-shrink-0 flex">
-                                    <p class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $status['status'] === 'online' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                        {{ $status['status'] }}
-                                    </p>
-                                </div>
+                                <span class="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">{{ $status['name'] }}</span>
+                                <flux:badge size="sm" color="{{ $status['status'] === 'online' ? 'green' : 'red' }}">
+                                    {{ ucfirst($status['status']) }}
+                                </flux:badge>
                             </div>
-                            <div class="mt-2 sm:flex sm:justify-between">
-                                <div class="sm:flex">
-                                    <p class="flex items-center text-sm text-gray-500">
-                                        Last seen: {{ $status['last_seen_at'] }}
-                                    </p>
-                                </div>
+                            <div class="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+                                {{ __('Last seen:') }} {{ $status['last_seen_at'] }}
                             </div>
                         </li>
                     @empty
-                        <li class="px-4 py-4 text-gray-500 text-sm">No terminals registered.</li>
+                        <li class="px-4 py-6 text-center text-zinc-500 dark:text-zinc-400 text-sm">{{ __('No terminals registered.') }}</li>
                     @endforelse
                 </ul>
-            </div>
+            </flux:card>
         </div>
 
-        <!-- Recent Events -->
-        <div class="col-span-2">
-            <h2 class="text-lg font-medium text-gray-900 mb-4">Recent Check-ins</h2>
-            <div class="bg-white shadow overflow-hidden sm:rounded-md">
-                <ul role="list" class="divide-y divide-gray-200" wire:poll.5s="loadEvents">
+        <div class="col-span-2 flex flex-col gap-4">
+            <flux:heading size="md">{{ __('Recent Check-ins') }}</flux:heading>
+            <flux:card class="!p-0 overflow-hidden">
+                <ul role="list" class="divide-y divide-zinc-200 dark:divide-zinc-700" wire:poll.5s="loadEvents">
                     @forelse($recentEvents as $event)
-                        <li class="px-4 py-4 sm:px-6" wire:key="event-{{ $event->id }}">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center">
-                                    <span class="h-8 w-8 rounded-full {{ $event->result === 'authorized' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600' }} flex items-center justify-center">
+                        <li class="px-4 py-4" wire:key="event-{{ $event->id }}">
+                            <div class="flex items-center justify-between gap-4">
+                                <div class="flex items-center gap-3 overflow-hidden">
+                                    <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full {{ $event->result === 'authorized' ? 'bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-green-400' : 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400' }}">
                                         @if($event->result === 'authorized')
-                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                            </svg>
+                                            <flux:icon.check class="h-4 w-4" />
                                         @else
-                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
+                                            <flux:icon.x-mark class="h-4 w-4" />
                                         @endif
-                                    </span>
-                                    <p class="ml-3 text-sm font-medium text-gray-900 truncate">
-                                        {{ $event->member ? $event->member->name : 'Unknown User' }}
-                                        <span class="text-gray-500 text-xs ml-1">({{ $event->card_uid }})</span>
-                                    </p>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
+                                            {{ $event->member ? $event->member->name : __('Unknown User') }}
+                                            <span class="text-zinc-500 dark:text-zinc-400 text-xs ml-1 w-full truncate">({{ $event->card_uid }})</span>
+                                        </p>
+                                        <div class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 truncate">
+                                            {{ __('Terminal:') }} {{ $event->terminal ? $event->terminal->name : __('Unknown') }}
+                                            @if($event->result !== 'authorized')
+                                                <span class="mx-1">&middot;</span>
+                                                <span class="text-red-600 dark:text-red-400">{{ __('Reason:') }} {{ $event->denial_reason }}</span>
+                                            @endif
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="ml-2 flex-shrink-0 flex text-sm text-gray-500">
+                                <div class="text-xs text-zinc-500 dark:text-zinc-400 whitespace-nowrap flex-shrink-0">
                                     {{ $event->checked_in_at->diffForHumans() }}
                                 </div>
                             </div>
-                            <div class="mt-2 text-xs text-gray-500 ml-11">
-                                Terminal: {{ $event->terminal ? $event->terminal->name : 'Unknown' }}
-                                @if($event->result !== 'authorized')
-                                    | Reason: <span class="text-red-500">{{ $event->denial_reason }}</span>
-                                @endif
-                            </div>
                         </li>
                     @empty
-                        <li class="px-4 py-4 text-center text-gray-500 text-sm">No recent events today.</li>
+                        <li class="px-4 py-8 text-center text-zinc-500 dark:text-zinc-400 text-sm">{{ __('No recent events today.') }}</li>
                     @endforelse
                 </ul>
-            </div>
+            </flux:card>
         </div>
     </div>
 </div>
-
-<script>
-    document.addEventListener("alpine:init", () => {
-        // Simple logic to toggle indicator. Real app uses Echo's connection events.
-    });
-</script>
