@@ -3,7 +3,7 @@
 use App\Jobs\SendMemberWelcomeEmail;
 use App\Jobs\SendMemberWelcomePush;
 use App\Jobs\SendMemberWelcomeSms;
-use App\Livewire\Admin\Members\AddMemberForm;
+use App\Livewire\Admin\Members\AddMemberFlyout;
 use App\Models\Member;
 use App\Models\User;
 use Illuminate\Support\Facades\Queue;
@@ -14,7 +14,7 @@ test('manager can create a member and queue onboarding notifications', function 
 
     $this->actingAs(User::factory()->manager()->create());
 
-    $component = Livewire::test(AddMemberForm::class)
+    $component = Livewire::test(AddMemberFlyout::class)
         ->set('name', 'Manual Member')
         ->set('email', 'manual.member@example.com')
         ->set('phone', '+21620111222')
@@ -57,8 +57,7 @@ test('manager can create a member and queue onboarding notifications', function 
 test('member role cannot create members manually', function () {
     $this->actingAs(User::factory()->member()->create());
 
-    Livewire::test(AddMemberForm::class)
-        ->set('name', 'Blocked Member')
+    Livewire::test(AddMemberFlyout::class)
         ->set('email', 'blocked@example.com')
         ->set('phone', '+21620111333')
         ->set('dateOfBirth', '1996-05-18')
@@ -75,8 +74,7 @@ test('add member form validates unique email', function () {
         'phone' => '+21621123450',
     ]);
 
-    Livewire::test(AddMemberForm::class)
-        ->set('name', 'Duplicate Email Member')
+    Livewire::test(AddMemberFlyout::class)
         ->set('email', 'existing.member@example.com')
         ->set('phone', '+21621123457')
         ->set('dateOfBirth', '1995-01-01')
@@ -93,8 +91,7 @@ test('add member form validates unique phone', function () {
         'phone' => '+21621123459',
     ]);
 
-    Livewire::test(AddMemberForm::class)
-        ->set('name', 'Duplicate Phone Member')
+    Livewire::test(AddMemberFlyout::class)
         ->set('email', 'different.member@example.com')
         ->set('phone', '+21621123459')
         ->set('dateOfBirth', '1995-01-01')

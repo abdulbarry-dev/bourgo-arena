@@ -32,7 +32,7 @@ class AntiPassbackRule
             return false;
         }
 
-        $lastTerminalType = $lastEvent->terminal ? $lastEvent->terminal->type : 'entry';
+        $lastTerminalType = $lastEvent->terminal ? $lastEvent->terminal->terminal_type : 'entry';
 
         if ($lastTerminalType === 'entry') {
             // Two consecutive entries

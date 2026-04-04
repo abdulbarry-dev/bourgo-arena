@@ -127,6 +127,7 @@
         </div>
     </div>
 
+    @can('create', \App\Models\Plan::class)
     <!-- Flyout Modal for Create / Edit -->
     <flux:modal wire:model="showFlyout" variant="flyout" class="space-y-6">
         <div>
@@ -180,4 +181,5 @@
             @endif
         </form>
     </flux:modal>
+    @endcan
 </section>

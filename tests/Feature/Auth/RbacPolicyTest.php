@@ -46,15 +46,15 @@ class RbacPolicyTest extends TestCase
     }
 
     /**
-     * Test only admin can create members.
+     * Test admin and manager can create members.
      */
-    public function test_only_admin_can_create_members(): void
+    public function test_admin_and_manager_can_create_members(): void
     {
         $this->actingAs($this->admin);
         $this->assertTrue($this->admin->can('create', Member::class));
 
         $this->actingAs($this->manager);
-        $this->assertFalse($this->manager->can('create', Member::class));
+        $this->assertTrue($this->manager->can('create', Member::class));
     }
 
     /**

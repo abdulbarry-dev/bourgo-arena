@@ -93,6 +93,10 @@ class MemberTable extends Component
     {
         $this->authorize('viewAny', Member::class);
 
+        if (! app()->environment('testing')) {
+            sleep(3); // Simulated delay for testing
+        }
+
         $membersQuery = $this->filteredMembersQuery()
             ->with(['activeSubscription.plan', 'nfcCard'])
             ->orderBy('id');

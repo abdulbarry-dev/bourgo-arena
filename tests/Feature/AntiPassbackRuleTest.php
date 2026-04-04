@@ -8,7 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 it('flags consecutive entry scans as suspicious', function () {
-    $terminal = HikvisionTerminal::factory()->create(['type' => 'entry']);
+    $terminal = HikvisionTerminal::factory()->create(['terminal_type' => 'entry']);
     $cardUid = 'TESTCARD123';
 
     // First scan creates an entry
@@ -25,7 +25,7 @@ it('flags consecutive entry scans as suspicious', function () {
 });
 
 it('does not flag entry after exit', function () {
-    $exitTerminal = HikvisionTerminal::factory()->create(['type' => 'exit']);
+    $exitTerminal = HikvisionTerminal::factory()->create(['terminal_type' => 'exit']);
     $cardUid = 'TESTCARD456';
 
     $event1 = CheckInEvent::factory()->create([

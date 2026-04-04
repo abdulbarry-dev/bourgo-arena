@@ -7,7 +7,8 @@
 
         <flux:button
             variant="primary"
-            wire:click="exportCsv"
+            x-data
+            x-on:click="$dispatch('toast', { id: 'export-csv', message: '{{ __('Preparing CSV export... Please wait.') }}', type: 'loading' }); $wire.exportCsv().then(() => $dispatch('dismiss-toast', { toastId: 'export-csv' }));"
             wire:loading.attr="disabled"
             wire:target="exportCsv"
             icon="arrow-down-tray"

@@ -33,25 +33,34 @@ class ToastManager extends Component
     }
 
     #[On('toast')]
-    public function addToast(string $message, string $type = 'info'): void
+    public function addToast(string $message, string $type = 'info', ?string $id = null): void
     {
-        $normalizedType = in_array($type, ['success', 'warning', 'danger', 'info'], true)
+        $normalizedType = in_array($type, ['success', 'warning', 'danger', 'info', 'loading'], true)
             ? $type
             : 'info';
 
         $this->toasts[] = [
-            'id' => (string) Str::uuid(),
+            'id' => $id ?: (string) Str::uuid(),
             'message' => $message,
             'type' => $normalizedType,
         ];
     }
 
-    public function dismiss(string $toastId): void
+    #[On('dismiss-toast')]
+    public function dismiss(string $toastId = null): void
     {
-        $this->toasts = array_values(array_filter(
-            $this->toasts,
-            fn (array $toast): bool => $toast['id'] !== $toastId,
-        ));
+        if ($toastId) {
+            $this->toasts = array_values(array_filter(
+                $this->toasts,
+                fn (array $toast): bool => $toast['id'] !== $toastId,
+            ));
+        } else {
+            // Dismiss all toasts, or specific ones like 'loading'
+            $this->toasts = array_values(array_filter(
+                $this->toasts,
+                fn (array $toast): bool => $toast['type'] !== 'loading',
+            ));
+        }
     }
 
     public function render(): View

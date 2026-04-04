@@ -13,11 +13,11 @@ it('renders the AuditLog securely', function () {
 });
 
 it('can filter events', function () {
-    $evAuth = CheckInEvent::factory()->create(['result' => 'authorized', 'card_uid' => 'AUTH123']);
-    $evDeny = CheckInEvent::factory()->create(['result' => 'denied', 'card_uid' => 'DENY456']);
+    $evAuth = CheckInEvent::factory()->create(['result' => 'authorized']);
+    $evDeny = CheckInEvent::factory()->create(['result' => 'denied']);
 
     Livewire::test(AuditLog::class)
         ->set('resultFilter', 'authorized')
-        ->assertSee('AUTH123')
-        ->assertDontSee('DENY456');
+        ->assertSee($evAuth->member->email)
+        ->assertDontSee($evDeny->member->email);
 });

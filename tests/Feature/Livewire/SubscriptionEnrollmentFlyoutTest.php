@@ -3,7 +3,7 @@
 use App\Jobs\SendSubscriptionNotification;
 use App\Jobs\SendSubscriptionReceiptEmail;
 use App\Jobs\SyncTerminalWhitelist;
-use App\Livewire\Admin\Subscriptions\SubscriptionEnrollment;
+use App\Livewire\Admin\Subscriptions\SubscriptionEnrollmentFlyout;
 use App\Models\Member;
 use App\Models\Plan;
 use App\Models\Subscription;
@@ -27,7 +27,7 @@ test('manager can enroll pending member and activate access', function () {
 
     $this->actingAs($manager);
 
-    Livewire::test(SubscriptionEnrollment::class)
+    Livewire::test(SubscriptionEnrollmentFlyout::class)
         ->set('memberId', $member->id)
         ->set('planId', $plan->id)
         ->set('startsAt', '2026-04-02')
@@ -66,7 +66,7 @@ test('gateway payment method requires payment reference', function () {
     $member = Member::factory()->create(['status' => 'pending']);
     $plan = Plan::factory()->create(['is_archived' => false]);
 
-    Livewire::test(SubscriptionEnrollment::class)
+    Livewire::test(SubscriptionEnrollmentFlyout::class)
         ->set('memberId', $member->id)
         ->set('planId', $plan->id)
         ->set('startsAt', '2026-04-01')
@@ -82,7 +82,7 @@ test('archived plans are rejected by enrollment validation', function () {
     $member = Member::factory()->create(['status' => 'pending']);
     $archivedPlan = Plan::factory()->archived()->create();
 
-    Livewire::test(SubscriptionEnrollment::class)
+    Livewire::test(SubscriptionEnrollmentFlyout::class)
         ->set('memberId', $member->id)
         ->set('planId', $archivedPlan->id)
         ->set('startsAt', '2026-04-01')
@@ -97,7 +97,7 @@ test('member role cannot enroll subscriptions', function () {
     $member = Member::factory()->create(['status' => 'pending']);
     $plan = Plan::factory()->create(['is_archived' => false]);
 
-    Livewire::test(SubscriptionEnrollment::class)
+    Livewire::test(SubscriptionEnrollmentFlyout::class)
         ->set('memberId', $member->id)
         ->set('planId', $plan->id)
         ->set('startsAt', '2026-04-01')
@@ -118,7 +118,7 @@ test('cannot enroll member who already has active subscription', function () {
         'ends_at' => now()->addDays(20)->toDateString(),
     ]);
 
-    Livewire::test(SubscriptionEnrollment::class)
+    Livewire::test(SubscriptionEnrollmentFlyout::class)
         ->set('memberId', $member->id)
         ->set('planId', $plan->id)
         ->set('startsAt', '2026-04-01')

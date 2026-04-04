@@ -13,28 +13,28 @@
             </div>
         </div>
         
-        <div class="flex items-center gap-2">
-            <flux:button
-                variant="primary"
-                wire:click="exportCsv"
-                wire:loading.attr="disabled"
-                wire:target="exportCsv"
-                icon="arrow-down-tray"
-            >
-                <span wire:loading.remove wire:target="exportCsv">{{ __('Export CSV') }}</span>
-                <span wire:loading wire:target="exportCsv">{{ __('Exporting...') }}</span>
-            </flux:button>
-            <flux:button
-                variant="primary"
-                wire:click="exportPdf"
-                wire:loading.attr="disabled"
-                wire:target="exportPdf"
-                icon="arrow-down-tray"
-            >
-                <span wire:loading.remove wire:target="exportPdf">{{ __('Export PDF') }}</span>
-                <span wire:loading wire:target="exportPdf">{{ __('Exporting...') }}</span>
-            </flux:button>
-        </div>
+    <div class="flex items-center gap-2" x-data>
+        <flux:button
+            variant="primary"
+            x-on:click="$dispatch('toast', { id: 'export-csv', message: '{{ __('Preparing CSV export... Please wait.') }}', type: 'loading' }); $wire.exportCsv().then(() => $dispatch('dismiss-toast', { toastId: 'export-csv' }));"
+            wire:loading.attr="disabled"
+            wire:target="exportCsv"
+            icon="arrow-down-tray"
+        >
+            <span wire:loading.remove wire:target="exportCsv">{{ __('Export CSV') }}</span>
+            <span wire:loading wire:target="exportCsv">{{ __('Exporting...') }}</span>
+        </flux:button>
+        <flux:button
+            variant="primary"
+            x-on:click="$dispatch('toast', { id: 'export-pdf', message: '{{ __('Preparing PDF export... Please wait.') }}', type: 'loading' }); $wire.exportPdf().then(() => $dispatch('dismiss-toast', { toastId: 'export-pdf' }));"
+            wire:loading.attr="disabled"
+            wire:target="exportPdf"
+            icon="arrow-down-tray"
+        >
+            <span wire:loading.remove wire:target="exportPdf">{{ __('Export PDF') }}</span>
+            <span wire:loading wire:target="exportPdf">{{ __('Exporting...') }}</span>
+        </flux:button>
+    </div>
     </div>
 
     @if (session()->has('message'))
