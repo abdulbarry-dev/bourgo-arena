@@ -13,7 +13,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
-#[Fillable(['name', 'email', 'password', 'role'])]
+#[Fillable(['name', 'email', 'phone', 'password', 'role', 'banned_at', 'ban_reason'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -29,6 +29,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
+            'banned_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
         ];
@@ -47,6 +48,27 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isManager(): bool
     {
         return $this->role === UserRole::Manager;
+    }
+
+    public function isBanned(): bool
+    {
+        return ! is_null($this->banned_at);
+    }
+
+    public function ban(string $reason): void
+    {
+        $this->update([
+            'banned_at' => now(),
+            'ban_reason' => $reason,
+        ]);
+    }
+
+    public function unban(): void
+    {
+        $this->update([
+            'banned_at' => null,
+            'ban_reason' => null,
+        ]);
     }
 
     public function isStaff(): bool

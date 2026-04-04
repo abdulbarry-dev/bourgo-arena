@@ -17,7 +17,7 @@
                     {{ __('Expiring Subscriptions') }}
                 </flux:button>
 
-                <flux:button variant="primary" icon="plus" :href="route('admin.subscriptions.enroll')" wire:navigate>
+                <flux:button variant="primary" icon="plus" x-data x-on:click="$dispatch('open-subscription-enrollment-flyout')">
                     {{ __('Enroll Subscription') }}
                 </flux:button>
             </div>
@@ -26,5 +26,7 @@
         <div>
             <livewire:admin.subscriptions.subscription-table />
         </div>
+
+        <livewire:admin.subscriptions.subscription-enrollment-flyout />
     </section>
 </x-layouts::app>

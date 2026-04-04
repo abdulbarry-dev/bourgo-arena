@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\AccessControl;
 
 use App\Models\CheckInEvent;
+use App\Models\HikvisionTerminal;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -54,12 +55,26 @@ class CheckInMonitor extends Component
         $this->alertCount = 0;
     }
 
+    public function setTerminalMode(int $terminalId, string $mode)
+    {
+        $terminal = HikvisionTerminal::findOrFail($terminalId);
+        $terminal->update(['operating_mode' => $mode]);
+        $this->dispatch('toast', message: __("Terminal {$terminal->name} mode set to {$mode}."), type: 'success');
+    }
+
+    public function setGlobalMode(string $mode)
+    {
+        HikvisionTerminal::query()->update(['operating_mode' => $mode]);
+        $this->dispatch('toast', message: __("All terminals set to {$mode} mode."), type: 'success');
+    }
+
     public function render()
     {
         return view('livewire.admin.access-control.check-in-monitor', [
+            'terminals' => HikvisionTerminal::orderBy('name')->get(),
             'events' => CheckInEvent::with(['member', 'terminal'])
                 ->latest('checked_in_at')
-                ->paginate(5),
+                ->paginate(10),
         ])->layout('layouts.app');
     }
 }

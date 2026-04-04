@@ -5,10 +5,16 @@
             <div class="flex h-2.5 w-2.5 rounded-full {{ $isWebSocketConnected ? 'bg-green-500' : 'bg-red-500' }}" title="{{ $isWebSocketConnected ? 'Connected' : 'Disconnected' }}"></div>
         </div>
         
-        <flux:card class="!p-3 text-center sm:min-w-[150px]">
-            <flux:text variant="subtle" size="sm">{{ __('Current Occupancy') }}</flux:text>
-            <div class="text-2xl font-extrabold text-blue-600 dark:text-blue-400 mt-1">{{ $occupancyCount }}</div>
-        </flux:card>
+        <div class="flex items-center gap-4">
+            <flux:modal.trigger name="terminal-controls-flyout">
+                <flux:button icon="cog-8-tooth">{{ __('Control doors') }}</flux:button>
+            </flux:modal.trigger>
+
+            <flux:card class="!p-3 text-center sm:min-w-[150px]">
+                <flux:text variant="subtle" size="sm">{{ __('Current Occupancy') }}</flux:text>
+                <div class="text-2xl font-extrabold text-blue-600 dark:text-blue-400 mt-1">{{ $occupancyCount }}</div>
+            </flux:card>
+        </div>
     </div>
 
     @if($alertCount > 0)
@@ -73,4 +79,60 @@
             {{ $events->links() }}
         </div>
     </div>
+
+    <!-- Terminal Controls Flyout -->
+    <flux:modal name="terminal-controls-flyout" variant="flyout" class="space-y-6">
+        <div>
+            <flux:heading size="lg">{{ __('Terminal Controls') }}</flux:heading>
+            <flux:subheading>{{ __('Manage the operating mode of physical terminals.') }}</flux:subheading>
+        </div>
+
+        <div class="space-y-6 mt-6">
+            <div class="flex flex-col gap-2">
+                <flux:heading size="sm">{{ __('Global Controls') }}</flux:heading>
+                <div class="flex items-center justify-between gap-2">
+                    <flux:button size="sm" variant="danger" icon="lock-closed" wire:click="setGlobalMode('locked')" class="w-full">{{ __('Lock All') }}</flux:button>
+                    <flux:button size="sm" variant="primary" icon="lock-open" wire:click="setGlobalMode('unlocked')" class="w-full">{{ __('Unlock All') }}</flux:button>
+                    <flux:button size="sm" variant="subtle" icon="arrow-path" wire:click="setGlobalMode('auto')" class="w-full">{{ __('Auto All') }}</flux:button>
+                </div>
+            </div>
+
+            <flux:separator />
+
+            <div class="flex flex-col gap-4">
+                <flux:heading size="sm">{{ __('Individual Terminals') }}</flux:heading>
+                @foreach($terminals as $terminal)
+                    <div class="flex flex-col gap-3 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-sm font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                                    {{ $terminal->name }}
+                                    @if($terminal->isOnline())
+                                        <span class="relative flex h-2 w-2">
+                                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                        </span>
+                                    @else
+                                        <span class="relative inline-flex rounded-full h-2 w-2 bg-zinc-400"></span>
+                                    @endif
+                                </div>
+                                <div class="text-xs text-zinc-500">{{ $terminal->location ?? __('No location') }}</div>
+                            </div>
+                            <div>
+                                <flux:badge size="sm" variant="solid" color="{{ match($terminal->operating_mode) { 'locked' => 'red', 'unlocked' => 'green', default => 'zinc' } }}">
+                                    {{ ucfirst($terminal->operating_mode) }}
+                                </flux:badge>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between gap-2 border-t border-zinc-200 dark:border-zinc-800 pt-3 mt-1">
+                            <flux:button size="sm" variant="{{ $terminal->operating_mode === 'locked' ? 'danger' : 'subtle' }}" wire:click="setTerminalMode({{ $terminal->id }}, 'locked')" class="w-full">{{ __('Lock') }}</flux:button>
+                            <flux:button size="sm" variant="{{ $terminal->operating_mode === 'unlocked' ? 'primary' : 'subtle' }}" wire:click="setTerminalMode({{ $terminal->id }}, 'unlocked')" class="w-full">{{ __('Unlock') }}</flux:button>
+                            <flux:button size="sm" variant="{{ $terminal->operating_mode === 'auto' ? 'outline' : 'subtle' }}" wire:click="setTerminalMode({{ $terminal->id }}, 'auto')" class="w-full">{{ __('Auto') }}</flux:button>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </flux:modal>
 </div>

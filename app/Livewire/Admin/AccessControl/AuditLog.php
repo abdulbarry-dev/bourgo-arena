@@ -18,7 +18,7 @@ class AuditLog extends Component
 
     public $resultFilter = '';
 
-    public $perPage = 50;
+    public int $perPage = 10;
 
     public ?int $selectedEventId = null;
 

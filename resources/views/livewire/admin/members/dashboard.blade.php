@@ -6,13 +6,14 @@
                 <flux:text variant="subtle">Browse members and open each profile page to manage status actions and card assignment.</flux:text>
             </div>
 
-            <flux:button variant="primary" icon="plus" :href="route('admin.members.create')" wire:navigate>
+            <flux:button variant="primary" icon="plus" x-data x-on:click="$dispatch('open-add-member-flyout')">
                 {{ __('Add Member') }}
             </flux:button>
         </div>
 
         <div>
             <livewire:admin.members.member-table :selection-enabled="false" />
+            <livewire:admin.members.add-member-flyout />
         </div>
     </section>
 </x-layouts::app>

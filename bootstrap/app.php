@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureUserHasRole;
+use App\Http\Middleware\EnsureUserIsNotBanned;
 use App\Http\Middleware\TerminalAuthMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -18,6 +19,10 @@ return Application::configure(basePath: dirname(__DIR__))
         ['middleware' => ['web', 'auth', 'verified']],
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->web(append: [
+            EnsureUserIsNotBanned::class,
+        ]);
+
         $middleware->alias([
             'role' => EnsureUserHasRole::class,
             'terminal.auth' => TerminalAuthMiddleware::class,

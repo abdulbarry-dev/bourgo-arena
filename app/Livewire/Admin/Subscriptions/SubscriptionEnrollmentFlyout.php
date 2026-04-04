@@ -21,8 +21,25 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 use Throwable;
 
-class SubscriptionEnrollment extends Component
+class SubscriptionEnrollmentFlyout extends Component
 {
+    public bool $show = false;
+
+    #[On('open-subscription-enrollment-flyout')]
+    public function open(?int $memberId = null): void
+    {
+        $this->authorize('create', Subscription::class);
+        $this->resetValidation();
+        $this->reset([
+            'planId',
+            'paymentReference',
+        ]);
+        $this->memberId = $memberId;
+        $this->paymentMethod = 'cash';
+        $this->startsAt = now()->toDateString();
+        $this->show = true;
+    }
+
     use AuthorizesRequests;
 
     public ?int $memberId = null;
@@ -283,6 +300,6 @@ class SubscriptionEnrollment extends Component
 
     public function render(): View
     {
-        return view('livewire.admin.subscriptions.subscription-enrollment');
+        return view('livewire.admin.subscriptions.subscription-enrollment-flyout');
     }
 }

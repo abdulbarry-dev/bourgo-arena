@@ -37,6 +37,9 @@
                         <flux:sidebar.item icon="device-tablet" :href="route('admin.terminals.index')" :current="request()->routeIs('admin.terminals.*')" wire:navigate>
                             {{ __('Terminals') }}
                         </flux:sidebar.item>
+                        <flux:sidebar.item icon="user-circle" :href="route('admin.managers.index')" :current="request()->routeIs('admin.managers.*')" wire:navigate>
+                            {{ __('Managers') }}
+                        </flux:sidebar.item>
                     @endif
                 </flux:sidebar.group>
             </flux:sidebar.nav>

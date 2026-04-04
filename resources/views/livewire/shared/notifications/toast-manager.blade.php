@@ -2,7 +2,7 @@
     @foreach ($toasts as $toast)
         <div
             wire:key="toast-{{ $toast['id'] }}"
-            class="pointer-events-auto"
+            class="pointer-events-auto bg-white dark:bg-zinc-800 shadow-xl rounded-xl ring-1 ring-zinc-200 dark:ring-zinc-700/50 overflow-hidden"
             x-data
             x-init="setTimeout(() => $wire.dismiss('{{ $toast['id'] }}'), 4500)"
         >

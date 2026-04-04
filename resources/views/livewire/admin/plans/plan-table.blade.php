@@ -6,7 +6,7 @@
         </div>
 
         @can('create', \App\Models\Plan::class)
-            <flux:button variant="primary" icon="plus" :href="route('admin.plans.create')" wire:navigate>
+            <flux:button variant="primary" icon="plus" wire:click="openCreateFlyout">
                 {{ __('Create Plan') }}
             </flux:button>
         @endcan
@@ -102,8 +102,7 @@
                                         <flux:button
                                             variant="subtle"
                                             size="sm"
-                                            :href="route('admin.plans.edit', $plan)"
-                                            wire:navigate
+                                            wire:click="openEditFlyout({{ $plan->id }})"
                                         >
                                             {{ __('Edit') }}
                                         </flux:button>
@@ -127,4 +126,58 @@
             {{ $this->plans->links() }}
         </div>
     </div>
+
+    <!-- Flyout Modal for Create / Edit -->
+    <flux:modal wire:model="showFlyout" variant="flyout" class="space-y-6">
+        <div>
+            <flux:heading size="lg">{{ $planId === null ? __('Create Plan') : __('Edit Plan') }}</flux:heading>
+            <flux:subheading>{{ __('Define pricing, duration, and custom included services for this plan.') }}</flux:subheading>
+        </div>
+
+        <form wire:submit="save" class="mt-6 flex flex-col gap-6 w-full">
+            <flux:input wire:model="name" label="{{ __('Plan Name') }}" required />
+            
+            <flux:input wire:model="price" type="text" inputmode="decimal" label="{{ __('Price (TND)') }}" placeholder="129.000" required />
+            
+            <flux:input wire:model="durationDays" type="number" min="1" step="1" label="{{ __('Duration (Days)') }}" required />
+            
+            <flux:switch wire:model="isArchived" :label="$isArchived ? __('Archived') : __('Active')" />
+
+            <flux:field>
+                <flux:label>{{ __('Included Services') }}</flux:label>
+                <flux:textarea
+                    wire:model="includedServicesInput"
+                    rows="4"
+                    :placeholder="__('Enter any custom service names separated by commas')"
+                />
+                <flux:text variant="subtle" class="mt-2">{{ __('Example: gym, classes, pilates, boxing.') }}</flux:text>
+                <flux:error name="includedServicesInput" />
+            </flux:field>
+
+            <flux:error name="save" />
+
+            <div class="flex items-center gap-2 pt-2">
+                <flux:spacer />
+                <flux:button variant="ghost" wire:click="$set('showFlyout', false)">{{ __('Cancel') }}</flux:button>
+                <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="save">
+                    <span wire:loading.remove wire:target="save">{{ $planId === null ? __('Create Plan') : __('Save Changes') }}</span>
+                    <span wire:loading wire:target="save">{{ __('Saving...') }}</span>
+                </flux:button>
+            </div>
+            
+            @if ($planId !== null)
+                <div class="pt-4 border-t border-zinc-200 dark:border-zinc-700 mt-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <flux:heading size="sm">{{ __('Danger Zone') }}</flux:heading>
+                            <p class="text-xs text-zinc-500">{{ __('Permanently remove this plan.') }}</p>
+                        </div>
+                        <flux:button type="button" variant="danger" size="sm" wire:click="delete" wire:confirm="{{ __('Delete this plan? This cannot be undone.') }}">
+                            {{ __('Delete Plan') }}
+                        </flux:button>
+                    </div>
+                </div>
+            @endif
+        </form>
+    </flux:modal>
 </section>

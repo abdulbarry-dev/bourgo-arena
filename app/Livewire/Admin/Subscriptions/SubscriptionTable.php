@@ -26,7 +26,7 @@ class SubscriptionTable extends Component
 
     public ?int $planFilter = null;
 
-    public int $perPage = 50;
+    public int $perPage = 10;
 
     public string $sortBy = 'ends_at';
 

@@ -3,7 +3,6 @@
 namespace App\Livewire\Admin\Terminals;
 
 use App\Models\HikvisionTerminal;
-use Flux\Flux;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;

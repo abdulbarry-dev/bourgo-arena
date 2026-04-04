@@ -11,10 +11,6 @@ Route::view('/members', 'livewire.admin.members.dashboard')
     ->role('admin', 'manager')
     ->name('admin.members');
 
-Route::view('/members/create', 'livewire.admin.members.create')
-    ->role('admin', 'manager')
-    ->name('admin.members.create');
-
 Route::get('/members/{member}', function (Member $member) {
     return view('livewire.admin.members.detail', [
         'member' => $member,
@@ -34,10 +30,6 @@ Route::get('/members/{member}/assign-card', function (Member $member) {
 Route::view('/subscriptions', 'livewire.admin.subscriptions.dashboard')
     ->role('admin', 'manager')
     ->name('admin.subscriptions');
-
-Route::view('/subscriptions/enroll', 'livewire.admin.subscriptions.enroll')
-    ->role('admin', 'manager')
-    ->name('admin.subscriptions.enroll');
 
 Route::view('/subscriptions/expiring', 'livewire.admin.subscriptions.expiring')
     ->role('admin', 'manager')
@@ -73,10 +65,6 @@ Route::view('/plans', 'livewire.admin.plans.dashboard')
     ->role('admin', 'manager')
     ->name('admin.plans');
 
-Route::view('/plans/create', 'livewire.admin.plans.create')
-    ->role('admin')
-    ->name('admin.plans.create');
-
 Route::get('/plans/{plan}', function (Plan $plan) {
     $plan->loadCount('subscriptions');
 
@@ -86,14 +74,6 @@ Route::get('/plans/{plan}', function (Plan $plan) {
 })
     ->role('admin', 'manager')
     ->name('admin.plans.show');
-
-Route::get('/plans/{plan}/edit', function (Plan $plan) {
-    return view('livewire.admin.plans.edit', [
-        'plan' => $plan,
-    ]);
-})
-    ->role('admin')
-    ->name('admin.plans.edit');
 
 Route::view('/access-control', 'livewire.admin.access-control.check-in-monitor-page')
     ->role('admin', 'manager')
@@ -114,3 +94,7 @@ Route::get('/terminals', Index::class)
 Route::get('/terminals/create', Create::class)
     ->role('admin')
     ->name('admin.terminals.create');
+
+Route::get('/managers', App\Livewire\Admin\Managers\Index::class)
+    ->role('admin')
+    ->name('admin.managers.index');

@@ -8,7 +8,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class MemberNotificationService
 {
-    public function paginatedForMember(Member $member, int $perPage = 20): LengthAwarePaginator
+    public function paginatedForMember(Member $member, int $perPage = 10): LengthAwarePaginator
     {
         return MemberNotification::query()
             ->where('member_id', $member->id)

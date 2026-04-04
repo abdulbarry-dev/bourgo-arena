@@ -13,12 +13,15 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Throwable;
 
-class AddMemberForm extends Component
+class AddMemberFlyout extends Component
 {
     use AuthorizesRequests;
+
+    public bool $show = false;
 
     public string $name = '';
 
@@ -33,6 +36,16 @@ class AddMemberForm extends Component
     public string $emergencyContact = '';
 
     public bool $isProcessing = false;
+
+    #[On('open-add-member-flyout')]
+    public function open(): void
+    {
+        $this->authorize('create', Member::class);
+        $this->resetValidation();
+        $this->reset(['name', 'email', 'phone', 'dateOfBirth', 'emergencyContact']);
+        $this->gender = 'male';
+        $this->show = true;
+    }
 
     public function create(): void
     {
@@ -147,6 +160,6 @@ class AddMemberForm extends Component
 
     public function render()
     {
-        return view('livewire.admin.members.add-member-form');
+        return view('livewire.admin.members.add-member-flyout');
     }
 }

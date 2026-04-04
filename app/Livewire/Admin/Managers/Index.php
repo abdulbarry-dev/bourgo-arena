@@ -1,0 +1,154 @@
+<?php
+
+namespace App\Livewire\Admin\Managers;
+
+use App\Mail\ManagerWelcomeEmail;
+use App\Models\User;
+use App\UserRole;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
+use Livewire\Component;
+use Livewire\WithPagination;
+
+#[Layout('layouts.app')]
+#[Title('Managers Administration')]
+class Index extends Component
+{
+    use WithPagination;
+
+    #[Url(history: true)]
+    public $search = '';
+
+    #[Url(history: true)]
+    public $sortBy = 'created_at';
+
+    #[Url(history: true)]
+    public $sortDirection = 'desc';
+
+    public bool $showFlyout = false;
+
+    public string $flyoutMode = 'view'; // 'view' or 'create'
+
+    public ?User $selectedManager = null;
+
+    public $name = '';
+
+    public $email = '';
+
+    public $phone = '';
+
+    public string $banReason = '';
+
+    public function sortByColumn($column)
+    {
+        if ($this->sortBy === $column) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $column;
+            $this->sortDirection = 'asc';
+        }
+    }
+
+    public function openCreateFlyout()
+    {
+        $this->reset(['name', 'email', 'phone', 'selectedManager']);
+        $this->resetValidation();
+        $this->flyoutMode = 'create';
+        $this->showFlyout = true;
+    }
+
+    public function openViewFlyout(User $manager)
+    {
+        $this->selectedManager = $manager;
+        $this->flyoutMode = 'view';
+        $this->showFlyout = true;
+    }
+
+    public function createManager()
+    {
+        $this->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email',
+            'phone' => 'nullable|string|max:20|unique:users,phone',
+        ]);
+
+        $randomPassword = Str::password(16);
+
+        $manager = User::create([
+            'name' => $this->name,
+            'email' => $this->email,
+            'phone' => $this->phone,
+            'password' => Hash::make($randomPassword),
+            'role' => UserRole::Manager,
+        ]);
+
+        Mail::to($manager->email)->send(new ManagerWelcomeEmail($manager, $randomPassword));
+
+        $this->showFlyout = false;
+        $this->dispatch('toast', message: __('Manager created successfully. Invite sent.'), type: 'success');
+    }
+
+    public function toggleBan()
+    {
+        if ($this->selectedManager && $this->selectedManager->id !== auth()->id()) {
+            if ($this->selectedManager->isBanned()) {
+                $this->selectedManager->unban();
+                $this->dispatch('toast', message: __('Manager unbanned successfully.'), type: 'success');
+            } else {
+                $this->banReason = '';
+                $this->resetValidation('banReason');
+                $this->dispatch('modal:open', 'ban-manager-modal');
+            }
+        }
+    }
+
+    public function confirmBanManager()
+    {
+        $this->validate([
+            'banReason' => ['required', 'string', 'min:8', 'regex:/^[a-zA-Z\s]+$/'],
+        ], [
+            'banReason.regex' => 'The reason must only contain alphabetic characters and spaces.',
+            'banReason.min' => 'The reason must be at least 8 characters long.',
+        ]);
+
+        if ($this->selectedManager && $this->selectedManager->id !== auth()->id()) {
+            $this->selectedManager->ban($this->banReason);
+            $this->dispatch('modal:close', 'ban-manager-modal');
+            $this->dispatch('toast', message: __('Manager banned successfully.'), type: 'success');
+        }
+    }
+
+    public function deleteManager()
+    {
+        if ($this->selectedManager && $this->selectedManager->id !== auth()->id()) {
+            $this->selectedManager->delete();
+            $this->showFlyout = false;
+            $this->selectedManager = null;
+
+            $this->dispatch('modal:close', 'confirm-delete');
+            $this->dispatch('toast', message: __('Manager deleted successfully.'), type: 'success');
+        }
+    }
+
+    public function render()
+    {
+        $query = User::query()->where('role', UserRole::Manager->value);
+
+        if (! empty($this->search)) {
+            $query->where(function ($q) {
+                $q->where('name', 'like', '%'.$this->search.'%')
+                    ->orWhere('email', 'like', '%'.$this->search.'%');
+            });
+        }
+
+        $query->orderBy($this->sortBy, $this->sortDirection);
+
+        return view('livewire.admin.managers.index', [
+            'managers' => $query->paginate(10),
+        ]);
+    }
+}

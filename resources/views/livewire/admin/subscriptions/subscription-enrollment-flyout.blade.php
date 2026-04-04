@@ -1,10 +1,10 @@
-<section class="w-full space-y-6">
+<flux:modal wire:model="show" variant="flyout" class="space-y-6">
     <div>
         <flux:heading size="lg">{{ __('Subscription Enrollment') }}</flux:heading>
-        <flux:text variant="subtle">{{ __('Enroll a selected member into a plan, record payment, and dispatch receipt notifications.') }}</flux:text>
+        <flux:subheading>{{ __('Enroll a selected member into a plan, record payment, and dispatch receipt notifications.') }}</flux:subheading>
     </div>
 
-    <form wire:submit="enroll" class="space-y-4 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
+    <form wire:submit="enroll" class="mt-6 flex flex-col gap-6 w-full">
         <flux:field>
             <flux:label>{{ __('Member') }}</flux:label>
             <flux:select wire:model.live="memberId">
@@ -44,7 +44,7 @@
         <div class="grid gap-4 md:grid-cols-2">
             <flux:field>
                 <flux:label>{{ __('Plan') }}</flux:label>
-                <flux:select wire:model="planId">
+                <flux:select wire:model.live="planId">
                     <option value="">{{ __('Select a plan') }}</option>
                     @foreach ($this->plans as $plan)
                         <option value="{{ $plan->id }}">
@@ -68,7 +68,7 @@
         <div class="grid gap-4 md:grid-cols-2">
             <flux:field>
                 <flux:label>{{ __('Payment Method') }}</flux:label>
-                <flux:select wire:model="paymentMethod">
+                <flux:select wire:model.live="paymentMethod">
                     <option value="cash">{{ __('Cash') }}</option>
                     <option value="konnect">{{ __('Konnect') }}</option>
                     <option value="paymee">{{ __('Paymee') }}</option>
@@ -106,20 +106,18 @@
         @endif
 
         <div class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-800 dark:bg-amber-900/30">
-            <flux:text>
+            <flux:text class="text-amber-800 dark:text-amber-200 text-sm">
                 {{ __('Terminal whitelist sync is queued as a placeholder contract until terminal sync infrastructure is implemented.') }}
             </flux:text>
         </div>
 
-        <div class="flex items-center gap-3">
-            <flux:button variant="primary" type="submit" wire:loading.attr="disabled" wire:target="enroll">
+        <div class="flex items-center gap-2 pt-2">
+            <flux:spacer />
+            <flux:button variant="ghost" wire:click="$set('show', false)">{{ __('Cancel') }}</flux:button>
+            <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="enroll">
                 <span wire:loading.remove wire:target="enroll">{{ __('Enroll Member') }}</span>
                 <span wire:loading wire:target="enroll">{{ __('Enrolling...') }}</span>
             </flux:button>
-
-            <x-action-message on="subscription-created">
-                {{ __('Subscription enrolled successfully.') }}
-            </x-action-message>
         </div>
     </form>
-</section>
+</flux:modal>

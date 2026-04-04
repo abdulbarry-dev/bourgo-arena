@@ -19,6 +19,7 @@ class HikvisionTerminal extends Model
         'terminal_type',
         'api_token',
         'status',
+        'operating_mode',
         'last_seen_at',
     ];
 
