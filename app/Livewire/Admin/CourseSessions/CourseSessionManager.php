@@ -6,13 +6,13 @@ use App\Models\Booking;
 use App\Models\CourseSession;
 use App\Models\CourseSessionException;
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
+use Flux\Flux;
 use Livewire\Component;
 
 class CourseSessionManager extends Component
 {
     public $currentDate;
-    
+
     public function mount()
     {
         $this->currentDate = now()->startOfWeek(Carbon::MONDAY)->format('Y-m-d');
@@ -50,6 +50,7 @@ class CourseSessionManager extends Component
         for ($i = 0; $i < 7; $i++) {
             $days[] = $start->copy()->addDays($i);
         }
+
         return $days;
     }
 
@@ -79,16 +80,21 @@ class CourseSessionManager extends Component
             ->count();
     }
 
+    #[Livewire\Attributes\On('course-session-created')]
+    #[Livewire\Attributes\On('course-session-updated')]
+    public function refreshManager()
+    {
+        // Noop to trigger render refresh
+    }
+
     public function openClassDetails($sessionId, $dateString)
     {
-        // Open slide over (To be implemented in Phase 3 module)
-        $this->dispatch('openClassDetails', sessionId: $sessionId, date: $dateString);
+        $this->dispatch('open-session-details', sessionId: $sessionId, date: $dateString);
     }
 
     public function openCreateModal()
     {
-        // Open create modal (To be implemented in Phase 3 module)
-        $this->dispatch('openCreateModal');
+        Flux::modal('create-course-session')->show();
     }
 
     public function render()
