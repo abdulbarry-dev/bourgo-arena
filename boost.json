@@ -19,6 +19,7 @@
         "livewire-development",
         "pest-testing",
         "tailwindcss-development",
+        "echo-development",
         "fortify-development"
     ]
 }

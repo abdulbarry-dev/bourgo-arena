@@ -39,10 +39,6 @@ class AuditLog extends Component
 
     public function exportCsv()
     {
-        if (! app()->environment('testing')) {
-            sleep(3); // Simulated delay for testing
-        }
-
         // Simple CSV generation
         $events = $this->buildQuery()->get();
         $csv = "Timestamp\tMember Name\tCard UID\tResult\tTerminal\tDenial Reason\n";
@@ -59,10 +55,6 @@ class AuditLog extends Component
 
     public function exportPdf()
     {
-        if (! app()->environment('testing')) {
-            sleep(3); // Simulated delay for testing
-        }
-        
         // Placeholder for PDF export
         session()->flash('message', 'PDF Export is not fully configured. Using CSV is recommended.');
     }

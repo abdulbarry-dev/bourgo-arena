@@ -93,10 +93,6 @@ class MemberTable extends Component
     {
         $this->authorize('viewAny', Member::class);
 
-        if (! app()->environment('testing')) {
-            sleep(3); // Simulated delay for testing
-        }
-
         $membersQuery = $this->filteredMembersQuery()
             ->with(['activeSubscription.plan', 'nfcCard'])
             ->orderBy('id');
@@ -143,7 +139,7 @@ class MemberTable extends Component
     {
         return Plan::query()
             ->where('is_archived', false)
-            ->orderBy('name')
+            ->orderBy('name->' . app()->getLocale())
             ->get(['id', 'name']);
     }
 
@@ -173,7 +169,7 @@ class MemberTable extends Component
         return match ($this->sortBy) {
             'plan' => $query->orderBy(
                 Plan::query()
-                    ->select('name')
+                    ->select('name->' . app()->getLocale())
                     ->join('subscriptions', 'plans.id', '=', 'subscriptions.plan_id')
                     ->whereColumn('subscriptions.member_id', 'members.id')
                     ->where('subscriptions.status', 'active')

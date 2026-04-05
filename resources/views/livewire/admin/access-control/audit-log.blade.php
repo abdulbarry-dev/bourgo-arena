@@ -13,10 +13,10 @@
             </div>
         </div>
         
-    <div class="flex items-center gap-2" x-data>
+    <div class="flex items-center gap-2">
         <flux:button
             variant="primary"
-            x-on:click="$dispatch('toast', { id: 'export-csv', message: '{{ __('Preparing CSV export... Please wait.') }}', type: 'loading' }); $wire.exportCsv().then(() => $dispatch('dismiss-toast', { toastId: 'export-csv' }));"
+            wire:click="exportCsv"
             wire:loading.attr="disabled"
             wire:target="exportCsv"
             icon="arrow-down-tray"
@@ -26,7 +26,7 @@
         </flux:button>
         <flux:button
             variant="primary"
-            x-on:click="$dispatch('toast', { id: 'export-pdf', message: '{{ __('Preparing PDF export... Please wait.') }}', type: 'loading' }); $wire.exportPdf().then(() => $dispatch('dismiss-toast', { toastId: 'export-pdf' }));"
+            wire:click="exportPdf"
             wire:loading.attr="disabled"
             wire:target="exportPdf"
             icon="arrow-down-tray"

@@ -5,17 +5,21 @@
             <flux:text variant="subtle">{{ __('Search, filter, and manage member records.') }}</flux:text>
         </div>
 
-        <flux:button
-            variant="primary"
-            x-data
-            x-on:click="$dispatch('toast', { id: 'export-csv', message: '{{ __('Preparing CSV export... Please wait.') }}', type: 'loading' }); $wire.exportCsv().then(() => $dispatch('dismiss-toast', { toastId: 'export-csv' }));"
-            wire:loading.attr="disabled"
-            wire:target="exportCsv"
-            icon="arrow-down-tray"
-        >
-            <span wire:loading.remove wire:target="exportCsv">{{ __('Export CSV') }}</span>
-            <span wire:loading wire:target="exportCsv">{{ __('Exporting...') }}</span>
-        </flux:button>
+        <div class="flex items-center gap-3">
+            <flux:button variant="primary" icon="plus" x-data x-on:click="$dispatch('open-add-member-flyout')">
+                {{ __('Add Member') }}
+            </flux:button>
+            <flux:button
+                variant="outline"
+                wire:click="exportCsv"
+                wire:loading.attr="disabled"
+                wire:target="exportCsv"
+                icon="arrow-down-tray"
+            >
+                <span wire:loading.remove wire:target="exportCsv">{{ __('Export CSV') }}</span>
+                <span wire:loading wire:target="exportCsv">{{ __('Exporting...') }}</span>
+            </flux:button>
+        </div>
     </div>
 
     <div class="grid gap-4 md:grid-cols-3">

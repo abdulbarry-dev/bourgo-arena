@@ -12,11 +12,6 @@
             </ol>
         </nav>
 
-        <div class="space-y-1">
-            <flux:heading size="xl">{{ __('Plans') }}</flux:heading>
-            <flux:text variant="subtle">{{ __('Manage plan catalog definitions used by subscription enrollment workflows.') }}</flux:text>
-        </div>
-
         <livewire:admin.plans.plan-table />
     </section>
 </x-layouts::app>

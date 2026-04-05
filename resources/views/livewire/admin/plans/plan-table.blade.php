@@ -136,7 +136,10 @@
         </div>
 
         <form wire:submit="save" class="mt-6 flex flex-col gap-6 w-full">
-            <flux:input wire:model="name" label="{{ __('Plan Name') }}" required />
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                <flux:input wire:model="name.en" label="{{ __('Plan Name (English)') }}" required />
+                <flux:input wire:model="name.fr" label="{{ __('Plan Name (French)') }}" required />
+            </div>
             
             <flux:input wire:model="price" type="text" inputmode="decimal" label="{{ __('Price (TND)') }}" placeholder="129.000" required />
             

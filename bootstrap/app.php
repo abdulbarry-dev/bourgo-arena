@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\EnsureUserIsNotBanned;
+use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\TerminalAuthMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -21,6 +22,11 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
             EnsureUserIsNotBanned::class,
+            SetLocale::class,
+        ]);
+
+        $middleware->api(append: [
+            SetLocale::class,
         ]);
 
         $middleware->alias([

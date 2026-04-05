@@ -6,11 +6,15 @@ use Database\Factories\PlanFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\Translatable\HasTranslations;
 
 class Plan extends Model
 {
     /** @use HasFactory<PlanFactory> */
     use HasFactory;
+    use HasTranslations;
+
+    public array $translatable = ['name'];
 
     protected $fillable = [
         'name',
