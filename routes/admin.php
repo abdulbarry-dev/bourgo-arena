@@ -87,3 +87,8 @@ Route::get('/terminals/create', Create::class)
 Route::get('/managers', App\Livewire\Admin\Managers\Index::class)
     ->role('admin')
     ->name('admin.managers.index');
+
+
+Route::get('/course-sessions', App\Livewire\Admin\CourseSessions\CourseSessionManager::class)
+    ->role('admin', 'manager')
+    ->name('admin.course-sessions.index');
