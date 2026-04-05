@@ -92,8 +92,9 @@ class CourseSessionManager extends Component
         $this->dispatch('open-session-details', sessionId: $sessionId, date: $dateString);
     }
 
-    public function openCreateModal()
+    public function openCreateModal($dayIndex = null)
     {
+        $this->dispatch('open-create-course-session', dayIndex: $dayIndex);
         Flux::modal('create-course-session')->show();
     }
 

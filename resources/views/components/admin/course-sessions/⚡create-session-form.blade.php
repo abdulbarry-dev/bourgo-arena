@@ -2,6 +2,7 @@
 
 use Livewire\Component;
 use Livewire\Attributes\Validate;
+use Livewire\Attributes\On;
 use App\Models\CourseSession;
 
 new class extends Component
@@ -13,7 +14,7 @@ new class extends Component
     public $instructor = '';
 
     #[Validate('required|integer|min:0|max:6')]
-    public $day_of_week = 1;
+    public $day_of_week = 0; // 0 = Monday
 
     #[Validate('required|string')]
     public $starts_at = '12:00';
@@ -23,6 +24,17 @@ new class extends Component
 
     #[Validate('required|integer|min:1')]
     public $capacity = 10;
+
+    #[On('open-create-course-session')]
+    public function loadForm($dayIndex = null)
+    {
+        $this->resetValidation();
+        if ($dayIndex !== null && in_array((int)$dayIndex, [0, 1, 2, 3, 4, 5, 6], true)) {
+            $this->day_of_week = (int)$dayIndex;
+        } else {
+            $this->day_of_week = 0; // Monday default
+        }
+    }
 
     public function save()
     {
@@ -38,7 +50,7 @@ new class extends Component
         ]);
 
         $this->dispatch('course-session-created');
-        $this->reset(['name', 'instructor', 'day_of_week', 'starts_at', 'duration_minutes', 'capacity']);
+        $this->reset(['name', 'instructor', 'starts_at', 'duration_minutes', 'capacity']);
         
         \Flux\Flux::modal('create-course-session')->close();
         \Flux\Flux::toast('Course schedule added successfully!');
@@ -59,13 +71,13 @@ new class extends Component
 
             <flux:radio.group wire:model="day_of_week" label="Day of Week" required>
                 <div class="grid grid-cols-2 gap-2 mt-2">
-                    <flux:radio value="1" label="Monday" />
-                    <flux:radio value="2" label="Tuesday" />
-                    <flux:radio value="3" label="Wednesday" />
-                    <flux:radio value="4" label="Thursday" />
-                    <flux:radio value="5" label="Friday" />
-                    <flux:radio value="6" label="Saturday" />
-                    <flux:radio value="0" label="Sunday" />
+                    <flux:radio value="0" label="Monday" />
+                    <flux:radio value="1" label="Tuesday" />
+                    <flux:radio value="2" label="Wednesday" />
+                    <flux:radio value="3" label="Thursday" />
+                    <flux:radio value="4" label="Friday" />
+                    <flux:radio value="5" label="Saturday" />
+                    <flux:radio value="6" label="Sunday" />
                 </div>
             </flux:radio.group>
 

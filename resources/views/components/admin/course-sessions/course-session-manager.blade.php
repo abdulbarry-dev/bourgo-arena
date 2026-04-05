@@ -19,10 +19,10 @@
             @php $dayIndex = $date->dayOfWeekIso - 1; @endphp
             <div class="flex flex-col border border-zinc-200 dark:border-zinc-700 rounded-xl overflow-hidden bg-white dark:bg-zinc-800/50 min-h-[500px]">
                 <!-- Day Header -->
-                <div class="p-3 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-center">
+                <button wire:click="openCreateModal({{ $dayIndex }})" class="p-3 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 hover:bg-zinc-100 hover:text-blue-600 dark:hover:bg-zinc-700 transition-colors dark:bg-zinc-800 text-center w-full focus:outline-none">
                     <div class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">{{ $date->translatedFormat('D') }}</div>
                     <div class="text-xl font-medium mt-1 {{ $date->isToday() ? 'text-blue-600' : '' }}">{{ $date->format('j') }}</div>
-                </div>
+                </button>
 
                 <!-- Sessions List -->
                 <div class="flex-1 p-2 space-y-2 overflow-y-auto">
