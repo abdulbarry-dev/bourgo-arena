@@ -62,7 +62,7 @@ new class extends Component
             ->count();
             
         if ($bookingsCount >= $this->session->capacity) {
-            \Flux\Flux::toast('Session is at full capacity.', variant: 'danger');
+            $this->dispatch('toast', message: 'Session is at full capacity.', type: 'danger');
             return;
         }
 
@@ -75,14 +75,14 @@ new class extends Component
         ]);
 
         $this->memberIdToEnroll = '';
-        \Flux\Flux::toast('Member enrolled successfully!');
+        $this->dispatch('toast', message: 'Member enrolled successfully!', type: 'success');
         $this->dispatch('course-session-updated');
     }
 
     public function removeBooking($bookingId)
     {
         Booking::where('id', $bookingId)->delete();
-        \Flux\Flux::toast('Booking removed.');
+        $this->dispatch('toast', message: 'Booking removed.', type: 'info');
         $this->dispatch('course-session-updated');
     }
 
@@ -103,7 +103,7 @@ new class extends Component
 
         dispatch(new SendCourseCancelledPush($this->session->id, $this->date));
 
-        \Flux\Flux::toast('Session cancelled and members notified.');
+        $this->dispatch('toast', message: 'Session cancelled and members notified.', type: 'success');
         $this->dispatch('course-session-updated');
         \Flux\Flux::modal('session-detail-panel')->close();
     }

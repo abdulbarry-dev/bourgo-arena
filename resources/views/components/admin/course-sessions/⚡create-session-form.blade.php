@@ -53,7 +53,7 @@ new class extends Component
         $this->reset(['name', 'instructor', 'starts_at', 'duration_minutes', 'capacity']);
         
         \Flux\Flux::modal('create-course-session')->close();
-        \Flux\Flux::toast('Course schedule added successfully!');
+        $this->dispatch('toast', message: 'Course schedule added successfully!', type: 'success');
     }
 };
 ?>
