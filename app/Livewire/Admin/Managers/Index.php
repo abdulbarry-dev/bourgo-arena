@@ -101,7 +101,7 @@ class Index extends Component
             } else {
                 $this->banReason = '';
                 $this->resetValidation('banReason');
-                $this->dispatch('modal:open', 'ban-manager-modal');
+                \Flux::modal('ban-manager-modal')->show();
             }
         }
     }
@@ -117,7 +117,7 @@ class Index extends Component
 
         if ($this->selectedManager && $this->selectedManager->id !== auth()->id()) {
             $this->selectedManager->ban($this->banReason);
-            $this->dispatch('modal:close', 'ban-manager-modal');
+            \Flux::modal('ban-manager-modal')->close();
             $this->dispatch('toast', message: __('Manager banned successfully.'), type: 'success');
         }
     }
@@ -129,7 +129,7 @@ class Index extends Component
             $this->showFlyout = false;
             $this->selectedManager = null;
 
-            $this->dispatch('modal:close', 'confirm-delete');
+            \Flux::modal('confirm-delete')->close();
             $this->dispatch('toast', message: __('Manager deleted successfully.'), type: 'success');
         }
     }

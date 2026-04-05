@@ -132,8 +132,10 @@
             </table>
         </div>
 
-        <div class="border-t border-zinc-200 px-4 py-3 dark:border-zinc-700">
-            {{ $this->subscriptions->links() }}
-        </div>
+        @if($this->subscriptions->hasPages())
+            <div class="border-t border-zinc-200 px-4 py-3 dark:border-zinc-700">
+                {{ $this->subscriptions->links() }}
+            </div>
+        @endif
     </div>
 </section>

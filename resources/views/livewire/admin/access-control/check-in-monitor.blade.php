@@ -9,11 +9,6 @@
             <flux:modal.trigger name="terminal-controls-flyout">
                 <flux:button icon="cog-8-tooth">{{ __('Control doors') }}</flux:button>
             </flux:modal.trigger>
-
-            <flux:card class="!p-3 text-center sm:min-w-[150px]">
-                <flux:text variant="subtle" size="sm">{{ __('Current Occupancy') }}</flux:text>
-                <div class="text-2xl font-extrabold text-blue-600 dark:text-blue-400 mt-1">{{ $occupancyCount }}</div>
-            </flux:card>
         </div>
     </div>
 
@@ -75,9 +70,11 @@
             </ul>
         </flux:card>
 
-        <div class="mt-4">
-            {{ $events->links() }}
-        </div>
+        @if($events->hasPages())
+            <div class="mt-4">
+                {{ $events->links() }}
+            </div>
+        @endif
     </div>
 
     <!-- Terminal Controls Flyout -->

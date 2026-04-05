@@ -93,8 +93,7 @@
                                         variant="subtle"
                                         size="sm"
                                         icon="eye"
-                                        :href="route('admin.plans.show', $plan)"
-                                        wire:navigate
+                                        wire:click="openDetailFlyout({{ $plan->id }})"
                                         aria-label="{{ __('View plan :name', ['name' => $plan->name]) }}"
                                     />
 
@@ -122,9 +121,11 @@
             </table>
         </div>
 
-        <div class="border-t border-zinc-200 px-4 py-3 dark:border-zinc-700">
-            {{ $this->plans->links() }}
-        </div>
+        @if($this->plans->hasPages())
+            <div class="border-t border-zinc-200 px-4 py-3 dark:border-zinc-700">
+                {{ $this->plans->links() }}
+            </div>
+        @endif
     </div>
 
     @can('create', \App\Models\Plan::class)
@@ -168,21 +169,57 @@
                     <span wire:loading wire:target="save">{{ __('Saving...') }}</span>
                 </flux:button>
             </div>
-            
-            @if ($planId !== null)
-                <div class="pt-4 border-t border-zinc-200 dark:border-zinc-700 mt-4">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <flux:heading size="sm">{{ __('Danger Zone') }}</flux:heading>
-                            <p class="text-xs text-zinc-500">{{ __('Permanently remove this plan.') }}</p>
-                        </div>
-                        <flux:button type="button" variant="danger" size="sm" wire:click="delete" wire:confirm="{{ __('Delete this plan? This cannot be undone.') }}">
-                            {{ __('Delete Plan') }}
-                        </flux:button>
-                    </div>
-                </div>
-            @endif
         </form>
     </flux:modal>
     @endcan
+
+    <!-- Detail Flyout -->
+    <flux:modal wire:model="showDetailFlyout" variant="flyout" class="space-y-6">
+        <flux:heading size="lg">{{ __('Plan Detail') }}</flux:heading>
+        <flux:text variant="subtle">{{ __('Review pricing, duration, included services, and usage context for this plan.') }}</flux:text>
+
+        @if ($this->detailPlan)
+            <div class="mt-6 flex flex-col gap-6">
+                <div>
+                    <flux:heading size="lg">{{ $this->detailPlan->name }}</flux:heading>
+                    <flux:text variant="subtle">{{ number_format((float) $this->detailPlan->price, 3) }} TND · {{ $this->detailPlan->duration_days }} {{ __('days') }}</flux:text>
+                </div>
+
+                <div class="grid gap-4 text-sm sm:grid-cols-2 bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-xl border border-zinc-200 dark:border-zinc-700">
+                    <div>
+                        <div class="text-zinc-500 dark:text-zinc-400">{{ __('Archived') }}</div>
+                        <div class="font-medium text-zinc-900 dark:text-zinc-100">{{ $this->detailPlan->is_archived ? __('Yes') : __('No') }}</div>
+                    </div>
+                    <div>
+                        <div class="text-zinc-500 dark:text-zinc-400">{{ __('Linked Subscriptions') }}</div>
+                        <div class="font-medium text-zinc-900 dark:text-zinc-100">{{ $this->detailPlan->subscriptions_count }}</div>
+                    </div>
+                    <div>
+                        <div class="text-zinc-500 dark:text-zinc-400">{{ __('Created At') }}</div>
+                        <div class="font-medium text-zinc-900 dark:text-zinc-100">{{ $this->detailPlan->created_at?->toDateString() }}</div>
+                    </div>
+                </div>
+
+                <div>
+                    <flux:heading size="sm">{{ __('Included Services') }}</flux:heading>
+
+                    @if (empty($this->detailPlan->included_services))
+                        <flux:text variant="subtle" class="mt-2">{{ __('No services configured.') }}</flux:text>
+                    @else
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            @foreach ($this->detailPlan->included_services as $service)
+                                <flux:badge size="sm" color="zinc">{{ $service }}</flux:badge>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+
+                <div class="pt-4">
+                    <flux:button variant="ghost" class="w-full" wire:click="$set('showDetailFlyout', false)">
+                        {{ __('Close') }}
+                    </flux:button>
+                </div>
+            </div>
+        @endif
+    </flux:modal>
 </section>

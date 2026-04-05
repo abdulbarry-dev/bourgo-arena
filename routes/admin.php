@@ -65,16 +65,6 @@ Route::view('/plans', 'livewire.admin.plans.dashboard')
     ->role('admin', 'manager')
     ->name('admin.plans');
 
-Route::get('/plans/{plan}', function (Plan $plan) {
-    $plan->loadCount('subscriptions');
-
-    return view('livewire.admin.plans.detail', [
-        'plan' => $plan,
-    ]);
-})
-    ->role('admin', 'manager')
-    ->name('admin.plans.show');
-
 Route::view('/access-control', 'livewire.admin.access-control.check-in-monitor-page')
     ->role('admin', 'manager')
     ->name('admin.access-control.dashboard');

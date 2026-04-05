@@ -94,9 +94,11 @@
             </div>
         </div>
 
-        <div class="mt-4">
-            {{ $managers->links() }}
-        </div>
+        @if($managers->hasPages())
+            <div class="mt-4">
+                {{ $managers->links() }}
+            </div>
+        @endif
     </div>
 
     <!-- Flyout Modal -->

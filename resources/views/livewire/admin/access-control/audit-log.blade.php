@@ -129,9 +129,11 @@
             </table>
         </div>
 
-        <div class="border-t border-zinc-200 px-4 py-3 dark:border-zinc-700">
-            {{ $events->links() }}
-        </div>
+        @if($events->hasPages())
+            <div class="border-t border-zinc-200 px-4 py-3 dark:border-zinc-700">
+                {{ $events->links() }}
+            </div>
+        @endif
     </div>
 
     <!-- Right Corner (Flyout) Details Modal -->

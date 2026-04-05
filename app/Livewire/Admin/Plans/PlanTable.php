@@ -32,6 +32,10 @@ class PlanTable extends Component
     // Form flyout properties
     public bool $showFlyout = false;
 
+    public bool $showDetailFlyout = false;
+
+    public ?int $detailPlanId = null;
+
     public ?int $planId = null;
 
     public array $name = ['en' => '', 'fr' => ''];
@@ -101,6 +105,16 @@ class PlanTable extends Component
         $this->showFlyout = true;
     }
 
+    public function openDetailFlyout(int $id): void
+    {
+        $plan = Plan::query()->findOrFail($id);
+
+        $this->authorize('view', $plan);
+
+        $this->detailPlanId = $plan->id;
+        $this->showDetailFlyout = true;
+    }
+
     public function save(): void
     {
         try {
@@ -153,28 +167,6 @@ class PlanTable extends Component
                 throw $exception;
             }
         }
-    }
-
-    public function delete(): void
-    {
-        if ($this->planId === null) {
-            return;
-        }
-
-        $plan = Plan::query()->findOrFail($this->planId);
-
-        $this->authorize('delete', $plan);
-
-        if ($plan->subscriptions()->exists()) {
-            $this->dispatch('toast', message: 'Plan cannot be deleted because subscriptions are linked to it.', type: 'info');
-
-            return;
-        }
-
-        $plan->delete();
-
-        $this->showFlyout = false;
-        $this->dispatch('toast', message: 'Plan deleted successfully.', type: 'success');
     }
 
     protected function rules(): array
@@ -260,6 +252,16 @@ class PlanTable extends Component
                 $query->orderBy($this->sortBy, $this->sortDirection);
             })
             ->paginate($this->perPage);
+    }
+
+    #[Computed]
+    public function detailPlan(): ?Plan
+    {
+        if ($this->detailPlanId === null) {
+            return null;
+        }
+
+        return Plan::withCount('subscriptions')->find($this->detailPlanId);
     }
 
     public function render(): View

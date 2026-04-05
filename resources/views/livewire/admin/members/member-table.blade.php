@@ -158,8 +158,10 @@
             </table>
         </div>
 
-        <div class="border-t border-zinc-200 px-4 py-3 dark:border-zinc-700">
-            {{ $this->members->links() }}
-        </div>
+        @if($this->members->hasPages())
+            <div class="border-t border-zinc-200 px-4 py-3 dark:border-zinc-700">
+                {{ $this->members->links() }}
+            </div>
+        @endif
     </div>
 </section>
