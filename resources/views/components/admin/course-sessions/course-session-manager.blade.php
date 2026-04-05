@@ -61,9 +61,7 @@
             </div>
         @endforeach
     </div>
-</div>
-    </div>
-
+    
     <!-- Phase 3 Modals -->
     <livewire:admin.course-sessions.create-session-form />
     <livewire:admin.course-sessions.session-detail-panel />

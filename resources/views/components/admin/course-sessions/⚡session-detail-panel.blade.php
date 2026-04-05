@@ -1,13 +1,12 @@
 <?php
 
-use Livewire\Volt\Component;
+use Livewire\Component;
 use App\Models\CourseSession;
 use App\Models\CourseSessionException;
 use App\Models\Booking;
 use App\Models\Member;
 use App\Jobs\SendCourseCancelledPush;
 use Carbon\Carbon;
-use Flux\Flux;
 use Livewire\Attributes\On;
 
 new class extends Component
@@ -108,7 +107,7 @@ new class extends Component
         $this->dispatch('course-session-updated');
         \Flux\Flux::modal('session-detail-panel')->close();
     }
-}
+};
 ?>
 
 <flux:modal name="session-detail-panel" variant="flyout" class="max-w-md w-full shrink-0">
@@ -151,7 +150,7 @@ new class extends Component
                         @foreach($bookings as $booking)
                             <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-800 p-3 rounded-md">
                                 <div class="text-sm font-medium">
-                                    {{ $booking->member->name ?? 'Unknown' }} 
+                                    {{ $booking->member->name ?? 'Unknown' }}
                                 </div>
                                 <flux:button variant="danger" size="sm" icon="trash" class="!px-2" wire:confirm="Remove this booking?" wire:click="removeBooking({{ $booking->id }})" />
                             </div>

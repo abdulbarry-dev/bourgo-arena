@@ -1,9 +1,8 @@
 <?php
 
-use Livewire\Volt\Component;
+use Livewire\Component;
 use Livewire\Attributes\Validate;
 use App\Models\CourseSession;
-use Flux\Flux;
 
 new class extends Component
 {
@@ -44,7 +43,7 @@ new class extends Component
         \Flux\Flux::modal('create-course-session')->close();
         \Flux\Flux::toast('Course schedule added successfully!');
     }
-}
+};
 ?>
 
 <flux:modal name="create-course-session" class="max-w-md w-full">
