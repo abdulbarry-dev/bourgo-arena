@@ -115,7 +115,7 @@ new class extends Component
     <div class="space-y-6">
         <div>
             <flux:heading size="lg">{{ $session->name }}</flux:heading>
-            <flux:subheading>{{ Carbon\Carbon::parse($date)->format('l, j M Y') }} at {{ Carbon\Carbon::parse($session->starts_at)->format('H:i') }}</flux:subheading>
+            <flux:subheading>{{ \Carbon\Carbon::parse($date)->format('l, j M Y') }} at {{ \Carbon\Carbon::parse($session->starts_at)->format('H:i') }}</flux:subheading>
             
             <div class="mt-2 text-sm text-gray-500">
                 Instructor: {{ $session->instructor }} &bull; Capacity: {{ count($bookings) }}/{{ $session->capacity }}
