@@ -21,7 +21,7 @@ class SetLocale
         // Session preference has highest priority (e.g. Set by dashboard UI)
         if (session()->has('locale') && in_array(session('locale'), $supportedLocales)) {
             $locale = session('locale');
-        } 
+        }
         // Fallback to Accept-Language header for APIs or first-time visits
         elseif ($request->hasHeader('Accept-Language')) {
             $headerLocale = substr($request->header('Accept-Language'), 0, 2);

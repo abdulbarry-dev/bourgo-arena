@@ -1,4 +1,26 @@
 <section class="w-full space-y-6">
+    <div class="flex items-center justify-end gap-2 mb-4">
+        <flux:button
+            wire:click="exportCsv"
+            wire:loading.attr="disabled"
+            wire:target="exportCsv"
+            icon="arrow-down-tray"
+        >
+            <span wire:loading.remove wire:target="exportCsv">{{ __('Export CSV') }}</span>
+            <span wire:loading wire:target="exportCsv">{{ __('Exporting...') }}</span>
+        </flux:button>
+        <flux:button
+            variant="primary"
+            wire:click="exportPdf"
+            wire:loading.attr="disabled"
+            wire:target="exportPdf"
+            icon="arrow-down-tray"
+        >
+            <span wire:loading.remove wire:target="exportPdf">{{ __('Export PDF') }}</span>
+            <span wire:loading wire:target="exportPdf">{{ __('Exporting...') }}</span>
+        </flux:button>
+    </div>
+
     <div class="grid gap-4 md:grid-cols-3">
         <flux:input
             wire:model.live.debounce.300ms="search"

@@ -3,7 +3,6 @@
 use App\Livewire\Admin\Terminals\Create;
 use App\Livewire\Admin\Terminals\Index;
 use App\Models\Member;
-use App\Models\Plan;
 use App\Models\Subscription;
 use Illuminate\Support\Facades\Route;
 

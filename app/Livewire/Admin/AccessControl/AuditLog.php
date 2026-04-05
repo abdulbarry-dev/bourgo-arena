@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\AccessControl;
 
 use App\Models\CheckInEvent;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -39,24 +40,42 @@ class AuditLog extends Component
 
     public function exportCsv()
     {
-        // Simple CSV generation
         $events = $this->buildQuery()->get();
-        $csv = "Timestamp\tMember Name\tCard UID\tResult\tTerminal\tDenial Reason\n";
-        foreach ($events as $event) {
-            $memberName = $event->member ? $event->member->name : 'Unknown';
-            $terminalName = $event->terminal ? $event->terminal->name : 'Unknown';
-            $csv .= "{$event->checked_in_at}\t{$memberName}\t{$event->card_uid}\t{$event->result}\t{$terminalName}\t{$event->denial_reason}\n";
-        }
 
-        return response()->streamDownload(function () use ($csv) {
-            echo $csv;
-        }, 'audit_log.csv');
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="audit_log.csv"',
+        ];
+
+        return response()->stream(function () use ($events) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['Timestamp', 'Member Name', 'Card UID', 'Result', 'Terminal', 'Denial Reason']);
+
+            foreach ($events as $event) {
+                fputcsv($file, [
+                    $event->checked_in_at,
+                    $event->member ? $event->member->name : 'Unknown',
+                    $event->card_uid,
+                    $event->result,
+                    $event->terminal ? $event->terminal->name : 'Unknown',
+                    $event->denial_reason,
+                ]);
+            }
+
+            fclose($file);
+        }, 200, $headers);
     }
 
     public function exportPdf()
     {
-        // Placeholder for PDF export
-        session()->flash('message', 'PDF Export is not fully configured. Using CSV is recommended.');
+        $events = $this->buildQuery()->get();
+
+        $pdf = Pdf::loadView('pdf.audit-log', ['events' => $events])
+            ->setPaper('a4', 'landscape');
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, 'audit_log.pdf');
     }
 
     protected function buildQuery()

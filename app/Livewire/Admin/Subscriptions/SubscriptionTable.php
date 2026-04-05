@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Subscriptions;
 use App\Models\Member;
 use App\Models\Plan;
 use App\Models\Subscription;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -86,6 +87,45 @@ class SubscriptionTable extends Component
             ->where('is_archived', false)
             ->orderBy('name')
             ->get(['id', 'name']);
+    }
+
+    public function exportCsv()
+    {
+        $subscriptions = $this->filteredSubscriptionsQuery()->get();
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="subscriptions.csv"',
+        ];
+
+        return response()->stream(function () use ($subscriptions) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['Member', 'Plan', 'Status', 'Start Date', 'End Date']);
+
+            foreach ($subscriptions as $sub) {
+                fputcsv($file, [
+                    $sub->member ? $sub->member->name : 'Unknown',
+                    $sub->plan ? __($sub->plan->name) : 'Unknown',
+                    ucfirst($sub->status),
+                    $sub->starts_at ? $sub->starts_at->format('Y-m-d') : '',
+                    $sub->ends_at ? $sub->ends_at->format('Y-m-d') : '',
+                ]);
+            }
+
+            fclose($file);
+        }, 200, $headers);
+    }
+
+    public function exportPdf()
+    {
+        $subscriptions = $this->filteredSubscriptionsQuery()->get();
+
+        $pdf = Pdf::loadView('pdf.subscriptions', ['subscriptions' => $subscriptions])
+            ->setPaper('a4', 'landscape');
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, 'subscriptions.pdf');
     }
 
     public function render(): View

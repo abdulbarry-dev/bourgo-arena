@@ -47,7 +47,7 @@ class ToastManager extends Component
     }
 
     #[On('dismiss-toast')]
-    public function dismiss(string $toastId = null): void
+    public function dismiss(?string $toastId = null): void
     {
         if ($toastId) {
             $this->toasts = array_values(array_filter(

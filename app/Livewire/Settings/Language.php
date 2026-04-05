@@ -18,11 +18,12 @@ class Language extends Component
     public function save()
     {
         $supportedLocales = ['en', 'fr'];
-        
+
         if (in_array($this->locale, $supportedLocales)) {
             session(['locale' => $this->locale]);
             app()->setLocale($this->locale);
             $this->dispatch('toast', message: __('Language updated successfully.'), type: 'success');
+
             return redirect()->route('language.edit');
         }
     }
