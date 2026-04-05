@@ -139,7 +139,7 @@ class MemberTable extends Component
     {
         return Plan::query()
             ->where('is_archived', false)
-            ->orderBy('name->' . app()->getLocale())
+            ->orderBy('name')
             ->get(['id', 'name']);
     }
 
@@ -169,7 +169,7 @@ class MemberTable extends Component
         return match ($this->sortBy) {
             'plan' => $query->orderBy(
                 Plan::query()
-                    ->select('name->' . app()->getLocale())
+                    ->select('name')
                     ->join('subscriptions', 'plans.id', '=', 'subscriptions.plan_id')
                     ->whereColumn('subscriptions.member_id', 'members.id')
                     ->where('subscriptions.status', 'active')

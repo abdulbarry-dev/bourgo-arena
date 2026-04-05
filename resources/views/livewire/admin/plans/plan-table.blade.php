@@ -81,7 +81,7 @@
                 <tbody class="divide-y divide-zinc-100 bg-white dark:divide-zinc-800 dark:bg-zinc-900/40">
                     @forelse ($this->plans as $plan)
                         <tr wire:key="plan-row-{{ $plan->id }}">
-                            <td class="px-4 py-3 font-medium text-zinc-900 dark:text-zinc-100">{{ $plan->name }}</td>
+                            <td class="px-4 py-3 font-medium text-zinc-900 dark:text-zinc-100">{{ __($plan->name) }}</td>
                             <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ number_format((float) $plan->price, 3) }} TND</td>
                             <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ $plan->duration_days }}</td>
                             <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ empty($plan->included_services) ? __('None') : implode(', ', $plan->included_services) }}</td>
@@ -94,7 +94,7 @@
                                         size="sm"
                                         icon="eye"
                                         wire:click="openDetailFlyout({{ $plan->id }})"
-                                        aria-label="{{ __('View plan :name', ['name' => $plan->name]) }}"
+                                        aria-label="{{ __('View plan :name', ['name' => __($plan->name)]) }}"
                                     />
 
                                     @can('update', $plan)
@@ -137,14 +137,12 @@
         </div>
 
         <form wire:submit="save" class="mt-6 flex flex-col gap-6 w-full">
+            <flux:input wire:model="name" label="{{ __('Plan Name') }}" required />
+            
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-                <flux:input wire:model="name.en" label="{{ __('Plan Name (English)') }}" required />
-                <flux:input wire:model="name.fr" label="{{ __('Plan Name (French)') }}" required />
+                <flux:input wire:model="price" type="text" inputmode="decimal" label="{{ __('Price (TND)') }}" placeholder="129.000" required />
+                <flux:input wire:model="durationDays" type="number" min="1" step="1" label="{{ __('Duration (Days)') }}" required />
             </div>
-            
-            <flux:input wire:model="price" type="text" inputmode="decimal" label="{{ __('Price (TND)') }}" placeholder="129.000" required />
-            
-            <flux:input wire:model="durationDays" type="number" min="1" step="1" label="{{ __('Duration (Days)') }}" required />
             
             <flux:switch wire:model="isArchived" :label="$isArchived ? __('Archived') : __('Active')" />
 
@@ -181,7 +179,7 @@
         @if ($this->detailPlan)
             <div class="mt-6 flex flex-col gap-6">
                 <div>
-                    <flux:heading size="lg">{{ $this->detailPlan->name }}</flux:heading>
+                    <flux:heading size="lg">{{ __($this->detailPlan->name) }}</flux:heading>
                     <flux:text variant="subtle">{{ number_format((float) $this->detailPlan->price, 3) }} TND · {{ $this->detailPlan->duration_days }} {{ __('days') }}</flux:text>
                 </div>
 

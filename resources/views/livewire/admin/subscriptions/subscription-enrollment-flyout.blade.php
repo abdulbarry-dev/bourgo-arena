@@ -48,7 +48,7 @@
                     <option value="">{{ __('Select a plan') }}</option>
                     @foreach ($this->plans as $plan)
                         <option value="{{ $plan->id }}">
-                            {{ $plan->name }} ({{ number_format((float) $plan->price, 3) }} TND)
+                            {{ __($plan->name) }} ({{ number_format((float) $plan->price, 3) }} TND)
                             @if (! empty($plan->included_services))
                                 · {{ implode(', ', $plan->included_services) }}
                             @endif

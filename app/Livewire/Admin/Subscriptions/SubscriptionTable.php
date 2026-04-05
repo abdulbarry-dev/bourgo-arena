@@ -84,7 +84,7 @@ class SubscriptionTable extends Component
     {
         return Plan::query()
             ->where('is_archived', false)
-            ->orderBy('name->' . app()->getLocale())
+            ->orderBy('name')
             ->get(['id', 'name']);
     }
 
@@ -111,7 +111,7 @@ class SubscriptionTable extends Component
                                 ->orWhere('phone', 'like', $searchTerm);
                         })
                         ->orWhereHas('plan', function (Builder $planQuery) use ($searchTerm): void {
-                            $planQuery->where('name->' . app()->getLocale(), 'like', $searchTerm);
+                            $planQuery->where('name', 'like', $searchTerm);
                         });
                 });
             })
@@ -141,7 +141,7 @@ class SubscriptionTable extends Component
             ),
             'plan' => $query->orderBy(
                 Plan::query()
-                    ->select('name->' . app()->getLocale())
+                    ->select('name')
                     ->whereColumn('plans.id', 'subscriptions.plan_id')
                     ->limit(1),
                 $this->sortDirection,

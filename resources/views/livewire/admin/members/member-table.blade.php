@@ -46,7 +46,7 @@
             <flux:select wire:model.live="planFilter">
                 <option value="">{{ __('All plans') }}</option>
                 @foreach ($this->plans as $plan)
-                    <option value="{{ $plan->id }}">{{ $plan->name }}</option>
+                    <option value="{{ $plan->id }}">{{ __($plan->name) }}</option>
                 @endforeach
             </flux:select>
         </flux:field>

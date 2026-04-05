@@ -38,7 +38,7 @@ class PlanTable extends Component
 
     public ?int $planId = null;
 
-    public array $name = ['en' => '', 'fr' => ''];
+    public string $name = '';
 
     public string $price = '';
 
@@ -79,8 +79,7 @@ class PlanTable extends Component
         $this->authorize('create', Plan::class);
 
         $this->resetValidation();
-        $this->reset(['planId', 'price', 'durationDays', 'includedServicesInput', 'isArchived']);
-        $this->name = ['en' => '', 'fr' => ''];
+        $this->reset(['planId', 'price', 'durationDays', 'includedServicesInput', 'isArchived', 'name']);
 
         $this->showFlyout = true;
     }
@@ -93,10 +92,7 @@ class PlanTable extends Component
 
         $this->resetValidation();
         $this->planId = $plan->id;
-        $this->name = [
-            'en' => $plan->getTranslation('name', 'en', false) ?: '',
-            'fr' => $plan->getTranslation('name', 'fr', false) ?: '',
-        ];
+        $this->name = $plan->name ?: '';
         $this->price = number_format((float) $plan->price, 3, '.', '');
         $this->durationDays = $plan->duration_days;
         $this->includedServicesInput = implode(', ', $plan->included_services ?? []);
@@ -174,19 +170,9 @@ class PlanTable extends Component
         return [
             'name' => [
                 'required',
-                'array',
-            ],
-            'name.en' => [
-                'required',
                 'string',
                 'max:255',
-                Rule::unique('plans', 'name->en')->ignore($this->planId),
-            ],
-            'name.fr' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('plans', 'name->fr')->ignore($this->planId),
+                Rule::unique('plans', 'name')->ignore($this->planId),
             ],
             'price' => [
                 'required',
@@ -237,7 +223,7 @@ class PlanTable extends Component
 
         return Plan::query()
             ->when($this->search !== '', function (Builder $query): void {
-                $query->where('name->' . app()->getLocale(), 'like', "%{$this->search}%");
+                $query->where('name', 'like', "%{$this->search}%");
             })
             ->when($this->statusFilter === 'active', function (Builder $query): void {
                 $query->where('is_archived', false);
@@ -246,11 +232,7 @@ class PlanTable extends Component
                 $query->where('is_archived', true);
             })
             ->withCount('subscriptions')
-            ->when($this->sortBy === 'name', function (Builder $query): void {
-                $query->orderBy('name->' . app()->getLocale(), $this->sortDirection);
-            }, function (Builder $query): void {
-                $query->orderBy($this->sortBy, $this->sortDirection);
-            })
+            ->orderBy($this->sortBy, $this->sortDirection)
             ->paginate($this->perPage);
     }
 
