@@ -54,64 +54,9 @@
 
             <flux:error name="subscriptionId" />
 
-            @if ($action === 'suspend')
-                <div class="space-y-3 rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-900/30">
-                    <flux:field>
-                        <flux:label>{{ __('Suspension Reason') }}</flux:label>
-                        <flux:select wire:model="suspensionReason">
-                            <option value="">{{ __('Select a reason') }}</option>
-                            <option value="medical">{{ __('Medical') }}</option>
-                            <option value="travel">{{ __('Travel') }}</option>
-                            <option value="other">{{ __('Other') }}</option>
-                        </flux:select>
-                        <flux:error name="suspensionReason" />
-                    </flux:field>
-
-                    <flux:checkbox wire:model="confirmSuspension" :label="__('I confirm this suspension request has been verified with the member')" />
-                    <flux:error name="confirmSuspension" />
-
-                    <flux:button wire:click="suspend" variant="primary" wire:loading.attr="disabled" wire:target="suspend">
-                        <span wire:loading.remove wire:target="suspend">{{ __('Suspend Subscription') }}</span>
-                        <span wire:loading wire:target="suspend">{{ __('Suspending...') }}</span>
-                    </flux:button>
-                </div>
-            @endif
-
-            @if ($action === 'resume')
-                <div class="space-y-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-800 dark:bg-emerald-900/30">
-                    <flux:text>
-                        {{ __('This will reactivate access and extend the subscription by remaining days.') }}
-                    </flux:text>
-
-                    <flux:button wire:click="resume" variant="primary" wire:loading.attr="disabled" wire:target="resume">
-                        <span wire:loading.remove wire:target="resume">{{ __('Resume Subscription') }}</span>
-                        <span wire:loading wire:target="resume">{{ __('Resuming...') }}</span>
-                    </flux:button>
-                </div>
-            @endif
-
-            @if ($action === 'transfer')
-                <div class="space-y-3 rounded-lg border border-sky-200 bg-sky-50 p-3 dark:border-sky-800 dark:bg-sky-900/30">
-                    <flux:field>
-                        <flux:label>{{ __('Transfer To Member') }}</flux:label>
-                        <flux:select wire:model="transferToMemberId">
-                            <option value="">{{ __('Select target member') }}</option>
-                            @foreach ($this->availableMembers as $member)
-                                <option value="{{ $member->id }}">{{ $member->name }}</option>
-                            @endforeach
-                        </flux:select>
-                        <flux:error name="transferToMemberId" />
-                    </flux:field>
-
-                    <flux:checkbox wire:model="requiresApproval" :label="__('I confirm transfer approval and identity verification')" />
-                    <flux:error name="requiresApproval" />
-
-                    <flux:button wire:click="transfer" variant="primary" wire:loading.attr="disabled" wire:target="transfer">
-                        <span wire:loading.remove wire:target="transfer">{{ __('Transfer Subscription') }}</span>
-                        <span wire:loading wire:target="transfer">{{ __('Transferring...') }}</span>
-                    </flux:button>
-                </div>
-            @endif
+            @include('livewire.admin.subscriptions.partials.actions.suspend-form')
+            @include('livewire.admin.subscriptions.partials.actions.resume-form')
+            @include('livewire.admin.subscriptions.partials.actions.transfer-form')
 
             <div class="rounded-lg border border-dashed border-zinc-300 px-3 py-2 dark:border-zinc-700">
                 <flux:text>

@@ -44,6 +44,8 @@ class PlanTable extends Component
 
     public bool $hasAllCourses = false;
 
+    public bool $isFacilityOnly = false;
+
     public array $selectedCourses = [];
 
     public string $courseToAdd = '';
@@ -64,6 +66,15 @@ class PlanTable extends Component
     public function updatedStatusFilter(): void
     {
         $this->resetPage();
+    }
+
+    public function updatedIsFacilityOnly(): void
+    {
+        if ($this->isFacilityOnly) {
+            $this->hasAllCourses = false;
+            $this->selectedCourses = [];
+            $this->courseToAdd = '';
+        }
     }
 
     public function updatedHasAllCourses(): void
@@ -118,7 +129,7 @@ class PlanTable extends Component
         $this->authorize('create', Plan::class);
 
         $this->resetValidation();
-        $this->reset(['planId', 'price', 'durationDays', 'includedServicesInput', 'isArchived', 'name', 'hasAllCourses', 'selectedCourses', 'courseToAdd']);
+        $this->reset(['planId', 'price', 'durationDays', 'includedServicesInput', 'isArchived', 'name', 'isFacilityOnly', 'hasAllCourses', 'selectedCourses', 'courseToAdd']);
 
         $this->showFlyout = true;
     }
@@ -139,6 +150,7 @@ class PlanTable extends Component
 
         $this->hasAllCourses = $plan->has_all_courses;
         $this->selectedCourses = $plan->courses->pluck('id')->map(fn ($id) => (string) $id)->toArray();
+        $this->isFacilityOnly = ! $plan->has_all_courses && empty($this->selectedCourses);
 
         $this->showFlyout = true;
     }
@@ -155,6 +167,11 @@ class PlanTable extends Component
 
     public function save(): void
     {
+        if ($this->isFacilityOnly) {
+            $this->hasAllCourses = false;
+            $this->selectedCourses = [];
+        }
+
         try {
             $rules = $this->rules();
             if (! $this->hasAllCourses) {

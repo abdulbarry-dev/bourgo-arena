@@ -117,7 +117,7 @@
                             </div>
                             <div>
                                 <flux:badge size="sm" variant="solid" color="{{ match($terminal->operating_mode) { 'locked' => 'red', 'unlocked' => 'green', default => 'zinc' } }}">
-                                    {{ ucfirst($terminal->operating_mode) }}
+                                    {{ __(ucfirst($terminal->operating_mode)) }}
                                 </flux:badge>
                             </div>
                         </div>

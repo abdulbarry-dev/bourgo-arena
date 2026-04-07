@@ -39,11 +39,11 @@
                             <div class="flex justify-between items-start">
                                 <div class="flex items-center gap-2">
                                     <div class="w-3 h-3 rounded-full" style="background-color: {{ $session->course->color ?? '#9ca3af' }}"></div>
-                                    <span class="text-sm font-semibold {{ $isCancelled ? 'line-through text-red-600 dark:text-red-400' : '' }}">{{ $session->course->name }}</span>
+                                    <span class="text-sm font-semibold {{ $isCancelled ? 'line-through text-red-600 dark:text-red-400' : '' }}">{{ __($session->course->name) }}</span>
                                 </div>
                                 <span class="text-xs text-zinc-500">{{ \Carbon\Carbon::parse($session->starts_at)->format('H:i') }}</span>
                             </div>
-                            <div class="text-xs text-zinc-500 line-clamp-1">{{ $session->course->instructor }}</div>
+                            <div class="text-xs text-zinc-500 line-clamp-1">{{ __($session->course->instructor) }}</div>
                             
                             <div class="mt-2 flex items-center justify-between text-xs">
                                 @if($isCancelled)
