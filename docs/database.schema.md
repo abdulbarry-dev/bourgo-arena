@@ -254,13 +254,31 @@ belongsTo(HikvisionTerminal::class, 'terminal_id')
 
 ---
 
-### `course_sessions`
+### `courses`
 
 | Column                      | Type               | Notes               |
 | --------------------------- | ------------------ | ------------------- |
 | `id`                        | bigint PK          |                     |
 | `name`                      | string             |                     |
 | `instructor`                | string             |                     |
+| `description`               | text nullable      |                     |
+| `color`                     | string nullable    | hex color code      |
+| `created_at` / `updated_at` | timestamps         |                     |
+
+**Relationships:**
+
+```php
+hasMany(CourseSession::class)
+```
+
+---
+
+### `course_sessions`
+
+| Column                      | Type               | Notes               |
+| --------------------------- | ------------------ | ------------------- |
+| `id`                        | bigint PK          |                     |
+| `course_id`                 | bigint FK          | → courses.id        |
 | `day_of_week`               | tinyint            | 0=Monday … 6=Sunday |
 | `starts_at`                 | time               | e.g. 09:00:00       |
 | `duration_minutes`          | integer            |                     |

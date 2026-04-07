@@ -23,6 +23,9 @@
                     <flux:sidebar.item icon="calendar-date-range" :href="route('admin.course-sessions.index')" :current="request()->routeIs('admin.course-sessions.*')" wire:navigate>
                         {{ __('Schedule') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="book-open" :href="route('admin.courses.index')" :current="request()->routeIs('admin.courses.*')" wire:navigate>
+                        {{ __('Courses') }}
+                    </flux:sidebar.item>
                     <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.plans')" :current="request()->routeIs('admin.plans*')" wire:navigate>
                         {{ __('Plans') }}
                     </flux:sidebar.item>

@@ -71,11 +71,19 @@ An immutable record of every access attempt at a terminal, regardless of outcome
 - Records are **read-only after creation** — never updated or deleted
 - Retained for minimum 12 months
 
+### Course
+
+A predefined type of group fitness class, acting as a template for `CourseSession`s.
+
+- Fields: `name`, `instructor`, `description`, `color`
+- Provides the baseline details when an admin schedules a class
+- Can have multiple scheduled `CourseSession`s
+
 ### CourseSession
 
-A scheduled group fitness class with limited capacity.
+A scheduled instance of a `Course` running at a specific time.
 
-- Fields: `name`, `instructor`, `starts_at`, `duration_minutes`, `capacity`, `day_of_week`
+- Fields: `course_id`, `starts_at`, `duration_minutes`, `capacity`, `day_of_week`
 - Has many `Booking` records
 - Auto-closes enrollment when `bookings.count >= capacity`
 - Recurring weekly by default

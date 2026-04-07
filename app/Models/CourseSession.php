@@ -8,8 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class CourseSession extends Model
 {
     protected $fillable = [
-        'name',
-        'instructor',
+        'course_id',
         'day_of_week',
         'starts_at',
         'duration_minutes',
@@ -22,6 +21,11 @@ class CourseSession extends Model
         'is_cancelled' => 'boolean',
         'cancelled_at' => 'datetime',
     ];
+
+    public function course()
+    {
+        return $this->belongsTo(Course::class);
+    }
 
     public function exceptions(): HasMany
     {

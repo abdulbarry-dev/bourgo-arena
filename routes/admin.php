@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Admin\CourseSessions\CourseSessionManager;
 use App\Livewire\Admin\Terminals\Create;
 use App\Livewire\Admin\Terminals\Index;
 use App\Models\Member;
@@ -88,7 +89,10 @@ Route::get('/managers', App\Livewire\Admin\Managers\Index::class)
     ->role('admin')
     ->name('admin.managers.index');
 
+Route::get('/courses', App\Livewire\Admin\Courses\CourseManager::class)
+    ->role('admin', 'manager')
+    ->name('admin.courses.index');
 
-Route::get('/course-sessions', App\Livewire\Admin\CourseSessions\CourseSessionManager::class)
+Route::get('/course-sessions', CourseSessionManager::class)
     ->role('admin', 'manager')
     ->name('admin.course-sessions.index');

@@ -56,7 +56,7 @@ class CourseSessionManager extends Component
 
     public function getSessionsProperty()
     {
-        return CourseSession::where('is_cancelled', false)->get();
+        return CourseSession::with('course')->where('is_cancelled', false)->get();
     }
 
     public function sessionsForDay($dayOfWeekIsoIndex) // 0 for Monday, 6 for Sunday

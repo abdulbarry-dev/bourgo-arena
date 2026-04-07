@@ -81,7 +81,7 @@ class SendCourseCancelledPush implements ShouldQueue
 
         $pushNotificationService->send(
             $tokens,
-            'Class Cancelled: '.$session->name,
+            'Class Cancelled: '.$session->course->name,
             'Your class scheduled for '.$formattedDate.' at '.Carbon::parse($session->starts_at)->format('H:i').' has been cancelled.',
             [
                 'type' => 'course_cancelled',

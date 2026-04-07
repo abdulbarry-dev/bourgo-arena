@@ -37,10 +37,13 @@
                             class="w-full text-left p-3 rounded-lg border flex flex-col gap-1 transition-colors {{ $isCancelled ? 'bg-red-50/50 border-red-200 opacity-75 dark:bg-red-900/10 dark:border-red-800/30' : ($isFull ? 'bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800' : 'bg-white border-zinc-200 hover:border-blue-300 dark:bg-zinc-800 dark:border-zinc-700 dark:hover:border-zinc-600 shadow-sm') }}"
                         >
                             <div class="flex justify-between items-start">
-                                <span class="text-sm font-semibold {{ $isCancelled ? 'line-through text-red-600 dark:text-red-400' : '' }}">{{ $session->name }}</span>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3 h-3 rounded-full" style="background-color: {{ $session->course->color ?? '#9ca3af' }}"></div>
+                                    <span class="text-sm font-semibold {{ $isCancelled ? 'line-through text-red-600 dark:text-red-400' : '' }}">{{ $session->course->name }}</span>
+                                </div>
                                 <span class="text-xs text-zinc-500">{{ \Carbon\Carbon::parse($session->starts_at)->format('H:i') }}</span>
                             </div>
-                            <div class="text-xs text-zinc-500 line-clamp-1">{{ $session->instructor }}</div>
+                            <div class="text-xs text-zinc-500 line-clamp-1">{{ $session->course->instructor }}</div>
                             
                             <div class="mt-2 flex items-center justify-between text-xs">
                                 @if($isCancelled)
