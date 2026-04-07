@@ -14,7 +14,7 @@ test('members dashboard initial load stays under two seconds with one thousand m
     $elapsedMilliseconds = (hrtime(true) - $startedAt) / 1_000_000;
 
     $response->assertOk();
-    $response->assertSee('Member Management');
+    $response->assertSee('Members');
 
     expect($elapsedMilliseconds)->toBeLessThan(2000.0);
 });

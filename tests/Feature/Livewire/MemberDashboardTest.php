@@ -6,9 +6,9 @@ test('admin can view members dashboard page', function () {
     $this->actingAs(User::factory()->admin()->create())
         ->get(route('admin.members'))
         ->assertOk()
-        ->assertSee('Member Management')
+        ->assertSee('Members')
         ->assertSee('Add Member')
-        ->assertSee('Browse members and open each profile page')
+        ->assertSee('Search, filter, and manage member records')
         ->assertDontSee('NFC Card Assignment');
 });
 

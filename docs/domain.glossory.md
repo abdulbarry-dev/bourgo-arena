@@ -36,8 +36,8 @@ A time-bound gym membership plan purchased by or for a Member.
 
 A gym membership product with a fixed duration and price.
 
-- Fields: `name`, `price`, `duration_days`, `included_services[]`
-- `included_services` governs what a Member can book (e.g. courts, classes)
+- Fields: `name`, `has_all_courses`, `price`, `duration_days`, `included_services[]`
+- `has_all_courses` or relational link via `course_plan` pivot governs what `Course` a Member can book
 - Plans are not deleted — they are `archived` to preserve historical subscription records
 
 ### NfcCard

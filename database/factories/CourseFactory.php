@@ -18,7 +18,10 @@ class CourseFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'name' => $this->faker->words(2, true),
+            'instructor' => $this->faker->name(),
+            'description' => $this->faker->sentence(),
+            'color' => $this->faker->hexColor(),
         ];
     }
 }

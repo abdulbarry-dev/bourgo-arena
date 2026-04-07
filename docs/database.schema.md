@@ -155,9 +155,10 @@ hasMany(CheckInEvent::class, 'card_uid', 'uid')
 | --------------------------- | ------------- | ------------------------------------------------------- |
 | `id`                        | bigint PK     |                                                         |
 | `name`                      | string        |                                                         |
+| `has_all_courses`           | boolean       | default false — allows member to book any class         |
 | `price`                     | decimal(10,3) | Tunisian Dinar                                          |
 | `duration_days`             | integer       |                                                         |
-| `included_services`         | json          | array of service keys e.g. `["gym","tennis","classes"]` |
+| `included_services`         | json          | array of custom service names (e.g. `gym`, `tennis`)    |
 | `is_archived`               | boolean       | default false — never delete plans                      |
 | `created_at` / `updated_at` | timestamps    |                                                         |
 
@@ -165,7 +166,19 @@ hasMany(CheckInEvent::class, 'card_uid', 'uid')
 
 ```php
 hasMany(Subscription::class)
+belongsToMany(Course::class)
 ```
+
+---
+
+### `course_plan` (Pivot Table)
+
+| Column                      | Type          | Notes                                                   |
+| --------------------------- | ------------- | ------------------------------------------------------- |
+| `id`                        | bigint PK     |                                                         |
+| `plan_id`                   | bigint FK     | references `plans.id`                                   |
+| `course_id`                 | bigint FK     | references `courses.id`                                 |
+| `created_at` / `updated_at` | timestamps    |                                                         |
 
 ---
 
@@ -269,6 +282,7 @@ belongsTo(HikvisionTerminal::class, 'terminal_id')
 
 ```php
 hasMany(CourseSession::class)
+belongsToMany(Plan::class)
 ```
 
 ---

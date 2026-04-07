@@ -66,6 +66,7 @@
                             </button>
                         </th>
                         <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Included Services') }}</th>
+                        <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Courses') }}</th>
                         <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">
                             <button type="button" class="inline-flex items-center gap-1" wire:click="sort('is_archived')">
                                 {{ __('Archived') }}
@@ -85,6 +86,13 @@
                             <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ number_format((float) $plan->price, 3) }} TND</td>
                             <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ $plan->duration_days }}</td>
                             <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ empty($plan->included_services) ? __('None') : implode(', ', $plan->included_services) }}</td>
+                            <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">
+                                @if($plan->has_all_courses)
+                                    <flux:badge size="sm" color="green">{{ __('All-Inclusive') }}</flux:badge>
+                                @else
+                                    <flux:badge size="sm" color="zinc">{{ $plan->courses_count }} {{ __('Courses') }}</flux:badge>
+                                @endif
+                            </td>
                             <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ $plan->is_archived ? __('Yes') : __('No') }}</td>
                             <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ $plan->subscriptions_count }}</td>
                             <td class="px-4 py-3 text-right">
@@ -111,7 +119,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-4 py-10 text-center">
+                            <td colspan="8" class="px-4 py-10 text-center">
                                 <flux:heading size="sm">{{ __('No plans found') }}</flux:heading>
                                 <flux:text variant="subtle">{{ __('Try adjusting your search or status filter.') }}</flux:text>
                             </td>
@@ -142,6 +150,22 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                 <flux:input wire:model="price" type="text" inputmode="decimal" label="{{ __('Price (TND)') }}" placeholder="129.000" required />
                 <flux:input wire:model="durationDays" type="number" min="1" step="1" label="{{ __('Duration (Days)') }}" required />
+            </div>
+            
+            <div class="space-y-4">
+                <flux:switch wire:model.live="hasAllCourses" :label="__('All-Inclusive Plan')" description="{{ __('Grants access to book any class.') }}" />
+
+                <div x-show="!$wire.hasAllCourses" x-transition>
+                    <flux:field>
+                        <flux:label>{{ __('Included Courses') }}</flux:label>
+                        <flux:select wire:model="selectedCourses" multiple placeholder="{{ __('Select courses...') }}">
+                            @foreach($this->availableCourses as $course)
+                                <option value="{{ $course->id }}">{{ $course->name }}</option>
+                            @endforeach
+                        </flux:select>
+                        <flux:error name="selectedCourses" />
+                    </flux:field>
+                </div>
             </div>
             
             <flux:switch wire:model="isArchived" :label="$isArchived ? __('Archived') : __('Active')" />
@@ -199,7 +223,23 @@
                 </div>
 
                 <div>
-                    <flux:heading size="sm">{{ __('Included Services') }}</flux:heading>
+                    <flux:heading size="sm">{{ __('Included Courses') }}</flux:heading>
+
+                    @if ($this->detailPlan->has_all_courses)
+                        <flux:badge size="sm" color="green" class="mt-2">{{ __('All-Inclusive Catalog') }}</flux:badge>
+                    @elseif ($this->detailPlan->courses->isEmpty())
+                        <flux:text variant="subtle" class="mt-2">{{ __('No specific courses configured.') }}</flux:text>
+                    @else
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            @foreach ($this->detailPlan->courses as $course)
+                                <flux:badge size="sm" color="blue">{{ $course->name }}</flux:badge>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+
+                <div>
+                    <flux:heading size="sm">{{ __('Other Services') }}</flux:heading>
 
                     @if (empty($this->detailPlan->included_services))
                         <flux:text variant="subtle" class="mt-2">{{ __('No services configured.') }}</flux:text>

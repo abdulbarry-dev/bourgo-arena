@@ -64,6 +64,22 @@ class SessionDetailPanel extends Component
             return;
         }
 
+        $member = Member::with('activeSubscription.plan.courses')->findOrFail($this->memberIdToEnroll);
+
+        if (! $member->activeSubscription) {
+            $this->dispatch('toast', message: 'Member does not have an active subscription.', type: 'warning');
+
+            return;
+        }
+
+        $plan = $member->activeSubscription->plan;
+
+        if (! $plan->has_all_courses && ! $plan->courses->pluck('id')->contains($this->session->course_id)) {
+            $this->dispatch('toast', message: "Member's active plan does not include this course.", type: 'warning');
+
+            return;
+        }
+
         $bookingsCount = Booking::where('course_session_id', $this->session->id)
             ->where('date', $this->date)
             ->count();

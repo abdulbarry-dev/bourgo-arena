@@ -2,10 +2,12 @@
 
 namespace App\Livewire\Admin\Plans;
 
+use App\Models\Course;
 use App\Models\Plan;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -40,6 +42,10 @@ class PlanTable extends Component
 
     public string $name = '';
 
+    public bool $hasAllCourses = false;
+
+    public array $selectedCourses = [];
+
     public string $price = '';
 
     public int|string $durationDays = '';
@@ -56,6 +62,13 @@ class PlanTable extends Component
     public function updatedStatusFilter(): void
     {
         $this->resetPage();
+    }
+
+    public function updatedHasAllCourses(): void
+    {
+        if ($this->hasAllCourses) {
+            $this->selectedCourses = [];
+        }
     }
 
     public function sort(string $column): void
@@ -79,14 +92,14 @@ class PlanTable extends Component
         $this->authorize('create', Plan::class);
 
         $this->resetValidation();
-        $this->reset(['planId', 'price', 'durationDays', 'includedServicesInput', 'isArchived', 'name']);
+        $this->reset(['planId', 'price', 'durationDays', 'includedServicesInput', 'isArchived', 'name', 'hasAllCourses', 'selectedCourses']);
 
         $this->showFlyout = true;
     }
 
     public function openEditFlyout(int $id): void
     {
-        $plan = Plan::query()->findOrFail($id);
+        $plan = Plan::query()->with('courses')->findOrFail($id);
 
         $this->authorize('update', $plan);
 
@@ -97,6 +110,9 @@ class PlanTable extends Component
         $this->durationDays = $plan->duration_days;
         $this->includedServicesInput = implode(', ', $plan->included_services ?? []);
         $this->isArchived = $plan->is_archived;
+
+        $this->hasAllCourses = $plan->has_all_courses;
+        $this->selectedCourses = $plan->courses->pluck('id')->map(fn ($id) => (string) $id)->toArray();
 
         $this->showFlyout = true;
     }
@@ -114,20 +130,30 @@ class PlanTable extends Component
     public function save(): void
     {
         try {
-            $validated = $this->validate($this->rules());
+            $rules = $this->rules();
+            if (! $this->hasAllCourses) {
+                $rules['selectedCourses'] = ['nullable', 'array'];
+                $rules['selectedCourses.*'] = ['exists:courses,id'];
+            }
+            $validated = $this->validate($rules);
 
             $payload = [
                 'name' => $validated['name'],
                 'price' => $validated['price'],
                 'duration_days' => (int) $validated['durationDays'],
                 'included_services' => $this->normalizedServices($validated['includedServicesInput']),
+                'has_all_courses' => (bool) $validated['hasAllCourses'],
                 'is_archived' => (bool) $validated['isArchived'],
             ];
 
             if ($this->planId === null) {
                 $this->authorize('create', Plan::class);
 
-                Plan::query()->create($payload);
+                $plan = Plan::query()->create($payload);
+
+                if (! $plan->has_all_courses && ! empty($this->selectedCourses)) {
+                    $plan->courses()->sync($this->selectedCourses);
+                }
 
                 $this->showFlyout = false;
                 $this->dispatch('toast', message: 'Plan created successfully.', type: 'success');
@@ -141,14 +167,34 @@ class PlanTable extends Component
 
             $plan->fill($payload);
 
-            if (! $plan->isDirty()) {
+            $dirty = $plan->isDirty();
+
+            $plan->save();
+
+            // Handle sync for relations
+            if ($plan->has_all_courses) {
+                $syncDirty = ! empty($plan->courses()->pluck('id')->toArray());
+                $plan->courses()->sync([]);
+            } else {
+                $currentCourses = $plan->courses()->pluck('id')->toArray();
+                $newCourses = array_map('intval', $this->selectedCourses ?? []);
+
+                sort($currentCourses);
+                sort($newCourses);
+
+                $syncDirty = $currentCourses !== $newCourses;
+
+                if ($syncDirty) {
+                    $plan->courses()->sync($newCourses);
+                }
+            }
+
+            if (! $dirty && ! $syncDirty) {
                 $this->showFlyout = false;
                 $this->dispatch('toast', message: 'No changes detected for this plan.', type: 'info');
 
                 return;
             }
-
-            $plan->save();
 
             $this->showFlyout = false;
             $this->dispatch('toast', message: 'Plan updated successfully.', type: 'success');
@@ -189,6 +235,9 @@ class PlanTable extends Component
                 'nullable',
                 'string',
                 'max:5000',
+            ],
+            'hasAllCourses' => [
+                'boolean',
             ],
             'isArchived' => [
                 'boolean',
@@ -231,9 +280,15 @@ class PlanTable extends Component
             ->when($this->statusFilter === 'archived', function (Builder $query): void {
                 $query->where('is_archived', true);
             })
-            ->withCount('subscriptions')
+            ->withCount('subscriptions', 'courses')
             ->orderBy($this->sortBy, $this->sortDirection)
             ->paginate($this->perPage);
+    }
+
+    #[Computed]
+    public function availableCourses(): Collection
+    {
+        return Course::orderBy('name')->get();
     }
 
     #[Computed]
@@ -243,7 +298,7 @@ class PlanTable extends Component
             return null;
         }
 
-        return Plan::withCount('subscriptions')->find($this->detailPlanId);
+        return Plan::with(['courses'])->withCount('subscriptions')->find($this->detailPlanId);
     }
 
     public function render(): View
