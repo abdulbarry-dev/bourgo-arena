@@ -46,6 +46,8 @@ class PlanTable extends Component
 
     public array $selectedCourses = [];
 
+    public string $courseToAdd = '';
+
     public string $price = '';
 
     public int|string $durationDays = '';
@@ -68,7 +70,31 @@ class PlanTable extends Component
     {
         if ($this->hasAllCourses) {
             $this->selectedCourses = [];
+            $this->courseToAdd = '';
         }
+    }
+
+    public function updatedCourseToAdd(): void
+    {
+        if ($this->courseToAdd === '') {
+            return;
+        }
+
+        $courseId = (string) $this->courseToAdd;
+
+        if (! in_array($courseId, $this->selectedCourses, true)) {
+            $this->selectedCourses[] = $courseId;
+        }
+
+        $this->courseToAdd = '';
+    }
+
+    public function removeCourse(string $courseId): void
+    {
+        $this->selectedCourses = array_values(array_filter(
+            $this->selectedCourses,
+            fn ($id) => $id !== $courseId
+        ));
     }
 
     public function sort(string $column): void
@@ -92,7 +118,7 @@ class PlanTable extends Component
         $this->authorize('create', Plan::class);
 
         $this->resetValidation();
-        $this->reset(['planId', 'price', 'durationDays', 'includedServicesInput', 'isArchived', 'name', 'hasAllCourses', 'selectedCourses']);
+        $this->reset(['planId', 'price', 'durationDays', 'includedServicesInput', 'isArchived', 'name', 'hasAllCourses', 'selectedCourses', 'courseToAdd']);
 
         $this->showFlyout = true;
     }

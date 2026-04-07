@@ -155,16 +155,40 @@
             <div class="space-y-4">
                 <flux:switch wire:model.live="hasAllCourses" :label="__('All-Inclusive Plan')" description="{{ __('Grants access to book any class.') }}" />
 
-                <div x-show="!$wire.hasAllCourses" x-transition>
+                <div x-show="!$wire.hasAllCourses" x-transition class="space-y-4">
                     <flux:field>
                         <flux:label>{{ __('Included Courses') }}</flux:label>
-                        <flux:select wire:model="selectedCourses" multiple placeholder="{{ __('Select courses...') }}">
+                        <flux:select wire:model.live="courseToAdd" searchable placeholder="{{ __('Search and select a course...') }}">
+                            <x-slot:empty>
+                                <flux:select.option disabled>{{ __('No courses found.') }}</flux:select.option>
+                            </x-slot:empty>
+                            <option value="">{{ __('Search and select a course...') }}</option>
                             @foreach($this->availableCourses as $course)
-                                <option value="{{ $course->id }}">{{ $course->name }}</option>
+                                @if(!in_array((string)$course->id, $selectedCourses))
+                                    <option value="{{ $course->id }}">{{ $course->name }}</option>
+                                @endif
                             @endforeach
                         </flux:select>
                         <flux:error name="selectedCourses" />
                     </flux:field>
+
+                    @if(count($selectedCourses) > 0)
+                        <div class="flex flex-wrap gap-2 mt-4">
+                            @foreach($selectedCourses as $courseId)
+                                @php
+                                    $selectedCourse = $this->availableCourses->firstWhere('id', (int) $courseId);
+                                @endphp
+                                @if($selectedCourse)
+                                    <div wire:key="badge-[{{ $courseId }}]" class="inline-flex items-center gap-1 rounded-md bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 transition">
+                                        <span>{{ $selectedCourse->name }}</span>
+                                        <button type="button" wire:click="removeCourse('{{ $courseId }}')" class="hover:text-red-500 transition-colors ml-1" aria-label="{{ __('Remove') }} {{ $selectedCourse->name }}">
+                                            <flux:icon.x-mark class="size-3" />
+                                        </button>
+                                    </div>
+                                @endif
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
             </div>
             
