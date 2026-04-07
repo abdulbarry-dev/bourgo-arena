@@ -173,7 +173,7 @@
                     </flux:field>
 
                     @if(count($selectedCourses) > 0)
-                        <div class="flex flex-wrap gap-2 mt-4">
+                        <div class="flex flex-wrap content-start gap-2 mt-4 max-h-32 overflow-y-auto border border-zinc-200 dark:border-zinc-700 rounded-lg p-3">
                             @foreach($selectedCourses as $courseId)
                                 @php
                                     $selectedCourse = $this->availableCourses->firstWhere('id', (int) $courseId);
