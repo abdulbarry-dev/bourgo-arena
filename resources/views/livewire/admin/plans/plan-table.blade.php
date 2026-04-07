@@ -179,9 +179,9 @@
                                     $selectedCourse = $this->availableCourses->firstWhere('id', (int) $courseId);
                                 @endphp
                                 @if($selectedCourse)
-                                    <div wire:key="badge-[{{ $courseId }}]" class="inline-flex items-center gap-1 rounded-md bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 transition">
+                                    <div wire:key="badge-[{{ $courseId }}]" class="inline-flex items-center gap-1 rounded-md bg-zinc-100 border border-zinc-200 px-2 py-1 text-xs font-medium text-zinc-800 shadow-sm hover:bg-zinc-200 dark:bg-white/10 dark:border-white/20 dark:text-white dark:hover:bg-white/20 transition">
                                         <span>{{ $selectedCourse->name }}</span>
-                                        <button type="button" wire:click="removeCourse('{{ $courseId }}')" class="hover:text-red-500 transition-colors ml-1" aria-label="{{ __('Remove') }} {{ $selectedCourse->name }}">
+                                        <button type="button" wire:click="removeCourse('{{ $courseId }}')" class="hover:text-red-500 hover:bg-white/10 p-0.5 rounded transition-colors ml-1" aria-label="{{ __('Remove') }} {{ $selectedCourse->name }}">
                                             <flux:icon.x-mark class="size-3" />
                                         </button>
                                     </div>
