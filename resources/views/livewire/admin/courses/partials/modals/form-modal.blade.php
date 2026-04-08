@@ -10,6 +10,24 @@
             <flux:input wire:model="name" :label="__('Course Name')" :placeholder="__('e.g., Advanced Yoga')" required />
             <flux:input wire:model="instructor" :label="__('Default Instructor')" :placeholder="__('e.g., Jane Smith')" required />
 
+            <flux:field>
+                <flux:label>{{ __('Course Image') }}</flux:label>
+                <input type="file" wire:model="image" class="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-zinc-100 file:text-zinc-700 hover:file:bg-zinc-200 dark:file:bg-zinc-800 dark:file:text-zinc-300 dark:hover:file:bg-zinc-700" accept="image/*" />
+                <flux:error name="image" />
+                
+                @if ($image)
+                    <div class="mt-2 text-sm text-zinc-500">
+                        {{ __('Image preview:') }}
+                        <img src="{{ $image->temporaryUrl() }}" class="mt-1 h-20 w-auto rounded object-cover border border-zinc-200 dark:border-zinc-700" alt="Preview">
+                    </div>
+                @elseif ($existingImageUrl)
+                    <div class="mt-2 text-sm text-zinc-500">
+                        {{ __('Current image:') }}
+                        <img src="{{ $existingImageUrl }}" class="mt-1 h-20 w-auto rounded object-cover border border-zinc-200 dark:border-zinc-700" alt="Current Image">
+                    </div>
+                @endif
+            </flux:field>
+
             <flux:textarea wire:model="description" :label="__('Description')" :placeholder="__('A brief description of what to expect...')" rows="3" />
             
             <div>

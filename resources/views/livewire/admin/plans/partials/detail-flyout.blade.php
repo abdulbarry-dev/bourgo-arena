@@ -5,6 +5,10 @@
 
     @if ($this->detailPlan)
         <div class="mt-6 flex flex-col gap-6">
+            @if ($this->detailPlan->image_url)
+                <img src="{{ $this->detailPlan->image_url }}" alt="{{ $this->detailPlan->name }}" class="w-full h-48 object-cover rounded-xl mb-4 border border-zinc-200 dark:border-zinc-700">
+            @endif
+            
             <div>
                 <flux:heading size="lg">{{ __($this->detailPlan->name) }}</flux:heading>
                 <flux:text variant="subtle">{{ number_format((float) $this->detailPlan->price, 3) }} TND · {{ $this->detailPlan->duration_days }} {{ __('days') }}</flux:text>

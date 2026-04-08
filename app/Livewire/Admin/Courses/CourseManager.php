@@ -4,11 +4,15 @@ namespace App\Livewire\Admin\Courses;
 
 use App\Models\Course;
 use Flux\Flux;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class CourseManager extends Component
 {
+    use WithFileUploads;
+
     public $courses;
 
     #[Validate('required|string|max:255')]
@@ -22,6 +26,11 @@ class CourseManager extends Component
 
     #[Validate('nullable|string|max:7')]
     public $color = '#8b5cf6';
+
+    #[Validate('nullable|image|max:2048')]
+    public $image;
+
+    public $existingImageUrl = null;
 
     public $editingCourseId = null;
 
@@ -55,6 +64,8 @@ class CourseManager extends Component
         $this->instructor = $course->instructor;
         $this->description = $course->description;
         $this->color = $course->color ?? '#9ca3af';
+        $this->existingImageUrl = $course->image_url;
+        $this->image = null;
 
         $this->isModalOpen = true;
         Flux::modal('course-form-modal')->show();
@@ -64,22 +75,24 @@ class CourseManager extends Component
     {
         $this->validate();
 
+        $payload = [
+            'name' => $this->name,
+            'instructor' => $this->instructor,
+            'description' => $this->description,
+            'color' => $this->color,
+        ];
+
+        if ($this->image) {
+            $path = $this->image->store('courses', 'public');
+            $payload['image_url'] = Storage::url($path);
+        }
+
         if ($this->editingCourseId) {
             $course = Course::findOrFail($this->editingCourseId);
-            $course->update([
-                'name' => $this->name,
-                'instructor' => $this->instructor,
-                'description' => $this->description,
-                'color' => $this->color,
-            ]);
+            $course->update($payload);
             $this->dispatch('toast', message: 'Course updated successfully!', type: 'success');
         } else {
-            Course::create([
-                'name' => $this->name,
-                'instructor' => $this->instructor,
-                'description' => $this->description,
-                'color' => $this->color,
-            ]);
+            Course::create($payload);
             $this->dispatch('toast', message: 'Course created successfully!', type: 'success');
         }
 
@@ -109,7 +122,7 @@ class CourseManager extends Component
         }
 
         $course->delete();
-        $this->dispatch('toast', message: 'Course deleted successfully.', type: 'info');
+        $this->dispatch('toast', message: 'Course deleted successfully.', type: 'success');
 
         $this->closeDeleteModal();
         $this->loadCourses();
@@ -130,7 +143,7 @@ class CourseManager extends Component
 
     public function resetForm()
     {
-        $this->reset(['name', 'instructor', 'description', 'color', 'editingCourseId']);
+        $this->reset(['name', 'instructor', 'description', 'color', 'editingCourseId', 'image', 'existingImageUrl']);
         $this->resetValidation();
     }
 

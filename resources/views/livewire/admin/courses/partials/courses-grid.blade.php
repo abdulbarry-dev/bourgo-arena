@@ -2,6 +2,9 @@
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
     @foreach($courses as $course)
         <div class="border border-zinc-200 dark:border-zinc-700 rounded-xl overflow-hidden bg-white dark:bg-zinc-800 shadow-sm">
+            @if ($course->image_url)
+                <img src="{{ $course->image_url }}" alt="{{ $course->name }}" class="w-full h-32 object-cover border-b border-zinc-200 dark:border-zinc-700">
+            @endif
             <!-- Course Header -->
             <div class="p-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-start" style="border-top: 4px solid {{ $course->color ?? '#9ca3af' }}">
                 <div>

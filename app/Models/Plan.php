@@ -20,6 +20,7 @@ class Plan extends Model
         'duration_days',
         'included_services',
         'is_archived',
+        'image_url',
     ];
 
     protected $casts = [

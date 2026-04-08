@@ -159,6 +159,7 @@ hasMany(CheckInEvent::class, 'card_uid', 'uid')
 | `price`                     | decimal(10,3) | Tunisian Dinar                                          |
 | `duration_days`             | integer       |                                                         |
 | `included_services`         | json          | array of custom service names (e.g. `gym`, `tennis`)    |
+| `image_url`                 | string        | nullable, points to LFS url                             |
 | `is_archived`               | boolean       | default false — never delete plans                      |
 | `created_at` / `updated_at` | timestamps    |                                                         |
 
@@ -276,6 +277,7 @@ belongsTo(HikvisionTerminal::class, 'terminal_id')
 | `instructor`                | string             |                     |
 | `description`               | text nullable      |                     |
 | `color`                     | string nullable    | hex color code      |
+| `image_url`                 | string nullable    | points to LFS url   |
 | `created_at` / `updated_at` | timestamps         |                     |
 
 **Relationships:**

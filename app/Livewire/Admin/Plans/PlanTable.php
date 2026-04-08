@@ -8,17 +8,20 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 use Throwable;
 
 class PlanTable extends Component
 {
     use AuthorizesRequests;
+    use WithFileUploads;
     use WithPagination;
 
     public string $search = '';
@@ -57,6 +60,10 @@ class PlanTable extends Component
     public string $includedServicesInput = '';
 
     public bool $isArchived = false;
+
+    public $image;
+
+    public ?string $existingImageUrl = null;
 
     public function updatedSearch(): void
     {
@@ -129,7 +136,7 @@ class PlanTable extends Component
         $this->authorize('create', Plan::class);
 
         $this->resetValidation();
-        $this->reset(['planId', 'price', 'durationDays', 'includedServicesInput', 'isArchived', 'name', 'isFacilityOnly', 'hasAllCourses', 'selectedCourses', 'courseToAdd']);
+        $this->reset(['planId', 'price', 'durationDays', 'includedServicesInput', 'isArchived', 'name', 'isFacilityOnly', 'hasAllCourses', 'selectedCourses', 'courseToAdd', 'image', 'existingImageUrl']);
 
         $this->showFlyout = true;
     }
@@ -147,6 +154,8 @@ class PlanTable extends Component
         $this->durationDays = $plan->duration_days;
         $this->includedServicesInput = implode(', ', $plan->included_services ?? []);
         $this->isArchived = $plan->is_archived;
+        $this->existingImageUrl = $plan->image_url;
+        $this->image = null;
 
         $this->hasAllCourses = $plan->has_all_courses;
         $this->selectedCourses = $plan->courses->pluck('id')->map(fn ($id) => (string) $id)->toArray();
@@ -188,6 +197,11 @@ class PlanTable extends Component
                 'has_all_courses' => (bool) $validated['hasAllCourses'],
                 'is_archived' => (bool) $validated['isArchived'],
             ];
+
+            if ($this->image) {
+                $path = $this->image->store('plans', 'public');
+                $payload['image_url'] = Storage::url($path);
+            }
 
             if ($this->planId === null) {
                 $this->authorize('create', Plan::class);
@@ -284,6 +298,11 @@ class PlanTable extends Component
             ],
             'isArchived' => [
                 'boolean',
+            ],
+            'image' => [
+                'nullable',
+                'image',
+                'max:2048',
             ],
         ];
     }

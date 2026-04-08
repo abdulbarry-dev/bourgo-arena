@@ -18,6 +18,7 @@ class Course extends Model
         'instructor',
         'description',
         'color',
+        'image_url',
     ];
 
     public function sessions(): HasMany

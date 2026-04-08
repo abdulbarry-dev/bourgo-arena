@@ -9,6 +9,24 @@
     <form wire:submit="save" class="mt-6 flex flex-col gap-6 w-full">
         <flux:input wire:model="name" label="{{ __('Plan Name') }}" required />
         
+        <flux:field>
+            <flux:label>{{ __('Plan Image') }}</flux:label>
+            <input type="file" wire:model="image" class="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-zinc-100 file:text-zinc-700 hover:file:bg-zinc-200 dark:file:bg-zinc-800 dark:file:text-zinc-300 dark:hover:file:bg-zinc-700" accept="image/*" />
+            <flux:error name="image" />
+            
+            @if ($image)
+                <div class="mt-2 text-sm text-zinc-500">
+                    {{ __('Image preview:') }}
+                    <img src="{{ $image->temporaryUrl() }}" class="mt-1 h-20 w-auto rounded object-cover border border-zinc-200 dark:border-zinc-700" alt="Preview">
+                </div>
+            @elseif ($existingImageUrl)
+                <div class="mt-2 text-sm text-zinc-500">
+                    {{ __('Current image:') }}
+                    <img src="{{ $existingImageUrl }}" class="mt-1 h-20 w-auto rounded object-cover border border-zinc-200 dark:border-zinc-700" alt="Current Image">
+                </div>
+            @endif
+        </flux:field>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
             <flux:input wire:model="price" type="text" inputmode="decimal" label="{{ __('Price (TND)') }}" placeholder="129.000" required />
             <flux:input wire:model="durationDays" type="number" min="1" step="1" label="{{ __('Duration (Days)') }}" required />
