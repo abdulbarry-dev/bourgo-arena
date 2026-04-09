@@ -15,6 +15,8 @@ use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Flux\Flux;
+use Illuminate\Support\Facades\Auth;
 
 #[Layout('layouts.app')]
 #[Title('Managers Administration')]
@@ -88,7 +90,10 @@ class Index extends Component
             'role' => UserRole::Manager,
         ]);
 
-        $token = Password::broker()->createToken($manager);
+        /** @var \Illuminate\Auth\Passwords\PasswordBroker $broker */
+        $broker = Password::broker();
+        $token = $broker->createToken($manager);
+        
         $resetUrl = route('password.reset', ['token' => $token, 'email' => $manager->email]);
 
         Mail::to($manager->email)->send(new ManagerWelcomeEmail($manager, $randomPassword, $resetUrl));
@@ -99,14 +104,14 @@ class Index extends Component
 
     public function toggleBan()
     {
-        if ($this->selectedManager && $this->selectedManager->id !== auth()->id()) {
+        if ($this->selectedManager && $this->selectedManager->id !== Auth::id()) {
             if ($this->selectedManager->isBanned()) {
                 $this->selectedManager->unban();
                 $this->dispatch('toast', message: __('Manager unbanned successfully.'), type: 'success');
             } else {
                 $this->banReason = '';
                 $this->resetValidation('banReason');
-                \Flux::modal('ban-manager-modal')->show();
+                Flux::modal('ban-manager-modal')->show();
             }
         }
     }
@@ -120,22 +125,22 @@ class Index extends Component
             'banReason.min' => 'The reason must be at least 8 characters long.',
         ]);
 
-        if ($this->selectedManager && $this->selectedManager->id !== auth()->id()) {
+        if ($this->selectedManager && $this->selectedManager->id !== Auth::id()) {
             $this->selectedManager->ban($this->banReason);
-            \Flux::modal('ban-manager-modal')->close();
+            Flux::modal('ban-manager-modal')->close();
             $this->dispatch('toast', message: __('Manager banned successfully.'), type: 'success');
         }
     }
 
     public function deleteManager()
     {
-        if ($this->selectedManager && $this->selectedManager->id !== auth()->id()) {
+        if ($this->selectedManager && $this->selectedManager->id !== Auth::id()) {
             try {
                 $this->selectedManager->delete();
                 $this->showFlyout = false;
                 $this->selectedManager = null;
 
-                \Flux::modal('confirm-delete')->close();
+                Flux::modal('confirm-delete')->close();
                 $this->dispatch('toast', message: __('Manager deleted successfully.'), type: 'success');
             } catch (QueryException $e) {
                 if ($e->getCode() === '23503') {
