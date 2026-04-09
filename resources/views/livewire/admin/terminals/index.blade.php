@@ -4,7 +4,7 @@
             <flux:heading size="xl">{{ __('Hardware Terminals') }}</flux:heading>
             <flux:subheading>{{ __('Manage connected access control devices and gateways.') }}</flux:subheading>
         </div>
-        <flux:button :href="route('admin.terminals.create')" wire:navigate variant="primary" icon="plus">
+        <flux:button wire:click="openCreateModal" variant="primary" icon="plus">
             {{ __('Add Terminal') }}
         </flux:button>
     </div>
@@ -261,4 +261,6 @@
             </div>
         </form>
     </flux:modal>
+
+    @include('livewire.admin.terminals.partials.form-modal')
 </div>

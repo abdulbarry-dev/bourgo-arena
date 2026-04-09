@@ -2,14 +2,13 @@
 
 use App\Livewire\Admin\Courses\CourseManager;
 use App\Livewire\Admin\CourseSessions\CourseSessionManager;
-use App\Livewire\Admin\Terminals\Create;
 use App\Livewire\Admin\Terminals\Index;
 use App\Models\Member;
 use App\Models\Subscription;
 use Illuminate\Support\Facades\Route;
 
 // -------------------------------------------------------------
-// Routes accessible by BOTH Admins & Managers 
+// Routes accessible by BOTH Admins & Managers
 // -------------------------------------------------------------
 Route::middleware('role:admin,manager')->group(function () {
 
@@ -83,9 +82,6 @@ Route::prefix('admin')->middleware('role:admin')->group(function () {
 
     Route::get('/terminals', Index::class)
         ->name('admin.terminals.index');
-
-    Route::get('/terminals/create', Create::class)
-        ->name('admin.terminals.create');
 
     Route::get('/managers', App\Livewire\Admin\Managers\Index::class)
         ->name('admin.managers.index');

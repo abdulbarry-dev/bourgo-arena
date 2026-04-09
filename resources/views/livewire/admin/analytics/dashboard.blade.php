@@ -40,23 +40,37 @@
         </flux:card>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Revenue Bar Chart -->
-        <flux:card class="lg:col-span-2">
-            <div class="h-72 w-full">
-                {!! $columnChartModel->container() !!}
-            </div>
-        </flux:card>
+    @if($hasData)
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Revenue Bar Chart -->
+            <flux:card class="lg:col-span-2 flex flex-col justify-center">
+                <div class="w-full">
+                    {!! $columnChartModel->container() !!}
+                </div>
+            </flux:card>
 
-        <!-- Subscription Splilt Donut Chart -->
-        <flux:card>
-            <div class="h-72 w-full flex items-center justify-center">
-                {!! $pieChartModel->container() !!}
+            <!-- Subscription Splilt Donut Chart -->
+            <flux:card class="flex flex-col justify-center">
+                <div class="w-full">
+                    {!! $pieChartModel->container() !!}
+                </div>
+            </flux:card>
+        </div>
+    @else
+        <flux:card class="flex flex-col items-center justify-center py-16 text-center">
+            <div class="rounded-full bg-zinc-100 dark:bg-zinc-800 p-4 mb-4">
+                <flux:icon.chart-bar class="size-8 text-zinc-400 dark:text-zinc-500" />
             </div>
+            <flux:heading size="lg" class="mb-2">{{ __('No analytics data available') }}</flux:heading>
+            <flux:text class="text-zinc-500 max-w-sm">
+                {{ __('There is no revenue or subscription data for the selected date range. Try adjusting your filters.') }}
+            </flux:text>
         </flux:card>
-    </div>
+    @endif
 </div>
 
-<script src="{{ $columnChartModel->cdn() }}"></script>
-{!! $columnChartModel->script() !!}
-{!! $pieChartModel->script() !!}
+@if($hasData)
+    <script src="{{ $columnChartModel->cdn() }}"></script>
+    {!! $columnChartModel->script() !!}
+    {!! $pieChartModel->script() !!}
+@endif

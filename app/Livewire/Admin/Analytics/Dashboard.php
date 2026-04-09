@@ -74,7 +74,8 @@ class Dashboard extends Component
             ->orderBy('date')
             ->get();
 
-        $chart = new LarapexChart();
+        $chart = new LarapexChart;
+        $hasData = $snapshots->isNotEmpty();
 
         $columnChartModel = $chart->barChart()
             ->setTitle(__('Daily Revenue'))
@@ -102,6 +103,7 @@ class Dashboard extends Component
             'columnChartModel' => $columnChartModel,
             'pieChartModel' => $pieChartModel,
             'kpis' => $kpis,
+            'hasData' => $hasData,
         ])->layout('layouts.app');
     }
 }

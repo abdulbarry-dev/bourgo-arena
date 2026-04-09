@@ -13,6 +13,7 @@
 </head>
 <body>
     <div class="header">
+        <img src="data:image/webp;base64,{{ base64_encode(file_get_contents(public_path('assets/images/brandmark-noir.webp'))) }}" alt="Bourgo Arena Logo" style="height: 48px; margin-bottom: 15px;">
         <h2>Revenue & Subscription Analytics</h2>
         <p>Report Interval: {{ $startDate }} to {{ $endDate }}</p>
     </div>

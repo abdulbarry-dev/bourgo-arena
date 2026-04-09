@@ -5,7 +5,7 @@ namespace App\Livewire\Admin\Terminals;
 use App\Jobs\SyncTerminalWhitelist;
 use App\Models\HikvisionTerminal;
 use App\Models\Member;
-use Flux\Flux;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -34,6 +34,28 @@ class Index extends Component
 
     public bool $showFlyout = false;
 
+    // Terminal Creation Form Properties
+    public string $name = '';
+
+    public string $ip_address = '';
+
+    public string $serial_number = '';
+
+    public string $location = '';
+
+    public string $terminal_type = 'entry';
+
+    protected function rules(): array
+    {
+        return [
+            'name' => ['required', 'string', 'max:255'],
+            'ip_address' => ['required', 'ipv4'],
+            'serial_number' => ['required', 'string', 'max:255', 'unique:hikvision_terminals,serial_number'],
+            'location' => ['required', 'string', 'max:255'],
+            'terminal_type' => ['required', 'in:entry,exit'],
+        ];
+    }
+
     public function updatingSearch()
     {
         $this->resetPage();
@@ -52,6 +74,42 @@ class Index extends Component
             $this->sortBy = $column;
             $this->sortDirection = 'asc';
         }
+    }
+
+    public function openCreateModal()
+    {
+        $this->resetForm();
+        \Flux::modal('terminal-form-modal')->show();
+    }
+
+    public function saveTerminal()
+    {
+        $this->validate();
+
+        HikvisionTerminal::create([
+            'name' => $this->name,
+            'ip_address' => $this->ip_address,
+            'serial_number' => $this->serial_number,
+            'location' => $this->location,
+            'terminal_type' => $this->terminal_type,
+            'api_token' => Str::random(60),
+            'status' => 'offline',
+        ]);
+
+        $this->dispatch(
+            'toast',
+            message: __('Terminal created successfully. API token has been automatically generated.'),
+            type: 'success'
+        );
+
+        \Flux::modal('terminal-form-modal')->close();
+        $this->resetForm();
+    }
+
+    public function resetForm()
+    {
+        $this->reset(['name', 'ip_address', 'serial_number', 'location', 'terminal_type']);
+        $this->resetValidation();
     }
 
     public function viewTerminal(HikvisionTerminal $terminal)
@@ -81,7 +139,7 @@ class Index extends Component
             $this->showFlyout = false;
             $this->selectedTerminal = null;
 
-            Flux::modal('confirm-decommission')->close();
+            \Flux::modal('confirm-decommission')->close();
 
             $this->dispatch(
                 'toast',
@@ -106,7 +164,7 @@ class Index extends Component
             $this->showFlyout = false;
             $this->selectedTerminal = null;
 
-            Flux::modal('confirm-reactivate')->close();
+            \Flux::modal('confirm-reactivate')->close();
 
             $this->dispatch(
                 'toast',

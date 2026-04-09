@@ -3,8 +3,6 @@
 namespace App\Livewire\Admin\Courses;
 
 use App\Models\Course;
-use Flux\Flux;
-use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -34,6 +32,10 @@ class CourseManager extends Component
 
     public $editingCourseId = null;
 
+    public $viewingCourseId = null;
+
+    public $search = '';
+
     public $deletingCourseId = null;
 
     public $isModalOpen = false;
@@ -43,16 +45,33 @@ class CourseManager extends Component
         $this->loadCourses();
     }
 
+    public function updatedSearch()
+    {
+        $this->loadCourses();
+    }
+
     public function loadCourses()
     {
-        $this->courses = Course::orderBy('name')->get();
+        $this->courses = Course::query()
+            ->when($this->search, function ($query) {
+                $query->where('name', 'like', '%'.$this->search.'%')
+                    ->orWhere('instructor', 'like', '%'.$this->search.'%');
+            })
+            ->orderBy('name')
+            ->get();
+    }
+
+    public function openViewModal($id)
+    {
+        $this->viewingCourseId = $id;
+        \Flux::modal('view-course-modal')->show();
     }
 
     public function openCreateModal()
     {
         $this->resetForm();
         $this->isModalOpen = true;
-        Flux::modal('course-form-modal')->show();
+        \Flux::modal('course-form-modal')->show();
     }
 
     public function openEditModal($id)
@@ -68,7 +87,10 @@ class CourseManager extends Component
         $this->image = null;
 
         $this->isModalOpen = true;
-        Flux::modal('course-form-modal')->show();
+
+        // Close view modal if it was open
+        \Flux::modal('view-course-modal')->close();
+        \Flux::modal('course-form-modal')->show();
     }
 
     public function save()
@@ -84,7 +106,7 @@ class CourseManager extends Component
 
         if ($this->image) {
             $path = $this->image->store('courses', 'public');
-            $payload['image_url'] = Storage::url($path);
+            $payload['image_url'] = \Storage::url($path);
         }
 
         if ($this->editingCourseId) {
@@ -103,7 +125,9 @@ class CourseManager extends Component
     public function confirmDelete($id)
     {
         $this->deletingCourseId = $id;
-        Flux::modal('delete-course-modal')->show();
+        // Close view modal if it was open
+        \Flux::modal('view-course-modal')->close();
+        \Flux::modal('delete-course-modal')->show();
     }
 
     public function delete()
@@ -131,24 +155,32 @@ class CourseManager extends Component
     public function closeDeleteModal()
     {
         $this->deletingCourseId = null;
-        Flux::modal('delete-course-modal')->close();
+        \Flux::modal('delete-course-modal')->close();
     }
 
     public function closeModal()
     {
         $this->isModalOpen = false;
-        Flux::modal('course-form-modal')->close();
+        \Flux::modal('course-form-modal')->close();
         $this->resetForm();
+    }
+
+    public function closeViewModal()
+    {
+        $this->viewingCourseId = null;
+        \Flux::modal('view-course-modal')->close();
     }
 
     public function resetForm()
     {
-        $this->reset(['name', 'instructor', 'description', 'color', 'editingCourseId', 'image', 'existingImageUrl']);
+        $this->reset(['name', 'instructor', 'description', 'color', 'editingCourseId', 'viewingCourseId', 'image', 'existingImageUrl']);
         $this->resetValidation();
     }
 
     public function render()
     {
-        return view('livewire.admin.courses.course-manager')->layout('layouts.app');
+        return view('livewire.admin.courses.course-manager', [
+            'viewingCourse' => $this->viewingCourseId ? Course::find($this->viewingCourseId) : null,
+        ])->layout('layouts.app');
     }
 }

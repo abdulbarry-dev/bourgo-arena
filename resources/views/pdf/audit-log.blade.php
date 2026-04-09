@@ -12,7 +12,10 @@
     </style>
 </head>
 <body>
-    <h2>Audit Log</h2>
+    <div style="text-align: center; margin-bottom: 20px;">
+        <img src="data:image/webp;base64,{{ base64_encode(file_get_contents(public_path('assets/images/brandmark-noir.webp'))) }}" alt="Bourgo Arena Logo" style="height: 48px; margin-bottom: 15px;">
+        <h2 style="margin-top: 0;">Audit Log</h2>
+    </div>
     <p>Generated on: {{ now()->format('Y-m-d H:i:s') }}</p>
     <table>
         <thead>
