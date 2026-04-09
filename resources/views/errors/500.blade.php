@@ -1,5 +1,5 @@
-@include('errors._page', [
-    'status' => 500,
-    'title' => __('Server Error'),
-    'message' => __('An unexpected server error happened. Please try again or contact support if the problem persists.'),
-])
+@extends('errors::minimal')
+
+@section('title', __('Server Error'))
+@section('code', '500')
+@section('message', __('Server Error'))

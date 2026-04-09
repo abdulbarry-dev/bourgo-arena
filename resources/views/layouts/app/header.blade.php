@@ -19,9 +19,12 @@
                 <flux:navbar.item icon="credit-card" :href="route('admin.subscriptions')" :current="request()->routeIs('admin.subscriptions*')" wire:navigate>
                     {{ __('Subscriptions') }}
                 </flux:navbar.item>
-                <flux:navbar.item icon="clipboard-document-list" :href="route('admin.plans')" :current="request()->routeIs('admin.plans*')" wire:navigate>
-                    {{ __('Plans') }}
-                </flux:navbar.item>
+
+                @if(auth()->check() && auth()->user()->isAdmin())
+                    <flux:navbar.item icon="clipboard-document-list" :href="route('admin.plans')" :current="request()->routeIs('admin.plans*')" wire:navigate>
+                        {{ __('Plans') }}
+                    </flux:navbar.item>
+                @endif
             </flux:navbar>
 
             <flux:spacer />
@@ -71,9 +74,11 @@
                     <flux:sidebar.item icon="credit-card" :href="route('admin.subscriptions')" :current="request()->routeIs('admin.subscriptions*')" wire:navigate>
                         {{ __('Subscriptions') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.plans')" :current="request()->routeIs('admin.plans*')" wire:navigate>
-                        {{ __('Plans') }}
-                    </flux:sidebar.item>
+                    @if(auth()->check() && auth()->user()->isAdmin())
+                        <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.plans')" :current="request()->routeIs('admin.plans*')" wire:navigate>
+                            {{ __('Plans') }}
+                        </flux:sidebar.item>
+                    @endif
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 
@@ -82,5 +87,6 @@
         {{ $slot }}
 
         @fluxScripts
+        
     </body>
 </html>

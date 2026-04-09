@@ -397,3 +397,32 @@ CheckInEvent::create([...]);
 // Dates — always use Carbon, always store in UTC
 $subscription->ends_at->gt(now())
 ```
+
+## Analytics & Aggregations (Phase 2)
+
+### `revenue_snapshots`
+Stores nightly aggregations of revenue and subscription metrics for fast dashboard reporting (US-020).
+
+*   `id` (BigInt, PK)
+*   `date` (Date, Unique) - The date this snapshot represents.
+*   `total_revenue` (Decimal 10,2, Default 0) - Total revenue generated on this date.
+*   `active_subscriptions` (Int, Default 0) - Count of active subscriptions at the time of snapshot.
+*   `expired_subscriptions` (Int, Default 0) - Count of expired subscriptions on that date.
+*   `churn_rate` (Decimal 5,2, Default 0.00) - Calculated churn rate percentage.
+*   `revenue_by_method` (JSON, nullable) - Key-value pair of payment methods and their revenue totals (e.g. `{"cash": 100, "konnect": 250}`).
+*   `plan_metrics` (JSON, nullable) - Details of active subscribers and revenue split per plan.
+*   `created_at` / `updated_at` (Timestamps)
+
+### `occupancy_hourly_aggregates`
+Stores nightly aggregations of check-in events broken down by hour to render the occupancy heatmap (US-021).
+
+*   `id` (BigInt, PK)
+*   `date` (Date) - The date of the aggregations.
+*   `hour` (Int) - The hour block (0–23).
+*   `entries_count` (Int, Default 0) - Total `entry` checks during this hour.
+*   `exits_count` (Int, Default 0) - Total `exit` checks during this hour.
+*   `avg_occupancy` (Int, Default 0) - The average gym capacity observed over this hour block.
+*   `created_at` / `updated_at` (Timestamps)
+
+*Indexes:*
+*   Unique composite index on `(date, hour)`

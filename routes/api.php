@@ -40,3 +40,7 @@ Route::middleware(['web', 'auth', 'verified', 'role:admin,manager'])
 Route::middleware(['terminal.auth'])
     ->post('checkin', [TerminalCheckInController::class, 'store'])
     ->name('api.terminals.checkin');
+
+Route::middleware(['terminal.auth'])
+    ->post('terminals/{terminal}/heartbeat', [TerminalCheckInController::class, 'heartbeat'])
+    ->name('api.terminals.heartbeat');

@@ -4,8 +4,71 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a84bb43588549fcaf55c287e80e0efb1",
+    "content-hash": "8200c38e939a4d801e1256afe08e41e7",
     "packages": [
+        {
+            "name": "arielmejiadev/larapex-charts",
+            "version": "dev-laravel-13-upgrade",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ArielMejiaDev/larapex-charts.git",
+                "reference": "61e076fde199ab7bde5fa8274cc6bd3d1ad64c55"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ArielMejiaDev/larapex-charts/zipball/61e076fde199ab7bde5fa8274cc6bd3d1ad64c55",
+                "reference": "61e076fde199ab7bde5fa8274cc6bd3d1ad64c55",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "illuminate/support": "^11.0|^12.0|^13.0",
+                "php": "^8.3"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^9.0|^10.0|^11.0",
+                "phpunit/phpunit": "^11.5.3|^12.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "LarapexChart": "ArielMejiaDev\\LarapexCharts\\Facades\\LarapexChart"
+                    },
+                    "providers": [
+                        "ArielMejiaDev\\LarapexCharts\\LarapexChartsServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "ArielMejiaDev\\LarapexCharts\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "ArielMejiaDev",
+                    "email": "arielmejiadev@gmail.com"
+                }
+            ],
+            "description": "Package to provide easy api to build apex charts on Laravel",
+            "homepage": "https://larapex-charts.netlify.app/",
+            "keywords": [
+                "apexcharts",
+                "arielmejiadev",
+                "charts",
+                "larapex"
+            ],
+            "support": {
+                "issues": "https://github.com/ArielMejiaDev/larapex-charts/issues",
+                "source": "https://github.com/ArielMejiaDev/larapex-charts/tree/laravel-13-upgrade"
+            },
+            "time": "2026-03-21T03:40:45+00:00"
+        },
         {
             "name": "bacon/bacon-qr-code",
             "version": "v3.0.4",
@@ -11663,7 +11726,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": {
+        "arielmejiadev/larapex-charts": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

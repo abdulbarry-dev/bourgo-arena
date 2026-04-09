@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\CourseSessions;
 
+use App\Models\Course;
 use App\Models\CourseSession;
 use Flux\Flux;
 use Livewire\Attributes\On;
@@ -58,7 +59,7 @@ class CreateSessionForm extends Component
     public function render()
     {
         return view('livewire.admin.course-sessions.create-session-form', [
-            'courses' => \App\Models\Course::orderBy('name')->get(),
+            'courses' => Course::orderBy('name')->get(),
         ]);
     }
 }

@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Admin\Plans\PlanTable;
+use App\Models\Course;
 use App\Models\Plan;
 use App\Models\User;
 use Livewire\Livewire;
@@ -60,9 +61,9 @@ test('plan table hides create action for manager and shows it for admin', functi
 
 test('plan can be saved with specific courses', function () {
     $admin = User::factory()->admin()->create();
-    
-    $course1 = \App\Models\Course::factory()->create();
-    $course2 = \App\Models\Course::factory()->create();
+
+    $course1 = Course::factory()->create();
+    $course2 = Course::factory()->create();
 
     $this->actingAs($admin);
     Livewire::test(PlanTable::class)
@@ -79,8 +80,8 @@ test('plan can be saved with specific courses', function () {
         'has_all_courses' => false,
     ]);
 
-    $plan = \App\Models\Plan::where('name', 'Boxing Package')->first();
-    
+    $plan = Plan::where('name', 'Boxing Package')->first();
+
     expect($plan->courses)->toHaveCount(2)
         ->and($plan->courses->pluck('id')->toArray())->toContain($course1->id, $course2->id);
 });
@@ -102,6 +103,6 @@ test('plan can be all inclusive', function () {
         'has_all_courses' => true,
     ]);
 
-    $plan = \App\Models\Plan::where('name', 'V.I.P Gym & All Class Access')->first();
+    $plan = Plan::where('name', 'V.I.P Gym & All Class Access')->first();
     expect($plan->courses)->toHaveCount(0); // Uses boolean flag
 });

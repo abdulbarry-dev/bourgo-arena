@@ -7,6 +7,8 @@ use App\Models\CourseSession;
 use App\Models\CourseSessionException;
 use Carbon\Carbon;
 use Flux\Flux;
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class CourseSessionManager extends Component
@@ -33,17 +35,20 @@ class CourseSessionManager extends Component
         $this->currentDate = now()->startOfWeek(Carbon::MONDAY)->format('Y-m-d');
     }
 
-    public function getWeekStartProperty()
+    #[Computed]
+    public function weekStart()
     {
         return Carbon::parse($this->currentDate)->startOfWeek(Carbon::MONDAY);
     }
 
-    public function getWeekEndProperty()
+    #[Computed]
+    public function weekEnd()
     {
         return Carbon::parse($this->currentDate)->endOfWeek(Carbon::SUNDAY);
     }
 
-    public function getDaysProperty()
+    #[Computed]
+    public function days()
     {
         $days = [];
         $start = $this->weekStart->copy();
@@ -54,7 +59,8 @@ class CourseSessionManager extends Component
         return $days;
     }
 
-    public function getSessionsProperty()
+    #[Computed]
+    public function sessions()
     {
         return CourseSession::with('course')->where('is_cancelled', false)->get();
     }
@@ -80,11 +86,11 @@ class CourseSessionManager extends Component
             ->count();
     }
 
-    #[Livewire\Attributes\On('course-session-created')]
-    #[Livewire\Attributes\On('course-session-updated')]
+    #[On('course-session-created')]
+    #[On('course-session-updated')]
     public function refreshManager()
     {
-        // Noop to trigger render refresh
+        unset($this->sessions);
     }
 
     public function openClassDetails($sessionId, $dateString)

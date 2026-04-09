@@ -1,10 +1,11 @@
 <?php
 
+use App\Livewire\Admin\Analytics\Dashboard;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', 'login')->name('home');
 
-Route::redirect('dashboard', 'admin');
+Route::redirect('admin', 'dashboard');
 
 Route::get('/member/onboarding-password/{token}', function (string $token) {
     return view('livewire.auth.member-onboarding-password-page', [
@@ -20,8 +21,10 @@ Route::get('/lang/{locale}', function (string $locale) {
     return back();
 })->name('lang.switch');
 
-Route::prefix('admin')->middleware(['auth', 'verified', 'role:admin,manager'])->group(function () {
-    Route::view('/', 'dashboard')->name('dashboard');
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dashboard', Dashboard::class)
+        ->middleware('role:admin,manager')
+        ->name('dashboard');
 
     require __DIR__.'/admin.php';
 });

@@ -2,8 +2,10 @@
 
 namespace App\Livewire\Admin\AccessControl;
 
+use App\Models\AdminAlert;
 use App\Models\CheckInEvent;
 use App\Models\HikvisionTerminal;
+use Illuminate\Support\Facades\Redis;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -16,43 +18,55 @@ class CheckInMonitor extends Component
 
     public int $alertCount = 0;
 
-    public bool $isWebSocketConnected = false;
-
     public function mount()
     {
         $this->loadOccupancy();
         $this->loadAlerts();
     }
 
-    #[On('echo-private:checkins,CheckInProcessed')]
+    #[On('echo-private:checkins,.CheckInProcessed')]
     public function handleCheckInProcessed($eventData)
     {
-        $this->resetPage();
-        $this->loadOccupancy();
-        $this->loadAlerts();
+        $this->resetPage(); // Refresh the paginated table of checkins
+        // We removed loadOccupancy and loadAlerts from here, as they have their own dedicated events now.
+    }
+
+    #[On('echo-private:admin.alerts,.OccupancyUpdated')]
+    public function handleOccupancyUpdated($eventData)
+    {
+        $this->occupancyCount = $eventData['occupancyCount'] ?? $this->occupancyCount;
+    }
+
+    #[On('echo-private:admin.alerts,.AdminAlertGenerated')]
+    public function handleAdminAlertGenerated($eventData)
+    {
+        $alert = $eventData['alert'] ?? null;
+        if ($alert) {
+            $this->dispatch('toast', message: $alert['description'] ?? 'New Admin Alert', type: 'error');
+            $this->loadAlerts();
+        }
     }
 
     public function loadOccupancy()
     {
-        // Simple logic for now: active members counted based on today check-ins
-        // A more advanced logic would check 'entry' vs 'exit' events
-        $this->occupancyCount = CheckInEvent::where('result', 'authorized')
-            ->whereDate('checked_in_at', today())
-            ->count();
+        $dateStr = now()->toDateString();
+        $occupancyKey = "gym:occupancy:{$dateStr}";
+        $this->occupancyCount = max(0, (int) Redis::get($occupancyKey));
     }
 
     public function loadAlerts()
     {
-        $this->alertCount = CheckInEvent::where('result', 'denied')
-            ->where('checked_in_at', '>=', now()->subMinutes(5))
-            ->count();
+        $this->alertCount = AdminAlert::where('is_dismissed', false)->count();
     }
 
-    public function acknowledgeAlert($terminalId = null)
+    public function acknowledgeAlert($alertId = null)
     {
-        // In a real app we might mark alerts as acknowledged in the DB.
-        // For now, we clear the count for UI.
-        $this->alertCount = 0;
+        if ($alertId) {
+            AdminAlert::where('id', $alertId)->update(['is_dismissed' => true]);
+        } else {
+            AdminAlert::where('is_dismissed', false)->update(['is_dismissed' => true]);
+        }
+        $this->loadAlerts();
     }
 
     public function setTerminalMode(int $terminalId, string $mode)
