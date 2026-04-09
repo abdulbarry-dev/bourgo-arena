@@ -10,10 +10,10 @@ Below are your temporary login details:
 **Email:** {{ $manager->email }}<br>
 **Password:** {{ $password }}
 
-Please log in and update your password immediately.
+Please set up your new secure password using the link below:
 
-@component('mail::button', ['url' => route('login')])
-Log In
+@component('mail::button', ['url' => $resetUrl])
+Reset Password & Log In
 @endcomponent
 
 Thanks,<br>

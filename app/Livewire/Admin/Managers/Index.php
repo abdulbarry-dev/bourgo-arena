@@ -5,8 +5,10 @@ namespace App\Livewire\Admin\Managers;
 use App\Mail\ManagerWelcomeEmail;
 use App\Models\User;
 use App\UserRole;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -86,7 +88,10 @@ class Index extends Component
             'role' => UserRole::Manager,
         ]);
 
-        Mail::to($manager->email)->send(new ManagerWelcomeEmail($manager, $randomPassword));
+        $token = Password::broker()->createToken($manager);
+        $resetUrl = route('password.reset', ['token' => $token, 'email' => $manager->email]);
+
+        Mail::to($manager->email)->send(new ManagerWelcomeEmail($manager, $randomPassword, $resetUrl));
 
         $this->showFlyout = false;
         $this->dispatch('toast', message: __('Manager created successfully. Invite sent.'), type: 'success');
@@ -125,12 +130,20 @@ class Index extends Component
     public function deleteManager()
     {
         if ($this->selectedManager && $this->selectedManager->id !== auth()->id()) {
-            $this->selectedManager->delete();
-            $this->showFlyout = false;
-            $this->selectedManager = null;
+            try {
+                $this->selectedManager->delete();
+                $this->showFlyout = false;
+                $this->selectedManager = null;
 
-            \Flux::modal('confirm-delete')->close();
-            $this->dispatch('toast', message: __('Manager deleted successfully.'), type: 'success');
+                \Flux::modal('confirm-delete')->close();
+                $this->dispatch('toast', message: __('Manager deleted successfully.'), type: 'success');
+            } catch (QueryException $e) {
+                if ($e->getCode() === '23503') {
+                    $this->dispatch('toast', message: __('Cannot delete a manager who has interacted with the application data. Please contact the owner.'), type: 'error');
+                } else {
+                    throw $e;
+                }
+            }
         }
     }
 

@@ -17,6 +17,7 @@ class ManagerWelcomeEmail extends Mailable implements ShouldQueue
     public function __construct(
         public User $manager,
         public string $password,
+        public string $resetUrl,
     ) {}
 
     public function envelope(): Envelope
@@ -29,7 +30,7 @@ class ManagerWelcomeEmail extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'emails.manager.welcome',
+            markdown: 'emails.manager.welcome',
         );
     }
 }
