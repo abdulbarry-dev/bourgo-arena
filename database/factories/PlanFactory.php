@@ -22,6 +22,7 @@ class PlanFactory extends Factory
             'price' => fake()->randomFloat(3, 30, 250),
             'duration_days' => fake()->randomElement([30, 60, 90, 365]),
             'included_services' => ['gym', 'classes'],
+            'has_all_courses' => false,
             'is_archived' => false,
         ];
     }
@@ -30,6 +31,13 @@ class PlanFactory extends Factory
     {
         return $this->state([
             'is_archived' => true,
+        ]);
+    }
+
+    public function withAllCourses(): static
+    {
+        return $this->state([
+            'has_all_courses' => true,
         ]);
     }
 }

@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             PlanCatalogSeeder::class,
             SubscriptionLifecycleSeeder::class,
             CourseSeeder::class,
+            CoursePlanSeeder::class,
         ]);
     }
 }

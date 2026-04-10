@@ -1,4 +1,4 @@
-<div class="pointer-events-none fixed right-4 top-4 z-[70] flex w-full max-w-sm flex-col gap-3 sm:right-6 sm:top-6">
+<div class="pointer-events-none fixed left-4 top-4 z-[70] flex w-full max-w-sm flex-col gap-3 sm:left-6 sm:top-6">
     @foreach ($toasts as $toast)
         <div
             wire:key="toast-{{ $toast['id'] }}"

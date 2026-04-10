@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\CourseSessions;
 use App\Models\Course;
 use App\Models\CourseSession;
 use Flux\Flux;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
@@ -41,19 +42,30 @@ class CreateSessionForm extends Component
     {
         $this->validate();
 
-        CourseSession::create([
-            'course_id' => $this->course_id,
-            'day_of_week' => $this->day_of_week,
-            'starts_at' => $this->starts_at.':00',
-            'duration_minutes' => $this->duration_minutes,
-            'capacity' => $this->capacity,
-        ]);
+        try {
+            Log::info('Creating new course session', [
+                'course_id' => $this->course_id,
+                'day' => $this->day_of_week,
+                'starts_at' => $this->starts_at,
+            ]);
 
-        $this->dispatch('course-session-created');
-        $this->reset(['course_id', 'starts_at', 'duration_minutes', 'capacity']);
+            CourseSession::create([
+                'course_id' => $this->course_id,
+                'day_of_week' => $this->day_of_week,
+                'starts_at' => $this->starts_at.':00',
+                'duration_minutes' => $this->duration_minutes,
+                'capacity' => $this->capacity,
+            ]);
 
-        Flux::modal('create-course-session')->close();
-        $this->dispatch('toast', message: 'Course schedule added successfully!', type: 'success');
+            $this->dispatch('course-session-created');
+            $this->reset(['course_id', 'starts_at', 'duration_minutes', 'capacity']);
+
+            Flux::modal('create-course-session')->close();
+            $this->dispatch('toast', message: 'Course schedule added successfully!', type: 'success');
+        } catch (\Exception $e) {
+            Log::error('Session creation failed', ['error' => $e->getMessage()]);
+            $this->dispatch('toast', message: 'Failed to create schedule.', type: 'danger');
+        }
     }
 
     public function render()

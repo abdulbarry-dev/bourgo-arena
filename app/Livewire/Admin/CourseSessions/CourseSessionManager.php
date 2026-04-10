@@ -8,9 +8,11 @@ use App\Models\CourseSessionException;
 use Carbon\Carbon;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
+#[Layout('layouts.app')]
 class CourseSessionManager extends Component
 {
     public $currentDate;
@@ -106,6 +108,6 @@ class CourseSessionManager extends Component
 
     public function render()
     {
-        return view('components.admin.course-sessions.course-session-manager')->layout('layouts.app');
+        return view('components.admin.course-sessions.course-session-manager');
     }
 }

@@ -121,26 +121,27 @@
     </div>
 </div>
 
-<style>
-    @keyframes scan {
-        0% { transform: translateX(0); opacity: 0; }
-        10% { opacity: 0.5; }
-        90% { opacity: 0.5; }
-        100% { transform: translateX(1000px); opacity: 0; }
-    }
-    .animate-scan {
-        animation: scan 8s linear infinite;
-    }
-    .animate-spin-slow {
-        animation: spin 20s linear infinite;
-    }
-    @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-    }
-</style>
+    <style>
+        @keyframes scan {
+            0% { transform: translateX(0); opacity: 0; }
+            10% { opacity: 0.5; }
+            90% { opacity: 0.5; }
+            100% { transform: translateX(1000px); opacity: 0; }
+        }
+        .animate-scan {
+            animation: scan 8s linear infinite;
+        }
+        .animate-spin-slow {
+            animation: spin 20s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
 
-@if($hasData)
-    {!! $columnChartModel->script() !!}
-    {!! $pieChartModel->script() !!}
-@endif
+    @if($hasData)
+        {!! $columnChartModel->script() !!}
+        {!! $pieChartModel->script() !!}
+    @endif
+</div>

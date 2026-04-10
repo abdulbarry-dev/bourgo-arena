@@ -18,6 +18,7 @@ class PlanCatalogSeeder extends Seeder
                 'price' => 89.000,
                 'duration_days' => 30,
                 'included_services' => ['gym'],
+                'has_all_courses' => false,
                 'is_archived' => false,
             ],
             [
@@ -25,6 +26,7 @@ class PlanCatalogSeeder extends Seeder
                 'price' => 129.000,
                 'duration_days' => 30,
                 'included_services' => ['gym', 'classes'],
+                'has_all_courses' => false,
                 'is_archived' => false,
             ],
             [
@@ -32,6 +34,7 @@ class PlanCatalogSeeder extends Seeder
                 'price' => 349.000,
                 'duration_days' => 90,
                 'included_services' => ['gym', 'classes', 'tennis'],
+                'has_all_courses' => false,
                 'is_archived' => false,
             ],
             [
@@ -39,6 +42,7 @@ class PlanCatalogSeeder extends Seeder
                 'price' => 1199.000,
                 'duration_days' => 365,
                 'included_services' => ['gym', 'classes', 'tennis', 'squash'],
+                'has_all_courses' => true,
                 'is_archived' => false,
             ],
             [
@@ -46,6 +50,7 @@ class PlanCatalogSeeder extends Seeder
                 'price' => 75.000,
                 'duration_days' => 30,
                 'included_services' => ['gym'],
+                'has_all_courses' => false,
                 'is_archived' => true,
             ],
         ];
