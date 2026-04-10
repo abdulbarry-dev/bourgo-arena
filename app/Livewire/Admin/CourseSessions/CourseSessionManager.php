@@ -64,7 +64,14 @@ class CourseSessionManager extends Component
     #[Computed]
     public function sessions()
     {
-        return CourseSession::with('course')->where('is_cancelled', false)->get();
+        return CourseSession::with('course')
+            ->where('is_cancelled', false)
+            ->where('starts_at_date', '<=', $this->weekEnd->toDateString())
+            ->where(function ($query) {
+                $query->whereNull('ends_at_date')
+                    ->orWhere('ends_at_date', '>=', $this->weekStart->toDateString());
+            })
+            ->get();
     }
 
     public function sessionsForDay($dayOfWeekIsoIndex) // 0 for Monday, 6 for Sunday
@@ -102,7 +109,12 @@ class CourseSessionManager extends Component
 
     public function openCreateModal($dayIndex = null)
     {
-        $this->dispatch('open-create-course-session', dayIndex: $dayIndex);
+        $date = null;
+        if ($dayIndex !== null) {
+            $date = $this->weekStart->copy()->addDays($dayIndex)->toDateString();
+        }
+
+        $this->dispatch('open-create-course-session', dayIndex: $dayIndex, date: $date);
         Flux::modal('create-course-session')->show();
     }
 

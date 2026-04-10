@@ -11,6 +11,8 @@ class CourseSession extends Model
         'course_id',
         'day_of_week',
         'starts_at',
+        'starts_at_date',
+        'ends_at_date',
         'duration_minutes',
         'capacity',
         'is_cancelled',
@@ -18,6 +20,8 @@ class CourseSession extends Model
     ];
 
     protected $casts = [
+        'starts_at_date' => 'date',
+        'ends_at_date' => 'date',
         'is_cancelled' => 'boolean',
         'cancelled_at' => 'datetime',
     ];

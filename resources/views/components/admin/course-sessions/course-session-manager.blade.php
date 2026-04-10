@@ -19,13 +19,13 @@
             @php $dayIndex = $date->dayOfWeekIso - 1; @endphp
             <div class="flex flex-col border border-zinc-200 dark:border-zinc-700 rounded-xl overflow-hidden bg-white dark:bg-zinc-800/50 h-[700px]">
                 <!-- Day Header -->
-                <button wire:click="openCreateModal({{ $dayIndex }})" class="p-3 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50/80 hover:bg-zinc-100 hover:text-blue-600 dark:hover:bg-zinc-700 transition-colors dark:bg-zinc-800/80 text-center w-full focus:outline-none sticky top-0 z-10 backdrop-blur-sm">
-                    <div class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">{{ $date->translatedFormat('D') }}</div>
-                    <div class="text-xl font-medium mt-1 {{ $date->isToday() ? 'text-blue-600' : '' }}">{{ $date->format('j') }}</div>
+                <button wire:click="openCreateModal({{ $dayIndex }})" class="p-4 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50/90 hover:bg-zinc-100 hover:text-blue-600 dark:hover:bg-zinc-700 transition-colors dark:bg-zinc-800/90 text-center w-full focus:outline-none sticky top-0 z-10 backdrop-blur-md shadow-sm">
+                    <div class="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">{{ $date->translatedFormat('D') }}</div>
+                    <div class="text-2xl font-semibold mt-1 {{ $date->isToday() ? 'text-blue-600' : 'text-zinc-700 dark:text-zinc-200' }}">{{ $date->format('j') }}</div>
                 </button>
 
                 <!-- Sessions List (Scrollable Area) -->
-                <div class="flex-1 p-2 space-y-2 overflow-y-auto custom-scrollbar bg-zinc-50/30 dark:bg-zinc-900/10">
+                <div class="flex-1 p-3 space-y-3 overflow-y-auto custom-scrollbar bg-zinc-50/50 dark:bg-zinc-900/20">
                     @foreach($this->sessionsForDay($dayIndex) as $session)
                         @php
                             $isCancelled = $this->isSessionCancelled($session->id, $date);

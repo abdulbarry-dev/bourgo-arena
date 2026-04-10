@@ -65,30 +65,9 @@ select:focus[data-flux-control] {
     @apply size-4;
 } */
 @utility custom-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
     &::-webkit-scrollbar {
-        width: 5px;
+        display: none;
     }
-    &::-webkit-scrollbar-track {
-        background: transparent;
-    }
-    &::-webkit-scrollbar-thumb {
-        background: var(--color-zinc-200);
-        border-radius: 10px;
-    }
-    &::-webkit-scrollbar-thumb:hover {
-        background: var(--color-zinc-300);
-    }
-
-    scrollbar-width: thin;
-    scrollbar-color: var(--color-zinc-200) transparent;
-}
-
-.dark .custom-scrollbar {
-    &::-webkit-scrollbar-thumb {
-        background: var(--color-zinc-800);
-    }
-    &::-webkit-scrollbar-thumb:hover {
-        background: var(--color-zinc-700);
-    }
-    scrollbar-color: var(--color-zinc-800) transparent;
 }

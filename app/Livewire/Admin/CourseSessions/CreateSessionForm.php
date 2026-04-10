@@ -27,10 +27,27 @@ class CreateSessionForm extends Component
     #[Validate('required|integer|min:1')]
     public $capacity = 10;
 
+    #[Validate('required|date')]
+    public $starts_at_date;
+
+    #[Validate('nullable|date|after_or_equal:starts_at_date')]
+    public $ends_at_date;
+
+    public function mount()
+    {
+        $this->starts_at_date = now()->toDateString();
+    }
+
     #[On('open-create-course-session')]
-    public function loadForm($dayIndex = null)
+    public function loadForm($dayIndex = null, $date = null)
     {
         $this->resetValidation();
+        if ($date) {
+            $this->starts_at_date = $date;
+        } else {
+            $this->starts_at_date = now()->toDateString();
+        }
+
         if ($dayIndex !== null && in_array((int) $dayIndex, [0, 1, 2, 3, 4, 5, 6], true)) {
             $this->day_of_week = (int) $dayIndex;
         } else {
@@ -53,6 +70,8 @@ class CreateSessionForm extends Component
                 'course_id' => $this->course_id,
                 'day_of_week' => $this->day_of_week,
                 'starts_at' => $this->starts_at.':00',
+                'starts_at_date' => $this->starts_at_date,
+                'ends_at_date' => $this->ends_at_date ?: null,
                 'duration_minutes' => $this->duration_minutes,
                 'capacity' => $this->capacity,
             ]);
