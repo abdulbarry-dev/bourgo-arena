@@ -29,11 +29,6 @@
                 <flux:input type="number" wire:model="duration_minutes" :label="__('Duration (mins)')" required />
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
-                <flux:input type="date" wire:model="starts_at_date" :label="__('Start Date')" required />
-                <flux:input type="date" wire:model="ends_at_date" :label="__('End Date (Optional)')" />
-            </div>
-
             <flux:input type="number" wire:model="capacity" :label="__('Capacity (Spots)')" required />
         </div>
 

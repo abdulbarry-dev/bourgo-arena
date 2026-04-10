@@ -2,8 +2,22 @@
 <flux:modal wire:model="isDetailPanelOpen" name="session-detail-panel" variant="flyout" class="max-w-md w-full shrink-0">
         @if($session && $date)
         <div class="space-y-6">
+            @php
+                $status = $this->sessionData['status'];
+                $badgeColor = match($status) {
+                    'canceled' => 'red',
+                    'validated' => 'zinc',
+                    'setted' => 'blue',
+                    default => 'zinc'
+                };
+            @endphp
+
             <div>
-                <flux:heading size="lg">{{ __($session->course->name) }}</flux:heading>
+                <div class="flex items-center gap-3 mb-1">
+                    <flux:heading size="lg">{{ __($session->course->name) }}</flux:heading>
+                    <flux:badge :color="$badgeColor" size="sm" class="capitalize">{{ __($status) }}</flux:badge>
+                </div>
+                
                 <flux:subheading>{{ \Carbon\Carbon::parse($date)->format('l, j M Y') }} {{ __('at') }} {{ \Carbon\Carbon::parse($session->starts_at)->format('H:i') }}</flux:subheading>
                 
                 <div class="mt-2 text-sm text-gray-500">
@@ -11,9 +25,10 @@
                 </div>
             </div>
 
-            @if($data['isCancelled'])
-                <div class="bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400 p-4 rounded-md text-sm font-medium border border-red-100 dark:border-red-900/50"> 
-                    <flux:badge color="red" variant="solid">{{ __('Cancelled') }}</flux:badge> <span class="ml-2">{{ __('This session instance has been cancelled.') }}</span>
+            @if($status === 'canceled')
+                <div class="bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400 p-4 rounded-md text-sm font-medium border border-red-100 dark:border-red-900/50 flex items-center gap-2"> 
+                    <flux:icon.exclamation-circle class="size-4" />
+                    <span>{{ __('This session instance has been cancelled.') }}</span>
                 </div>
 
                 <div class="pt-4 flex justify-between items-center">
@@ -22,13 +37,18 @@
                         {{ __('Delete Cancelled Session') }}
                     </flux:button>
                 </div>
+            @elseif($data['status'] === 'validated')
+                <div class="bg-zinc-100 text-zinc-600 dark:bg-zinc-800/50 dark:text-zinc-400 p-4 rounded-md text-sm font-medium border border-zinc-200 dark:border-zinc-700 flex items-center gap-3 mt-4">
+                    <flux:icon.check-circle class="size-5" />
+                    <span>{{ __('This session has been completed and is now read-only.') }}</span>
+                </div>
             @else
                 <!-- Enroll Member Form -->
                 <form wire:submit.prevent="enrollMember" class="space-y-4 pt-4 border-t">
                     <flux:heading size="sm">{{ __('Enroll Member') }}</flux:heading>
                     <div class="flex gap-2 items-end">
                         <div class="flex-1">
-                            <flux:select wire:model="memberIdToEnroll" :placeholder="__('Choose a member...')">
+                            <flux:select wire:model="memberIdToEnroll" :placeholder="__('Choose a member...')" searchable>
                                 @foreach($data['availableMembers'] as $member)
                                     <flux:select.option value="{{ $member->id }}">{{ trim($member->name) }}</flux:select.option>
                                 @endforeach
@@ -48,7 +68,9 @@
                                     <div class="text-sm font-medium">
                                         {{ $booking->member->name ?? __('Unknown') }}
                                     </div>
-                                    <flux:button variant="danger" size="sm" icon="trash" class="!px-2" :wire:confirm="__('Remove this booking?')" wire:click="removeBooking({{ $booking->id }})" />
+                                    @if($data['status'] !== 'validated')
+                                        <flux:button variant="danger" size="sm" icon="trash" class="!px-2" :wire:confirm="__('Remove this booking?')" wire:click="removeBooking({{ $booking->id }})" />
+                                    @endif
                                 </div>
                             @endforeach
                         </div>

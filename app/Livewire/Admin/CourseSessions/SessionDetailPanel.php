@@ -53,15 +53,15 @@ class SessionDetailPanel extends Component
         if (! $this->session || ! $this->date) {
             return [
                 'bookings' => collect(),
+                'status' => 'setted',
                 'isCancelled' => false,
                 'availableMembers' => collect(),
             ];
         }
 
-        $isCancelled = CourseSessionException::where('course_session_id', $this->session->id)
-            ->where('date', $this->date)
-            ->where('is_cancelled', true)
-            ->exists();
+        $status = $this->session->getStatus(Carbon::parse($this->date));
+
+        $isCancelled = $status === 'canceled';
 
         $bookings = Booking::with('member')
             ->where('course_session_id', $this->session->id)
@@ -80,11 +80,17 @@ class SessionDetailPanel extends Component
             })
             ->get(['id', 'name']);
 
-        return compact('bookings', 'isCancelled', 'availableMembers');
+        return compact('bookings', 'status', 'isCancelled', 'availableMembers');
     }
 
     public function enrollMember()
     {
+        if ($this->sessionData['status'] === 'validated') {
+            $this->dispatch('toast', message: 'Cannot enroll members in a completed session.', type: 'warning');
+
+            return;
+        }
+
         if (! $this->memberIdToEnroll) {
             return;
         }
@@ -143,6 +149,12 @@ class SessionDetailPanel extends Component
 
     public function removeBooking($bookingId)
     {
+        if ($this->sessionData['status'] === 'validated') {
+            $this->dispatch('toast', message: 'Cannot modify bookings of a completed session.', type: 'warning');
+
+            return;
+        }
+
         try {
             Log::info('Removing booking', ['booking_id' => $bookingId]);
             Booking::where('id', $bookingId)->delete();

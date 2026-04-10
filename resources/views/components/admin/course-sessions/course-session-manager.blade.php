@@ -28,33 +28,41 @@
                 <div class="flex-1 p-3 space-y-3 overflow-y-auto custom-scrollbar bg-zinc-50/50 dark:bg-zinc-900/20">
                     @foreach($this->sessionsForDay($dayIndex) as $session)
                         @php
-                            $isCancelled = $this->isSessionCancelled($session->id, $date);
+                            $status = $session->getStatus($date);
                             $bookingsCount = $this->getBookingsCount($session->id, $date);
                             $isFull = $bookingsCount >= $session->capacity;
+                            
+                            $bgClass = match($status) {
+                                'canceled' => 'bg-red-50 border-red-200 dark:bg-red-950/40 dark:border-red-500/50',
+                                'validated' => 'bg-zinc-100 border-zinc-200 dark:bg-zinc-900/40 dark:border-zinc-800 opacity-80',
+                                default => $isFull ? 'bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800' : 'bg-white border-zinc-200 hover:border-blue-300 dark:bg-zinc-800 dark:border-zinc-700 dark:hover:border-zinc-600 shadow-sm'
+                            };
                         @endphp
                         <button 
                             wire:click="openClassDetails({{ $session->id }}, '{{ $date->format('Y-m-d') }}')"
-                            class="w-full text-left p-3 rounded-lg border flex flex-col gap-1 transition-colors {{ $isCancelled ? 'bg-red-50 border-red-200 dark:bg-red-950/40 dark:border-red-500/50' : ($isFull ? 'bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800' : 'bg-white border-zinc-200 hover:border-blue-300 dark:bg-zinc-800 dark:border-zinc-700 dark:hover:border-zinc-600 shadow-sm') }}"
+                            class="w-full text-left p-3 rounded-lg border flex flex-col gap-1 transition-colors {{ $bgClass }}"
                         >
                             <div class="flex justify-between items-start">
                                 <div class="flex items-center gap-2">
-                                    <div class="w-3 h-3 rounded-full" style="background-color: {{ $session->course->color ?? '#9ca3af' }}"></div>
-                                    <span class="text-sm font-semibold">{{ __($session->course->name) }}</span>
+                                    <div class="w-3 h-3 rounded-full {{ $status === 'validated' ? 'grayscale' : '' }}" style="background-color: {{ $session->course->color ?? '#9ca3af' }}"></div>
+                                    <span class="text-sm font-semibold {{ $status === 'validated' ? 'text-zinc-500' : '' }}">{{ __($session->course->name) }}</span>
                                 </div>
                                 <span class="text-xs text-zinc-500">{{ \Carbon\Carbon::parse($session->starts_at)->format('H:i') }}</span>
                             </div>
                             <div class="text-xs text-zinc-500 line-clamp-1">{{ __($session->course->instructor) }}</div>
                             
                             <div class="mt-2 flex items-center justify-between text-xs">
-                                @if($isCancelled)
-                                    <flux:badge color="red" size="sm">{{ __('Cancelled') }}</flux:badge>
+                                @if($status === 'canceled')
+                                    <flux:badge color="red" size="sm" inset="top">{{ __('Canceled') }}</flux:badge>
+                                @elseif($status === 'validated')
+                                    <flux:badge color="zinc" size="sm" inset="top">{{ __('Validated') }}</flux:badge>
                                 @else
                                     <div class="flex items-center gap-1 {{ $isFull ? 'text-orange-600' : 'text-zinc-500' }}">
                                         <flux:icon.user-group class="size-3" />
                                         <span>{{ $bookingsCount }} / {{ $session->capacity }}</span>
                                     </div>
                                     @if($isFull)
-                                        <flux:badge color="orange" size="sm">{{ __('Full') }}</flux:badge>
+                                        <flux:badge color="orange" size="sm" inset="top">{{ __('Full') }}</flux:badge>
                                     @endif
                                 @endif
                             </div>
