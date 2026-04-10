@@ -5,8 +5,10 @@ namespace App\Livewire\Admin\Analytics;
 use App\Models\RevenueSnapshot;
 use ArielMejiaDev\LarapexCharts\LarapexChart;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 
+#[Layout('layouts.app')]
 class Dashboard extends Component
 {
     public string $startDate = '';
@@ -14,6 +16,11 @@ class Dashboard extends Component
     public string $endDate = '';
 
     public function mount()
+    {
+        $this->resetFilters();
+    }
+
+    public function resetFilters()
     {
         $this->startDate = now()->subDays(30)->toDateString();
         $this->endDate = now()->toDateString();
@@ -104,6 +111,6 @@ class Dashboard extends Component
             'pieChartModel' => $pieChartModel,
             'kpis' => $kpis,
             'hasData' => $hasData,
-        ])->layout('layouts.app');
+        ]);
     }
 }
