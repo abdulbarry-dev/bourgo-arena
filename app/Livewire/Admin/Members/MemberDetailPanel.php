@@ -48,8 +48,10 @@ class MemberDetailPanel extends Component
 
         $this->member = Member::query()
             ->with([
-                'parent',
-                'children',
+                'parent.activeSubscription.plan',
+                'parent.nfcCard',
+                'children.activeSubscription.plan',
+                'children.nfcCard',
                 'activeSubscription.plan',
                 'activeSubscription.enrolledBy',
                 'nfcCard.assignedBy',

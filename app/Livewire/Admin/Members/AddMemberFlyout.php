@@ -89,9 +89,10 @@ class AddMemberFlyout extends Component
                     'status' => 'pending',
                     'rgpd_consented_at' => now(),
                     'password' => $temporaryPassword,
+                    'is_family_account' => $this->isFamilyAccount,
                 ]);
 
-                if ($this->isFamilyAccount && !empty($this->children)) {
+                if ($this->isFamilyAccount && ! empty($this->children)) {
                     foreach ($this->children as $childData) {
                         Member::query()->create([
                             'parent_id' => $member->id,

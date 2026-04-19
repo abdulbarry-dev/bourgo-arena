@@ -29,12 +29,14 @@ class Member extends Model
         'status',
         'rgpd_consented_at',
         'password',
+        'is_family_account',
     ];
 
     protected $casts = [
         'date_of_birth' => 'date',
         'rgpd_consented_at' => 'datetime',
         'password' => 'hashed',
+        'is_family_account' => 'boolean',
     ];
 
     protected $hidden = [
@@ -137,5 +139,28 @@ class Member extends Model
     public function isParent(): bool
     {
         return $this->children()->exists();
+    }
+
+    public function getAccountTypeLabelAttribute(): string
+    {
+        if ($this->isChild()) {
+            return __('Managed Child');
+        }
+
+        if ($this->isParent()) {
+            return __('Head of Family');
+        }
+
+        return __('Individual Member');
+    }
+
+    public function getFallbackEmailAttribute(): ?string
+    {
+        return $this->email ?? $this->parent?->email;
+    }
+
+    public function getFallbackPhoneAttribute(): ?string
+    {
+        return $this->phone ?? $this->parent?->phone;
     }
 }

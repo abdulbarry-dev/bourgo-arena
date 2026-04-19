@@ -27,19 +27,29 @@ class ManageFamilyFlyout extends Component
     public function open(int $memberId): void
     {
         $this->parentId = $memberId;
-        $this->parent = Member::findOrFail($memberId);
-        
+        $this->parent = Member::query()->with('children')->findOrFail($memberId);
+
         $this->authorize('update', $this->parent);
-        
+
         $this->resetValidation();
-        $this->reset(['children']);
-        
+        $this->loadChildren();
+
+        $this->show = true;
+    }
+
+    protected function loadChildren(): void
+    {
+        $this->children = $this->parent->children->map(fn (Member $child) => [
+            'id' => $child->id,
+            'name' => $child->name,
+            'date_of_birth' => $child->date_of_birth ? $child->date_of_birth->toDateString() : '',
+            'gender' => $child->gender,
+        ])->toArray();
+
         // Add one initial child field if none exist
         if (empty($this->children)) {
             $this->addChild();
         }
-        
-        $this->show = true;
     }
 
     public function addChild(): void
@@ -53,6 +63,8 @@ class ManageFamilyFlyout extends Component
 
     public function removeChild(int $index): void
     {
+        // Deleting from DB is not handled here for safety.
+        // We only remove from the UI session.
         unset($this->children[$index]);
         $this->children = array_values($this->children);
     }
@@ -65,6 +77,7 @@ class ManageFamilyFlyout extends Component
 
         try {
             $validated = $this->validate([
+                'children.*.id' => ['nullable', 'integer'],
                 'children.*.name' => ['required', 'string', 'max:255'],
                 'children.*.date_of_birth' => ['required', 'date', 'before:today'],
                 'children.*.gender' => ['required', 'in:male,female'],
@@ -74,25 +87,43 @@ class ManageFamilyFlyout extends Component
             ]);
 
             DB::transaction(function () use ($validated): void {
+                $submittedIds = collect($validated['children'])->pluck('id')->filter()->toArray();
+
+                // Unlink missing children
+                Member::query()
+                    ->where('parent_id', $this->parentId)
+                    ->whereNotIn('id', $submittedIds)
+                    ->update(['parent_id' => null]);
+
                 foreach ($validated['children'] as $childData) {
-                    Member::query()->create([
-                        'parent_id' => $this->parentId,
-                        'name' => $childData['name'],
-                        'date_of_birth' => $childData['date_of_birth'],
-                        'gender' => $childData['gender'],
-                        'status' => 'pending',
-                        'rgpd_consented_at' => now(),
-                    ]);
+                    if (isset($childData['id'])) {
+                        // Update existing child
+                        Member::query()->whereKey($childData['id'])->update([
+                            'name' => $childData['name'],
+                            'date_of_birth' => $childData['date_of_birth'],
+                            'gender' => $childData['gender'],
+                        ]);
+                    } else {
+                        // Create new child
+                        Member::query()->create([
+                            'parent_id' => $this->parentId,
+                            'name' => $childData['name'],
+                            'date_of_birth' => $childData['date_of_birth'],
+                            'gender' => $childData['gender'],
+                            'status' => 'pending',
+                            'rgpd_consented_at' => now(),
+                        ]);
+                    }
                 }
             });
 
             $this->dispatch('member-updated', memberId: $this->parentId);
-            $this->dispatch('toast', message: 'Children added successfully.', type: 'success');
-            
+            $this->dispatch('toast', message: 'Family members updated successfully.', type: 'success');
+
             $this->show = false;
         } catch (Throwable $exception) {
             report($exception);
-            $this->addError('save', 'Could not add children. Please try again.');
+            $this->addError('save', 'Could not save family changes. Please try again.');
         } finally {
             $this->isProcessing = false;
         }

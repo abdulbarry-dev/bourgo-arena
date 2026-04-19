@@ -1,6 +1,10 @@
 <div class="grid gap-4 xl:grid-cols-2">
+    {{-- Profil --}}
     <div class="space-y-4 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
-        <flux:heading size="sm">{{ __('Profile') }}</flux:heading>
+        <div class="flex items-center justify-between">
+            <flux:heading size="sm">{{ __('Profile') }}</flux:heading>
+            <flux:badge size="sm" variant="subtle" class="capitalize">{{ $member->account_type_label }}</flux:badge>
+        </div>
 
         <dl class="grid gap-3 text-sm">
             <div>
@@ -8,12 +12,18 @@
                 <dd class="font-medium text-zinc-900 dark:text-zinc-100">{{ $member->name }}</dd>
             </div>
             <div>
-                <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Email') }}</dt>
-                <dd class="text-zinc-800 dark:text-zinc-200">{{ $member->email }}</dd>
+                <dt class="text-zinc-500 dark:text-zinc-400">
+                    {{ __('Email') }} 
+                    @if(!$member->email && $member->isChild()) <span class="text-xs text-zinc-400">({{ __('Parent') }})</span> @endif
+                </dt>
+                <dd class="text-zinc-800 dark:text-zinc-200">{{ $member->fallback_email ?? __('N/A') }}</dd>
             </div>
             <div>
-                <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Phone') }}</dt>
-                <dd class="text-zinc-800 dark:text-zinc-200">{{ $member->phone }}</dd>
+                <dt class="text-zinc-500 dark:text-zinc-400">
+                    {{ __('Phone') }}
+                    @if(!$member->phone && $member->isChild()) <span class="text-xs text-zinc-400">({{ __('Parent') }})</span> @endif
+                </dt>
+                <dd class="text-zinc-800 dark:text-zinc-200">{{ $member->fallback_phone ?? __('N/A') }}</dd>
             </div>
             <div>
                 <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Status') }}</dt>
@@ -26,6 +36,7 @@
         </dl>
     </div>
 
+    {{-- Subscription & Access --}}
     <div class="space-y-4 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
         <flux:heading size="sm">{{ __('Subscription & Access') }}</flux:heading>
 
@@ -56,39 +67,4 @@
             </div>
         </dl>
     </div>
-
-    @if ($member->parent || $member->children->isNotEmpty())
-        <div class="space-y-4 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
-            <flux:heading size="sm">{{ __('Family') }}</flux:heading>
-
-            <dl class="grid gap-3 text-sm">
-                @if ($member->parent)
-                    <div>
-                        <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Parent / Guardian') }}</dt>
-                        <dd>
-                            <flux:link wire:click="loadMember({{ $member->parent->id }})" class="cursor-pointer">
-                                {{ $member->parent->name }}
-                            </flux:link>
-                        </dd>
-                    </div>
-                @endif
-
-                @if ($member->children->isNotEmpty())
-                    <div>
-                        <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Children / Dependents') }}</dt>
-                        <dd class="space-y-1">
-                            @foreach ($member->children as $child)
-                                <div class="flex items-center gap-2">
-                                    <flux:link wire:click="loadMember({{ $child->id }})" class="cursor-pointer">
-                                        {{ $child->name }}
-                                    </flux:link>
-                                    <flux:badge size="sm" variant="subtle" class="capitalize">{{ $child->status }}</flux:badge>
-                                </div>
-                            @endforeach
-                        </dd>
-                    </div>
-                @endif
-            </dl>
-        </div>
-    @endif
 </div>
