@@ -14,6 +14,9 @@ return new class extends Migration
         Schema::create('plans', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->boolean('has_all_courses')->default(false);
+            $table->text('description')->nullable();
+            $table->string('image_url')->nullable();
             $table->decimal('price', 10, 3);
             $table->integer('duration_days');
             $table->json('included_services');

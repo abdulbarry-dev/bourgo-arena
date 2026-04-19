@@ -11,10 +11,6 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('plans', function (Blueprint $table) {
-            $table->boolean('has_all_courses')->default(false)->after('name');
-        });
-
         Schema::create('course_plan', function (Blueprint $table) {
             $table->id();
             $table->foreignId('plan_id')->constrained()->cascadeOnDelete();
@@ -31,9 +27,5 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('course_plan');
-
-        Schema::table('plans', function (Blueprint $table) {
-            $table->dropColumn('has_all_courses');
-        });
     }
 };

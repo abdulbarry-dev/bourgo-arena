@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('instructor');
             $table->text('description')->nullable();
+            $table->string('image_url')->nullable();
             $table->string('color')->nullable();
             $table->timestamps();
         });

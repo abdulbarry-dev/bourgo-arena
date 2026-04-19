@@ -20,6 +20,7 @@ return new class extends Migration
             $table->enum('terminal_type', ['entry', 'exit']);
             $table->string('api_token')->unique();
             $table->enum('status', ['online', 'offline', 'decommissioned'])->default('offline');
+            $table->enum('operating_mode', ['auto', 'locked', 'unlocked'])->default('auto');
             $table->timestamp('last_seen_at')->nullable();
             $table->timestamps();
         });

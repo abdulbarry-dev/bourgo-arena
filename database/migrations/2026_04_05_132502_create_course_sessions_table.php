@@ -10,8 +10,7 @@ return new class extends Migration
     {
         Schema::create('course_sessions', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('instructor');
+            $table->foreignId('course_id')->nullable()->constrained()->nullOnDelete();
             $table->unsignedTinyInteger('day_of_week'); // 0=Monday ... 6=Sunday
             $table->time('starts_at');
             $table->integer('duration_minutes');
