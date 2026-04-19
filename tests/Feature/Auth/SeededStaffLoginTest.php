@@ -11,7 +11,7 @@ test('seeded manager account can authenticate through login route', function () 
     ]);
 
     $response->assertSessionHasNoErrors();
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $response->assertRedirect('/admin');
 
     $this->assertAuthenticated();
     expect(auth()->user()->email)->toBe('manager@bourgoarena.com');
@@ -26,7 +26,7 @@ test('seeded admin account can authenticate through login route', function () {
     ]);
 
     $response->assertSessionHasNoErrors();
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $response->assertRedirect('/admin');
 
     $this->assertAuthenticated();
     expect(auth()->user()->email)->toBe('admin@bourgoarena.com');

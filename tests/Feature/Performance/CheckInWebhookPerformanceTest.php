@@ -4,8 +4,13 @@ use App\Events\CheckInProcessed;
 use App\Models\CheckInEvent;
 use App\Models\HikvisionTerminal;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Redis;
 
 test('checkin webhook stays under five hundred milliseconds average for rapid sequential requests', function () {
+    // Mock Redis for anti-passback rule
+    Redis::shouldReceive('get')->andReturn(null);
+    Redis::shouldReceive('set')->andReturn(true);
+
     $terminal = HikvisionTerminal::factory()->create([
         'api_token' => 'performance-terminal-token',
         'status' => 'offline',
@@ -40,6 +45,10 @@ test('checkin webhook stays under five hundred milliseconds average for rapid se
 });
 
 test('checkin webhook keeps each sequential request under one second', function () {
+    // Mock Redis for anti-passback rule
+    Redis::shouldReceive('get')->andReturn(null);
+    Redis::shouldReceive('set')->andReturn(true);
+
     HikvisionTerminal::factory()->create([
         'api_token' => 'performance-terminal-token-per-request',
         'status' => 'offline',

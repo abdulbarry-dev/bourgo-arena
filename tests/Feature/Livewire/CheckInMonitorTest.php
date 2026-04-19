@@ -13,16 +13,17 @@ it('renders the CheckInMonitor securely', function () {
 });
 
 it('calculates occupancy and alerts based on recent checkins', function () {
-    // Create an authorized event
-    CheckInEvent::factory()->create([
-        'result' => 'authorized',
-        'checked_in_at' => now(),
-    ]);
+    // Mock Redis for occupancy
+    $dateStr = now()->toDateString();
+    \Illuminate\Support\Facades\Redis::shouldReceive('get')
+        ->with("gym:occupancy:{$dateStr}")
+        ->andReturn(1);
 
-    // Create a denied event
-    CheckInEvent::factory()->create([
-        'result' => 'denied',
-        'checked_in_at' => now(),
+    // Create an alert explicitly as the component loads them from the database
+    \App\Models\AdminAlert::create([
+        'alert_type' => 'HIGH_DENIAL_RATE',
+        'description' => '1 denied events in the last 5 minutes',
+        'is_dismissed' => false,
     ]);
 
     Livewire::test(CheckInMonitor::class)
@@ -32,9 +33,10 @@ it('calculates occupancy and alerts based on recent checkins', function () {
 });
 
 it('can acknowledge alerts', function () {
-    CheckInEvent::factory()->create([
-        'result' => 'denied',
-        'checked_in_at' => now(),
+    \App\Models\AdminAlert::create([
+        'alert_type' => 'HIGH_DENIAL_RATE',
+        'description' => 'Test alert',
+        'is_dismissed' => false,
     ]);
 
     Livewire::test(CheckInMonitor::class)

@@ -20,6 +20,23 @@ pest()->extend(TestCase::class)
 
 /*
 |--------------------------------------------------------------------------
+| Redis Mocking
+|--------------------------------------------------------------------------
+*/
+uses()->beforeEach(function () {
+    \Illuminate\Support\Facades\Redis::shouldReceive('get')->andReturn(null)->byDefault();
+    \Illuminate\Support\Facades\Redis::shouldReceive('set')->andReturn(true)->byDefault();
+    \Illuminate\Support\Facades\Redis::shouldReceive('incr')->andReturn(1)->byDefault();
+    \Illuminate\Support\Facades\Redis::shouldReceive('decr')->andReturn(0)->byDefault();
+    \Illuminate\Support\Facades\Redis::shouldReceive('expire')->andReturn(true)->byDefault();
+    \Illuminate\Support\Facades\Redis::shouldReceive('zadd')->andReturn(1)->byDefault();
+    \Illuminate\Support\Facades\Redis::shouldReceive('zremrangebyscore')->andReturn(0)->byDefault();
+    \Illuminate\Support\Facades\Redis::shouldReceive('zcard')->andReturn(0)->byDefault();
+    \Illuminate\Support\Facades\Redis::shouldReceive('del')->andReturn(1)->byDefault();
+})->in('Feature');
+
+/*
+|--------------------------------------------------------------------------
 | Expectations
 |--------------------------------------------------------------------------
 |

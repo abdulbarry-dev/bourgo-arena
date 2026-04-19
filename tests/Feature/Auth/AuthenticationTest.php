@@ -19,7 +19,7 @@ test('users can authenticate using the login screen', function () {
 
     $response
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('dashboard', absolute: false));
+        ->assertRedirect('/admin');
 
     $this->assertAuthenticated();
 });
@@ -34,7 +34,7 @@ test('members can authenticate but are forbidden from the dashboard', function (
 
     $response
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('dashboard', absolute: false));
+        ->assertRedirect('/admin');
 
     $this->assertAuthenticated();
 

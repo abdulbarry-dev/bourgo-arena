@@ -3,8 +3,13 @@
 use App\Events\CheckInProcessed;
 use App\Models\HikvisionTerminal;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Redis;
 
 it('accepts ISAPI JSON payload for checkin', function () {
+    // Mock Redis for anti-passback rule
+    Redis::shouldReceive('get')->andReturn(null);
+    Redis::shouldReceive('set')->andReturn(true);
+
     $terminal = HikvisionTerminal::factory()->create([
         'api_token' => 'valid-terminal-token',
         'status' => 'offline',
