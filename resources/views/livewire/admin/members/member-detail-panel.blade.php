@@ -23,6 +23,12 @@
                 </flux:button>
             @endcan
 
+            @can('update', $member)
+                <flux:button variant="subtle" icon="users" wire:click="$dispatch('open-manage-family-flyout', { memberId: {{ $member->id }} })">
+                    {{ __('Manage Family') }}
+                </flux:button>
+            @endcan
+
             @can('assign', \App\Models\NfcCard::class)
                 <flux:button variant="subtle" icon="credit-card" :href="route('admin.members.assign-card', $member)" wire:navigate>
                     {{ __('Assign Card') }}
@@ -40,6 +46,8 @@
                     {{ __('Delete') }}
                 </flux:button>
             @endcan
+
+            <livewire:admin.members.manage-family-flyout />
         </div>
 
         @include('livewire.admin.members.partials.member-info-cards')

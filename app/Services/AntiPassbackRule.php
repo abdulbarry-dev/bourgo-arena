@@ -4,8 +4,8 @@ namespace App\Services;
 
 use App\Events\PassbackViolationDetected;
 use App\Models\CheckInEvent;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Redis;
 
 class AntiPassbackRule
 {
@@ -18,7 +18,7 @@ class AntiPassbackRule
         $direction = strtolower($terminalType) === 'entry' ? 'IN' : 'OUT';
         $key = "card_state:{$cardUid}";
 
-        $lastStateStr = Redis::get($key);
+        $lastStateStr = Cache::get($key);
 
         $isViolating = false;
 
@@ -38,10 +38,10 @@ class AntiPassbackRule
         }
 
         // Atomic update of the card's direction and timestamp
-        Redis::set($key, json_encode([
+        Cache::put($key, json_encode([
             'direction' => $direction,
             'last_event_at' => now()->timestamp,
-        ]), 'EX', 86400); // Expires after 24h of inactivity
+        ]), 86400); // Expires after 24h of inactivity
 
         return $isViolating;
     }

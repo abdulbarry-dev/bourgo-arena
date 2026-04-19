@@ -35,6 +35,10 @@ class AddMemberFlyout extends Component
 
     public string $emergencyContact = '';
 
+    public bool $isFamilyAccount = false;
+
+    public array $children = [];
+
     public bool $isProcessing = false;
 
     #[On('open-add-member-flyout')]
@@ -42,9 +46,24 @@ class AddMemberFlyout extends Component
     {
         $this->authorize('create', Member::class);
         $this->resetValidation();
-        $this->reset(['name', 'email', 'phone', 'dateOfBirth', 'emergencyContact']);
+        $this->reset(['name', 'email', 'phone', 'dateOfBirth', 'emergencyContact', 'isFamilyAccount', 'children']);
         $this->gender = 'male';
         $this->show = true;
+    }
+
+    public function addChild(): void
+    {
+        $this->children[] = [
+            'name' => '',
+            'date_of_birth' => '',
+            'gender' => 'male',
+        ];
+    }
+
+    public function removeChild(int $index): void
+    {
+        unset($this->children[$index]);
+        $this->children = array_values($this->children);
     }
 
     public function create(): void
@@ -71,6 +90,19 @@ class AddMemberFlyout extends Component
                     'rgpd_consented_at' => now(),
                     'password' => $temporaryPassword,
                 ]);
+
+                if ($this->isFamilyAccount && !empty($this->children)) {
+                    foreach ($this->children as $childData) {
+                        Member::query()->create([
+                            'parent_id' => $member->id,
+                            'name' => $childData['name'],
+                            'date_of_birth' => $childData['date_of_birth'],
+                            'gender' => $childData['gender'],
+                            'status' => 'pending',
+                            'rgpd_consented_at' => now(),
+                        ]);
+                    }
+                }
 
                 MemberNotification::query()->create([
                     'member_id' => $member->id,
@@ -144,6 +176,10 @@ class AddMemberFlyout extends Component
             ],
             'gender' => ['required', Rule::in(['male', 'female'])],
             'emergencyContact' => ['nullable', 'string', 'max:255'],
+            'isFamilyAccount' => ['boolean'],
+            'children.*.name' => [Rule::requiredIf($this->isFamilyAccount), 'string', 'max:255'],
+            'children.*.date_of_birth' => [Rule::requiredIf($this->isFamilyAccount), 'date', 'before:today'],
+            'children.*.gender' => [Rule::requiredIf($this->isFamilyAccount), Rule::in(['male', 'female'])],
         ];
     }
 
@@ -155,6 +191,8 @@ class AddMemberFlyout extends Component
         return [
             'phone.regex' => 'Phone number must be digits only, with optional leading +.',
             'dateOfBirth.before_or_equal' => 'Member must be at least 16 years old.',
+            'children.*.name.required' => 'Child name is required.',
+            'children.*.date_of_birth.required' => 'Child date of birth is required.',
         ];
     }
 

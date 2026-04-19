@@ -56,4 +56,39 @@
             </div>
         </dl>
     </div>
+
+    @if ($member->parent || $member->children->isNotEmpty())
+        <div class="space-y-4 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
+            <flux:heading size="sm">{{ __('Family') }}</flux:heading>
+
+            <dl class="grid gap-3 text-sm">
+                @if ($member->parent)
+                    <div>
+                        <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Parent / Guardian') }}</dt>
+                        <dd>
+                            <flux:link wire:click="loadMember({{ $member->parent->id }})" class="cursor-pointer">
+                                {{ $member->parent->name }}
+                            </flux:link>
+                        </dd>
+                    </div>
+                @endif
+
+                @if ($member->children->isNotEmpty())
+                    <div>
+                        <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Children / Dependents') }}</dt>
+                        <dd class="space-y-1">
+                            @foreach ($member->children as $child)
+                                <div class="flex items-center gap-2">
+                                    <flux:link wire:click="loadMember({{ $child->id }})" class="cursor-pointer">
+                                        {{ $child->name }}
+                                    </flux:link>
+                                    <flux:badge size="sm" variant="subtle" class="capitalize">{{ $child->status }}</flux:badge>
+                                </div>
+                            @endforeach
+                        </dd>
+                    </div>
+                @endif
+            </dl>
+        </div>
+    @endif
 </div>

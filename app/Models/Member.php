@@ -6,6 +6,7 @@ use Database\Factories\MemberFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -17,6 +18,7 @@ class Member extends Model
     use HasFactory, Notifiable, SoftDeletes;
 
     protected $fillable = [
+        'parent_id',
         'name',
         'email',
         'phone',
@@ -39,6 +41,16 @@ class Member extends Model
         'password',
         'remember_token',
     ];
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(Member::class, 'parent_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(Member::class, 'parent_id');
+    }
 
     public function nfcCard(): HasOne
     {
@@ -115,5 +127,15 @@ class Member extends Model
                 ->orWhere('email', 'like', "%{$term}%")
                 ->orWhere('phone', 'like', "%{$term}%");
         });
+    }
+
+    public function isChild(): bool
+    {
+        return $this->parent_id !== null;
+    }
+
+    public function isParent(): bool
+    {
+        return $this->children()->exists();
     }
 }

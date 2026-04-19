@@ -5,7 +5,7 @@ namespace App\Livewire\Admin\AccessControl;
 use App\Models\AdminAlert;
 use App\Models\CheckInEvent;
 use App\Models\HikvisionTerminal;
-use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -51,7 +51,7 @@ class CheckInMonitor extends Component
     {
         $dateStr = now()->toDateString();
         $occupancyKey = "gym:occupancy:{$dateStr}";
-        $this->occupancyCount = max(0, (int) Redis::get($occupancyKey));
+        $this->occupancyCount = max(0, (int) Cache::get($occupancyKey, 0));
     }
 
     public function loadAlerts()
