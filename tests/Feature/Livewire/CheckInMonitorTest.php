@@ -1,8 +1,9 @@
 <?php
 
 use App\Livewire\Admin\AccessControl\CheckInMonitor;
-use App\Models\CheckInEvent;
+use App\Models\AdminAlert;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Redis;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -15,12 +16,12 @@ it('renders the CheckInMonitor securely', function () {
 it('calculates occupancy and alerts based on recent checkins', function () {
     // Mock Redis for occupancy
     $dateStr = now()->toDateString();
-    \Illuminate\Support\Facades\Redis::shouldReceive('get')
+    Redis::shouldReceive('get')
         ->with("gym:occupancy:{$dateStr}")
         ->andReturn(1);
 
     // Create an alert explicitly as the component loads them from the database
-    \App\Models\AdminAlert::create([
+    AdminAlert::create([
         'alert_type' => 'HIGH_DENIAL_RATE',
         'description' => '1 denied events in the last 5 minutes',
         'is_dismissed' => false,
@@ -33,7 +34,7 @@ it('calculates occupancy and alerts based on recent checkins', function () {
 });
 
 it('can acknowledge alerts', function () {
-    \App\Models\AdminAlert::create([
+    AdminAlert::create([
         'alert_type' => 'HIGH_DENIAL_RATE',
         'description' => 'Test alert',
         'is_dismissed' => false,

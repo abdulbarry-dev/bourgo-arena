@@ -5,7 +5,10 @@ namespace App\Livewire\Admin\Managers;
 use App\Mail\ManagerWelcomeEmail;
 use App\Models\User;
 use App\UserRole;
+use Flux\Flux;
+use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
@@ -15,8 +18,6 @@ use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Flux\Flux;
-use Illuminate\Support\Facades\Auth;
 
 #[Layout('layouts.app')]
 #[Title('Managers Administration')]
@@ -90,10 +91,10 @@ class Index extends Component
             'role' => UserRole::Manager,
         ]);
 
-        /** @var \Illuminate\Auth\Passwords\PasswordBroker $broker */
+        /** @var PasswordBroker $broker */
         $broker = Password::broker();
         $token = $broker->createToken($manager);
-        
+
         $resetUrl = route('password.reset', ['token' => $token, 'email' => $manager->email]);
 
         Mail::to($manager->email)->send(new ManagerWelcomeEmail($manager, $randomPassword, $resetUrl));

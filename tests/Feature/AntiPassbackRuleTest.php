@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\CheckInEvent;
 use App\Models\HikvisionTerminal;
 use App\Services\AntiPassbackRule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -19,7 +18,7 @@ it('flags consecutive entry scans as suspicious', function () {
             'direction' => 'IN',
             'last_event_at' => now()->subMinutes(5)->timestamp,
         ]));
-    
+
     Redis::shouldReceive('set')
         ->once();
 
@@ -40,7 +39,7 @@ it('does not flag entry after exit', function () {
             'direction' => 'OUT',
             'last_event_at' => now()->subMinutes(5)->timestamp,
         ]));
-    
+
     Redis::shouldReceive('set')
         ->once();
 

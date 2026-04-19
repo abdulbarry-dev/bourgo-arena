@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Redis;
 use Tests\TestCase;
 
 /*
@@ -24,15 +25,15 @@ pest()->extend(TestCase::class)
 |--------------------------------------------------------------------------
 */
 uses()->beforeEach(function () {
-    \Illuminate\Support\Facades\Redis::shouldReceive('get')->andReturn(null)->byDefault();
-    \Illuminate\Support\Facades\Redis::shouldReceive('set')->andReturn(true)->byDefault();
-    \Illuminate\Support\Facades\Redis::shouldReceive('incr')->andReturn(1)->byDefault();
-    \Illuminate\Support\Facades\Redis::shouldReceive('decr')->andReturn(0)->byDefault();
-    \Illuminate\Support\Facades\Redis::shouldReceive('expire')->andReturn(true)->byDefault();
-    \Illuminate\Support\Facades\Redis::shouldReceive('zadd')->andReturn(1)->byDefault();
-    \Illuminate\Support\Facades\Redis::shouldReceive('zremrangebyscore')->andReturn(0)->byDefault();
-    \Illuminate\Support\Facades\Redis::shouldReceive('zcard')->andReturn(0)->byDefault();
-    \Illuminate\Support\Facades\Redis::shouldReceive('del')->andReturn(1)->byDefault();
+    Redis::shouldReceive('get')->andReturn(null)->byDefault();
+    Redis::shouldReceive('set')->andReturn(true)->byDefault();
+    Redis::shouldReceive('incr')->andReturn(1)->byDefault();
+    Redis::shouldReceive('decr')->andReturn(0)->byDefault();
+    Redis::shouldReceive('expire')->andReturn(true)->byDefault();
+    Redis::shouldReceive('zadd')->andReturn(1)->byDefault();
+    Redis::shouldReceive('zremrangebyscore')->andReturn(0)->byDefault();
+    Redis::shouldReceive('zcard')->andReturn(0)->byDefault();
+    Redis::shouldReceive('del')->andReturn(1)->byDefault();
 })->in('Feature');
 
 /*
