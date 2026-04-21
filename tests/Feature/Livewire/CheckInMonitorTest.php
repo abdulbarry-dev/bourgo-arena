@@ -3,7 +3,7 @@
 use App\Livewire\Admin\AccessControl\CheckInMonitor;
 use App\Models\AdminAlert;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -14,10 +14,10 @@ it('renders the CheckInMonitor securely', function () {
 });
 
 it('calculates occupancy and alerts based on recent checkins', function () {
-    // Mock Redis for occupancy
+    // Mock Cache for occupancy
     $dateStr = now()->toDateString();
-    Redis::shouldReceive('get')
-        ->with("gym:occupancy:{$dateStr}")
+    Cache::shouldReceive('get')
+        ->with("gym:occupancy:{$dateStr}", 0)
         ->andReturn(1);
 
     // Create an alert explicitly as the component loads them from the database
