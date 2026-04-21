@@ -13,6 +13,8 @@ return new class extends Migration
             $table->foreignId('course_id')->nullable()->constrained()->nullOnDelete();
             $table->unsignedTinyInteger('day_of_week'); // 0=Monday ... 6=Sunday
             $table->time('starts_at');
+            $table->date('starts_at_date');
+            $table->date('ends_at_date')->nullable();
             $table->integer('duration_minutes');
             $table->integer('capacity');
             $table->boolean('is_cancelled')->default(false); // Master switch for recurrently canceled
