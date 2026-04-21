@@ -44,6 +44,12 @@ class SendSubscriptionReceiptEmail implements ShouldQueue
         }
 
         $member = $subscription->member;
+        $email = $member->fallback_email;
+
+        if ($email === null || $email === '') {
+            return;
+        }
+
         $planName = $subscription->plan?->name ?? 'N/A';
         $amount = number_format((float) $subscription->amount_paid, 3, '.', '');
         $receiptPath = $subscription->receipt_path ?? 'N/A';
@@ -53,9 +59,9 @@ class SendSubscriptionReceiptEmail implements ShouldQueue
             ."Plan: {$planName}. "
             ."Amount paid: {$amount} TND. "
             ."Receipt path: {$receiptPath}.",
-            function ($message) use ($member): void {
+            function ($message) use ($email): void {
                 $message
-                    ->to($member->email)
+                    ->to($email)
                     ->subject('Bourgo Arena subscription receipt');
             },
         );

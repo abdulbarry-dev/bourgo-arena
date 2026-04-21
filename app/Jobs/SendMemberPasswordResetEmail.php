@@ -41,13 +41,19 @@ class SendMemberPasswordResetEmail implements ShouldQueue
             return;
         }
 
+        $email = $member->fallback_email;
+
+        if ($email === null || $email === '') {
+            return;
+        }
+
         Mail::raw(
             'A password reset was requested by Bourgo Arena administration for your account. '
             .'Please use the member forgot-password flow to set a new password. '
             .'If you did not request this, contact support immediately.',
-            function ($message) use ($member): void {
+            function ($message) use ($email): void {
                 $message
-                    ->to($member->email)
+                    ->to($email)
                     ->subject('Bourgo Arena password reset request');
             },
         );

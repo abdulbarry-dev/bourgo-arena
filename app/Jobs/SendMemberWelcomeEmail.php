@@ -42,6 +42,12 @@ class SendMemberWelcomeEmail implements ShouldQueue
             return;
         }
 
+        $email = $member->fallback_email;
+
+        if ($email === null || $email === '') {
+            return;
+        }
+
         $messageBody = sprintf(
             "Welcome to Bourgo Arena, %s.\n\nYour temporary password is: %s\n\nPlease set a new password within 24 hours using this secure link:\n%s\n\nThis link expires at: %s\n\nFor your security, do not share this email.",
             $member->name,
@@ -50,9 +56,9 @@ class SendMemberWelcomeEmail implements ShouldQueue
             $this->expiresAt,
         );
 
-        Mail::raw($messageBody, function ($message) use ($member): void {
+        Mail::raw($messageBody, function ($message) use ($email): void {
             $message
-                ->to($member->email)
+                ->to($email)
                 ->subject('Welcome to Bourgo Arena - complete your account setup');
         });
     }

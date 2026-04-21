@@ -23,7 +23,6 @@ return new class extends Migration
             $table->json('metadata')->nullable();
             $table->timestamp('delivered_at')->nullable();
             $table->timestamps();
-
             $table->index(['member_id', 'is_read']);
         });
     }

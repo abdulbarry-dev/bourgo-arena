@@ -43,14 +43,20 @@ class NotifyMemberCardAssigned implements ShouldQueue
             return;
         }
 
+        $email = $member->fallback_email;
+
+        if ($email === null || $email === '') {
+            return;
+        }
+
         $cardUid = $member->nfcCard?->uid ?? 'N/A';
         $cardStatus = $member->nfcCard?->status ?? 'N/A';
 
         Mail::raw(
             "Your NFC card has been assigned. UID: {$cardUid}. Status: {$cardStatus}.",
-            function ($message) use ($member): void {
+            function ($message) use ($email): void {
                 $message
-                    ->to($member->email)
+                    ->to($email)
                     ->subject('Your Bourgo Arena NFC card has been assigned');
             },
         );

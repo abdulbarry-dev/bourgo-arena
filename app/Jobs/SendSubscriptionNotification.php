@@ -58,11 +58,17 @@ class SendSubscriptionNotification implements ShouldQueue
             return;
         }
 
+        $email = $recipient->fallback_email;
+
+        if ($email === null || $email === '') {
+            return;
+        }
+
         Mail::raw(
             $this->buildMessage($subscription),
-            function ($message) use ($recipient): void {
+            function ($message) use ($email): void {
                 $message
-                    ->to($recipient->email)
+                    ->to($email)
                     ->subject($this->buildSubject());
             },
         );
