@@ -11,8 +11,22 @@ use App\Http\Controllers\Api\Member\MemberNotificationController;
 use App\Http\Controllers\Api\Member\MemberReservationController;
 use App\Http\Controllers\Api\TerminalCheckInController;
 use App\Http\Controllers\Api\TerminalProvisioningController;
+use App\Http\Controllers\Api\V1\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+Route::prefix('v1/auth')->group(function () {
+    Route::post('login', [AuthController::class, 'login'])->name('api.v1.auth.login');
+    Route::post('register', [AuthController::class, 'register'])->name('api.v1.auth.register');
+    Route::post('send-otp', [AuthController::class, 'sendOtp'])->name('api.v1.auth.send-otp');
+    Route::post('verify-otp', [AuthController::class, 'verifyOtp'])->name('api.v1.auth.verify-otp');
+
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('logout', [AuthController::class, 'logout'])->name('api.v1.auth.logout');
+        Route::post('request-family-otp', [AuthController::class, 'requestFamilyOtp'])->name('api.v1.auth.request-family-otp');
+        Route::patch('password/update', [AuthController::class, 'updatePassword'])->name('api.v1.auth.password.update');
+    });
+});
 
 Route::post('auth/otp/request', [OtpAuthController::class, 'requestOtp'])->name('api.auth.otp.request');
 Route::post('auth/otp/login', [OtpAuthController::class, 'login'])->name('api.auth.otp.login');
