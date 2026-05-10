@@ -19,7 +19,7 @@ class TerminalCheckInController extends Controller
 
         $event = $action->execute($terminal, $request->validated());
 
-        return $this->success(new TerminalCheckInResource($event), 'Check-in event received');
+        return $this->success(new TerminalCheckInResource($event), 'Check-in event received', 200);
     }
 
     public function heartbeat(Request $request, HikvisionTerminal $terminal): JsonResponse

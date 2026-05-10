@@ -13,9 +13,9 @@ use Illuminate\Support\Facades\DB;
 
 class MemberReservationController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $reservations = auth()->user()->reservations()
+        $reservations = $request->user()->reservations()
             ->with(['activity', 'slot'])
             ->latest()
             ->paginate();
@@ -41,9 +41,9 @@ class MemberReservationController extends Controller
             return $this->error(__('This slot is not available for booking.'), 422);
         }
 
-        $reservation = DB::transaction(function () use ($activity, $slot) {
+        $reservation = DB::transaction(function () use ($activity, $slot, $request) {
             $reservation = ApiReservation::create([
-                'member_id' => auth()->id(),
+                'member_id' => $request->user()->id,
                 'activity_id' => $activity->id,
                 'activity_slot_id' => $slot->id,
                 'date' => $slot->date,
@@ -66,9 +66,9 @@ class MemberReservationController extends Controller
         );
     }
 
-    public function cancel(int $id): JsonResponse
+    public function cancel(Request $request, int $id): JsonResponse
     {
-        $reservation = auth()->user()->reservations()->findOrFail($id);
+        $reservation = $request->user()->reservations()->findOrFail($id);
 
         if ($reservation->status === 'cancelled') {
             return $this->error(__('Reservation is already cancelled.'), 422);

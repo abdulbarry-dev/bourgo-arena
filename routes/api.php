@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\AdminAlertController;
+use App\Http\Controllers\Api\Admin\AdminAuditLogController;
+use App\Http\Controllers\Api\Admin\AdminCheckInController;
+use App\Http\Controllers\Api\Admin\AdminMemberController;
 use App\Http\Controllers\Api\Auth\OtpAuthController;
 use App\Http\Controllers\Api\Member\MemberActivityController;
 use App\Http\Controllers\Api\Member\MemberDeviceTokenController;
@@ -48,7 +52,28 @@ Route::middleware(['auth:sanctum', 'role:member'])
     });
 
 Route::middleware(['web', 'auth', 'verified', 'role:admin,manager'])
+    ->prefix('admin')
     ->group(function () {
+        // Dashboard & Monitoring
+        Route::get('live-feed', [AdminCheckInController::class, 'live'])->name('api.admin.live-feed');
+        Route::get('occupancy', [AdminCheckInController::class, 'occupancy'])->name('api.admin.occupancy');
+
+        // Audit Logs
+        Route::get('audit-logs', [AdminAuditLogController::class, 'index'])->name('api.admin.audit-logs.index');
+        Route::get('members/{member}/audit-logs', [AdminAuditLogController::class, 'memberLogs'])->name('api.admin.members.audit-logs');
+
+        // Alerts
+        Route::get('alerts', [AdminAlertController::class, 'index'])->name('api.admin.alerts.index');
+        Route::post('alerts/{alert}/dismiss', [AdminAlertController::class, 'dismiss'])->name('api.admin.alerts.dismiss');
+        Route::post('alerts/{alert}/escalate', [AdminAlertController::class, 'escalate'])->name('api.admin.alerts.escalate');
+
+        // Member Management
+        Route::get('members', [AdminMemberController::class, 'index'])->name('api.admin.members.index');
+        Route::get('members/{member}', [AdminMemberController::class, 'show'])->name('api.admin.members.show');
+        Route::patch('members/{member}/status', [AdminMemberController::class, 'updateStatus'])->name('api.admin.members.update-status');
+        Route::delete('members/{member}', [AdminMemberController::class, 'destroy'])->name('api.admin.members.destroy');
+
+        // Terminals (Existing)
         Route::get('terminals', [TerminalProvisioningController::class, 'index'])->name('api.terminals.index');
         Route::post('terminal-provisioning', [TerminalProvisioningController::class, 'store'])->name('api.terminals.provision');
         Route::post('terminals/{terminal}/revoke-token', [TerminalProvisioningController::class, 'revokeToken'])->name('api.terminals.revoke-token');

@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Event;
 it('allows admin to provision a terminal and returns api token', function () {
     $admin = User::factory()->admin()->create();
 
-    $response = $this->actingAs($admin)->postJson('/api/terminal-provisioning', [
+    $response = $this->actingAs($admin)->postJson('/api/admin/terminal-provisioning', [
         'name' => 'Main Entry',
         'ip_address' => '10.10.10.20',
         'serial_number' => 'HKV-TERM-001',
@@ -25,7 +25,7 @@ it('allows admin to provision a terminal and returns api token', function () {
 it('forbids manager from provisioning a terminal', function () {
     $manager = User::factory()->manager()->create();
 
-    $response = $this->actingAs($manager)->postJson('/api/terminal-provisioning', [
+    $response = $this->actingAs($manager)->postJson('/api/admin/terminal-provisioning', [
         'name' => 'Main Entry',
         'ip_address' => '10.10.10.21',
         'serial_number' => 'HKV-TERM-002',
@@ -43,7 +43,7 @@ it('allows admin to revoke terminal token', function () {
     ]);
 
     $response = $this->actingAs($admin)
-        ->postJson('/api/terminals/'.$terminal->id.'/revoke-token');
+        ->postJson('/api/admin/terminals/'.$terminal->id.'/revoke-token');
 
     $response->assertOk();
 
@@ -60,7 +60,7 @@ it('allows admin to decommission terminal', function () {
     ]);
 
     $response = $this->actingAs($admin)
-        ->deleteJson('/api/terminals/'.$terminal->id);
+        ->deleteJson('/api/admin/terminals/'.$terminal->id);
 
     $response->assertOk();
 

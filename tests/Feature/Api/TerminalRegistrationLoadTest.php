@@ -6,7 +6,7 @@ it('handles 50 rapid sequential terminal registrations', function () {
     $admin = User::factory()->admin()->create();
 
     for ($i = 0; $i < 50; $i++) {
-        $response = $this->actingAs($admin)->postJson('/api/terminal-provisioning', [
+        $response = $this->actingAs($admin)->postJson('/api/admin/terminal-provisioning', [
             'name' => "Terminal {$i}",
             'ip_address' => '10.0.0.'.($i + 1),
             'serial_number' => "HKV-TERM-LOAD-{$i}",
