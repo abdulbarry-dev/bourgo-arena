@@ -75,7 +75,7 @@ test('member can deactivate a registered device token', function () {
 
     $this->actingAs($user)
         ->deleteJson(route('api.member.device-tokens.destroy', ['token' => 'fcm-device-token-delete']))
-        ->assertNoContent();
+        ->assertOk();
 
     $this->assertDatabaseHas('member_device_tokens', [
         'member_id' => $member->id,

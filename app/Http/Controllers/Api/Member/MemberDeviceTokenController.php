@@ -31,15 +31,12 @@ class MemberDeviceTokenController extends Controller
             $validated['device_type'] ?? null,
         );
 
-        return response()->json([
-            'message' => 'Device token registered successfully.',
-            'data' => [
-                'id' => $deviceToken->id,
-                'token' => $deviceToken->token,
-                'device_type' => $deviceToken->device_type,
-                'is_active' => $deviceToken->is_active,
-            ],
-        ], $deviceToken->wasRecentlyCreated ? 201 : 200);
+        return $this->success([
+            'id' => $deviceToken->id,
+            'token' => $deviceToken->token,
+            'device_type' => $deviceToken->device_type,
+            'is_active' => $deviceToken->is_active,
+        ], 'Device token registered successfully.', $deviceToken->wasRecentlyCreated ? 201 : 200);
     }
 
     /**
@@ -51,6 +48,6 @@ class MemberDeviceTokenController extends Controller
 
         $this->memberDeviceTokenService->deactivate($member, $token);
 
-        return response()->json([], 204);
+        return $this->success(null, 'Device token deactivated');
     }
 }

@@ -19,10 +19,7 @@ class TerminalCheckInController extends Controller
 
         $event = $action->execute($terminal, $request->validated());
 
-        return response()->json([
-            'message' => 'Check-in event received',
-            'data' => new TerminalCheckInResource($event),
-        ]);
+        return $this->success(new TerminalCheckInResource($event), 'Check-in event received');
     }
 
     public function heartbeat(Request $request, HikvisionTerminal $terminal): JsonResponse
@@ -32,13 +29,11 @@ class TerminalCheckInController extends Controller
 
         // Optional: Ensure the authenticated terminal matches the requested endpoint id
         if ($terminalAuth && $terminalAuth->id !== $terminal->id) {
-            return response()->json(['message' => 'Unauthorized for this terminal'], 403);
+            return $this->error('Unauthorized for this terminal', 403);
         }
 
         $terminal->markSeen();
 
-        return response()->json([
-            'message' => 'Heartbeat received',
-        ]);
+        return $this->success(null, 'Heartbeat received');
     }
 }

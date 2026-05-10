@@ -17,9 +17,9 @@ it('allows admin to provision a terminal and returns api token', function () {
     ]);
 
     $response->assertCreated()
-        ->assertJsonPath('data.serial_number', 'HKV-TERM-001');
+        ->assertJsonPath('data.terminal.serial_number', 'HKV-TERM-001');
 
-    expect($response->json('api_token'))->not->toBeEmpty();
+    expect($response->json('data.api_token'))->not->toBeEmpty();
 });
 
 it('forbids manager from provisioning a terminal', function () {
@@ -50,7 +50,7 @@ it('allows admin to revoke terminal token', function () {
     $terminal->refresh();
 
     expect($terminal->api_token)->not->toBe('old-token-123');
-    expect($response->json('api_token'))->toBe($terminal->api_token);
+    expect($response->json('data.api_token'))->toBe($terminal->api_token);
 });
 
 it('allows admin to decommission terminal', function () {
