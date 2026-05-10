@@ -1,11 +1,32 @@
 {
     "mcpServers": {
         "laravel-boost": {
+            "$typeName": "exa.cascade_plugins_pb.CascadePluginCommandTemplate",
             "command": "php",
             "args": [
                 "artisan",
                 "boost:mcp"
-            ]
+            ],
+            "env": {}
+        },
+        "dart-mcp-server": {
+            "$typeName": "exa.cascade_plugins_pb.CascadePluginCommandTemplate",
+            "command": "dart",
+            "args": [
+                "mcp-server"
+            ],
+            "env": {}
+        },
+        "postman-mcp-server": {
+            "$typeName": "exa.cascade_plugins_pb.CascadePluginCommandTemplate",
+            "command": "npx",
+            "args": [
+                "-y",
+                "@postman/postman-mcp-server"
+            ],
+            "env": {
+                "POSTMAN_API_KEY": "PMAK-69f890a6fa8f4400017c68f5-5a98820976f9caad069c8524322af51a94"
+            }
         }
     }
 }
