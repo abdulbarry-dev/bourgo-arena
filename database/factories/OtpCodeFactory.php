@@ -18,7 +18,10 @@ class OtpCodeFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'identifier' => $this->faker->phoneNumber(),
+            'code' => '123456',
+            'expires_at' => now()->addMinutes(10),
         ];
+
     }
 }

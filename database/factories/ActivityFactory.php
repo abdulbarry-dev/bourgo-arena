@@ -18,7 +18,12 @@ class ActivityFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'title' => $this->faker->sentence(3),
+            'category' => $this->faker->word(),
+            'base_price' => $this->faker->randomFloat(2, 10, 100),
+            'currency' => 'TND',
+            'is_active' => true,
         ];
+
     }
 }

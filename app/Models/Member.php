@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\UserRole;
 use Database\Factories\MemberFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -92,6 +93,11 @@ class Member extends Authenticatable
         return $this->hasMany(MemberNotification::class);
     }
 
+    public function reservations(): HasMany
+    {
+        return $this->hasMany(ApiReservation::class);
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', 'active');
@@ -163,5 +169,10 @@ class Member extends Authenticatable
     public function getFallbackPhoneAttribute(): ?string
     {
         return $this->phone ?? $this->parent?->phone;
+    }
+
+    public function getRoleAttribute(): UserRole
+    {
+        return UserRole::Member;
     }
 }
