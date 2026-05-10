@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\TerminalCheckInController;
 use App\Http\Controllers\Api\TerminalProvisioningController;
 use App\Http\Controllers\Api\V1\ActivityController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\CourseController;
 use App\Http\Controllers\Api\V1\MemberController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -21,6 +22,7 @@ Route::prefix('v1')->group(function () {
     Route::get('activities', [ActivityController::class, 'index'])->name('api.v1.activities.index');
     Route::get('activities/{activity}', [ActivityController::class, 'show'])->name('api.v1.activities.show');
     Route::get('activities/{activity}/slots', [ActivityController::class, 'slots'])->name('api.v1.activities.slots');
+    Route::get('courses', [CourseController::class, 'index'])->name('api.v1.courses.index');
 
     Route::prefix('auth')->group(function () {
         Route::post('login', [AuthController::class, 'login'])->name('api.v1.auth.login');
