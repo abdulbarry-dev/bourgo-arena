@@ -45,6 +45,9 @@ Route::prefix('v1')->group(function () {
         Route::get('reservations', [ReservationController::class, 'index'])->name('api.v1.reservations.index');
         Route::post('reservations', [ReservationController::class, 'store'])->name('api.v1.reservations.store');
         Route::delete('reservations/{reservation}', [ReservationController::class, 'destroy'])->name('api.v1.reservations.destroy');
+
+        Route::get('notifications', [\App\Http\Controllers\Api\V1\NotificationController::class, 'index'])->name('api.v1.notifications.index');
+        Route::post('notifications/mark-all-read', [\App\Http\Controllers\Api\V1\NotificationController::class, 'markAllRead'])->name('api.v1.notifications.mark-all-read');
     });
 });
 
