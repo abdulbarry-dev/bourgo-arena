@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\Auth\CompleteRegistrationRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\SendOtpRequest;
 use App\Http\Requests\Auth\UpdatePasswordRequest;
 use App\Http\Requests\Auth\VerifyOtpRequest;
+use App\Http\Resources\Api\V1\MemberResource;
+use App\Models\Member;
 use App\Services\Auth\AuthService;
 use App\Services\Auth\OtpService;
 use App\Traits\ApiResponse;
@@ -74,7 +77,7 @@ class AuthController extends Controller
     public function verifyOtp(VerifyOtpRequest $request): JsonResponse
     {
         if ($this->otpService->verify($request->identifier, $request->otp)) {
-            $member = \App\Models\Member::where('email', $request->identifier)
+            $member = Member::where('email', $request->identifier)
                 ->orWhere('phone', $request->identifier)
                 ->first();
 
@@ -85,8 +88,9 @@ class AuthController extends Controller
             $token = $member->createToken('auth_token')->plainTextToken;
 
             return $this->success([
+                'valid' => true,
                 'token' => $token,
-                'member' => new \App\Http\Resources\Api\V1\MemberResource($member),
+                'member' => new MemberResource($member),
             ], __('OTP verified successfully.'));
         }
 
@@ -119,12 +123,33 @@ class AuthController extends Controller
             $this->authService->updatePassword(
                 $request->user(),
                 $request->current_password,
-                $request->password
+                $request->new_password ?? $request->password
             );
 
             return $this->success(null, __('Password updated successfully.'));
         } catch (ValidationException $e) {
             return $this->error($e->getMessage(), 422, $e->errors());
         }
+    }
+
+    /**
+     * Finalize profile data during the registration flow.
+     */
+    public function completeRegistration(CompleteRegistrationRequest $request): JsonResponse
+    {
+        $validated = $request->validated();
+
+        // Map is_parent_account to is_family_account for internal logic
+        $data = [
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'],
+            'is_family_account' => $validated['is_parent_account'],
+            'status' => 'active',
+        ];
+
+        $member = $this->authService->register($data);
+
+        return $this->success($member, __('Registration completed successfully.'), 201);
     }
 }

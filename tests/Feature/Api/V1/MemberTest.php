@@ -1,10 +1,10 @@
 <?php
 
-/** @var \Tests\TestCase $this */
+/** @var TestCase $this */
 
 use App\Models\Member;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
+use Tests\TestCase;
 
 test('unauthenticated profile request returns 401', function () {
     $response = $this->getJson(route('api.v1.member.profile'));
@@ -29,11 +29,27 @@ test('authenticated returns correct field names', function () {
             'data' => [
                 'id',
                 'name',
+                'first_name',
+                'last_name',
                 'email',
+                'phone',
                 'birth_date',
                 'avatar_url',
+                'loyalty_points',
+                'is_parent_account',
+                'total_check_ins',
             ],
         ])
         ->assertJsonPath('data.birth_date', '1990-01-01')
         ->assertJsonFragment(['avatar_url' => asset('storage/avatars/test.png')]);
+});
+
+test('user profile alias works', function () {
+    $member = Member::factory()->create();
+    Sanctum::actingAs($member, ['*'], 'api');
+
+    $response = $this->getJson(route('api.v1.user.profile'));
+
+    $response->assertSuccessful()
+        ->assertJsonPath('data.id', $member->id);
 });

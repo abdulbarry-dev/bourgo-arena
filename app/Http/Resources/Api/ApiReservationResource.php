@@ -5,6 +5,7 @@ namespace App\Http\Resources\Api;
 use App\Http\Resources\Api\V1\ActivityResource;
 use App\Http\Resources\Api\V1\ActivitySlotResource;
 use App\Http\Resources\BaseJsonResource;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class ApiReservationResource extends BaseJsonResource
@@ -23,6 +24,8 @@ class ApiReservationResource extends BaseJsonResource
             'activity_slot_id' => $this->activity_slot_id,
             'activity_title' => $this->activity?->title,
             'date' => $this->date->toDateString(),
+            'time' => Carbon::createFromFormat('H:i:s', $this->starts_at)->format('H:i'),
+            'duration' => Carbon::createFromFormat('H:i:s', $this->starts_at)->diffInMinutes(Carbon::createFromFormat('H:i:s', $this->ends_at)).' min',
             'starts_at' => $this->starts_at,
             'ends_at' => $this->ends_at,
             'price' => (float) $this->price,

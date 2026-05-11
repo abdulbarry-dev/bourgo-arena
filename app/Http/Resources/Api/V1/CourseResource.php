@@ -16,16 +16,17 @@ class CourseResource extends JsonResource
     public function toArray(Request $request): array
     {
         $startsAt = Carbon::createFromFormat('H:i:s', $this->starts_at);
-        $endTime = $startsAt->copy()->addMinutes($this->duration_minutes)->toTimeString();
+        $endTime = $startsAt->copy()->addMinutes($this->duration_minutes)->format('H:i');
 
         return [
-            'id' => $this->id,
+            'id' => (string) $this->id,
+            'title' => $this->course->name,
             'name' => $this->course->name,
             'instructor' => $this->course->instructor,
-            'start_time' => $this->starts_at,
+            'start_time' => $startsAt->format('H:i'),
             'end_time' => $endTime,
             'day_of_week' => $this->day_of_week,
-            'category' => $this->course->category ?? $this->course->color, // Fallback to color if category missing
+            'category' => $this->course->category ?? $this->course->color,
             'capacity' => $this->capacity,
             'enrolled' => $this->bookings_count ?? 0,
             'icon' => $this->course->icon ?? null,

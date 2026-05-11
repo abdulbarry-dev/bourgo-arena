@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Api\V1;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -17,6 +18,8 @@ class ActivitySlotResource extends JsonResource
         return [
             'id' => $this->id,
             'date' => $this->date->toDateString(),
+            'time' => Carbon::createFromFormat('H:i:s', $this->starts_at)->format('H:i'),
+            'available' => $this->is_available,
             'start_time' => $this->starts_at,
             'end_time' => $this->ends_at,
             'capacity' => $this->capacity,

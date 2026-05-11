@@ -5,6 +5,7 @@ namespace App\Services\Auth;
 use App\Models\Member;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthService
 {
@@ -51,10 +52,11 @@ class AuthService
             'name' => $data['name'],
             'email' => $data['email'],
             'phone' => $data['phone'],
-            'password' => Hash::make($data['password']),
-            'date_of_birth' => $data['date_of_birth'],
-            'gender' => $data['gender'],
-            'status' => 'pending',
+            'password' => isset($data['password']) ? Hash::make($data['password']) : null,
+            'date_of_birth' => $data['date_of_birth'] ?? null,
+            'gender' => $data['gender'] ?? null,
+            'is_family_account' => $data['is_family_account'] ?? false,
+            'status' => $data['status'] ?? 'pending',
         ]);
     }
 
@@ -63,7 +65,11 @@ class AuthService
      */
     public function logout(Member $member): void
     {
-        $member->currentAccessToken()->delete();
+        $token = $member->currentAccessToken();
+
+        if ($token instanceof PersonalAccessToken) {
+            $token->delete();
+        }
     }
 
     /**

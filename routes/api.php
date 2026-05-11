@@ -30,6 +30,7 @@ Route::prefix('v1')->group(function () {
         Route::post('register', [AuthController::class, 'register'])->name('api.v1.auth.register');
         Route::post('send-otp', [AuthController::class, 'sendOtp'])->name('api.v1.auth.send-otp');
         Route::post('verify-otp', [AuthController::class, 'verifyOtp'])->name('api.v1.auth.verify-otp');
+        Route::post('complete-registration', [AuthController::class, 'completeRegistration'])->name('api.v1.auth.complete-registration');
 
         Route::middleware('auth:api')->group(function () {
             Route::post('logout', [AuthController::class, 'logout'])->name('api.v1.auth.logout');
@@ -41,6 +42,13 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:api')->group(function () {
         Route::get('member/profile', [MemberController::class, 'profile'])->name('api.v1.member.profile');
         Route::put('member/profile', [MemberController::class, 'updateProfile'])->name('api.v1.member.update-profile');
+
+        // User Aliases
+        Route::prefix('user')->group(function () {
+            Route::get('profile', [MemberController::class, 'profile'])->name('api.v1.user.profile');
+            Route::put('profile', [MemberController::class, 'updateProfile'])->name('api.v1.user.update-profile');
+            Route::put('password', [AuthController::class, 'updatePassword'])->name('api.v1.user.update-password');
+        });
 
         Route::get('reservations', [ReservationController::class, 'index'])->name('api.v1.reservations.index');
         Route::post('reservations', [ReservationController::class, 'store'])->name('api.v1.reservations.store');

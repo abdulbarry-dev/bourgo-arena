@@ -16,7 +16,8 @@ class UpdatePasswordRequest extends BaseFormRequest
     {
         return [
             'current_password' => ['required', 'string'],
-            'password' => ['required', 'confirmed', Password::defaults()],
+            'password' => ['required_without:new_password', 'confirmed', Password::defaults()],
+            'new_password' => ['required_without:password', 'confirmed', Password::defaults()],
         ];
     }
 }
