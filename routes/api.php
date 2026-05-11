@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\V1\MemberController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\ReservationController;
 use App\Http\Controllers\Api\V1\SearchController;
+use App\Http\Controllers\Api\V1\SubscriptionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -59,6 +60,8 @@ Route::prefix('v1')->group(function () {
         Route::delete('family/children/{member}', [FamilyController::class, 'destroy'])->name('api.v1.family.children.destroy');
 
         Route::post('device-token', [DeviceTokenController::class, 'store'])->name('api.v1.device-token.store');
+
+        Route::get('member/subscription', [SubscriptionController::class, 'active'])->name('api.v1.member.subscription');
     });
 });
 
