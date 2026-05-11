@@ -2,6 +2,8 @@
 
 namespace App\Http\Resources\Api;
 
+use App\Http\Resources\Api\V1\ActivityResource;
+use App\Http\Resources\Api\V1\ActivitySlotResource;
 use App\Http\Resources\BaseJsonResource;
 use Illuminate\Http\Request;
 
@@ -19,6 +21,7 @@ class ApiReservationResource extends BaseJsonResource
             'member_id' => $this->member_id,
             'activity_id' => $this->activity_id,
             'activity_slot_id' => $this->activity_slot_id,
+            'activity_title' => $this->activity?->title,
             'date' => $this->date->toDateString(),
             'starts_at' => $this->starts_at,
             'ends_at' => $this->ends_at,

@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\V1\ActivityController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CourseController;
 use App\Http\Controllers\Api\V1\MemberController;
+use App\Http\Controllers\Api\V1\ReservationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -40,6 +41,10 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('member/profile', [MemberController::class, 'profile'])->name('api.v1.member.profile');
         Route::put('member/profile', [MemberController::class, 'updateProfile'])->name('api.v1.member.update-profile');
+
+        Route::get('reservations', [ReservationController::class, 'index'])->name('api.v1.reservations.index');
+        Route::post('reservations', [ReservationController::class, 'store'])->name('api.v1.reservations.store');
+        Route::delete('reservations/{reservation}', [ReservationController::class, 'destroy'])->name('api.v1.reservations.destroy');
     });
 });
 
