@@ -22,3 +22,6 @@ yarn-error.log
 /.vscode
 /.zed
 tests_output.txt
+pest_out.txt
+test_v1_output.txt
+tools_update_tests.php

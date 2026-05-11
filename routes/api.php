@@ -31,14 +31,14 @@ Route::prefix('v1')->group(function () {
         Route::post('send-otp', [AuthController::class, 'sendOtp'])->name('api.v1.auth.send-otp');
         Route::post('verify-otp', [AuthController::class, 'verifyOtp'])->name('api.v1.auth.verify-otp');
 
-        Route::middleware('auth:sanctum')->group(function () {
+        Route::middleware('auth:api')->group(function () {
             Route::post('logout', [AuthController::class, 'logout'])->name('api.v1.auth.logout');
             Route::post('request-family-otp', [AuthController::class, 'requestFamilyOtp'])->name('api.v1.auth.request-family-otp');
             Route::patch('password/update', [AuthController::class, 'updatePassword'])->name('api.v1.auth.password.update');
         });
     });
 
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware('auth:api')->group(function () {
         Route::get('member/profile', [MemberController::class, 'profile'])->name('api.v1.member.profile');
         Route::put('member/profile', [MemberController::class, 'updateProfile'])->name('api.v1.member.update-profile');
 

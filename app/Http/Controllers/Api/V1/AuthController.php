@@ -74,7 +74,20 @@ class AuthController extends Controller
     public function verifyOtp(VerifyOtpRequest $request): JsonResponse
     {
         if ($this->otpService->verify($request->identifier, $request->otp)) {
-            return $this->success(null, __('OTP verified successfully.'));
+            $member = \App\Models\Member::where('email', $request->identifier)
+                ->orWhere('phone', $request->identifier)
+                ->first();
+
+            if (! $member) {
+                return $this->error(__('Member not found.'), 404);
+            }
+
+            $token = $member->createToken('auth_token')->plainTextToken;
+
+            return $this->success([
+                'token' => $token,
+                'member' => new \App\Http\Resources\Api\V1\MemberResource($member),
+            ], __('OTP verified successfully.'));
         }
 
         return $this->error(__('Invalid or expired OTP code.'), 422);

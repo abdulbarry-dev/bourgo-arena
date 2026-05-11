@@ -51,7 +51,7 @@ it('can list active course sessions', function () {
 
     $response->assertStatus(200)
         ->assertJsonCount(1, 'data')
-        ->assertJsonPath('data.0.title', 'Test Course')
+        ->assertJsonPath('data.0.name', 'Test Course')
         ->assertJsonPath('data.0.start_time', '09:00:00')
         ->assertJsonPath('data.0.end_time', '10:00:00');
 });

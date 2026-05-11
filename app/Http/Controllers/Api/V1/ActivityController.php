@@ -39,6 +39,7 @@ class ActivityController extends Controller
         $slots = $activity->slots()
             ->where('is_available', true)
             ->where('date', '>=', now()->toDateString())
+            ->whereColumn('booked_count', '<', 'capacity')
             ->orderBy('date')
             ->orderBy('starts_at')
             ->get();
