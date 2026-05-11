@@ -14,7 +14,9 @@ use App\Http\Controllers\Api\TerminalProvisioningController;
 use App\Http\Controllers\Api\V1\ActivityController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CourseController;
+use App\Http\Controllers\Api\V1\FamilyController;
 use App\Http\Controllers\Api\V1\MemberController;
+use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\ReservationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -46,8 +48,12 @@ Route::prefix('v1')->group(function () {
         Route::post('reservations', [ReservationController::class, 'store'])->name('api.v1.reservations.store');
         Route::delete('reservations/{reservation}', [ReservationController::class, 'destroy'])->name('api.v1.reservations.destroy');
 
-        Route::get('notifications', [\App\Http\Controllers\Api\V1\NotificationController::class, 'index'])->name('api.v1.notifications.index');
-        Route::post('notifications/mark-all-read', [\App\Http\Controllers\Api\V1\NotificationController::class, 'markAllRead'])->name('api.v1.notifications.mark-all-read');
+        Route::get('notifications', [NotificationController::class, 'index'])->name('api.v1.notifications.index');
+        Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('api.v1.notifications.mark-all-read');
+
+        Route::get('family/children', [FamilyController::class, 'index'])->name('api.v1.family.children.index');
+        Route::post('family/children', [FamilyController::class, 'store'])->name('api.v1.family.children.store');
+        Route::delete('family/children/{member}', [FamilyController::class, 'destroy'])->name('api.v1.family.children.destroy');
     });
 });
 
