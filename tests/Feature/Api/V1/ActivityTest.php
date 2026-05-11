@@ -1,13 +1,11 @@
 <?php
 
-/** @var \Tests\TestCase $this */
+/** @var TestCase $this */
 
 use App\Models\Activity;
 use App\Models\ActivitySlot;
 use App\Models\Member;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
-
 use Tests\TestCase;
 
 beforeEach(function () {
@@ -25,14 +23,14 @@ test('list returns paginated activities', function () {
         ->assertJsonStructure([
             'success',
             'data' => [
-                '*' => ['id', 'name']
+                '*' => ['id', 'name'],
             ],
             'meta' => [
                 'current_page',
                 'last_page',
                 'per_page',
-                'total'
-            ]
+                'total',
+            ],
         ]);
 });
 
@@ -55,7 +53,7 @@ test('single activity returns correct shape', function () {
 
 test('slots filtered to available only', function () {
     $activity = Activity::factory()->create();
-    
+
     // Available slot
     ActivitySlot::factory()->create([
         'activity_id' => $activity->id,
@@ -74,7 +72,7 @@ test('slots filtered to available only', function () {
         'date' => now()->addDay()->toDateString(),
     ]);
 
-    // Unavailable manually 
+    // Unavailable manually
     ActivitySlot::factory()->create([
         'activity_id' => $activity->id,
         'capacity' => 10,

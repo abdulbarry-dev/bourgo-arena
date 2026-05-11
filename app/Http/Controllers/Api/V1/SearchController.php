@@ -27,11 +27,11 @@ class SearchController extends Controller
 
         $qLower = strtolower($q);
 
-        $activities = Activity::whereRaw('LOWER(title) LIKE ?', ['%' . $qLower . '%'])
-            ->orWhereRaw('LOWER(category) LIKE ?', ['%' . $qLower . '%'])
+        $activities = Activity::whereRaw('LOWER(title) LIKE ?', ['%'.$qLower.'%'])
+            ->orWhereRaw('LOWER(category) LIKE ?', ['%'.$qLower.'%'])
             ->get()
             ->map(function ($activity) {
-                return (object)[
+                return (object) [
                     'id' => $activity->id,
                     'type' => 'activity',
                     'title' => $activity->title,
@@ -40,10 +40,10 @@ class SearchController extends Controller
                 ];
             });
 
-        $courses = Course::whereRaw('LOWER(name) LIKE ?', ['%' . $qLower . '%'])
+        $courses = Course::whereRaw('LOWER(name) LIKE ?', ['%'.$qLower.'%'])
             ->get()
             ->map(function ($course) {
-                return (object)[
+                return (object) [
                     'id' => $course->id,
                     'type' => 'course',
                     'title' => $course->name,

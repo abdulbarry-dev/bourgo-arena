@@ -1,9 +1,8 @@
 <?php
 
-/** @var \Tests\TestCase $this */
+/** @var TestCase $this */
 
 use App\Models\Member;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -34,9 +33,9 @@ test('delete own child succeeds', function () {
     /** @var TestCase $this */
     $child = Member::factory()->create([
         'parent_id' => $this->member->id,
-        'status' => 'active'
+        'status' => 'active',
     ]);
-    
+
     $response = $this->deleteJson(route('api.v1.family.children.destroy', $child));
 
     $response->assertSuccessful();
@@ -48,9 +47,9 @@ test('delete another members child returns 403', function () {
     $otherParent = Member::factory()->create(['status' => 'active']);
     $otherChild = Member::factory()->create([
         'parent_id' => $otherParent->id,
-        'status' => 'active'
+        'status' => 'active',
     ]);
-    
+
     $response = $this->deleteJson(route('api.v1.family.children.destroy', $otherChild));
 
     $response->assertForbidden();

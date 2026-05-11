@@ -2,8 +2,8 @@
 
 use App\Models\Member;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\Sanctum;
 
 uses(RefreshDatabase::class);
@@ -25,7 +25,7 @@ test('valid login returns token and member', function () {
             'success',
             'data' => [
                 'token',
-                'member' => ['id', 'name', 'email']
+                'member' => ['id', 'name', 'email'],
             ],
         ]);
 });
@@ -100,6 +100,6 @@ test('OTP generate and verify flow', function () {
     $verifyResponse->assertSuccessful()
         ->assertJsonStructure([
             'success',
-            'data' => ['token', 'member']
+            'data' => ['token', 'member'],
         ]);
 });

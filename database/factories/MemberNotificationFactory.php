@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Member;
 use App\Models\MemberNotification;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -18,7 +19,7 @@ class MemberNotificationFactory extends Factory
     public function definition(): array
     {
         return [
-            'member_id' => \App\Models\Member::factory(),
+            'member_id' => Member::factory(),
             'type' => $this->faker->word(),
             'title' => $this->faker->sentence(),
             'message' => $this->faker->paragraph(),

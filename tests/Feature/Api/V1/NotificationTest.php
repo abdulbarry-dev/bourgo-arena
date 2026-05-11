@@ -1,12 +1,10 @@
 <?php
 
-/** @var \Tests\TestCase $this */
+/** @var TestCase $this */
 
 use App\Models\Member;
 use App\Models\MemberNotification;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
-
 use Tests\TestCase;
 
 beforeEach(function () {
@@ -18,7 +16,7 @@ beforeEach(function () {
 test('list returns members notifications only', function () {
     /** @var TestCase $this */
     $otherMember = Member::factory()->create(['status' => 'active']);
-    
+
     MemberNotification::factory()->count(3)->create(['member_id' => $this->member->id]);
     MemberNotification::factory()->count(2)->create(['member_id' => $otherMember->id]);
 
@@ -32,12 +30,12 @@ test('mark-all-read sets is_read true for all', function () {
     /** @var TestCase $this */
     MemberNotification::factory()->count(3)->create([
         'member_id' => $this->member->id,
-        'is_read' => false
+        'is_read' => false,
     ]);
 
     $response = $this->postJson(route('api.v1.notifications.mark-all-read'));
 
     $response->assertSuccessful();
-    
+
     expect($this->member->notifications()->where('is_read', false)->count())->toBe(0);
 });

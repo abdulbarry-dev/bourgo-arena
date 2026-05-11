@@ -1,12 +1,11 @@
 <?php
 
-/** @var \Tests\TestCase $this */
+/** @var TestCase $this */
 
 use App\Models\Activity;
 use App\Models\ActivitySlot;
 use App\Models\ApiReservation;
 use App\Models\Member;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -53,7 +52,7 @@ test('member can cancel their reservation', function () {
 
     $response->assertSuccessful();
     $this->assertEquals('cancelled', $reservation->fresh()->status);
-    
+
     // Cancelling returns slot availability (decrements booked_count)
     $this->assertEquals(0, $slot->fresh()->booked_count);
 });
