@@ -14,14 +14,17 @@ use App\Http\Controllers\Api\TerminalProvisioningController;
 use App\Http\Controllers\Api\V1\ActivityController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CourseController;
+use App\Http\Controllers\Api\V1\DeviceTokenController;
 use App\Http\Controllers\Api\V1\FamilyController;
 use App\Http\Controllers\Api\V1\MemberController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\ReservationController;
+use App\Http\Controllers\Api\V1\SearchController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
+    Route::get('search', [SearchController::class, 'index'])->name('api.v1.search.index');
     Route::get('activities', [ActivityController::class, 'index'])->name('api.v1.activities.index');
     Route::get('activities/{activity}', [ActivityController::class, 'show'])->name('api.v1.activities.show');
     Route::get('activities/{activity}/slots', [ActivityController::class, 'slots'])->name('api.v1.activities.slots');
@@ -54,6 +57,8 @@ Route::prefix('v1')->group(function () {
         Route::get('family/children', [FamilyController::class, 'index'])->name('api.v1.family.children.index');
         Route::post('family/children', [FamilyController::class, 'store'])->name('api.v1.family.children.store');
         Route::delete('family/children/{member}', [FamilyController::class, 'destroy'])->name('api.v1.family.children.destroy');
+
+        Route::post('device-token', [DeviceTokenController::class, 'store'])->name('api.v1.device-token.store');
     });
 });
 
