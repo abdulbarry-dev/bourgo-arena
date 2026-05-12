@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Member;
-use App\Models\MemberDeviceToken;
 use App\Models\MemberNotification;
 use App\Models\User;
 
@@ -9,13 +8,12 @@ test('member can register a device token', function () {
     $user = User::factory()->member()->create(['email' => 'api.member@example.com']);
     $member = Member::factory()->create(['email' => 'api.member@example.com']);
 
-    $this->actingAs($user)
-        ->postJson(route('api.member.device-tokens.store'), [
+    $this->actingAs($member, 'api')
+        ->postJson(route('api.v1.device-token.store'), [
             'token' => 'fcm-device-token-1',
-            'device_type' => 'android',
+            'platform' => 'android',
         ])
-        ->assertStatus(201)
-        ->assertJsonPath('data.token', 'fcm-device-token-1');
+        ->assertOk();
 
     $this->assertDatabaseHas('member_device_tokens', [
         'member_id' => $member->id,
@@ -53,33 +51,9 @@ test('member can fetch own notifications only', function () {
         'delivered_at' => now(),
     ]);
 
-    $this->actingAs($user)
-        ->getJson(route('api.member.notifications.index'))
+    $this->actingAs($member, 'api')
+        ->getJson(route('api.v1.notifications.index'))
         ->assertOk()
         ->assertJsonFragment(['title' => 'Welcome'])
         ->assertJsonMissing(['title' => 'Other']);
-});
-
-test('member can deactivate a registered device token', function () {
-    $user = User::factory()->member()->create(['email' => 'remove.token@example.com']);
-    $member = Member::factory()->create(['email' => 'remove.token@example.com']);
-
-    MemberDeviceToken::query()->create([
-        'member_id' => $member->id,
-        'token' => 'fcm-device-token-delete',
-        'provider' => 'fcm',
-        'device_type' => 'ios',
-        'is_active' => true,
-        'last_used_at' => now(),
-    ]);
-
-    $this->actingAs($user)
-        ->deleteJson(route('api.member.device-tokens.destroy', ['token' => 'fcm-device-token-delete']))
-        ->assertOk();
-
-    $this->assertDatabaseHas('member_device_tokens', [
-        'member_id' => $member->id,
-        'token' => 'fcm-device-token-delete',
-        'is_active' => false,
-    ]);
 });

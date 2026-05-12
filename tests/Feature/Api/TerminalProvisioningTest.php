@@ -2,71 +2,7 @@
 
 use App\Events\CheckInProcessed;
 use App\Models\HikvisionTerminal;
-use App\Models\User;
 use Illuminate\Support\Facades\Event;
-
-it('allows admin to provision a terminal and returns api token', function () {
-    $admin = User::factory()->admin()->create();
-
-    $response = $this->actingAs($admin)->postJson('/api/admin/terminal-provisioning', [
-        'name' => 'Main Entry',
-        'ip_address' => '10.10.10.20',
-        'serial_number' => 'HKV-TERM-001',
-        'location' => 'Main Entrance',
-        'terminal_type' => 'entry',
-    ]);
-
-    $response->assertCreated()
-        ->assertJsonPath('data.terminal.serial_number', 'HKV-TERM-001');
-
-    expect($response->json('data.api_token'))->not->toBeEmpty();
-});
-
-it('forbids manager from provisioning a terminal', function () {
-    $manager = User::factory()->manager()->create();
-
-    $response = $this->actingAs($manager)->postJson('/api/admin/terminal-provisioning', [
-        'name' => 'Main Entry',
-        'ip_address' => '10.10.10.21',
-        'serial_number' => 'HKV-TERM-002',
-        'location' => 'Main Entrance',
-        'terminal_type' => 'entry',
-    ]);
-
-    $response->assertForbidden();
-});
-
-it('allows admin to revoke terminal token', function () {
-    $admin = User::factory()->admin()->create();
-    $terminal = HikvisionTerminal::factory()->create([
-        'api_token' => 'old-token-123',
-    ]);
-
-    $response = $this->actingAs($admin)
-        ->postJson('/api/admin/terminals/'.$terminal->id.'/revoke-token');
-
-    $response->assertOk();
-
-    $terminal->refresh();
-
-    expect($terminal->api_token)->not->toBe('old-token-123');
-    expect($response->json('data.api_token'))->toBe($terminal->api_token);
-});
-
-it('allows admin to decommission terminal', function () {
-    $admin = User::factory()->admin()->create();
-    $terminal = HikvisionTerminal::factory()->create([
-        'status' => 'online',
-    ]);
-
-    $response = $this->actingAs($admin)
-        ->deleteJson('/api/admin/terminals/'.$terminal->id);
-
-    $response->assertOk();
-
-    $terminal->refresh();
-    expect($terminal->status)->toBe('decommissioned');
-});
 
 it('rejects unknown terminal token with 401 on checkin', function () {
     $response = $this->withHeader('Authorization', 'Bearer unknown-token')

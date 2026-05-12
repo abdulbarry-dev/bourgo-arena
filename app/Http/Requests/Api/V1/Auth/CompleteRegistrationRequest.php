@@ -4,9 +4,6 @@ namespace App\Http\Requests\Api\V1\Auth;
 
 use App\Http\Requests\BaseFormRequest;
 
-
-
-
 class CompleteRegistrationRequest extends BaseFormRequest
 {
     public function authorize(): bool
