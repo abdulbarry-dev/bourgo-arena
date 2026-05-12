@@ -21,7 +21,6 @@ class CourseResource extends JsonResource
         return [
             'id' => (string) $this->id,
             'title' => $this->course->name,
-            'name' => $this->course->name,
             'instructor' => $this->course->instructor,
             'start_time' => $startsAt->format('H:i'),
             'end_time' => $endTime,
@@ -29,7 +28,7 @@ class CourseResource extends JsonResource
             'category' => $this->course->category ?? $this->course->color,
             'capacity' => $this->capacity,
             'enrolled' => $this->bookings_count ?? 0,
-            'icon' => $this->course->icon ?? null,
+            'icon' => $this->course->icon,
             'image_url' => $this->course->image_url,
         ];
     }
