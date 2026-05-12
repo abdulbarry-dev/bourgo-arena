@@ -37,7 +37,9 @@ trait ApiResponse
      */
     public function paginated(LengthAwarePaginator $paginator, string $resourceClass): AnonymousResourceCollection
     {
-        return $resourceClass::collection($paginator->getCollection())->additional([
+        $resourceCollection = $resourceClass::collection($paginator->getCollection());
+
+        $resourceCollection->additional([
             'success' => true,
             'message' => null,
             'meta' => [
@@ -47,5 +49,7 @@ trait ApiResponse
                 'total' => $paginator->total(),
             ],
         ]);
+
+        return $resourceCollection;
     }
 }
