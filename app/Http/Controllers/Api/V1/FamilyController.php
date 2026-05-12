@@ -9,6 +9,7 @@ use App\Models\Member;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class FamilyController extends Controller
 {
@@ -16,16 +17,23 @@ class FamilyController extends Controller
 
     /**
      * Return authenticated member's children.
+     *
+     * @return AnonymousResourceCollection<MemberResource>
      */
-    public function index(Request $request): JsonResponse
+    public function index(Request $request): AnonymousResourceCollection
     {
         $children = collect($request->user()->children);
 
-        return $this->success(MemberResource::collection($children));
+        return MemberResource::collection($children)->additional([
+            'success' => true,
+            'message' => null,
+        ]);
     }
 
     /**
      * Create a new child Member record.
+     *
+     * @return MemberResource
      */
     public function store(AddChildRequest $request): JsonResponse
     {
@@ -37,7 +45,10 @@ class FamilyController extends Controller
             'password' => null,
         ]);
 
-        return $this->success(new MemberResource($child), 'Child added successfully', 201);
+        return (new MemberResource($child))->additional([
+            'success' => true,
+            'message' => 'Child added successfully',
+        ])->response()->setStatusCode(201);
     }
 
     /**

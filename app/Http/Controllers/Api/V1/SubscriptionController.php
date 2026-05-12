@@ -15,7 +15,7 @@ class SubscriptionController extends Controller
     /**
      * Return the authenticated member's active subscription with the plan loaded.
      */
-    public function active(Request $request): JsonResponse
+    public function active(Request $request): SubscriptionResource|JsonResponse
     {
         $subscription = $request->user()->activeSubscription()->with('plan')->first();
 
@@ -23,6 +23,9 @@ class SubscriptionController extends Controller
             return $this->success(null, 'No active subscription');
         }
 
-        return $this->success(new SubscriptionResource($subscription));
+        return (new SubscriptionResource($subscription))->additional([
+            'success' => true,
+            'message' => null,
+        ]);
     }
 }

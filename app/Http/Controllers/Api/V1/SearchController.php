@@ -7,8 +7,8 @@ use App\Http\Resources\Api\V1\SearchResultResource;
 use App\Models\Activity;
 use App\Models\Course;
 use App\Traits\ApiResponse;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class SearchController extends Controller
 {
@@ -16,13 +16,18 @@ class SearchController extends Controller
 
     /**
      * Search activities and courses.
+     *
+     * @return AnonymousResourceCollection<SearchResultResource>
      */
-    public function index(Request $request): JsonResponse
+    public function index(Request $request): AnonymousResourceCollection
     {
         $q = $request->query('q', '');
 
         if (strlen($q) < 2) {
-            return $this->success([]);
+            return SearchResultResource::collection(collect([]))->additional([
+                'success' => true,
+                'message' => null,
+            ]);
         }
 
         $qLower = strtolower($q);
@@ -54,6 +59,9 @@ class SearchController extends Controller
 
         $results = $activities->merge($courses);
 
-        return $this->success(SearchResultResource::collection($results));
+        return SearchResultResource::collection($results)->additional([
+            'success' => true,
+            'message' => null,
+        ]);
     }
 }

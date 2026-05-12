@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\V1\CourseResource;
 use App\Models\CourseSession;
 use App\Traits\ApiResponse;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class CourseController extends Controller
 {
@@ -14,8 +14,10 @@ class CourseController extends Controller
 
     /**
      * Display a listing of active course sessions.
+     *
+     * @return AnonymousResourceCollection<CourseResource>
      */
-    public function index(): JsonResponse
+    public function index(): AnonymousResourceCollection
     {
         $sessions = CourseSession::where('is_cancelled', false)
             ->with('course')

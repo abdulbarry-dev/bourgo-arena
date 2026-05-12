@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 trait ApiResponse
@@ -34,11 +35,11 @@ trait ApiResponse
     /**
      * Return a paginated JSON response.
      */
-    public function paginated(LengthAwarePaginator $paginator, string $resourceClass): JsonResponse
+    public function paginated(LengthAwarePaginator $paginator, string $resourceClass): AnonymousResourceCollection
     {
-        return response()->json([
+        return $resourceClass::collection($paginator->getCollection())->additional([
             'success' => true,
-            'data' => $resourceClass::collection($paginator->getCollection()),
+            'message' => null,
             'meta' => [
                 'current_page' => $paginator->currentPage(),
                 'last_page' => $paginator->lastPage(),

@@ -9,6 +9,7 @@ use App\Services\ReservationService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Validation\ValidationException;
 
 class ReservationController extends Controller
@@ -21,8 +22,10 @@ class ReservationController extends Controller
 
     /**
      * Display a listing of the member's reservations.
+     *
+     * @return AnonymousResourceCollection<ApiReservationResource>
      */
-    public function index(Request $request): JsonResponse
+    public function index(Request $request): AnonymousResourceCollection
     {
         $reservations = $request->user()->reservations()
             ->with(['activity', 'slot'])
@@ -34,6 +37,8 @@ class ReservationController extends Controller
 
     /**
      * Store a new reservation.
+     *
+     * @return ApiReservationResource
      */
     public function store(Request $request): JsonResponse
     {
@@ -59,7 +64,10 @@ class ReservationController extends Controller
 
         $reservation = $this->reservationService->makeActivityReservation($request->user(), $validated);
 
-        return $this->success(new ApiReservationResource($reservation->load(['activity', 'slot'])), 'Reservation created successfully', 201);
+        return (new ApiReservationResource($reservation->load(['activity', 'slot'])))->additional([
+            'success' => true,
+            'message' => 'Reservation created successfully',
+        ])->response()->setStatusCode(201);
     }
 
     /**

@@ -29,13 +29,20 @@ class AuthController extends Controller
 
     /**
      * Handle a login request.
+     *
+     * @return array{success: bool, message: string, data: array{token: string, member: MemberResource}}
      */
     public function login(LoginRequest $request): JsonResponse
     {
         try {
             $result = $this->authService->login($request->validated());
 
-            return $this->success($result, __('Logged in successfully.'));
+            $data = [
+                'token' => $result['token'],
+                'member' => new MemberResource($result['member']),
+            ];
+
+            return $this->success($data, __('Logged in successfully.'));
         } catch (ValidationException $e) {
             return $this->error($e->getMessage(), 401, $e->errors());
         }
@@ -43,12 +50,17 @@ class AuthController extends Controller
 
     /**
      * Handle a registration request.
+     *
+     * @return MemberResource
      */
     public function register(RegisterRequest $request): JsonResponse
     {
         $member = $this->authService->register($request->validated());
 
-        return $this->success($member, __('Registration successful. Please verify your account.'), 201);
+        return (new MemberResource($member))->additional([
+            'success' => true,
+            'message' => __('Registration successful. Please verify your account.'),
+        ])->response()->setStatusCode(201);
     }
 
     /**
@@ -134,6 +146,8 @@ class AuthController extends Controller
 
     /**
      * Finalize profile data during the registration flow.
+     *
+     * @return MemberResource
      */
     public function completeRegistration(CompleteRegistrationRequest $request): JsonResponse
     {
@@ -150,6 +164,9 @@ class AuthController extends Controller
 
         $member = $this->authService->register($data);
 
-        return $this->success($member, __('Registration completed successfully.'), 201);
+        return (new MemberResource($member))->additional([
+            'success' => true,
+            'message' => __('Registration completed successfully.'),
+        ])->response()->setStatusCode(201);
     }
 }

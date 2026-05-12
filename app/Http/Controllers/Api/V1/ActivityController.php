@@ -7,7 +7,7 @@ use App\Http\Resources\Api\V1\ActivityResource;
 use App\Http\Resources\Api\V1\ActivitySlotResource;
 use App\Models\Activity;
 use App\Traits\ApiResponse;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ActivityController extends Controller
 {
@@ -15,8 +15,10 @@ class ActivityController extends Controller
 
     /**
      * Display a listing of active activities.
+     *
+     * @return AnonymousResourceCollection<ActivityResource>
      */
-    public function index(): JsonResponse
+    public function index(): AnonymousResourceCollection
     {
         $activities = Activity::active()->paginate(10);
 
@@ -26,15 +28,20 @@ class ActivityController extends Controller
     /**
      * Display the specified activity.
      */
-    public function show(Activity $activity): JsonResponse
+    public function show(Activity $activity): ActivityResource
     {
-        return $this->success(new ActivityResource($activity));
+        return (new ActivityResource($activity))->additional([
+            'success' => true,
+            'message' => null,
+        ]);
     }
 
     /**
      * Display available slots for the specified activity.
+     *
+     * @return AnonymousResourceCollection<ActivitySlotResource>
      */
-    public function slots(Activity $activity): JsonResponse
+    public function slots(Activity $activity): AnonymousResourceCollection
     {
         $slots = $activity->slots()
             ->where('is_available', true)
@@ -44,6 +51,9 @@ class ActivityController extends Controller
             ->orderBy('starts_at')
             ->get();
 
-        return $this->success(ActivitySlotResource::collection($slots));
+        return ActivitySlotResource::collection($slots)->additional([
+            'success' => true,
+            'message' => null,
+        ]);
     }
 }
