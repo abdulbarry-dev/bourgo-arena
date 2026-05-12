@@ -66,7 +66,7 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->is('api/*')) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Resource not found.',
+                    'message' => 'Not found',
                 ], 404);
             }
         });
@@ -94,7 +94,9 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->is('api/*')) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Endpoint not found.',
+                    'message' => $e->getPrevious() instanceof ModelNotFoundException
+                        ? 'Not found'
+                        : 'Endpoint not found.',
                 ], 404);
             }
         });
