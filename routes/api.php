@@ -30,7 +30,6 @@ Route::prefix('v1')->group(function () {
         Route::middleware('auth:api')->group(function () {
             Route::post('logout', [AuthController::class, 'logout'])->name('api.v1.auth.logout');
             Route::post('request-family-otp', [AuthController::class, 'requestFamilyOtp'])->name('api.v1.auth.request-family-otp');
-            Route::patch('password/update', [AuthController::class, 'updatePassword'])->name('api.v1.auth.password.update');
         });
     });
 
