@@ -64,7 +64,7 @@ test('duplicate email registration returns 422', function () {
 
 test('logout revokes token', function () {
     $member = Member::factory()->create(['status' => 'active']);
-    Sanctum::actingAs($member, ['*'], 'api');
+    Sanctum::actingAs($member, ['*'], 'sanctum');
 
     $response = $this->postJson(route('api.v1.auth.logout'));
 

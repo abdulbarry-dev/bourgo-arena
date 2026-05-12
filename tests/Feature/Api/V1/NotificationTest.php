@@ -10,7 +10,7 @@ use Tests\TestCase;
 beforeEach(function () {
     /** @var TestCase $this */
     $this->member = Member::factory()->create(['status' => 'active']);
-    Sanctum::actingAs($this->member, ['*'], 'api');
+    Sanctum::actingAs($this->member, ['*'], 'sanctum');
 });
 
 test('list returns members notifications only', function () {

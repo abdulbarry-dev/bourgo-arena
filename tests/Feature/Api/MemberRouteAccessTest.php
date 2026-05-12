@@ -11,7 +11,7 @@ test('guests can not access member api routes', function () {
 
 test('members can access member api routes', function () {
     $member = Member::factory()->active()->create();
-    $this->actingAs($member, 'api');
+    $this->actingAs($member, 'sanctum');
 
     $response = $this->getJson('/api/v1/member/profile');
 
@@ -21,7 +21,7 @@ test('members can access member api routes', function () {
 
 test('admins are forbidden from member api routes', function () {
     $user = User::factory()->admin()->create();
-    $this->actingAs($user, 'api');
+    $this->actingAs($user, 'sanctum');
 
     $response = $this->getJson('/api/v1/member/profile');
 
@@ -30,7 +30,7 @@ test('admins are forbidden from member api routes', function () {
 
 test('managers are forbidden from member api routes', function () {
     $user = User::factory()->manager()->create();
-    $this->actingAs($user, 'api');
+    $this->actingAs($user, 'sanctum');
 
     $response = $this->getJson('/api/v1/member/profile');
 

@@ -8,7 +8,7 @@ test('member can register a device token', function () {
     $user = User::factory()->member()->create(['email' => 'api.member@example.com']);
     $member = Member::factory()->create(['email' => 'api.member@example.com']);
 
-    $this->actingAs($member, 'api')
+    $this->actingAs($member, 'sanctum')
         ->postJson(route('api.v1.device-token.store'), [
             'token' => 'fcm-device-token-1',
             'platform' => 'android',
@@ -51,7 +51,7 @@ test('member can fetch own notifications only', function () {
         'delivered_at' => now(),
     ]);
 
-    $this->actingAs($member, 'api')
+    $this->actingAs($member, 'sanctum')
         ->getJson(route('api.v1.notifications.index'))
         ->assertOk()
         ->assertJsonFragment(['title' => 'Welcome'])

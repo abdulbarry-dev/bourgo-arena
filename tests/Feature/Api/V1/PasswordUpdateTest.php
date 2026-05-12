@@ -17,7 +17,7 @@ test('member can update their password via user profile endpoint', function () {
         'status' => 'active',
     ]);
 
-    Sanctum::actingAs($member, ['*'], 'api');
+    Sanctum::actingAs($member, ['*'], 'sanctum');
 
     $response = $this->putJson(route('api.v1.user.update-password'), [
         'current_password' => 'old-password',
@@ -38,7 +38,7 @@ test('member can update their password using new_password field', function () {
         'status' => 'active',
     ]);
 
-    Sanctum::actingAs($member, ['*'], 'api');
+    Sanctum::actingAs($member, ['*'], 'sanctum');
 
     $response = $this->putJson(route('api.v1.user.update-password'), [
         'current_password' => 'old-password',

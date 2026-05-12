@@ -19,7 +19,7 @@ test('authenticated returns correct field names', function () {
         'avatar' => 'avatars/test.png',
     ]);
 
-    Sanctum::actingAs($member, ['*'], 'api');
+    Sanctum::actingAs($member, ['*'], 'sanctum');
 
     $response = $this->getJson(route('api.v1.member.profile'));
 
@@ -46,7 +46,7 @@ test('authenticated returns correct field names', function () {
 
 test('user profile alias works', function () {
     $member = Member::factory()->create();
-    Sanctum::actingAs($member, ['*'], 'api');
+    Sanctum::actingAs($member, ['*'], 'sanctum');
 
     $response = $this->getJson(route('api.v1.user.profile'));
 
