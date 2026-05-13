@@ -31,6 +31,7 @@ class AuthController extends Controller
      * @throttles api.auth (5 attempts per minute per IP or account identifier)
      *
      * @response 429 TooManyRequestsResponse
+     *
      * @return array{success: bool, message: string, data: array{token: string, member: MemberResource}}
      */
     public function login(LoginRequest $request): JsonResponse
@@ -38,12 +39,9 @@ class AuthController extends Controller
         try {
             $result = $this->authService->login($request->validated());
 
-            $data = [
+            return $this->success([
                 'token' => $result['token'],
-                'member' => new MemberResource($result['member']),
-            ];
-
-            return $this->success($data, __('Logged in successfully.'));
+            ], __('Logged in successfully.'));
         } catch (ValidationException $e) {
             return $this->error($e->getMessage(), 401, $e->errors());
         }
@@ -53,16 +51,18 @@ class AuthController extends Controller
      * @throttles api.auth (5 attempts per minute per IP)
      *
      * @response 429 TooManyRequestsResponse
+     *
      * @return MemberResource
      */
     public function register(RegisterRequest $request): JsonResponse
     {
         $member = $this->authService->register($request->validated());
 
-        return (new MemberResource($member))->additional([
-            'success' => true,
-            'message' => __('Registration successful. Please verify your account.'),
-        ])->response()->setStatusCode(201);
+        return $this->success(
+            new MemberResource($member),
+            __('Registration successful. Please verify your account.'),
+            201
+        );
     }
 
     /**
@@ -95,20 +95,8 @@ class AuthController extends Controller
     public function verifyOtp(VerifyOtpRequest $request): JsonResponse
     {
         if ($this->otpService->verify($request->identifier, $request->otp)) {
-            $member = Member::where('email', $request->identifier)
-                ->orWhere('phone', $request->identifier)
-                ->first();
-
-            if (! $member) {
-                return $this->error(__('Member not found.'), 404);
-            }
-
-            $token = $member->createToken('auth_token')->plainTextToken;
-
             return $this->success([
                 'valid' => true,
-                'token' => $token,
-                'member' => new MemberResource($member),
             ], __('OTP verified successfully.'));
         }
 
@@ -158,13 +146,13 @@ class AuthController extends Controller
      * @throttles api.auth (5 attempts per minute per IP)
      *
      * @response 429 TooManyRequestsResponse
+     *
      * @return MemberResource
      */
     public function completeRegistration(CompleteRegistrationRequest $request): JsonResponse
     {
         $validated = $request->validated();
 
-        // Map is_parent_account to is_family_account for internal logic
         $data = [
             'name' => $validated['name'],
             'email' => $validated['email'],
@@ -175,9 +163,10 @@ class AuthController extends Controller
 
         $member = $this->authService->register($data);
 
-        return (new MemberResource($member))->additional([
-            'success' => true,
-            'message' => __('Registration completed successfully.'),
-        ])->response()->setStatusCode(201);
+        return $this->success(
+            new MemberResource($member),
+            __('Registration completed successfully.'),
+            201
+        );
     }
 }

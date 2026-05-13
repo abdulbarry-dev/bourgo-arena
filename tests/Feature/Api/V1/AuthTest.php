@@ -8,7 +8,7 @@ use Laravel\Sanctum\Sanctum;
 
 uses(RefreshDatabase::class);
 
-test('valid login returns token and member', function () {
+test('valid login returns token', function () {
     $member = Member::factory()->create([
         'email' => 'test@example.com',
         'password' => Hash::make('password123'),
@@ -25,7 +25,6 @@ test('valid login returns token and member', function () {
             'success',
             'data' => [
                 'token',
-                'member' => ['id', 'name', 'email'],
             ],
         ]);
 });
@@ -100,6 +99,6 @@ test('OTP generate and verify flow', function () {
     $verifyResponse->assertSuccessful()
         ->assertJsonStructure([
             'success',
-            'data' => ['token', 'member'],
+            'data' => ['valid'],
         ]);
 });

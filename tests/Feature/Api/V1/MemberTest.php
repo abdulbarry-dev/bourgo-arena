@@ -51,5 +51,5 @@ test('user profile alias works', function () {
     $response = $this->getJson(route('api.v1.user.profile'));
 
     $response->assertSuccessful()
-        ->assertJsonPath('data.id', $member->id);
+        ->assertJsonPath('data.id', (string) $member->id);
 });

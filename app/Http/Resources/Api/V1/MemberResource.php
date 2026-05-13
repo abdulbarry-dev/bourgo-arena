@@ -36,7 +36,7 @@ class MemberResource extends JsonResource
         $lastName = $nameParts[1] ?? '';
 
         return [
-            'id' => $this->id,
+            'id' => (string) $this->id,
             'name' => $this->name,
             'first_name' => $firstName,
             'last_name' => $lastName,

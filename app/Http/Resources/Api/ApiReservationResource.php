@@ -37,10 +37,10 @@ class ApiReservationResource extends BaseJsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-            'member_id' => $this->member_id,
-            'activity_id' => $this->activity_id,
-            'activity_slot_id' => $this->activity_slot_id,
+            'id' => (string) $this->id,
+            'member_id' => (string) $this->member_id,
+            'activity_id' => (string) $this->activity_id,
+            'activity_slot_id' => (string) $this->activity_slot_id,
             'activity_title' => $this->activity?->title,
             'date' => $this->date->toDateString(),
             'time' => Carbon::createFromFormat('H:i:s', $this->starts_at)->format('H:i'),
