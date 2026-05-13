@@ -13,6 +13,7 @@ use App\Http\Requests\Auth\UpdatePasswordRequest;
 use App\Http\Requests\Auth\VerifyOtpRequest;
 use App\Http\Resources\Api\V1\MemberResource;
 use App\Models\Member;
+use App\Models\User;
 use App\Services\Auth\AuthService;
 use App\Services\Auth\OtpService;
 use App\Traits\ApiResponse;
@@ -101,25 +102,40 @@ class AuthController extends Controller
     public function verifyOtp(VerifyOtpRequest $request): JsonResponse
     {
         if ($this->otpService->verify($request->identifier, $request->otp)) {
-            // Find the user
-            $member = Member::where('email', $request->identifier)
+            // Find the user (Member or User/Staff)
+            $user = Member::where('email', $request->identifier)
                 ->orWhere('phone', $request->identifier)
-                ->first();
+                ->first()
+                ?? User::where('email', $request->identifier)
+                    ->orWhere('phone', $request->identifier)
+                    ->first();
 
-            if ($member) {
-                // Activate the user if they were pending
-                if ($member->status === 'pending') {
-                    $member->update(['status' => 'active']);
+            if ($user) {
+                // Activate the user if they were pending (for members)
+                if (method_exists($user, 'update') && isset($user->status) && $user->status === 'pending') {
+                    $user->update(['status' => 'active']);
                 }
 
                 // Generate token for automatic login
-                $token = $member->createToken('auth_token')->plainTextToken;
+                $token = $user->createToken('auth_token')->plainTextToken;
 
-                return $this->success([
+                $responseData = [
                     'valid' => true,
                     'token' => $token,
-                    'member' => new MemberResource($member),
-                ], __('OTP verified successfully.'));
+                ];
+
+                if ($user instanceof Member) {
+                    $responseData['member'] = new MemberResource($user);
+                } else {
+                    $responseData['user'] = [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'role' => $user->role,
+                    ];
+                }
+
+                return $this->success($responseData, __('OTP verified successfully.'));
             }
 
             return $this->success([
@@ -176,12 +192,17 @@ class AuthController extends Controller
      */
     public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
     {
-        $member = Member::where('email', $request->identifier)
-            ->orWhere('phone', $request->identifier)
-            ->first();
+        $identifier = $request->identifier;
 
-        if ($member) {
-            $this->otpService->generate($request->identifier);
+        $user = Member::where('email', $identifier)
+            ->orWhere('phone', $identifier)
+            ->first()
+            ?? User::where('email', $identifier)
+                ->orWhere('phone', $identifier)
+                ->first();
+
+        if ($user) {
+            $this->otpService->generate($identifier);
         }
 
         return $this->success(null, __('If an account exists with this identifier, an OTP has been sent.'));
@@ -198,15 +219,18 @@ class AuthController extends Controller
             return $this->error(__('Invalid or expired OTP code.'), 422);
         }
 
-        $member = Member::where('email', $request->identifier)
+        $user = Member::where('email', $request->identifier)
             ->orWhere('phone', $request->identifier)
-            ->first();
+            ->first()
+            ?? User::where('email', $request->identifier)
+                ->orWhere('phone', $request->identifier)
+                ->first();
 
-        if (! $member) {
+        if (! $user) {
             return $this->error(__('User not found.'), 404);
         }
 
-        $member->update([
+        $user->update([
             'password' => Hash::make($request->password),
         ]);
 

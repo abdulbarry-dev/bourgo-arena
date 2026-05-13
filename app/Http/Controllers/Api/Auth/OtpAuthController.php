@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Member;
+use App\Models\User;
 use App\Services\Auth\OtpService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,10 +20,11 @@ class OtpAuthController extends Controller
         ]);
 
         $phone = $request->input('phone');
-        $member = Member::where('phone', $phone)->first();
+        $user = Member::where('phone', $phone)->first()
+            ?? User::where('phone', $phone)->first();
 
-        if (! $member) {
-            return $this->error(__('Member not found with this phone number.'), 404);
+        if (! $user) {
+            return $this->error(__('User not found with this phone number.'), 404);
         }
 
         $code = $this->otpService->generate($phone);
@@ -45,16 +47,23 @@ class OtpAuthController extends Controller
             return $this->error(__('Invalid or expired OTP code.'), 422);
         }
 
-        $member = Member::where('phone', $phone)->firstOrFail();
-        $token = $member->createToken('mobile-app')->plainTextToken;
+        $user = Member::where('phone', $phone)->first()
+            ?? User::where('phone', $phone)->first();
+
+        if (! $user) {
+            return $this->error(__('User not found.'), 404);
+        }
+
+        $token = $user->createToken('mobile-app')->plainTextToken;
 
         return $this->success([
             'token' => $token,
-            'member' => [
-                'id' => $member->id,
-                'name' => $member->name,
-                'email' => $member->email,
-                'phone' => $member->phone,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'role' => $user instanceof Member ? 'member' : $user->role,
             ],
         ], __('Logged in successfully.'));
     }

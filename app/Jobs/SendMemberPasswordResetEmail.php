@@ -3,10 +3,10 @@
 namespace App\Jobs;
 
 use App\Models\Member;
+use App\Services\Auth\OtpService;
 use DateTimeInterface;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Mail;
 
 class SendMemberPasswordResetEmail implements ShouldQueue
 {
@@ -33,7 +33,7 @@ class SendMemberPasswordResetEmail implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(): void
+    public function handle(OtpService $otpService): void
     {
         $member = Member::query()->find($this->memberId);
 
@@ -41,21 +41,15 @@ class SendMemberPasswordResetEmail implements ShouldQueue
             return;
         }
 
-        $email = $member->fallback_email;
+        $identifier = $member->fallback_email ?? $member->phone;
 
-        if ($email === null || $email === '') {
+        if ($identifier === null || $identifier === '') {
             return;
         }
 
-        Mail::raw(
-            'A password reset was requested by Bourgo Arena administration for your account. '
-            .'Please use the member forgot-password flow to set a new password. '
-            .'If you did not request this, contact support immediately.',
-            function ($message) use ($email): void {
-                $message
-                    ->to($email)
-                    ->subject('Bourgo Arena password reset request');
-            },
-        );
+        // Generate and send OTP code.
+        // Since this is a job dispatched from the dashboard,
+        // the OtpService will handle the request origin logic.
+        $otpService->generate($identifier);
     }
 }

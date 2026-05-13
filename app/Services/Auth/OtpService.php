@@ -2,7 +2,10 @@
 
 namespace App\Services\Auth;
 
+use App\Channels\SmsChannel;
+use App\Models\Member;
 use App\Models\OtpCode;
+use App\Models\User;
 use App\Notifications\SendOtpCode;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
@@ -44,7 +47,21 @@ class OtpService
 
     public function send(string $identifier, string $code): void
     {
+        $isApiRequest = request()->is('api/*') || request()->expectsJson();
+
         try {
+            // Logic based on request origin:
+            // If the request comes from the dashboard (not API) and we have a phone number,
+            // we check if the user has an email and prefer sending the OTP there.
+            if (! $isApiRequest && ! filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
+                $user = User::where('phone', $identifier)->first()
+                    ?? Member::where('phone', $identifier)->first();
+
+                if ($user && $user->email) {
+                    $identifier = $user->email;
+                }
+            }
+
             if (filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
                 Notification::route('mail', $identifier)->notify(new SendOtpCode($code));
             } else {
