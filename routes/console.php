@@ -11,3 +11,4 @@ Artisan::command('inspire', function () {
 Schedule::command('terminals:check-offline')->everyMinute();
 Schedule::command('analytics:aggregate-revenue')->dailyAt('03:00');
 Schedule::command('analytics:aggregate-occupancy')->dailyAt('03:00');
+Schedule::command('app:cleanup-unverified-accounts')->daily();

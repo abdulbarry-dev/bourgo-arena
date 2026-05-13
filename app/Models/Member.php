@@ -24,27 +24,66 @@ class Member extends Authenticatable
         'name',
         'email',
         'phone',
+        'email_verified_at',
+        'phone_verified_at',
         'date_of_birth',
         'gender',
         'emergency_contact',
         'avatar',
         'status',
         'rgpd_consented_at',
+        'onboarding_completed_at',
         'password',
         'is_family_account',
+        'otp_code',
+        'otp_expires_at',
+        'otp_attempts',
+        'otp_last_sent_at',
     ];
 
     protected $casts = [
         'date_of_birth' => 'date',
         'rgpd_consented_at' => 'datetime',
+        'email_verified_at' => 'datetime',
+        'phone_verified_at' => 'datetime',
+        'onboarding_completed_at' => 'datetime',
+        'otp_expires_at' => 'datetime',
+        'otp_last_sent_at' => 'datetime',
         'password' => 'hashed',
+        'otp_code' => 'hashed',
         'is_family_account' => 'boolean',
     ];
 
     protected $hidden = [
         'password',
+        'otp_code',
         'remember_token',
     ];
+
+    public function isVerified(): bool
+    {
+        return $this->email_verified_at !== null || $this->phone_verified_at !== null;
+    }
+
+    public function isOnboardingCompleted(): bool
+    {
+        return $this->onboarding_completed_at !== null;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    public function isPendingVerification(): bool
+    {
+        return $this->status === 'pending_verification';
+    }
+
+    public function isPendingOnboarding(): bool
+    {
+        return $this->status === 'pending_onboarding';
+    }
 
     public function parent(): BelongsTo
     {

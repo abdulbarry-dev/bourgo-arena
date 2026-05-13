@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\EnsureAccountIsVerified;
+use App\Http\Middleware\EnsureOnboardingIsCompleted;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\EnsureUserIsNotBanned;
 use App\Http\Middleware\ForceJsonResponse;
@@ -41,6 +43,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => EnsureUserHasRole::class,
             'terminal.auth' => TerminalAuthMiddleware::class,
+            'verified.account' => EnsureAccountIsVerified::class,
+            'onboarding.completed' => EnsureOnboardingIsCompleted::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

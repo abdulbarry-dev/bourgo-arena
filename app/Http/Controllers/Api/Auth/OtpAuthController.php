@@ -27,8 +27,11 @@ class OtpAuthController extends Controller
             return $this->error(__('User not found with this phone number.'), 404);
         }
 
-        $code = $this->otpService->generate($phone);
-        $this->otpService->send($phone, $code);
+        try {
+            $this->otpService->generate($phone);
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage(), 422);
+        }
 
         return $this->success(null, __('OTP code sent successfully.'));
     }
@@ -43,8 +46,12 @@ class OtpAuthController extends Controller
         $phone = $request->input('phone');
         $code = $request->input('otp');
 
-        if (! $this->otpService->verify($phone, $code)) {
-            return $this->error(__('Invalid or expired OTP code.'), 422);
+        try {
+            if (! $this->otpService->verify($phone, $code)) {
+                return $this->error(__('Invalid or expired OTP code.'), 422);
+            }
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage(), 422);
         }
 
         $user = Member::where('phone', $phone)->first()
@@ -54,10 +61,21 @@ class OtpAuthController extends Controller
             return $this->error(__('User not found.'), 404);
         }
 
-        $token = $user->createToken('mobile-app')->plainTextToken;
+        $tokenAbilities = ['*'];
+        $state = 'active';
+
+        if ($user instanceof Member) {
+            if (! $user->isOnboardingCompleted()) {
+                $tokenAbilities = ['onboarding'];
+                $state = 'pending_onboarding';
+            }
+        }
+
+        $token = $user->createToken('mobile-app', $tokenAbilities)->plainTextToken;
 
         return $this->success([
             'token' => $token,
+            'state' => $state,
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,

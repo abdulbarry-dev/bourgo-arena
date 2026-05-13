@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -30,6 +31,15 @@ class RateLimitServiceProvider extends ServiceProvider
      */
     protected function configureRateLimiting(): void
     {
+        if (app()->environment('testing')) {
+            Log::info('Rate limiting disabled for testing');
+            RateLimiter::for('api.auth', fn () => Limit::none());
+            RateLimiter::for('api.otp', fn () => Limit::none());
+            RateLimiter::for('api.password', fn () => Limit::none());
+
+            return;
+        }
+
         RateLimiter::for('api.auth', function (Request $request) {
             return [
                 Limit::perMinute(5)->by($request->ip())->response(function (Request $request, array $headers) {

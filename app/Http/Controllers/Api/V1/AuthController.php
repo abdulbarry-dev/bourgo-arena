@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\Auth\CompleteOnboardingRequest;
 use App\Http\Requests\Api\V1\Auth\CompleteRegistrationRequest;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
@@ -43,14 +44,47 @@ class AuthController extends Controller
         $credentials = $request->validated();
 
         try {
-            $result = $this->authService->login($credentials);
+            $member = Member::where('email', $credentials['email'] ?? null)
+                ->orWhere('phone', $credentials['phone'] ?? null)
+                ->first();
+
+            if (! $member || ! Hash::check($credentials['password'], $member->password)) {
+                return $this->error(__('auth.failed'), 401);
+            }
+
+            if (! $member->isVerified()) {
+                return $this->success([
+                    'code' => 'EMAIL_NOT_VERIFIED',
+                    'state' => 'pending_verification',
+                    'member' => new MemberResource($member),
+                ], __('Verification required.'), 200);
+            }
+
+            if (! $member->isOnboardingCompleted()) {
+                // Issue a limited token for onboarding?
+                // The prompt says "Do NOT issue full-access tokens for pending_verification users".
+                // It doesn't explicitly forbid it for pending_onboarding, but it says
+                // "verified but onboarding incomplete: Return: { "state": "pending_onboarding" }".
+                // I'll issue a token but with limited scope if possible, or just return the state.
+                $token = $member->createToken('auth_token', ['onboarding'])->plainTextToken;
+
+                return $this->success([
+                    'token' => $token,
+                    'state' => 'pending_onboarding',
+                    'member' => new MemberResource($member),
+                ], __('Onboarding required.'), 200);
+            }
+
+            // Fully active
+            $token = $member->createToken('auth_token', ['*'])->plainTextToken;
 
             return $this->success([
-                'token' => $result['token'],
-                'member' => new MemberResource($result['member']),
+                'token' => $token,
+                'state' => 'active',
+                'member' => new MemberResource($member),
             ], __('Logged in successfully.'));
-        } catch (ValidationException $e) {
-            return $this->error($e->getMessage(), 401, $e->errors());
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage(), 500);
         }
     }
 
@@ -65,11 +99,16 @@ class AuthController extends Controller
     {
         $member = $this->authService->register($request->validated());
 
-        return $this->success(
-            new MemberResource($member),
-            __('Registration successful. Please verify your account.'),
-            201
-        );
+        // Generate OTP immediately
+        $identifier = $member->email ?? $member->phone;
+        if ($identifier) {
+            $this->otpService->generate($identifier);
+        }
+
+        return $this->success([
+            'member' => new MemberResource($member),
+            'state' => 'pending_verification',
+        ], __('Registration successful. Please verify your account.'), 201);
     }
 
     /**
@@ -101,46 +140,55 @@ class AuthController extends Controller
      */
     public function verifyOtp(VerifyOtpRequest $request): JsonResponse
     {
-        if ($this->otpService->verify($request->identifier, $request->otp)) {
-            // Find the user (Member or User/Staff)
-            $user = Member::where('email', $request->identifier)
-                ->orWhere('phone', $request->identifier)
-                ->first()
-                ?? User::where('email', $request->identifier)
+        try {
+            if ($this->otpService->verify($request->identifier, $request->otp)) {
+                // Find the user (Member or User/Staff)
+                $user = Member::where('email', $request->identifier)
                     ->orWhere('phone', $request->identifier)
-                    ->first();
+                    ->first()
+                    ?? User::where('email', $request->identifier)
+                        ->orWhere('phone', $request->identifier)
+                        ->first();
 
-            if ($user) {
-                // Activate the user if they were pending (for members)
-                if (method_exists($user, 'update') && isset($user->status) && $user->status === 'pending') {
-                    $user->update(['status' => 'active']);
-                }
+                if ($user) {
+                    $tokenAbilities = ['*'];
+                    $state = 'active';
 
-                // Generate token for automatic login
-                $token = $user->createToken('auth_token')->plainTextToken;
+                    if ($user instanceof Member) {
+                        if (! $user->isOnboardingCompleted()) {
+                            $tokenAbilities = ['onboarding'];
+                            $state = 'pending_onboarding';
+                        }
+                    }
 
-                $responseData = [
-                    'valid' => true,
-                    'token' => $token,
-                ];
+                    $token = $user->createToken('auth_token', $tokenAbilities)->plainTextToken;
 
-                if ($user instanceof Member) {
-                    $responseData['member'] = new MemberResource($user);
-                } else {
-                    $responseData['user'] = [
-                        'id' => $user->id,
-                        'name' => $user->name,
-                        'email' => $user->email,
-                        'role' => $user->role,
+                    $responseData = [
+                        'valid' => true,
+                        'token' => $token,
+                        'state' => $state,
                     ];
+
+                    if ($user instanceof Member) {
+                        $responseData['member'] = new MemberResource($user);
+                    } else {
+                        $responseData['user'] = [
+                            'id' => $user->id,
+                            'name' => $user->name,
+                            'email' => $user->email,
+                            'role' => $user->role,
+                        ];
+                    }
+
+                    return $this->success($responseData, __('OTP verified successfully.'));
                 }
 
-                return $this->success($responseData, __('OTP verified successfully.'));
+                return $this->success([
+                    'valid' => true,
+                ], __('OTP verified successfully.'));
             }
-
-            return $this->success([
-                'valid' => true,
-            ], __('OTP verified successfully.'));
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage(), 422);
         }
 
         return $this->error(__('Invalid or expired OTP code.'), 422);
@@ -160,7 +208,11 @@ class AuthController extends Controller
             return $this->error(__('No contact information found for this account.'), 422);
         }
 
-        $this->otpService->generate($identifier);
+        try {
+            $this->otpService->generate($identifier);
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage(), 422);
+        }
 
         return $this->success(null, __('OTP code sent to your registered contact information.'));
     }
@@ -202,7 +254,20 @@ class AuthController extends Controller
                 ->first();
 
         if ($user) {
-            $this->otpService->generate($identifier);
+            if ($user instanceof Member && ! $user->isVerified()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('Your account is not verified. Please verify your account first.'),
+                    'code' => 'EMAIL_NOT_VERIFIED',
+                    'state' => 'pending_verification',
+                ], 403);
+            }
+
+            try {
+                $this->otpService->generate($identifier);
+            } catch (\Exception $e) {
+                return $this->error($e->getMessage(), 422);
+            }
         }
 
         return $this->success(null, __('If an account exists with this identifier, an OTP has been sent.'));
@@ -215,16 +280,29 @@ class AuthController extends Controller
      */
     public function resetPassword(ResetPasswordRequest $request): JsonResponse
     {
-        if (! $this->otpService->verify($request->identifier, $request->otp)) {
-            return $this->error(__('Invalid or expired OTP code.'), 422);
-        }
-
         $user = Member::where('email', $request->identifier)
             ->orWhere('phone', $request->identifier)
             ->first()
             ?? User::where('email', $request->identifier)
                 ->orWhere('phone', $request->identifier)
                 ->first();
+
+        if ($user && $user instanceof Member && ! $user->isVerified()) {
+            return response()->json([
+                'success' => false,
+                'message' => __('Your account is not verified.'),
+                'code' => 'EMAIL_NOT_VERIFIED',
+                'state' => 'pending_verification',
+            ], 403);
+        }
+
+        try {
+            if (! $this->otpService->verify($request->identifier, $request->otp)) {
+                return $this->error(__('Invalid or expired OTP code.'), 422);
+            }
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage(), 422);
+        }
 
         if (! $user) {
             return $this->error(__('User not found.'), 404);
@@ -265,5 +343,28 @@ class AuthController extends Controller
             __('Registration completed successfully.'),
             201
         );
+    }
+
+    /**
+     * Complete onboarding for a verified member.
+     */
+    public function completeOnboarding(CompleteOnboardingRequest $request): JsonResponse
+    {
+        $member = $request->user();
+
+        if (! $member instanceof Member) {
+            return $this->error(__('Unauthorized.'), 401);
+        }
+
+        $member->update([
+            ...$request->validated(),
+            'onboarding_completed_at' => now(),
+            'status' => 'active',
+        ]);
+
+        return $this->success([
+            'member' => new MemberResource($member),
+            'state' => 'active',
+        ], __('Onboarding completed successfully.'));
     }
 }

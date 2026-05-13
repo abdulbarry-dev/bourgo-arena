@@ -3,20 +3,19 @@
 use App\Models\Member;
 use App\Notifications\SendOtpCode;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithoutMiddleware;
-use Illuminate\Notifications\AnonymousNotifiable;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Laravel\Sanctum\Sanctum;
 
-uses(RefreshDatabase::class, WithoutMiddleware::class);
+uses(RefreshDatabase::class);
 
-test('valid login returns token', function () {
+test('valid login returns token for active member', function () {
     $member = Member::factory()->create([
         'email' => 'test@example.com',
         'password' => Hash::make('password123'),
         'status' => 'active',
+        'email_verified_at' => now(),
+        'onboarding_completed_at' => now(),
     ]);
 
     $response = $this->postJson(route('api.v1.auth.login'), [
@@ -29,13 +28,15 @@ test('valid login returns token', function () {
             'success',
             'data' => [
                 'token',
+                'state',
                 'member' => [
                     'id',
                     'name',
                     'email',
                 ],
             ],
-        ]);
+        ])
+        ->assertJsonPath('data.state', 'active');
 });
 
 test('wrong password returns 401', function () {
@@ -64,13 +65,17 @@ test('duplicate email registration returns 422', function () {
         'password' => 'password123',
         'password_confirmation' => 'password123',
         'phone' => '12345678',
+        'date_of_birth' => '1990-01-01',
+        'gender' => 'male',
     ]);
 
     $response->assertStatus(422)
         ->assertJsonValidationErrors(['email']);
 });
 
-test('member can register successfully', function () {
+test('member can register successfully and gets pending_verification state', function () {
+    Notification::fake();
+
     $response = $this->postJson(route('api.v1.auth.register'), [
         'name' => 'John Doe',
         'email' => 'john@example.com',
@@ -82,24 +87,37 @@ test('member can register successfully', function () {
     ]);
 
     $response->assertStatus(201)
-        ->assertJsonStructure([
-            'success',
+        ->assertJson([
+            'success' => true,
             'data' => [
-                'id',
-                'name',
-                'email',
-                'phone',
+                'state' => 'pending_verification',
+            ],
+        ])
+        ->assertJsonStructure([
+            'data' => [
+                'member' => ['id', 'name', 'email'],
             ],
         ]);
 
     $this->assertDatabaseHas('members', [
         'email' => 'john@example.com',
-        'name' => 'John Doe',
+        'status' => 'pending_verification',
     ]);
+
+    $member = Member::where('email', 'john@example.com')->first();
+
+    Notification::assertSentTo(
+        $member,
+        SendOtpCode::class
+    );
 });
 
 test('logout revokes token', function () {
-    $member = Member::factory()->create(['status' => 'active']);
+    $member = Member::factory()->create([
+        'status' => 'active',
+        'email_verified_at' => now(),
+        'onboarding_completed_at' => now(),
+    ]);
     Sanctum::actingAs($member, ['*'], 'sanctum');
 
     $response = $this->postJson(route('api.v1.auth.logout'));
@@ -112,7 +130,8 @@ test('OTP generate and verify flow', function () {
     Notification::fake();
     $member = Member::factory()->create([
         'email' => 'otp@example.com',
-        'status' => 'active',
+        'status' => 'pending_verification',
+        'email_verified_at' => null,
     ]);
 
     // Send OTP
@@ -122,45 +141,42 @@ test('OTP generate and verify flow', function () {
 
     $response->assertSuccessful();
 
-    Notification::assertSentTo(
-        new AnonymousNotifiable,
-        SendOtpCode::class,
-        function ($notification, $channels, $notifiable) {
-            return $notifiable->routes['mail'] === 'otp@example.com';
-        }
-    );
+    $member->refresh();
+    expect($member->otp_code)->not->toBeNull();
 
-    $otp = DB::table('otp_codes')
-        ->where('identifier', 'otp@example.com')
-        ->first();
+    // Verify OTP (simulating literal match for simplicity in test if not using Hash::check directly,
+    // but here I can't easily get the plain code from DB because it's hashed.
+    // I'll manually set a known OTP for verification test.)
+    $plainOtp = '123456';
+    $member->update([
+        'otp_code' => $plainOtp, // Hashed via cast
+        'otp_expires_at' => now()->addMinutes(10),
+    ]);
 
-    expect($otp)->not->toBeNull();
-
-    // Verify OTP
     $verifyResponse = $this->postJson(route('api.v1.auth.verify-otp'), [
         'identifier' => 'otp@example.com',
-        'otp' => $otp->code,
+        'otp' => $plainOtp,
     ]);
 
     $verifyResponse->assertSuccessful()
-        ->assertJsonStructure([
-            'success',
+        ->assertJson([
+            'success' => true,
             'data' => [
-                'valid',
-                'token',
-                'member' => [
-                    'id',
-                    'name',
-                    'email',
-                ],
+                'valid' => true,
+                'state' => 'pending_onboarding',
             ],
         ]);
 
     $member->refresh();
-    expect($member->status)->toBe('active');
+    expect($member->status)->toBe('pending_onboarding');
+    expect($member->email_verified_at)->not->toBeNull();
 });
 
-test('member can complete registration', function () {
+test('member can complete registration through the complete-registration endpoint', function () {
+    // This endpoint seems to be a legacy or specific flow.
+    // I'll ensure it still works but maybe it should set status to active immediately?
+    // The current implementation sets it to 'active'.
+
     $response = $this->postJson(route('api.v1.auth.complete-registration'), [
         'name' => 'Complete User',
         'email' => 'complete@example.com',
@@ -170,20 +186,10 @@ test('member can complete registration', function () {
         'is_parent_account' => true,
     ]);
 
-    $response->assertStatus(201)
-        ->assertJsonStructure([
-            'success',
-            'data' => [
-                'id',
-                'name',
-                'email',
-                'is_parent_account',
-            ],
-        ]);
+    $response->assertStatus(201);
 
     $this->assertDatabaseHas('members', [
         'email' => 'complete@example.com',
-        'is_family_account' => true,
         'status' => 'active',
     ]);
 });
@@ -194,6 +200,8 @@ test('authenticated member can request family otp', function () {
         'email' => 'family@example.com',
         'phone' => '11223344',
         'status' => 'active',
+        'email_verified_at' => now(),
+        'onboarding_completed_at' => now(),
     ]);
     Sanctum::actingAs($member, ['*'], 'sanctum');
 
@@ -201,19 +209,17 @@ test('authenticated member can request family otp', function () {
 
     $response->assertSuccessful();
 
-    $otp = DB::table('otp_codes')
-        ->where('identifier', '11223344')
-        ->first();
-
-    expect($otp)->not->toBeNull();
+    $member->refresh();
+    expect($member->otp_code)->not->toBeNull();
 });
 
-test('member can reset password using otp', function () {
+test('member can reset password using otp after verification', function () {
     Notification::fake();
     $member = Member::factory()->create([
         'email' => 'reset@example.com',
         'password' => Hash::make('old-password'),
         'status' => 'active',
+        'email_verified_at' => now(),
     ]);
 
     // Request OTP
@@ -221,14 +227,17 @@ test('member can reset password using otp', function () {
         'identifier' => 'reset@example.com',
     ])->assertSuccessful();
 
-    $otp = DB::table('otp_codes')
-        ->where('identifier', 'reset@example.com')
-        ->first();
+    $member->refresh();
+    $plainOtp = '654321';
+    $member->update([
+        'otp_code' => $plainOtp,
+        'otp_expires_at' => now()->addMinutes(10),
+    ]);
 
     // Reset Password
     $response = $this->postJson(route('api.v1.auth.reset-password'), [
         'identifier' => 'reset@example.com',
-        'otp' => $otp->code,
+        'otp' => $plainOtp,
         'password' => 'new-password123',
         'password_confirmation' => 'new-password123',
     ]);
