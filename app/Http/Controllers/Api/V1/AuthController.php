@@ -28,8 +28,9 @@ class AuthController extends Controller
     ) {}
 
     /**
-     * Handle a login request.
+     * @throttles api.auth (5 attempts per minute per IP or account identifier)
      *
+     * @response 429 TooManyRequestsResponse
      * @return array{success: bool, message: string, data: array{token: string, member: MemberResource}}
      */
     public function login(LoginRequest $request): JsonResponse
@@ -49,8 +50,9 @@ class AuthController extends Controller
     }
 
     /**
-     * Handle a registration request.
+     * @throttles api.auth (5 attempts per minute per IP)
      *
+     * @response 429 TooManyRequestsResponse
      * @return MemberResource
      */
     public function register(RegisterRequest $request): JsonResponse
@@ -74,7 +76,9 @@ class AuthController extends Controller
     }
 
     /**
-     * Send an OTP to the provided identifier.
+     * @throttles api.otp (3 attempts per 5 minutes per IP or identifier)
+     *
+     * @response 429 TooManyRequestsResponse
      */
     public function sendOtp(SendOtpRequest $request): JsonResponse
     {
@@ -84,7 +88,9 @@ class AuthController extends Controller
     }
 
     /**
-     * Verify the provided OTP.
+     * @throttles api.otp (3 attempts per 5 minutes per IP or identifier)
+     *
+     * @response 429 TooManyRequestsResponse
      */
     public function verifyOtp(VerifyOtpRequest $request): JsonResponse
     {
@@ -110,7 +116,9 @@ class AuthController extends Controller
     }
 
     /**
-     * Send an OTP to the authenticated member's identifier.
+     * @throttles api.otp (3 attempts per 5 minutes per user)
+     *
+     * @response 429 TooManyRequestsResponse
      */
     public function requestFamilyOtp(Request $request): JsonResponse
     {
@@ -127,7 +135,9 @@ class AuthController extends Controller
     }
 
     /**
-     * Update the authenticated member's password.
+     * @throttles api.password (5 attempts per minute per user)
+     *
+     * @response 429 TooManyRequestsResponse
      */
     public function updatePassword(UpdatePasswordRequest $request): JsonResponse
     {
@@ -145,8 +155,9 @@ class AuthController extends Controller
     }
 
     /**
-     * Finalize profile data during the registration flow.
+     * @throttles api.auth (5 attempts per minute per IP)
      *
+     * @response 429 TooManyRequestsResponse
      * @return MemberResource
      */
     public function completeRegistration(CompleteRegistrationRequest $request): JsonResponse

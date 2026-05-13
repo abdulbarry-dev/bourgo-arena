@@ -31,3 +31,22 @@ test('it returns custom 404 json for unknown endpoint', function () {
             'message' => 'Endpoint not found.',
         ]);
 });
+
+test('it returns custom 429 json for throttled requests', function () {
+    // We hit the send-otp route multiple times to trigger throttling
+    // Rate limit for api.otp is 3 attempts per minute per IP
+    for ($i = 0; $i < 4; $i++) {
+        $response = $this->postJson('/api/v1/auth/send-otp', ['identifier' => 'test@example.com']);
+    }
+
+    $response->assertStatus(429)
+        ->assertJsonStructure([
+            'success',
+            'message',
+        ])
+        ->assertJson([
+            'success' => false,
+        ]);
+
+    expect($response->json('message'))->toContain('Too many');
+});

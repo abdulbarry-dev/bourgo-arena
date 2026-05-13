@@ -307,4 +307,15 @@ class SchemaDefinitions
                 ->addProperty('checked_in_at', (new StringType)->format('date-time')->example('2024-05-12T14:30:00Z'))
         );
     }
+
+    public static function tooManyRequestsResponse(): Schema
+    {
+        return Schema::fromType(
+            (new ObjectType)
+                ->addProperty('success', (new BooleanType)->example(false))
+                ->addProperty('message', (new StringType)
+                    ->example('Too many requests. Please try again in 60 seconds.')
+                    ->setDescription('A message explaining the rate limit violation and cooling period.'))
+        );
+    }
 }

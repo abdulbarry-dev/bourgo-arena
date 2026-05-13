@@ -21,15 +21,15 @@ Route::prefix('v1')->group(function () {
     Route::get('courses', [CourseController::class, 'index'])->name('api.v1.courses.index');
 
     Route::prefix('auth')->group(function () {
-        Route::post('login', [AuthController::class, 'login'])->name('api.v1.auth.login');
-        Route::post('register', [AuthController::class, 'register'])->name('api.v1.auth.register');
-        Route::post('send-otp', [AuthController::class, 'sendOtp'])->name('api.v1.auth.send-otp');
-        Route::post('verify-otp', [AuthController::class, 'verifyOtp'])->name('api.v1.auth.verify-otp');
-        Route::post('complete-registration', [AuthController::class, 'completeRegistration'])->name('api.v1.auth.complete-registration');
+        Route::post('login', [AuthController::class, 'login'])->middleware('throttle:api.auth')->name('api.v1.auth.login');
+        Route::post('register', [AuthController::class, 'register'])->middleware('throttle:api.auth')->name('api.v1.auth.register');
+        Route::post('send-otp', [AuthController::class, 'sendOtp'])->middleware('throttle:api.otp')->name('api.v1.auth.send-otp');
+        Route::post('verify-otp', [AuthController::class, 'verifyOtp'])->middleware('throttle:api.otp')->name('api.v1.auth.verify-otp');
+        Route::post('complete-registration', [AuthController::class, 'completeRegistration'])->middleware('throttle:api.auth')->name('api.v1.auth.complete-registration');
 
         Route::middleware('auth:sanctum')->group(function () {
             Route::post('logout', [AuthController::class, 'logout'])->name('api.v1.auth.logout');
-            Route::post('request-family-otp', [AuthController::class, 'requestFamilyOtp'])->name('api.v1.auth.request-family-otp');
+            Route::post('request-family-otp', [AuthController::class, 'requestFamilyOtp'])->middleware('throttle:api.otp')->name('api.v1.auth.request-family-otp');
         });
     });
 
@@ -41,7 +41,7 @@ Route::prefix('v1')->group(function () {
         Route::prefix('user')->group(function () {
             Route::get('profile', [MemberController::class, 'profile'])->name('api.v1.user.profile');
             Route::put('profile', [MemberController::class, 'updateProfile'])->name('api.v1.user.update-profile');
-            Route::put('password', [AuthController::class, 'updatePassword'])->name('api.v1.user.update-password');
+            Route::put('password', [AuthController::class, 'updatePassword'])->middleware('throttle:api.password')->name('api.v1.user.update-password');
         });
 
         Route::get('reservations', [ReservationController::class, 'index'])->name('api.v1.reservations.index');
