@@ -25,6 +25,8 @@ Route::prefix('v1')->group(function () {
         Route::post('register', [AuthController::class, 'register'])->middleware('throttle:api.auth')->name('api.v1.auth.register');
         Route::post('send-otp', [AuthController::class, 'sendOtp'])->middleware('throttle:api.otp')->name('api.v1.auth.send-otp');
         Route::post('verify-otp', [AuthController::class, 'verifyOtp'])->middleware('throttle:api.otp')->name('api.v1.auth.verify-otp');
+        Route::post('forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:api.otp')->name('api.v1.auth.forgot-password');
+        Route::post('reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:api.otp')->name('api.v1.auth.reset-password');
         Route::post('complete-registration', [AuthController::class, 'completeRegistration'])->middleware('throttle:api.auth')->name('api.v1.auth.complete-registration');
 
         Route::middleware('auth:sanctum')->group(function () {

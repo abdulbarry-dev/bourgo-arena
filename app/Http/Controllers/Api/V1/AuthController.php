@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Auth\CompleteRegistrationRequest;
+use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Requests\Auth\SendOtpRequest;
 use App\Http\Requests\Auth\UpdatePasswordRequest;
 use App\Http\Requests\Auth\VerifyOtpRequest;
@@ -16,6 +18,7 @@ use App\Services\Auth\OtpService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -143,6 +146,50 @@ class AuthController extends Controller
         } catch (ValidationException $e) {
             return $this->error($e->getMessage(), 422, $e->errors());
         }
+    }
+
+    /**
+     * @throttles api.otp (3 attempts per 5 minutes per IP or identifier)
+     *
+     * @response 429 TooManyRequestsResponse
+     */
+    public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
+    {
+        $member = Member::where('email', $request->identifier)
+            ->orWhere('phone', $request->identifier)
+            ->first();
+
+        if ($member) {
+            $this->otpService->generate($request->identifier);
+        }
+
+        return $this->success(null, __('If an account exists with this identifier, an OTP has been sent.'));
+    }
+
+    /**
+     * @throttles api.otp (3 attempts per 5 minutes per IP or identifier)
+     *
+     * @response 429 TooManyRequestsResponse
+     */
+    public function resetPassword(ResetPasswordRequest $request): JsonResponse
+    {
+        if (! $this->otpService->verify($request->identifier, $request->otp)) {
+            return $this->error(__('Invalid or expired OTP code.'), 422);
+        }
+
+        $member = Member::where('email', $request->identifier)
+            ->orWhere('phone', $request->identifier)
+            ->first();
+
+        if (! $member) {
+            return $this->error(__('User not found.'), 404);
+        }
+
+        $member->update([
+            'password' => Hash::make($request->password),
+        ]);
+
+        return $this->success(null, __('Password reset successfully.'));
     }
 
     /**

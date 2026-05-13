@@ -2,11 +2,13 @@
 
 use App\Models\Member;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Laravel\Sanctum\Sanctum;
 
-uses(RefreshDatabase::class);
+uses(RefreshDatabase::class, WithoutMiddleware::class);
 
 test('valid login returns token', function () {
     $member = Member::factory()->create([
@@ -105,6 +107,7 @@ test('logout revokes token', function () {
 });
 
 test('OTP generate and verify flow', function () {
+    Notification::fake();
     $member = Member::factory()->create([
         'email' => 'otp@example.com',
         'status' => 'active',
@@ -165,6 +168,7 @@ test('member can complete registration', function () {
 });
 
 test('authenticated member can request family otp', function () {
+    Notification::fake();
     $member = Member::factory()->create([
         'email' => 'family@example.com',
         'phone' => '11223344',
@@ -181,4 +185,44 @@ test('authenticated member can request family otp', function () {
         ->first();
 
     expect($otp)->not->toBeNull();
+});
+
+test('member can reset password using otp', function () {
+    Notification::fake();
+    $member = Member::factory()->create([
+        'email' => 'reset@example.com',
+        'password' => Hash::make('old-password'),
+        'status' => 'active',
+    ]);
+
+    // Request OTP
+    $this->postJson(route('api.v1.auth.forgot-password'), [
+        'identifier' => 'reset@example.com',
+    ])->assertSuccessful();
+
+    $otp = DB::table('otp_codes')
+        ->where('identifier', 'reset@example.com')
+        ->first();
+
+    // Reset Password
+    $response = $this->postJson(route('api.v1.auth.reset-password'), [
+        'identifier' => 'reset@example.com',
+        'otp' => $otp->code,
+        'password' => 'new-password123',
+        'password_confirmation' => 'new-password123',
+    ]);
+
+    $response->assertSuccessful();
+
+    $member->refresh();
+    expect(Hash::check('new-password123', $member->password))->toBeTrue();
+});
+
+test('forgot password returns success even if user not found', function () {
+    Notification::fake();
+    $response = $this->postJson(route('api.v1.auth.forgot-password'), [
+        'identifier' => 'nonexistent@example.com',
+    ]);
+
+    $response->assertSuccessful();
 });

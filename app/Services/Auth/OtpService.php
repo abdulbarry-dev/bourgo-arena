@@ -3,7 +3,9 @@
 namespace App\Services\Auth;
 
 use App\Models\OtpCode;
+use App\Notifications\SendOtpCode;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 
 class OtpService
 {
@@ -42,6 +44,23 @@ class OtpService
 
     public function send(string $identifier, string $code): void
     {
-        Log::info("OTP Code for {$identifier}: {$code}");
+        try {
+            if (filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
+                Notification::route('mail', $identifier)->notify(new SendOtpCode($code));
+            } else {
+                // For phone numbers, we log it since no SMS provider is configured yet
+                Log::info("OTP Code for {$identifier}: {$code}");
+            }
+        } catch (\Exception $e) {
+            Log::error("Failed to send OTP to {$identifier}: ".$e->getMessage());
+
+            // In local/testing environments, we log the code anyway as a fallback
+            if (app()->environment('local', 'testing')) {
+                Log::info("OTP Code (fallback log) for {$identifier}: {$code}");
+            } else {
+                // In production, we might still want to know it failed
+                throw $e;
+            }
+        }
     }
 }
