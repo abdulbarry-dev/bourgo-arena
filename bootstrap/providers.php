@@ -1,13 +1,10 @@
 <?php
 
-use App\Providers\AppServiceProvider;
-use App\Providers\AuthServiceProvider;
-use App\Providers\FortifyServiceProvider;
-use App\Providers\PaymentServiceProvider;
-
 return [
-    AppServiceProvider::class,
-    AuthServiceProvider::class,
-    FortifyServiceProvider::class,
-    PaymentServiceProvider::class,
+    App\Providers\AppServiceProvider::class,
+    App\Providers\AuthServiceProvider::class,
+    App\Providers\FortifyServiceProvider::class,
+    App\Providers\OpenApiServiceProvider::class,
+    App\Providers\PaymentServiceProvider::class,
+    App\Providers\RateLimitServiceProvider::class,
 ];
