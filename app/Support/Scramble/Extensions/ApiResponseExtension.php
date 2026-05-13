@@ -73,6 +73,11 @@ class ApiResponseExtension extends OperationExtension
                         'App\\Http\\Resources\\Api\\V1\\SubscriptionResource', 'SubscriptionResource' => 'Subscription',
                         'App\\Http\\Resources\\Api\\V1\\NotificationResource', 'NotificationResource' => 'Notification',
                         'App\\Http\\Resources\\Api\\V1\\ApiReservationResource', 'ApiReservationResource' => 'Reservation',
+                        'App\\Http\\Resources\\Api\\V1\\ActivityResource', 'ActivityResource' => 'Activity',
+                        'App\\Http\\Resources\\Api\\V1\\ActivitySlotResource', 'ActivitySlotResource' => 'ActivitySlot',
+                        'App\\Http\\Resources\\Api\\V1\\CourseResource', 'CourseResource' => 'Course',
+                        'App\\Http\\Resources\\Api\\V1\\SearchResultResource', 'SearchResultResource' => 'SearchResult',
+                        'App\\Http\\Resources\\Api\\TerminalCheckInResource', 'TerminalCheckInResource' => 'TerminalCheckIn',
                         'App\\Models\\User', 'User' => 'User',
                         default => null,
                     };
