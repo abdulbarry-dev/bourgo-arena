@@ -101,6 +101,27 @@ class AuthController extends Controller
     public function verifyOtp(VerifyOtpRequest $request): JsonResponse
     {
         if ($this->otpService->verify($request->identifier, $request->otp)) {
+            // Find the user
+            $member = Member::where('email', $request->identifier)
+                ->orWhere('phone', $request->identifier)
+                ->first();
+
+            if ($member) {
+                // Activate the user if they were pending
+                if ($member->status === 'pending') {
+                    $member->update(['status' => 'active']);
+                }
+
+                // Generate token for automatic login
+                $token = $member->createToken('auth_token')->plainTextToken;
+
+                return $this->success([
+                    'valid' => true,
+                    'token' => $token,
+                    'member' => new MemberResource($member),
+                ], __('OTP verified successfully.'));
+            }
+
             return $this->success([
                 'valid' => true,
             ], __('OTP verified successfully.'));

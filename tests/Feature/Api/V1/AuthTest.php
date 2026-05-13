@@ -1,8 +1,10 @@
 <?php
 
 use App\Models\Member;
+use App\Notifications\SendOtpCode;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
+use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
@@ -120,6 +122,14 @@ test('OTP generate and verify flow', function () {
 
     $response->assertSuccessful();
 
+    Notification::assertSentTo(
+        new AnonymousNotifiable,
+        SendOtpCode::class,
+        function ($notification, $channels, $notifiable) {
+            return $notifiable->routes['mail'] === 'otp@example.com';
+        }
+    );
+
     $otp = DB::table('otp_codes')
         ->where('identifier', 'otp@example.com')
         ->first();
@@ -135,8 +145,19 @@ test('OTP generate and verify flow', function () {
     $verifyResponse->assertSuccessful()
         ->assertJsonStructure([
             'success',
-            'data' => ['valid'],
+            'data' => [
+                'valid',
+                'token',
+                'member' => [
+                    'id',
+                    'name',
+                    'email',
+                ],
+            ],
         ]);
+
+    $member->refresh();
+    expect($member->status)->toBe('active');
 });
 
 test('member can complete registration', function () {

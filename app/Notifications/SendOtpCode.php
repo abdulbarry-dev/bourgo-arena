@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Channels\SmsChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -25,7 +26,13 @@ class SendOtpCode extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        $identifier = $notifiable->routeNotificationFor('mail') ?: $notifiable->email;
+
+        if ($identifier && filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
+            return ['mail'];
+        }
+
+        return [SmsChannel::class];
     }
 
     /**
@@ -40,6 +47,17 @@ class SendOtpCode extends Notification
             ->line($this->code)
             ->line(__('This code will expire in :minutes minutes.', ['minutes' => config('otp.expiry', 10)]))
             ->line(__('If you did not request this code, no further action is required.'));
+    }
+
+    /**
+     * Get the SMS representation of the notification.
+     */
+    public function toSms(object $notifiable): string
+    {
+        return __('Your verification code is: :code. Valid for :minutes minutes.', [
+            'code' => $this->code,
+            'minutes' => config('otp.expiry', 10),
+        ]);
     }
 
     /**

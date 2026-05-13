@@ -48,8 +48,8 @@ class OtpService
             if (filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
                 Notification::route('mail', $identifier)->notify(new SendOtpCode($code));
             } else {
-                // For phone numbers, we log it since no SMS provider is configured yet
-                Log::info("OTP Code for {$identifier}: {$code}");
+                // For phone numbers, we use the custom SmsChannel
+                Notification::route(SmsChannel::class, $identifier)->notify(new SendOtpCode($code));
             }
         } catch (\Exception $e) {
             Log::error("Failed to send OTP to {$identifier}: ".$e->getMessage());
