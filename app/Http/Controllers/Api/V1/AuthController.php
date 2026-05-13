@@ -36,11 +36,14 @@ class AuthController extends Controller
      */
     public function login(LoginRequest $request): JsonResponse
     {
+        $credentials = $request->validated();
+
         try {
-            $result = $this->authService->login($request->validated());
+            $result = $this->authService->login($credentials);
 
             return $this->success([
                 'token' => $result['token'],
+                'member' => new MemberResource($result['member']),
             ], __('Logged in successfully.'));
         } catch (ValidationException $e) {
             return $this->error($e->getMessage(), 401, $e->errors());
@@ -157,6 +160,8 @@ class AuthController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'phone' => $validated['phone'],
+            'date_of_birth' => $validated['date_of_birth'],
+            'gender' => $validated['gender'],
             'is_family_account' => $validated['is_parent_account'],
             'status' => 'active',
         ];

@@ -25,6 +25,11 @@ test('valid login returns token', function () {
             'success',
             'data' => [
                 'token',
+                'member' => [
+                    'id',
+                    'name',
+                    'email',
+                ],
             ],
         ]);
 });
@@ -59,6 +64,34 @@ test('duplicate email registration returns 422', function () {
 
     $response->assertStatus(422)
         ->assertJsonValidationErrors(['email']);
+});
+
+test('member can register successfully', function () {
+    $response = $this->postJson(route('api.v1.auth.register'), [
+        'name' => 'John Doe',
+        'email' => 'john@example.com',
+        'phone' => '1234567890',
+        'password' => 'password123',
+        'password_confirmation' => 'password123',
+        'date_of_birth' => '1990-01-01',
+        'gender' => 'male',
+    ]);
+
+    $response->assertStatus(201)
+        ->assertJsonStructure([
+            'success',
+            'data' => [
+                'id',
+                'name',
+                'email',
+                'phone',
+            ],
+        ]);
+
+    $this->assertDatabaseHas('members', [
+        'email' => 'john@example.com',
+        'name' => 'John Doe',
+    ]);
 });
 
 test('logout revokes token', function () {
@@ -101,4 +134,51 @@ test('OTP generate and verify flow', function () {
             'success',
             'data' => ['valid'],
         ]);
+});
+
+test('member can complete registration', function () {
+    $response = $this->postJson(route('api.v1.auth.complete-registration'), [
+        'name' => 'Complete User',
+        'email' => 'complete@example.com',
+        'phone' => '987654321',
+        'date_of_birth' => '1995-05-05',
+        'gender' => 'female',
+        'is_parent_account' => true,
+    ]);
+
+    $response->assertStatus(201)
+        ->assertJsonStructure([
+            'success',
+            'data' => [
+                'id',
+                'name',
+                'email',
+                'is_parent_account',
+            ],
+        ]);
+
+    $this->assertDatabaseHas('members', [
+        'email' => 'complete@example.com',
+        'is_family_account' => true,
+        'status' => 'active',
+    ]);
+});
+
+test('authenticated member can request family otp', function () {
+    $member = Member::factory()->create([
+        'email' => 'family@example.com',
+        'phone' => '11223344',
+        'status' => 'active',
+    ]);
+    Sanctum::actingAs($member, ['*'], 'sanctum');
+
+    $response = $this->postJson(route('api.v1.auth.request-family-otp'));
+
+    $response->assertSuccessful();
+
+    $otp = DB::table('otp_codes')
+        ->where('identifier', '11223344')
+        ->first();
+
+    expect($otp)->not->toBeNull();
 });
