@@ -16,7 +16,7 @@ test('members can access member api routes', function () {
     $response = $this->getJson('/api/v1/member/profile');
 
     $response->assertSuccessful()
-        ->assertJsonPath('data.id', $member->id);
+        ->assertJsonPath('data.id', (string) $member->id);
 });
 
 test('admins are forbidden from member api routes', function () {
