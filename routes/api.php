@@ -44,6 +44,7 @@ Route::prefix('v1')->group(function () {
             Route::get('profile', [MemberController::class, 'profile'])->name('api.v1.user.profile');
             Route::put('profile', [MemberController::class, 'updateProfile'])->name('api.v1.user.update-profile');
             Route::put('password', [AuthController::class, 'updatePassword'])->middleware('throttle:api.password')->name('api.v1.user.update-password');
+            Route::get('access-history', [MemberController::class, 'accessHistory'])->name('api.v1.user.access-history');
         });
 
         Route::get('reservations', [ReservationController::class, 'index'])->name('api.v1.reservations.index');
