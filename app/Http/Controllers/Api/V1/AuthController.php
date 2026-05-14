@@ -334,6 +334,7 @@ class AuthController extends Controller
             'gender' => $validated['gender'],
             'is_family_account' => $validated['is_parent_account'],
             'status' => 'active',
+            'onboarding_completed_at' => now(),
         ];
 
         $member = $this->authService->register($data);

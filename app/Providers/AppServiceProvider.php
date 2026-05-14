@@ -21,15 +21,15 @@ class AppServiceProvider extends ServiceProvider
     protected function registerMacros(): void
     {
         Router::macro('role', function (string ...$roles) {
-            return $this->middleware('role:' . implode(',', $roles));
+            return $this->middleware('role:'.implode(',', $roles));
         });
 
         RouteRegistrar::macro('role', function (string ...$roles) {
-            return $this->middleware('role:' . implode(',', $roles));
+            return $this->middleware('role:'.implode(',', $roles));
         });
 
         Route::macro('role', function (string ...$roles) {
-            return $this->middleware('role:' . implode(',', $roles));
+            return $this->middleware('role:'.implode(',', $roles));
         });
     }
 

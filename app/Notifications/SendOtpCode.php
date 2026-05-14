@@ -14,8 +14,10 @@ class SendOtpCode extends Notification
     /**
      * Create a new notification instance.
      */
-    public function __construct(public string $code)
-    {
+    public function __construct(
+        public string $code,
+        public ?string $preferredChannel = null
+    ) {
         //
     }
 
@@ -26,7 +28,15 @@ class SendOtpCode extends Notification
      */
     public function via(object $notifiable): array
     {
-        $identifier = $notifiable->routeNotificationFor('mail') ?: $notifiable->email;
+        if ($this->preferredChannel === 'mail') {
+            return ['mail'];
+        }
+
+        if ($this->preferredChannel === 'sms') {
+            return [SmsChannel::class];
+        }
+
+        $identifier = $notifiable->routeNotificationFor('mail') ?: ($notifiable->email ?? null);
 
         if ($identifier && filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
             return ['mail'];

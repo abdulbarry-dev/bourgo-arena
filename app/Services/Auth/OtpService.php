@@ -127,19 +127,25 @@ class OtpService
 
     public function send(string $identifier, string $code): void
     {
+        $isEmail = (bool) filter_var($identifier, FILTER_VALIDATE_EMAIL);
+        $preferredChannel = $isEmail ? 'mail' : 'sms';
+
+        // Check if we should re-route from phone to email for web requests
         $isApiRequest = request()->is('api/*') || request()->expectsJson();
+        $isConsole = app()->runningInConsole();
 
         try {
             $notifiable = null;
 
-            // Logic based on request origin
-            if (! $isApiRequest && ! filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
+            if (! $isApiRequest && ! $isConsole && ! $isEmail) {
+                // For non-API/non-Console requests, if it's a phone, try to find the user's email
                 $user = User::where('phone', $identifier)->first()
                     ?? Member::where('phone', $identifier)->first();
 
                 if ($user && $user->email) {
                     $identifier = $user->email;
                     $notifiable = $user;
+                    $preferredChannel = 'mail';
                 }
             }
 
@@ -149,11 +155,14 @@ class OtpService
             }
 
             if ($notifiable) {
-                $notifiable->notify(new SendOtpCode($code));
-            } elseif (filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
-                Notification::route('mail', $identifier)->notify(new SendOtpCode($code));
+                Log::info("Sending OTP to found notifiable ({$identifier}) via {$preferredChannel}");
+                $notifiable->notify(new SendOtpCode($code, $preferredChannel));
+            } elseif ($isEmail) {
+                Log::info("Sending OTP to email ({$identifier}) via mail (Anonymous)");
+                Notification::route('mail', $identifier)->notify(new SendOtpCode($code, 'mail'));
             } else {
-                Notification::route(SmsChannel::class, $identifier)->notify(new SendOtpCode($code));
+                Log::info("Sending OTP to phone ({$identifier}) via sms (Anonymous)");
+                Notification::route(SmsChannel::class, $identifier)->notify(new SendOtpCode($code, 'sms'));
             }
         } catch (\Exception $e) {
             Log::error("Failed to send OTP to {$identifier}: ".$e->getMessage());

@@ -132,6 +132,7 @@ test('OTP generate and verify flow', function () {
         'email' => 'otp@example.com',
         'status' => 'pending_verification',
         'email_verified_at' => null,
+        'onboarding_completed_at' => null,
     ]);
 
     // Send OTP

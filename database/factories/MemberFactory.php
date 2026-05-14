@@ -27,6 +27,8 @@ class MemberFactory extends Factory
             'emergency_contact' => fake()->phoneNumber(),
             'avatar' => null,
             'status' => 'pending',
+            'email_verified_at' => now(),
+            'onboarding_completed_at' => now(),
             'rgpd_consented_at' => now(),
             'password' => Hash::make('password'),
             'remember_token' => null,
@@ -37,6 +39,8 @@ class MemberFactory extends Factory
     {
         return $this->state([
             'status' => 'active',
+            'email_verified_at' => now(),
+            'onboarding_completed_at' => now(),
         ]);
     }
 }
