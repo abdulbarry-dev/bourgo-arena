@@ -1,7 +1,6 @@
 {
     "mcpServers": {
         "laravel-boost": {
-            "$typeName": "exa.cascade_plugins_pb.CascadePluginCommandTemplate",
             "command": "php",
             "args": [
                 "artisan",
@@ -10,7 +9,6 @@
             "env": {}
         },
         "dart-mcp-server": {
-            "$typeName": "exa.cascade_plugins_pb.CascadePluginCommandTemplate",
             "command": "dart",
             "args": [
                 "mcp-server"
@@ -18,7 +16,6 @@
             "env": {}
         },
         "postman-mcp-server": {
-            "$typeName": "exa.cascade_plugins_pb.CascadePluginCommandTemplate",
             "command": "npx",
             "args": [
                 "-y",

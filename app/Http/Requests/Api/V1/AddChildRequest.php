@@ -23,8 +23,9 @@ class AddChildRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'date_of_birth' => ['required', 'date', 'before:today'],
+            'first_name' => ['required', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+            'birth_date' => ['required', 'date', 'before:today'],
             'gender' => ['required', 'in:male,female'],
         ];
     }

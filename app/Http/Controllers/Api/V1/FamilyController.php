@@ -37,10 +37,12 @@ class FamilyController extends Controller
      */
     public function store(AddChildRequest $request): JsonResponse
     {
+        $validated = $request->validated();
+
         $child = $request->user()->children()->create([
-            'name' => $request->validated('name'),
-            'date_of_birth' => $request->validated('date_of_birth'),
-            'gender' => $request->validated('gender'),
+            'name' => trim(($validated['first_name'] ?? '').' '.($validated['last_name'] ?? '')),
+            'date_of_birth' => $validated['birth_date'],
+            'gender' => $validated['gender'],
             'status' => 'active',
             'password' => null,
         ]);

@@ -13,13 +13,16 @@ class CompleteRegistrationRequest extends BaseFormRequest
 
     public function rules(): array
     {
+        $memberId = auth()->guard('sanctum')->id();
+
         return [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:members,email'],
-            'phone' => ['required', 'string', 'max:20', 'unique:members,phone'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:members,email,'.$memberId],
+            'phone' => ['required', 'string', 'max:20', 'unique:members,phone,'.$memberId],
             'date_of_birth' => ['required', 'date', 'before:today'],
             'gender' => ['required', 'string', 'in:male,female'],
             'is_parent_account' => ['required', 'boolean'],
+            'pin' => ['required', 'string', 'size:4'],
         ];
     }
 }

@@ -65,11 +65,9 @@ test('OTP verification transitions to pending_onboarding and issues limited toke
         'onboarding_completed_at' => null,
     ]);
 
-    // Use a high-level service or direct DB update for simulation if needed,
-    // but here I'll just use the OTP verification flow.
     $otp = '123456';
     $member->update([
-        'otp_code' => $otp, // Will be hashed via cast
+        'otp_code' => $otp,
         'otp_expires_at' => now()->addMinutes(10),
     ]);
 
@@ -90,7 +88,6 @@ test('OTP verification transitions to pending_onboarding and issues limited toke
     expect($member->status)->toBe('pending_onboarding');
     expect($member->email_verified_at)->not->toBeNull();
 
-    // Check token abilities if possible, or just verify token is returned
     $response->assertJsonStructure(['data' => ['token']]);
 });
 
@@ -117,8 +114,11 @@ test('login returns pending_onboarding if verified but onboarding incomplete', f
         ]);
 });
 
-test('onboarding completion transitions to active', function () {
+test('registration completion transitions to active', function () {
     $member = Member::factory()->create([
+        'name' => 'John Doe',
+        'email' => 'john@example.com',
+        'phone' => '87654321',
         'status' => 'pending_onboarding',
         'email_verified_at' => now(),
         'onboarding_completed_at' => null,
@@ -126,9 +126,14 @@ test('onboarding completion transitions to active', function () {
 
     Sanctum::actingAs($member, ['onboarding'], 'sanctum');
 
-    $response = $this->postJson(route('api.v1.auth.complete-onboarding'), [
+    $response = $this->postJson(route('api.v1.auth.complete-registration'), [
+        'name' => 'John Doe',
+        'email' => 'john@example.com',
+        'phone' => '87654321',
         'date_of_birth' => '1992-02-02',
         'gender' => 'female',
+        'is_parent_account' => true,
+        'pin' => '1234',
     ]);
 
     $response->assertSuccessful()
@@ -142,6 +147,7 @@ test('onboarding completion transitions to active', function () {
     $member->refresh();
     expect($member->status)->toBe('active');
     expect($member->onboarding_completed_at)->not->toBeNull();
+    expect($member->pin)->not->toBeNull();
 });
 
 test('unverified users cannot access protected routes', function () {

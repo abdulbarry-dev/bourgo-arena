@@ -52,7 +52,7 @@ class AuthService
             'name' => $data['name'],
             'email' => $data['email'],
             'phone' => $data['phone'] ?? null,
-            'password' => isset($data['password']) ? $data['password'] : null,
+            'password' => isset($data['password']) ? Hash::make($data['password']) : null,
             'date_of_birth' => $data['date_of_birth'] ?? null,
             'gender' => $data['gender'] ?? null,
             'is_family_account' => $data['is_family_account'] ?? false,

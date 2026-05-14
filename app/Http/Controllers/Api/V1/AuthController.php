@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\V1\Auth\CompleteOnboardingRequest;
 use App\Http\Requests\Api\V1\Auth\CompleteRegistrationRequest;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
@@ -34,10 +33,6 @@ class AuthController extends Controller
 
     /**
      * @throttles api.auth (5 attempts per minute per IP or account identifier)
-     *
-     * @response 429 TooManyRequestsResponse
-     *
-     * @return array{success: bool, message: string, data: array{token: string, member: MemberResource}}
      */
     public function login(LoginRequest $request): JsonResponse
     {
@@ -56,23 +51,18 @@ class AuthController extends Controller
                 return $this->success([
                     'code' => 'EMAIL_NOT_VERIFIED',
                     'state' => 'pending_verification',
-                    'member' => new MemberResource($member),
-                ], __('Verification required.'), 200);
+                    'user' => new MemberResource($member),
+                ], __('Your account is not verified. Please verify your email/phone.'));
             }
 
             if (! $member->isOnboardingCompleted()) {
-                // Issue a limited token for onboarding?
-                // The prompt says "Do NOT issue full-access tokens for pending_verification users".
-                // It doesn't explicitly forbid it for pending_onboarding, but it says
-                // "verified but onboarding incomplete: Return: { "state": "pending_onboarding" }".
-                // I'll issue a token but with limited scope if possible, or just return the state.
                 $token = $member->createToken('auth_token', ['onboarding'])->plainTextToken;
 
                 return $this->success([
                     'token' => $token,
                     'state' => 'pending_onboarding',
-                    'member' => new MemberResource($member),
-                ], __('Onboarding required.'), 200);
+                    'user' => new MemberResource($member),
+                ], __('Please complete your profile to continue.'), 200);
             }
 
             // Fully active
@@ -81,7 +71,7 @@ class AuthController extends Controller
             return $this->success([
                 'token' => $token,
                 'state' => 'active',
-                'member' => new MemberResource($member),
+                'user' => new MemberResource($member),
             ], __('Logged in successfully.'));
         } catch (\Exception $e) {
             return $this->error($e->getMessage(), 500);
@@ -90,10 +80,6 @@ class AuthController extends Controller
 
     /**
      * @throttles api.auth (5 attempts per minute per IP)
-     *
-     * @response 429 TooManyRequestsResponse
-     *
-     * @return MemberResource
      */
     public function register(RegisterRequest $request): JsonResponse
     {
@@ -105,10 +91,14 @@ class AuthController extends Controller
             $this->otpService->generate($identifier);
         }
 
-        return $this->success([
-            'member' => new MemberResource($member),
-            'state' => 'pending_verification',
-        ], __('Registration successful. Please verify your account.'), 201);
+        return $this->success(
+            [
+                'user' => new MemberResource($member),
+                'state' => 'pending_verification',
+            ],
+            __('Registration successful. Please verify your email/phone.'),
+            201
+        );
     }
 
     /**
@@ -123,8 +113,6 @@ class AuthController extends Controller
 
     /**
      * @throttles api.otp (3 attempts per 5 minutes per IP or identifier)
-     *
-     * @response 429 TooManyRequestsResponse
      */
     public function sendOtp(SendOtpRequest $request): JsonResponse
     {
@@ -135,8 +123,6 @@ class AuthController extends Controller
 
     /**
      * @throttles api.otp (3 attempts per 5 minutes per IP or identifier)
-     *
-     * @response 429 TooManyRequestsResponse
      */
     public function verifyOtp(VerifyOtpRequest $request): JsonResponse
     {
@@ -155,32 +141,37 @@ class AuthController extends Controller
                     $state = 'active';
 
                     if ($user instanceof Member) {
+                        // Mark as verified
+                        if ($request->identifier === $user->email) {
+                            $user->update(['email_verified_at' => now()]);
+                        } else {
+                            $user->update(['phone_verified_at' => now()]);
+                        }
+
                         if (! $user->isOnboardingCompleted()) {
                             $tokenAbilities = ['onboarding'];
                             $state = 'pending_onboarding';
+                            $user->update(['status' => 'pending_onboarding']);
                         }
                     }
 
                     $token = $user->createToken('auth_token', $tokenAbilities)->plainTextToken;
 
-                    $responseData = [
-                        'valid' => true,
-                        'token' => $token,
-                        'state' => $state,
-                    ];
-
-                    if ($user instanceof Member) {
-                        $responseData['member'] = new MemberResource($user);
-                    } else {
-                        $responseData['user'] = [
+                    $userData = $user instanceof Member
+                        ? new MemberResource($user)
+                        : [
                             'id' => $user->id,
                             'name' => $user->name,
                             'email' => $user->email,
                             'role' => $user->role,
                         ];
-                    }
 
-                    return $this->success($responseData, __('OTP verified successfully.'));
+                    return $this->success([
+                        'valid' => true,
+                        'token' => $token,
+                        'state' => $state,
+                        'user' => $userData,
+                    ], __('OTP verified successfully.'));
                 }
 
                 return $this->success([
@@ -196,8 +187,6 @@ class AuthController extends Controller
 
     /**
      * @throttles api.otp (3 attempts per 5 minutes per user)
-     *
-     * @response 429 TooManyRequestsResponse
      */
     public function requestFamilyOtp(Request $request): JsonResponse
     {
@@ -219,8 +208,6 @@ class AuthController extends Controller
 
     /**
      * @throttles api.password (5 attempts per minute per user)
-     *
-     * @response 429 TooManyRequestsResponse
      */
     public function updatePassword(UpdatePasswordRequest $request): JsonResponse
     {
@@ -239,8 +226,6 @@ class AuthController extends Controller
 
     /**
      * @throttles api.otp (3 attempts per 5 minutes per IP or identifier)
-     *
-     * @response 429 TooManyRequestsResponse
      */
     public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
     {
@@ -275,8 +260,6 @@ class AuthController extends Controller
 
     /**
      * @throttles api.otp (3 attempts per 5 minutes per IP or identifier)
-     *
-     * @response 429 TooManyRequestsResponse
      */
     public function resetPassword(ResetPasswordRequest $request): JsonResponse
     {
@@ -317,55 +300,32 @@ class AuthController extends Controller
 
     /**
      * @throttles api.auth (5 attempts per minute per IP)
-     *
-     * @response 429 TooManyRequestsResponse
-     *
-     * @return MemberResource
      */
     public function completeRegistration(CompleteRegistrationRequest $request): JsonResponse
     {
         $validated = $request->validated();
+        $member = $request->user();
 
-        $data = [
+        $member->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'phone' => $validated['phone'],
             'date_of_birth' => $validated['date_of_birth'],
             'gender' => $validated['gender'],
             'is_family_account' => $validated['is_parent_account'],
+            'pin' => $validated['pin'],
             'status' => 'active',
             'onboarding_completed_at' => now(),
-        ];
-
-        $member = $this->authService->register($data);
-
-        return $this->success(
-            new MemberResource($member),
-            __('Registration completed successfully.'),
-            201
-        );
-    }
-
-    /**
-     * Complete onboarding for a verified member.
-     */
-    public function completeOnboarding(CompleteOnboardingRequest $request): JsonResponse
-    {
-        $member = $request->user();
-
-        if (! $member instanceof Member) {
-            return $this->error(__('Unauthorized.'), 401);
-        }
-
-        $member->update([
-            ...$request->validated(),
-            'onboarding_completed_at' => now(),
-            'status' => 'active',
         ]);
 
+        // Revoke current token and issue a new one with full abilities
+        $member->tokens()->delete();
+        $token = $member->createToken('auth_token')->plainTextToken;
+
         return $this->success([
-            'member' => new MemberResource($member),
+            'token' => $token,
             'state' => 'active',
-        ], __('Onboarding completed successfully.'));
+            'user' => new MemberResource($member),
+        ], __('Registration completed successfully.'));
     }
 }

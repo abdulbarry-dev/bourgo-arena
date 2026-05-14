@@ -2,9 +2,11 @@
 
 namespace Tests\Feature\Api\V1;
 
+use App\Channels\SmsChannel;
 use App\Models\Member;
 use App\Notifications\SendOtpCode;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
@@ -15,7 +17,7 @@ class ForgotPasswordTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->withoutMiddleware(\Illuminate\Routing\Middleware\ThrottleRequests::class);
+        $this->withoutMiddleware(ThrottleRequests::class);
     }
 
     public function test_forgot_password_sends_otp_email()
@@ -62,7 +64,7 @@ class ForgotPasswordTest extends TestCase
         Notification::assertSentTo(
             $member,
             SendOtpCode::class,
-            fn ($notification, $channels) => in_array(\App\Channels\SmsChannel::class, $channels)
+            fn ($notification, $channels) => in_array(SmsChannel::class, $channels)
         );
     }
 }

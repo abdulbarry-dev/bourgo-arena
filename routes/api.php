@@ -27,12 +27,11 @@ Route::prefix('v1')->group(function () {
         Route::post('verify-otp', [AuthController::class, 'verifyOtp'])->middleware('throttle:api.otp')->name('api.v1.auth.verify-otp');
         Route::post('forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:api.otp')->name('api.v1.auth.forgot-password');
         Route::post('reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:api.otp')->name('api.v1.auth.reset-password');
-        Route::post('complete-registration', [AuthController::class, 'completeRegistration'])->middleware('throttle:api.auth')->name('api.v1.auth.complete-registration');
-        Route::post('complete-onboarding', [AuthController::class, 'completeOnboarding'])->middleware('auth:sanctum')->name('api.v1.auth.complete-onboarding');
 
         Route::middleware('auth:sanctum')->group(function () {
             Route::post('logout', [AuthController::class, 'logout'])->name('api.v1.auth.logout');
             Route::post('request-family-otp', [AuthController::class, 'requestFamilyOtp'])->middleware('throttle:api.otp')->name('api.v1.auth.request-family-otp');
+            Route::post('complete-registration', [AuthController::class, 'completeRegistration'])->middleware('throttle:api.auth')->name('api.v1.auth.complete-registration');
         });
     });
 

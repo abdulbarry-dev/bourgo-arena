@@ -31,15 +31,26 @@ class RateLimitServiceProvider extends ServiceProvider
      */
     protected function configureRateLimiting(): void
     {
-        if (app()->environment('testing')) {
-            Log::info('Rate limiting disabled for testing');
-            RateLimiter::for('api.auth', fn () => Limit::none());
-            RateLimiter::for('api.otp', fn () => Limit::none());
-            RateLimiter::for('api.password', fn () => Limit::none());
+        // TODO: Enable rate limiting on production
+        // Temporarily disabled for development
+        Log::info('Rate limiting disabled for development');
+        RateLimiter::for('api.auth', fn () => Limit::none());
+        RateLimiter::for('api.otp', fn () => Limit::none());
+        RateLimiter::for('api.password', fn () => Limit::none());
 
-            return;
+        if (app()->isProduction()) {
+            Log::info('Rate limiting enabled for production');
+            $this->configureProductionRateLimiting();
         }
+    }
 
+    /**
+     * Configure production rate limiters.
+     *
+     * These limits should be enforced only in production.
+     */
+    protected function configureProductionRateLimiting(): void
+    {
         RateLimiter::for('api.auth', function (Request $request) {
             return [
                 Limit::perMinute(10)->by($request->ip())->response(function (Request $request, array $headers) {

@@ -39,6 +39,7 @@ class Member extends Authenticatable
         'otp_expires_at',
         'otp_attempts',
         'otp_last_sent_at',
+        'pin',
     ];
 
     protected $casts = [
@@ -51,12 +52,14 @@ class Member extends Authenticatable
         'otp_last_sent_at' => 'datetime',
         'password' => 'hashed',
         'otp_code' => 'hashed',
+        'pin' => 'hashed',
         'is_family_account' => 'boolean',
     ];
 
     protected $hidden = [
         'password',
         'otp_code',
+        'pin',
         'remember_token',
     ];
 

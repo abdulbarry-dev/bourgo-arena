@@ -17,7 +17,8 @@ class OtpService
 
     protected int $maxAttempts = 5;
 
-    protected int $resendCooldownSeconds = 60;
+    // TODO: Enable in production - currently disabled for development
+    protected int $resendCooldownSeconds = 0;
 
     public function generate(string $identifier): string
     {
@@ -30,8 +31,8 @@ class OtpService
             ->first();
 
         if ($member) {
-            // Check cooldown
-            if ($member->otp_last_sent_at && $member->otp_last_sent_at->addSeconds($this->resendCooldownSeconds)->isFuture()) {
+            // Check cooldown only in production
+            if ($this->resendCooldownSeconds > 0 && $member->otp_last_sent_at && $member->otp_last_sent_at->addSeconds($this->resendCooldownSeconds)->isFuture()) {
                 throw new \Exception(__('Please wait before requesting a new code.'));
             }
 
