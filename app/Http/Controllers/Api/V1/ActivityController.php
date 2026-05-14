@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\V1\ActivityResource;
 use App\Http\Resources\Api\V1\ActivitySlotResource;
 use App\Models\Activity;
+use App\Models\ActivitySlot;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
@@ -41,10 +42,11 @@ class ActivityController extends Controller
      *
      * @return AnonymousResourceCollection<ActivitySlotResource>
      */
-    public function slots(Activity $activity): AnonymousResourceCollection
+    public function slots(?Activity $activity = null): AnonymousResourceCollection
     {
-        $slots = $activity->slots()
-            ->where('is_available', true)
+        $query = $activity ? $activity->slots() : ActivitySlot::query();
+
+        $slots = $query->where('is_available', true)
             ->where('date', '>=', now()->toDateString())
             ->whereColumn('booked_count', '<', 'capacity')
             ->orderBy('date')

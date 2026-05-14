@@ -18,6 +18,7 @@ Route::prefix('v1')->group(function () {
     Route::get('activities', [ActivityController::class, 'index'])->name('api.v1.activities.index');
     Route::get('activities/{activity}', [ActivityController::class, 'show'])->name('api.v1.activities.show');
     Route::get('activities/{activity}/slots', [ActivityController::class, 'slots'])->name('api.v1.activities.slots');
+    Route::get('reservations/slots', [ActivityController::class, 'slots'])->name('api.v1.reservations.slots'); // Alias
     Route::get('courses', [CourseController::class, 'index'])->name('api.v1.courses.index');
 
     Route::prefix('auth')->group(function () {
@@ -30,9 +31,16 @@ Route::prefix('v1')->group(function () {
 
         Route::middleware('auth:sanctum')->group(function () {
             Route::post('logout', [AuthController::class, 'logout'])->name('api.v1.auth.logout');
+            Route::post('skip-additional-verification', [AuthController::class, 'skipAdditionalVerification'])->name('api.v1.auth.skip-additional-verification');
             Route::post('request-family-otp', [AuthController::class, 'requestFamilyOtp'])->middleware('throttle:api.otp')->name('api.v1.auth.request-family-otp');
             Route::post('complete-registration', [AuthController::class, 'completeRegistration'])->middleware('throttle:api.auth')->name('api.v1.auth.complete-registration');
         });
+    });
+
+    Route::middleware('auth:sanctum')->prefix('user')->group(function () {
+        Route::get('verification-status', [AuthController::class, 'verificationStatus'])->name('api.v1.user.verification-status');
+        Route::post('verify-email', [AuthController::class, 'verifyEmail'])->name('api.v1.auth.verify-email');
+        Route::post('verify-phone', [AuthController::class, 'verifyPhone'])->name('api.v1.auth.verify-phone');
     });
 
     Route::middleware(['auth:sanctum', 'verified.account', 'onboarding.completed'])->group(function () {
@@ -55,8 +63,11 @@ Route::prefix('v1')->group(function () {
         Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('api.v1.notifications.mark-all-read');
 
         Route::get('family/children', [FamilyController::class, 'index'])->name('api.v1.family.children.index');
+        Route::get('family/members', [FamilyController::class, 'index'])->name('api.v1.family.members.index'); // Alias
         Route::post('family/children', [FamilyController::class, 'store'])->name('api.v1.family.children.store');
+        Route::post('family/members', [FamilyController::class, 'store'])->name('api.v1.family.members.store'); // Alias
         Route::delete('family/children/{member}', [FamilyController::class, 'destroy'])->name('api.v1.family.children.destroy');
+        Route::delete('family/members/{member}', [FamilyController::class, 'destroy'])->name('api.v1.family.members.destroy'); // Alias
 
         Route::post('device-token', [DeviceTokenController::class, 'store'])->name('api.v1.device-token.store');
 

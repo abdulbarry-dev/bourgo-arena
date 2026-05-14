@@ -28,6 +28,7 @@ class MemberFactory extends Factory
             'avatar' => null,
             'status' => 'pending',
             'email_verified_at' => now(),
+            'phone_verified_at' => now(),
             'onboarding_completed_at' => now(),
             'rgpd_consented_at' => now(),
             'password' => Hash::make('password'),
@@ -40,6 +41,7 @@ class MemberFactory extends Factory
         return $this->state([
             'status' => 'active',
             'email_verified_at' => now(),
+            'phone_verified_at' => now(),
             'onboarding_completed_at' => now(),
         ]);
     }

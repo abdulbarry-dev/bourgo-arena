@@ -15,8 +15,9 @@ beforeEach(function () {
 test('add child creates member with correct parent_id', function () {
     /** @var TestCase $this */
     $response = $this->postJson(route('api.v1.family.children.store'), [
-        'name' => 'Child Name',
-        'date_of_birth' => '2015-01-01',
+        'first_name' => 'Child',
+        'last_name' => 'Name',
+        'birth_date' => '2015-01-01',
         'gender' => 'male',
     ]);
 

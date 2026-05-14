@@ -29,7 +29,7 @@ test('valid login returns token for active member', function () {
             'data' => [
                 'token',
                 'state',
-                'member' => [
+                'user' => [
                     'id',
                     'name',
                     'email',
@@ -95,7 +95,7 @@ test('member can register successfully and gets pending_verification state', fun
         ])
         ->assertJsonStructure([
             'data' => [
-                'member' => ['id', 'name', 'email'],
+                'user' => ['id', 'name', 'email'],
             ],
         ]);
 
@@ -174,9 +174,12 @@ test('OTP generate and verify flow', function () {
 });
 
 test('member can complete registration through the complete-registration endpoint', function () {
-    // This endpoint seems to be a legacy or specific flow.
-    // I'll ensure it still works but maybe it should set status to active immediately?
-    // The current implementation sets it to 'active'.
+    $member = Member::factory()->create([
+        'status' => 'pending_onboarding',
+        'email_verified_at' => now(),
+        'phone_verified_at' => now(),
+    ]);
+    Sanctum::actingAs($member, ['*'], 'sanctum');
 
     $response = $this->postJson(route('api.v1.auth.complete-registration'), [
         'name' => 'Complete User',
@@ -185,6 +188,7 @@ test('member can complete registration through the complete-registration endpoin
         'date_of_birth' => '1995-05-05',
         'gender' => 'female',
         'is_parent_account' => true,
+        'pin' => '1234',
     ]);
 
     $response->assertStatus(201);

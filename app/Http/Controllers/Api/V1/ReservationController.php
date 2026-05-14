@@ -42,6 +42,10 @@ class ReservationController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        if ($request->has('slot_id') && ! $request->has('activity_slot_id')) {
+            $request->merge(['activity_slot_id' => $request->slot_id]);
+        }
+
         $validated = $request->validate([
             'activity_id' => ['required', 'exists:activities,id'],
             'activity_slot_id' => ['required', 'exists:activity_slots,id'],

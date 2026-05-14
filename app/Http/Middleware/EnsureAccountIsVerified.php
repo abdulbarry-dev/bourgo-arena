@@ -16,11 +16,15 @@ class EnsureAccountIsVerified
     {
         $user = $request->user();
 
-        if ($user instanceof Member && ! $user->isVerified()) {
+        if ($user instanceof Member && ! $user->isFullyVerified()) {
+            $state = $user->isVerified() ? 'pending_additional_verification' : 'pending_verification';
+            $code = $user->isVerified() ? 'ADDITIONAL_VERIFICATION_REQUIRED' : 'EMAIL_NOT_VERIFIED';
+
             return response()->json([
-                'message' => __('Your account is not verified.'),
-                'code' => 'EMAIL_NOT_VERIFIED',
-                'state' => 'pending_verification',
+                'message' => __('Your account requires verification.'),
+                'code' => $code,
+                'state' => $state,
+                'verification_status' => $user->getVerificationStatus(),
             ], 403);
         }
 

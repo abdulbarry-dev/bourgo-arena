@@ -93,9 +93,16 @@ class OtpService
                 $updateData['phone_verified_at'] = $now;
             }
 
-            // Update status if it was pending verification
-            if ($member->status === 'pending_verification') {
+            // Update status based on verification completeness
+            $isEmailVerified = $updateData['email_verified_at'] ?? $member->email_verified_at;
+            $isPhoneVerified = $updateData['phone_verified_at'] ?? $member->phone_verified_at;
+
+            if (! $isEmailVerified || ! $isPhoneVerified) {
+                $updateData['status'] = 'pending_additional_verification';
+            } elseif (! $member->isOnboardingCompleted()) {
                 $updateData['status'] = 'pending_onboarding';
+            } else {
+                $updateData['status'] = 'active';
             }
 
             $member->update($updateData);

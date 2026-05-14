@@ -18,7 +18,7 @@ test('it returns custom 404 json for model not found', function () {
     $response->assertStatus(404)
         ->assertJson([
             'success' => false,
-            'message' => 'Not found',
+            'message' => 'Resource not found.',
         ]);
 });
 

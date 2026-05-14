@@ -21,6 +21,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
 {
@@ -47,12 +48,28 @@ class AuthController extends Controller
                 return $this->error(__('auth.failed'), 401);
             }
 
-            if (! $member->isVerified()) {
+            $verificationStatus = $member->getVerificationStatus();
+            $state = 'active';
+            $code = null;
+            $message = __('Logged in successfully.');
+
+            if (! $member->isFullyVerified()) {
+                if ($member->isVerified()) {
+                    $state = 'pending_additional_verification';
+                    $code = 'ADDITIONAL_VERIFICATION_REQUIRED';
+                    $message = __('Your account requires additional verification.');
+                } else {
+                    $state = 'pending_verification';
+                    $code = 'EMAIL_NOT_VERIFIED';
+                    $message = __('Your account is not verified. Please verify your email/phone.');
+                }
+
                 return $this->success([
-                    'code' => 'EMAIL_NOT_VERIFIED',
-                    'state' => 'pending_verification',
+                    'code' => $code,
+                    'state' => $state,
                     'user' => new MemberResource($member),
-                ], __('Your account is not verified. Please verify your email/phone.'));
+                    'verification_status' => $verificationStatus,
+                ], $message);
             }
 
             if (! $member->isOnboardingCompleted()) {
@@ -62,6 +79,7 @@ class AuthController extends Controller
                     'token' => $token,
                     'state' => 'pending_onboarding',
                     'user' => new MemberResource($member),
+                    'verification_status' => $verificationStatus,
                 ], __('Please complete your profile to continue.'), 200);
             }
 
@@ -72,7 +90,8 @@ class AuthController extends Controller
                 'token' => $token,
                 'state' => 'active',
                 'user' => new MemberResource($member),
-            ], __('Logged in successfully.'));
+                'verification_status' => $verificationStatus,
+            ], $message);
         } catch (\Exception $e) {
             return $this->error($e->getMessage(), 500);
         }
@@ -95,6 +114,7 @@ class AuthController extends Controller
             [
                 'user' => new MemberResource($member),
                 'state' => 'pending_verification',
+                'verification_status' => $member->getVerificationStatus(),
             ],
             __('Registration successful. Please verify your email/phone.'),
             201
@@ -137,40 +157,25 @@ class AuthController extends Controller
                         ->first();
 
                 if ($user) {
-                    $tokenAbilities = ['*'];
-                    $state = 'active';
+                    $state = $user instanceof Member ? $user->status : 'active';
+                    $abilities = ['*'];
 
                     if ($user instanceof Member) {
-                        // Mark as verified
-                        if ($request->identifier === $user->email) {
-                            $user->update(['email_verified_at' => now()]);
-                        } else {
-                            $user->update(['phone_verified_at' => now()]);
-                        }
-
-                        if (! $user->isOnboardingCompleted()) {
-                            $tokenAbilities = ['onboarding'];
-                            $state = 'pending_onboarding';
-                            $user->update(['status' => 'pending_onboarding']);
+                        if ($user->status === 'pending_verification' || $user->status === 'pending_additional_verification') {
+                            $abilities = ['verification'];
+                        } elseif ($user->status === 'pending_onboarding') {
+                            $abilities = ['onboarding'];
                         }
                     }
 
-                    $token = $user->createToken('auth_token', $tokenAbilities)->plainTextToken;
-
-                    $userData = $user instanceof Member
-                        ? new MemberResource($user)
-                        : [
-                            'id' => $user->id,
-                            'name' => $user->name,
-                            'email' => $user->email,
-                            'role' => $user->role,
-                        ];
+                    $token = $user->createToken('auth_token', $abilities)->plainTextToken;
 
                     return $this->success([
                         'valid' => true,
                         'token' => $token,
                         'state' => $state,
-                        'user' => $userData,
+                        'user' => $user instanceof Member ? new MemberResource($user) : $user,
+                        'verification_status' => $user instanceof Member ? $user->getVerificationStatus() : null,
                     ], __('OTP verified successfully.'));
                 }
 
@@ -326,6 +331,143 @@ class AuthController extends Controller
             'token' => $token,
             'state' => 'active',
             'user' => new MemberResource($member),
-        ], __('Registration completed successfully.'));
+        ], __('Registration completed successfully.'), 201);
+    }
+
+    public function verificationStatus(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if (! $user instanceof Member) {
+            return $this->error(__('Only members have verification status.'), 403);
+        }
+
+        return $this->success($user->getVerificationStatus());
+    }
+
+    public function verifyEmail(Request $request): JsonResponse
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+            'otp' => ['nullable', 'string'],
+        ]);
+
+        $member = $request->user();
+
+        if (! $member instanceof Member) {
+            return $this->error(__('Only members can verify email.'), 403);
+        }
+
+        if ($member->email !== $request->email) {
+            return $this->error(__('Email does not match your account.'), 422);
+        }
+
+        if (! $request->has('otp')) {
+            $this->otpService->generate($request->email);
+
+            return $this->success(null, __('OTP Sent'));
+        }
+
+        try {
+            if ($this->otpService->verify($request->email, $request->otp)) {
+                $member->refresh();
+
+                $abilities = ['verification'];
+                if ($member->status === 'pending_onboarding') {
+                    $abilities = ['onboarding'];
+                } elseif ($member->status === 'active') {
+                    $abilities = ['*'];
+                }
+
+                // Revoke current token and issue a new one with updated abilities
+                $request->user()->currentAccessToken()->delete();
+                $token = $member->createToken('auth_token', $abilities)->plainTextToken;
+
+                return $this->success([
+                    'valid' => true,
+                    'token' => $token,
+                    'state' => $member->status,
+                    'verification_status' => $member->getVerificationStatus(),
+                ], __('Email verified successfully.'));
+            }
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage(), 422);
+        }
+
+        return $this->error(__('Invalid or expired OTP code.'), 422);
+    }
+
+    public function verifyPhone(Request $request): JsonResponse
+    {
+        $request->validate([
+            'phone' => ['required', 'string'],
+            'otp' => ['required', 'string'],
+        ]);
+
+        $member = $request->user();
+
+        if (! $member instanceof Member) {
+            return $this->error(__('Only members can verify phone.'), 403);
+        }
+
+        if ($member->phone !== $request->phone) {
+            return $this->error(__('Phone number does not match your account.'), 422);
+        }
+
+        try {
+            if ($this->otpService->verify($request->phone, $request->otp)) {
+                $member->refresh();
+
+                $abilities = ['verification'];
+                if ($member->status === 'pending_onboarding') {
+                    $abilities = ['onboarding'];
+                } elseif ($member->status === 'active') {
+                    $abilities = ['*'];
+                }
+
+                // Revoke current token and issue a new one with updated abilities
+                $request->user()->currentAccessToken()->delete();
+                $token = $member->createToken('auth_token', $abilities)->plainTextToken;
+
+                return $this->success([
+                    'valid' => true,
+                    'token' => $token,
+                    'state' => $member->status,
+                    'verification_status' => $member->getVerificationStatus(),
+                ], __('Phone verified successfully.'));
+            }
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage(), 422);
+        }
+
+        return $this->error(__('Invalid or expired OTP code.'), 422);
+    }
+
+    public function skipAdditionalVerification(Request $request): JsonResponse
+    {
+        $member = $request->user();
+
+        if (! $member instanceof Member) {
+            return $this->error(__('Only members can skip verification.'), 403);
+        }
+
+        if ($member->status !== 'pending_additional_verification') {
+            return $this->error(__('You are not in a state where additional verification can be skipped.'), 403);
+        }
+
+        $member->update(['status' => 'pending_onboarding']);
+
+        // Revoke current token and issue a new one with onboarding ability
+        $token = $member->currentAccessToken();
+        if ($token instanceof PersonalAccessToken) {
+            $token->delete();
+        }
+
+        $token = $member->createToken('auth_token', ['onboarding'])->plainTextToken;
+
+        return $this->success([
+            'token' => $token,
+            'state' => 'pending_onboarding',
+        ], __('Additional verification skipped.'));
     }
 }

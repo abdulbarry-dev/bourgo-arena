@@ -68,6 +68,29 @@ class Member extends Authenticatable
         return $this->email_verified_at !== null || $this->phone_verified_at !== null;
     }
 
+    public function isFullyVerified(): bool
+    {
+        return $this->email_verified_at !== null && $this->phone_verified_at !== null;
+    }
+
+    public function isPendingAdditionalVerification(): bool
+    {
+        return $this->status === 'pending_additional_verification';
+    }
+
+    public function getVerificationStatus(): array
+    {
+        return [
+            'email_verified' => $this->email_verified_at !== null,
+            'phone_verified' => $this->phone_verified_at !== null,
+            'onboarding_completed' => $this->onboarding_completed_at !== null,
+            'is_fully_verified' => $this->isFullyVerified(),
+            'email' => $this->email,
+            'phone' => $this->phone,
+            'unverified_method' => $this->email_verified_at === null ? 'email' : ($this->phone_verified_at === null ? 'phone' : null),
+        ];
+    }
+
     public function isOnboardingCompleted(): bool
     {
         return $this->onboarding_completed_at !== null;
