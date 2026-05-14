@@ -2,47 +2,91 @@
 
 namespace App\Models;
 
+use App\UserRole;
 use Database\Factories\MemberFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
-class Member extends Model
+class Member extends Authenticatable
 {
     /** @use HasFactory<MemberFactory> */
-    use HasFactory, Notifiable, SoftDeletes;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
     protected $fillable = [
         'parent_id',
         'name',
         'email',
         'phone',
+        'email_verified_at',
+        'phone_verified_at',
         'date_of_birth',
         'gender',
         'emergency_contact',
         'avatar',
         'status',
         'rgpd_consented_at',
+        'onboarding_completed_at',
         'password',
         'is_family_account',
+        'otp_code',
+        'otp_expires_at',
+        'otp_attempts',
+        'otp_last_sent_at',
+        'pin',
     ];
 
     protected $casts = [
         'date_of_birth' => 'date',
         'rgpd_consented_at' => 'datetime',
+        'email_verified_at' => 'datetime',
+        'phone_verified_at' => 'datetime',
+        'onboarding_completed_at' => 'datetime',
+        'otp_expires_at' => 'datetime',
+        'otp_last_sent_at' => 'datetime',
         'password' => 'hashed',
+        'otp_code' => 'hashed',
+        'pin' => 'hashed',
         'is_family_account' => 'boolean',
     ];
 
     protected $hidden = [
         'password',
+        'otp_code',
+        'pin',
         'remember_token',
     ];
+
+    public function isVerified(): bool
+    {
+        return $this->email_verified_at !== null || $this->phone_verified_at !== null;
+    }
+
+    public function isOnboardingCompleted(): bool
+    {
+        return $this->onboarding_completed_at !== null;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    public function isPendingVerification(): bool
+    {
+        return $this->status === 'pending_verification';
+    }
+
+    public function isPendingOnboarding(): bool
+    {
+        return $this->status === 'pending_onboarding';
+    }
 
     public function parent(): BelongsTo
     {
@@ -89,6 +133,11 @@ class Member extends Model
     public function notifications(): HasMany
     {
         return $this->hasMany(MemberNotification::class);
+    }
+
+    public function reservations(): HasMany
+    {
+        return $this->hasMany(ApiReservation::class);
     }
 
     public function scopeActive(Builder $query): Builder
@@ -162,5 +211,10 @@ class Member extends Model
     public function getFallbackPhoneAttribute(): ?string
     {
         return $this->phone ?? $this->parent?->phone;
+    }
+
+    public function getRoleAttribute(): UserRole
+    {
+        return UserRole::Member;
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\ApiReservation;
 use App\Models\HikvisionTerminal;
 use App\Models\Member;
 use App\Models\NfcCard;
@@ -11,8 +12,10 @@ use App\Policies\HikvisionTerminalPolicy;
 use App\Policies\MemberPolicy;
 use App\Policies\NfcCardPolicy;
 use App\Policies\PlanPolicy;
+use App\Policies\ReservationPolicy;
 use App\Policies\SubscriptionPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Gate;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -27,6 +30,7 @@ class AuthServiceProvider extends ServiceProvider
         Plan::class => PlanPolicy::class,
         HikvisionTerminal::class => HikvisionTerminalPolicy::class,
         NfcCard::class => NfcCardPolicy::class,
+        ApiReservation::class => ReservationPolicy::class,
     ];
 
     /**
@@ -35,5 +39,9 @@ class AuthServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerPolicies();
+
+        Gate::define('viewApiDocs', function (?Member $member) {
+            return true;
+        });
     }
 }

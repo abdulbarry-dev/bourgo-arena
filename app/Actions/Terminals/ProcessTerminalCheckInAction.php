@@ -8,6 +8,7 @@ use App\Events\OccupancyUpdated;
 use App\Models\AdminAlert;
 use App\Models\CheckInEvent;
 use App\Models\HikvisionTerminal;
+use App\Models\NfcCard;
 use App\Services\AntiPassbackRule;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -24,8 +25,13 @@ class ProcessTerminalCheckInAction
             $isSuspicious = app(AntiPassbackRule::class)->isSuspicious($data['card_uid'], $terminal->terminal_type ?? 'entry');
         }
 
+        $memberId = $data['member_id'] ?? null;
+        if (! $memberId && isset($data['card_uid'])) {
+            $memberId = NfcCard::where('uid', $data['card_uid'])->value('member_id');
+        }
+
         $event = CheckInEvent::query()->create([
-            'member_id' => $data['member_id'] ?? null,
+            'member_id' => $memberId,
             'card_uid' => $data['card_uid'],
             'terminal_id' => $terminal->id,
             'result' => $result,

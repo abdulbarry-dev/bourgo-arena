@@ -5,7 +5,25 @@
             "args": [
                 "artisan",
                 "boost:mcp"
-            ]
+            ],
+            "env": {}
+        },
+        "dart-mcp-server": {
+            "command": "dart",
+            "args": [
+                "mcp-server"
+            ],
+            "env": {}
+        },
+        "postman-mcp-server": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@postman/postman-mcp-server"
+            ],
+            "env": {
+                "POSTMAN_API_KEY": "PMAK-69f890a6fa8f4400017c68f5-5a98820976f9caad069c8524322af51a94"
+            }
         }
     }
 }

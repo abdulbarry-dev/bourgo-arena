@@ -1,9 +1,7 @@
 <?php
 
-use App\Http\Middleware\EnsureUserHasRole;
-use App\Http\Middleware\EnsureUserIsNotBanned;
-use App\Http\Middleware\SetLocale;
-use App\Http\Middleware\TerminalAuthMiddleware;
+use App\Providers\ExceptionHandlerServiceProvider;
+use App\Providers\MiddlewareServiceProvider;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -20,20 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ['middleware' => ['web', 'auth', 'verified']],
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->web(append: [
-            EnsureUserIsNotBanned::class,
-            SetLocale::class,
-        ]);
-
-        $middleware->api(append: [
-            SetLocale::class,
-        ]);
-
-        $middleware->alias([
-            'role' => EnsureUserHasRole::class,
-            'terminal.auth' => TerminalAuthMiddleware::class,
-        ]);
+        MiddlewareServiceProvider::registerMiddleware($middleware);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        ExceptionHandlerServiceProvider::registerExceptionHandlers($exceptions);
     })->create();

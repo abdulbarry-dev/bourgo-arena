@@ -18,6 +18,8 @@ class Course extends Model
         'instructor',
         'description',
         'color',
+        'category',
+        'icon',
         'image_url',
     ];
 

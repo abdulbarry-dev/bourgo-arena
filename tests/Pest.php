@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Routing\Middleware\ThrottleRequestsWithRedis;
 use Illuminate\Support\Facades\Redis;
 use Tests\TestCase;
 
@@ -18,6 +20,18 @@ use Tests\TestCase;
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
     ->in('Feature');
+
+/*
+|--------------------------------------------------------------------------
+| Global Middleware Disabling
+|--------------------------------------------------------------------------
+*/
+uses()->beforeEach(function () {
+    $this->withoutMiddleware([
+        ThrottleRequests::class,
+        ThrottleRequestsWithRedis::class,
+    ]);
+})->in('Feature/Api');
 
 /*
 |--------------------------------------------------------------------------
