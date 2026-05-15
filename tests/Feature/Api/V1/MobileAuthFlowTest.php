@@ -30,8 +30,8 @@ test('full mobile auth flow strictly follows state machine', function () {
     ]);
 
     $loginResponse->assertStatus(200);
-    $loginResponse->assertJsonPath('data.code', 'EMAIL_NOT_VERIFIED');
-    $loginResponse->assertJsonPath('data.state', 'pending_verification');
+    $loginResponse->assertJsonPath('data.code', 'ADDITIONAL_VERIFICATION_REQUIRED');
+    $loginResponse->assertJsonPath('data.state', 'pending_additional_verification');
 
     // 3. OTP Verification
     // Since we're in a test, we can manually set the OTP in the DB

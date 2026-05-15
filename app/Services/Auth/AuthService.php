@@ -56,7 +56,9 @@ class AuthService
             'date_of_birth' => $data['date_of_birth'] ?? null,
             'gender' => $data['gender'] ?? null,
             'is_family_account' => $data['is_family_account'] ?? false,
-            'status' => $data['status'] ?? 'pending_verification',
+            // New registrations start in pending verification state
+            'status' => 'pending_verification',
+            'state' => 'pending_verification',
         ]);
     }
 

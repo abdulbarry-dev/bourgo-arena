@@ -15,6 +15,10 @@ test('unauthenticated profile request returns 401', function () {
 test('authenticated returns correct field names', function () {
     $member = Member::factory()->create([
         'status' => 'active',
+        'state' => 'active',
+        'email_verified_at' => now(),
+        'phone_verified_at' => now(),
+        'onboarding_completed_at' => now(),
         'date_of_birth' => '1990-01-01',
         'avatar' => 'avatars/test.png',
     ]);
@@ -45,7 +49,13 @@ test('authenticated returns correct field names', function () {
 });
 
 test('user profile alias works', function () {
-    $member = Member::factory()->create();
+    $member = Member::factory()->create([
+        'status' => 'active',
+        'state' => 'active',
+        'email_verified_at' => now(),
+        'phone_verified_at' => now(),
+        'onboarding_completed_at' => now(),
+    ]);
     Sanctum::actingAs($member, ['*'], 'sanctum');
 
     $response = $this->getJson(route('api.v1.user.profile'));

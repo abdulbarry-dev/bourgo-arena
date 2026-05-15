@@ -21,7 +21,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
-use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
 {
@@ -48,50 +47,47 @@ class AuthController extends Controller
                 return $this->error(__('auth.failed'), 401);
             }
 
+            $state = $member->status ?? $member->state;
             $verificationStatus = $member->getVerificationStatus();
-            $state = 'active';
-            $code = null;
-            $message = __('Logged in successfully.');
 
-            if (! $member->isFullyVerified()) {
-                if ($member->isVerified()) {
-                    $state = 'pending_additional_verification';
-                    $code = 'ADDITIONAL_VERIFICATION_REQUIRED';
-                    $message = __('Your account requires additional verification.');
-                } else {
-                    $state = 'pending_verification';
-                    $code = 'EMAIL_NOT_VERIFIED';
-                    $message = __('Your account is not verified. Please verify your email/phone.');
-                }
+            if ($state === 'pending_verification' || $state === 'pending_additional_verification') {
+                $token = $member->createToken('auth_token', ['verification'])->plainTextToken;
+
+                // Normalize response state for client flows: when a user is in
+                // `pending_verification` we surface `pending_additional_verification`
+                // so the mobile client knows to trigger the secondary method flow.
+                $responseState = $state === 'pending_verification' ? 'pending_additional_verification' : $state;
+                $code = $responseState === 'pending_additional_verification' ? 'ADDITIONAL_VERIFICATION_REQUIRED' : 'EMAIL_NOT_VERIFIED';
 
                 return $this->success([
+                    'token' => $token,
+                    'state' => $responseState,
                     'code' => $code,
-                    'state' => $state,
                     'user' => new MemberResource($member),
                     'verification_status' => $verificationStatus,
-                ], $message);
+                ], __('Verification required.'));
             }
 
-            if (! $member->isOnboardingCompleted()) {
+            if ($state === 'pending_onboarding') {
                 $token = $member->createToken('auth_token', ['onboarding'])->plainTextToken;
 
                 return $this->success([
                     'token' => $token,
-                    'state' => 'pending_onboarding',
+                    'state' => $state,
                     'user' => new MemberResource($member),
                     'verification_status' => $verificationStatus,
-                ], __('Please complete your profile to continue.'), 200);
+                ], __('Please complete your onboarding.'));
             }
 
-            // Fully active
+            // Active or other states get full access
             $token = $member->createToken('auth_token', ['*'])->plainTextToken;
 
             return $this->success([
                 'token' => $token,
-                'state' => 'active',
+                'state' => $state,
                 'user' => new MemberResource($member),
                 'verification_status' => $verificationStatus,
-            ], $message);
+            ], __('Login successful.'));
         } catch (\Exception $e) {
             return $this->error($e->getMessage(), 500);
         }
@@ -110,8 +106,11 @@ class AuthController extends Controller
             $this->otpService->generate($identifier);
         }
 
+        $token = $member->createToken('auth_token', ['verification'])->plainTextToken;
+
         return $this->success(
             [
+                'token' => $token,
                 'user' => new MemberResource($member),
                 'state' => 'pending_verification',
                 'verification_status' => $member->getVerificationStatus(),
@@ -157,13 +156,14 @@ class AuthController extends Controller
                         ->first();
 
                 if ($user) {
-                    $state = $user instanceof Member ? $user->status : 'active';
+                    $state = $user instanceof Member ? ($user->status ?? $user->state) : 'active';
                     $abilities = ['*'];
 
                     if ($user instanceof Member) {
-                        if ($user->status === 'pending_verification' || $user->status === 'pending_additional_verification') {
+                        $userState = $user->status ?? $user->state;
+                        if ($userState === 'pending_verification' || $userState === 'pending_additional_verification') {
                             $abilities = ['verification'];
-                        } elseif ($user->status === 'pending_onboarding') {
+                        } elseif ($userState === 'pending_onboarding') {
                             $abilities = ['onboarding'];
                         }
                     }
@@ -320,6 +320,7 @@ class AuthController extends Controller
             'is_family_account' => $validated['is_parent_account'],
             'pin' => $validated['pin'],
             'status' => 'active',
+            'state' => 'active',
             'onboarding_completed_at' => now(),
         ]);
 
@@ -373,9 +374,10 @@ class AuthController extends Controller
                 $member->refresh();
 
                 $abilities = ['verification'];
-                if ($member->status === 'pending_onboarding') {
+                $memberState = $member->status ?? $member->state;
+                if ($memberState === 'pending_onboarding') {
                     $abilities = ['onboarding'];
-                } elseif ($member->status === 'active') {
+                } elseif ($memberState === 'active') {
                     $abilities = ['*'];
                 }
 
@@ -386,7 +388,7 @@ class AuthController extends Controller
                 return $this->success([
                     'valid' => true,
                     'token' => $token,
-                    'state' => $member->status,
+                    'state' => $member->status ?? $member->state,
                     'verification_status' => $member->getVerificationStatus(),
                 ], __('Email verified successfully.'));
             }
@@ -419,9 +421,10 @@ class AuthController extends Controller
                 $member->refresh();
 
                 $abilities = ['verification'];
-                if ($member->status === 'pending_onboarding') {
+                $memberState = $member->status ?? $member->state;
+                if ($memberState === 'pending_onboarding') {
                     $abilities = ['onboarding'];
-                } elseif ($member->status === 'active') {
+                } elseif ($memberState === 'active') {
                     $abilities = ['*'];
                 }
 
@@ -432,7 +435,7 @@ class AuthController extends Controller
                 return $this->success([
                     'valid' => true,
                     'token' => $token,
-                    'state' => $member->status,
+                    'state' => $member->status ?? $member->state,
                     'verification_status' => $member->getVerificationStatus(),
                 ], __('Phone verified successfully.'));
             }
@@ -451,23 +454,25 @@ class AuthController extends Controller
             return $this->error(__('Only members can skip verification.'), 403);
         }
 
-        if ($member->status !== 'pending_additional_verification') {
+        $isPendingAdditionalVerification = $member->status === 'pending_additional_verification'
+            || $member->state === 'pending_additional_verification';
+
+        if (! $isPendingAdditionalVerification) {
             return $this->error(__('You are not in a state where additional verification can be skipped.'), 403);
         }
 
-        $member->update(['status' => 'pending_onboarding']);
+        // Persist both `status` and `state` for compatibility
+        $member->update(['status' => 'pending_onboarding', 'state' => 'pending_onboarding']);
 
         // Revoke current token and issue a new one with onboarding ability
-        $token = $member->currentAccessToken();
-        if ($token instanceof PersonalAccessToken) {
-            $token->delete();
-        }
+        $request->user()->currentAccessToken()->delete();
 
         $token = $member->createToken('auth_token', ['onboarding'])->plainTextToken;
 
         return $this->success([
             'token' => $token,
             'state' => 'pending_onboarding',
+            'verification_status' => $member->getVerificationStatus(),
         ], __('Additional verification skipped.'));
     }
 }

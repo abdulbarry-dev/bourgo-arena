@@ -11,7 +11,7 @@ test('verify email returns correct response structure', function () {
         'email' => 'test@example.com',
         'otp_code' => '123456',
         'otp_expires_at' => now()->addMinutes(10),
-        'status' => 'pending_verification',
+        'state' => 'pending_verification',
         'email_verified_at' => null,
         'phone_verified_at' => null,
         'onboarding_completed_at' => null,
@@ -51,7 +51,7 @@ test('verify phone returns correct response structure', function () {
         'phone' => '1234567890',
         'otp_code' => '123456',
         'otp_expires_at' => now()->addMinutes(10),
-        'status' => 'pending_additional_verification',
+        'state' => 'pending_additional_verification',
         'email_verified_at' => now(),
         'phone_verified_at' => null,
         'onboarding_completed_at' => null,
@@ -88,7 +88,7 @@ test('verify phone returns correct response structure', function () {
 
 test('skip additional verification returns correct response structure', function () {
     $member = Member::factory()->create([
-        'status' => 'pending_additional_verification',
+        'state' => 'pending_additional_verification',
         'email_verified_at' => now(),
     ]);
 
@@ -117,7 +117,7 @@ test('verify otp returns correct response structure', function () {
         'email' => 'otp@example.com',
         'otp_code' => '123456',
         'otp_expires_at' => now()->addMinutes(10),
-        'status' => 'pending_verification',
+        'state' => 'pending_verification',
         'email_verified_at' => null,
         'phone_verified_at' => null,
         'onboarding_completed_at' => null,

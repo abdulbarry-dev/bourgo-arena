@@ -93,16 +93,26 @@ class OtpService
                 $updateData['phone_verified_at'] = $now;
             }
 
-            // Update status based on verification completeness
-            $isEmailVerified = $updateData['email_verified_at'] ?? $member->email_verified_at;
-            $isPhoneVerified = $updateData['phone_verified_at'] ?? $member->phone_verified_at;
-
-            if (! $isEmailVerified || ! $isPhoneVerified) {
-                $updateData['status'] = 'pending_additional_verification';
-            } elseif (! $member->isOnboardingCompleted()) {
-                $updateData['status'] = 'pending_onboarding';
-            } else {
+            // Preserve `active` state: if the member is already active, do not
+            // transition them to another state when verifying a secondary method.
+            if ($member->state === 'active') {
+                $updateData['state'] = 'active';
                 $updateData['status'] = 'active';
+            } else {
+                // Update status based on verification completeness for non-active users
+                $isEmailVerified = $updateData['email_verified_at'] ?? $member->email_verified_at;
+                $isPhoneVerified = $updateData['phone_verified_at'] ?? $member->phone_verified_at;
+
+                if (! $isEmailVerified || ! $isPhoneVerified) {
+                    $updateData['state'] = 'pending_additional_verification';
+                    $updateData['status'] = 'pending_additional_verification';
+                } elseif (! $member->isOnboardingCompleted()) {
+                    $updateData['state'] = 'pending_onboarding';
+                    $updateData['status'] = 'pending_onboarding';
+                } else {
+                    $updateData['state'] = 'active';
+                    $updateData['status'] = 'active';
+                }
             }
 
             $member->update($updateData);

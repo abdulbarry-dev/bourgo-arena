@@ -24,6 +24,7 @@ class MemberDetailResource extends JsonResource
             'emergency_contact' => $this->emergency_contact,
             'avatar' => $this->avatar,
             'status' => $this->status,
+            'state' => $this->state,
             'rgpd_consented_at' => $this->rgpd_consented_at?->format('Y-m-d H:i:s'),
             'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
             'active_subscription' => $this->whenLoaded('activeSubscription', function () {

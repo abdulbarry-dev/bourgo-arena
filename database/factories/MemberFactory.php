@@ -26,10 +26,11 @@ class MemberFactory extends Factory
             'gender' => fake()->randomElement(['male', 'female']),
             'emergency_contact' => fake()->phoneNumber(),
             'avatar' => null,
-            'status' => 'pending',
-            'email_verified_at' => now(),
-            'phone_verified_at' => now(),
-            'onboarding_completed_at' => now(),
+            'status' => 'active',
+            'state' => 'pending_verification',
+            'email_verified_at' => null,
+            'phone_verified_at' => null,
+            'onboarding_completed_at' => null,
             'rgpd_consented_at' => now(),
             'password' => Hash::make('password'),
             'remember_token' => null,
@@ -40,6 +41,7 @@ class MemberFactory extends Factory
     {
         return $this->state([
             'status' => 'active',
+            'state' => 'active',
             'email_verified_at' => now(),
             'phone_verified_at' => now(),
             'onboarding_completed_at' => now(),

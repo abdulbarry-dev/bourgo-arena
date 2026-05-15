@@ -13,7 +13,7 @@ test('valid login returns token for active member', function () {
     $member = Member::factory()->create([
         'email' => 'test@example.com',
         'password' => Hash::make('password123'),
-        'status' => 'active',
+        'state' => 'active',
         'email_verified_at' => now(),
         'onboarding_completed_at' => now(),
     ]);
@@ -43,7 +43,7 @@ test('wrong password returns 401', function () {
     $member = Member::factory()->create([
         'email' => 'test@example.com',
         'password' => Hash::make('password123'),
-        'status' => 'active',
+        'state' => 'active',
     ]);
 
     $response = $this->postJson(route('api.v1.auth.login'), [
@@ -101,7 +101,7 @@ test('member can register successfully and gets pending_verification state', fun
 
     $this->assertDatabaseHas('members', [
         'email' => 'john@example.com',
-        'status' => 'pending_verification',
+        'state' => 'pending_verification',
     ]);
 
     $member = Member::where('email', 'john@example.com')->first();
@@ -114,7 +114,7 @@ test('member can register successfully and gets pending_verification state', fun
 
 test('logout revokes token', function () {
     $member = Member::factory()->create([
-        'status' => 'active',
+        'state' => 'active',
         'email_verified_at' => now(),
         'onboarding_completed_at' => now(),
     ]);
@@ -130,7 +130,7 @@ test('OTP generate and verify flow', function () {
     Notification::fake();
     $member = Member::factory()->create([
         'email' => 'otp@example.com',
-        'status' => 'pending_verification',
+        'state' => 'pending_verification',
         'email_verified_at' => null,
         'onboarding_completed_at' => null,
     ]);
@@ -164,18 +164,18 @@ test('OTP generate and verify flow', function () {
             'success' => true,
             'data' => [
                 'valid' => true,
-                'state' => 'pending_onboarding',
+                'state' => 'pending_additional_verification',
             ],
         ]);
 
     $member->refresh();
-    expect($member->status)->toBe('pending_onboarding');
+    expect($member->state)->toBe('pending_additional_verification');
     expect($member->email_verified_at)->not->toBeNull();
 });
 
 test('member can complete registration through the complete-registration endpoint', function () {
     $member = Member::factory()->create([
-        'status' => 'pending_onboarding',
+        'state' => 'pending_onboarding',
         'email_verified_at' => now(),
         'phone_verified_at' => now(),
     ]);
@@ -195,7 +195,7 @@ test('member can complete registration through the complete-registration endpoin
 
     $this->assertDatabaseHas('members', [
         'email' => 'complete@example.com',
-        'status' => 'active',
+        'state' => 'active',
     ]);
 });
 
@@ -204,7 +204,7 @@ test('authenticated member can request family otp', function () {
     $member = Member::factory()->create([
         'email' => 'family@example.com',
         'phone' => '11223344',
-        'status' => 'active',
+        'state' => 'active',
         'email_verified_at' => now(),
         'onboarding_completed_at' => now(),
     ]);
@@ -223,7 +223,7 @@ test('member can reset password using otp after verification', function () {
     $member = Member::factory()->create([
         'email' => 'reset@example.com',
         'password' => Hash::make('old-password'),
-        'status' => 'active',
+        'state' => 'active',
         'email_verified_at' => now(),
     ]);
 

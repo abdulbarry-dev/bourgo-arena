@@ -9,7 +9,13 @@ use Tests\TestCase;
 
 beforeEach(function () {
     /** @var TestCase $this */
-    $this->member = Member::factory()->create(['status' => 'active']);
+    $this->member = Member::factory()->create([
+        'status' => 'active',
+        'state' => 'active',
+        'email_verified_at' => now(),
+        'phone_verified_at' => now(),
+        'onboarding_completed_at' => now(),
+    ]);
     Sanctum::actingAs($this->member, ['*'], 'sanctum');
 });
 

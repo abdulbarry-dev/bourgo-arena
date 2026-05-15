@@ -6,7 +6,14 @@ use App\Models\User;
 
 test('member can register a device token', function () {
     $user = User::factory()->member()->create(['email' => 'api.member@example.com']);
-    $member = Member::factory()->create(['email' => 'api.member@example.com']);
+    $member = Member::factory()->create([
+        'email' => 'api.member@example.com',
+        'status' => 'active',
+        'state' => 'active',
+        'email_verified_at' => now(),
+        'phone_verified_at' => now(),
+        'onboarding_completed_at' => now(),
+    ]);
 
     $this->actingAs($member, 'sanctum')
         ->postJson(route('api.v1.device-token.store'), [
@@ -24,8 +31,22 @@ test('member can register a device token', function () {
 
 test('member can fetch own notifications only', function () {
     $user = User::factory()->member()->create(['email' => 'notif.member@example.com']);
-    $member = Member::factory()->create(['email' => 'notif.member@example.com']);
-    $otherMember = Member::factory()->create(['email' => 'other.member@example.com']);
+    $member = Member::factory()->create([
+        'email' => 'notif.member@example.com',
+        'status' => 'active',
+        'state' => 'active',
+        'email_verified_at' => now(),
+        'phone_verified_at' => now(),
+        'onboarding_completed_at' => now(),
+    ]);
+    $otherMember = Member::factory()->create([
+        'email' => 'other.member@example.com',
+        'status' => 'active',
+        'state' => 'active',
+        'email_verified_at' => now(),
+        'phone_verified_at' => now(),
+        'onboarding_completed_at' => now(),
+    ]);
 
     MemberNotification::query()->create([
         'member_id' => $member->id,

@@ -31,6 +31,7 @@ class Member extends Authenticatable
         'emergency_contact',
         'avatar',
         'status',
+        'state',
         'rgpd_consented_at',
         'onboarding_completed_at',
         'password',
@@ -75,7 +76,7 @@ class Member extends Authenticatable
 
     public function isPendingAdditionalVerification(): bool
     {
-        return $this->status === 'pending_additional_verification';
+        return $this->state === 'pending_additional_verification';
     }
 
     public function getVerificationStatus(): array
@@ -83,7 +84,7 @@ class Member extends Authenticatable
         return [
             'email_verified' => $this->email_verified_at !== null,
             'phone_verified' => $this->phone_verified_at !== null,
-            'onboarding_completed' => $this->onboarding_completed_at !== null,
+            'onboarding_completed' => $this->isOnboardingCompleted(),
             'is_fully_verified' => $this->isFullyVerified(),
             'email' => $this->email,
             'phone' => $this->phone,
@@ -93,22 +94,22 @@ class Member extends Authenticatable
 
     public function isOnboardingCompleted(): bool
     {
-        return $this->onboarding_completed_at !== null;
+        return $this->onboarding_completed_at !== null || $this->pin !== null;
     }
 
     public function isActive(): bool
     {
-        return $this->status === 'active';
+        return $this->state === 'active';
     }
 
     public function isPendingVerification(): bool
     {
-        return $this->status === 'pending_verification';
+        return $this->state === 'pending_verification';
     }
 
     public function isPendingOnboarding(): bool
     {
-        return $this->status === 'pending_onboarding';
+        return $this->state === 'pending_onboarding';
     }
 
     public function parent(): BelongsTo
@@ -166,6 +167,15 @@ class Member extends Authenticatable
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', 'active');
+    }
+
+    public function scopeByState(Builder $query, array|string $state): Builder
+    {
+        if (is_array($state)) {
+            return $query->whereIn('state', $state);
+        }
+
+        return $query->where('state', $state);
     }
 
     public function scopeByStatus(Builder $query, array|string $status): Builder
