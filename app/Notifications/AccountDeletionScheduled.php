@@ -3,23 +3,21 @@
 namespace App\Notifications;
 
 use App\Channels\SmsChannel;
-use App\Mail\SendOtpCodeMail;
+use App\Mail\AccountDeletionScheduledMail;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class SendOtpCode extends Notification
+class AccountDeletionScheduled extends Notification
 {
     use Queueable;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(
-        public string $code,
-        public ?string $preferredChannel = null
-    ) {
+    public function __construct()
+    {
         //
     }
 
@@ -30,21 +28,17 @@ class SendOtpCode extends Notification
      */
     public function via(object $notifiable): array
     {
-        if ($this->preferredChannel === 'mail') {
-            return ['mail'];
+        $channels = [];
+
+        if ($notifiable->email_verified_at) {
+            $channels[] = 'mail';
         }
 
-        if ($this->preferredChannel === 'sms') {
-            return [SmsChannel::class];
+        if ($notifiable->phone_verified_at) {
+            $channels[] = SmsChannel::class;
         }
 
-        $identifier = $notifiable->routeNotificationFor('mail') ?: ($notifiable->email ?? null);
-
-        if ($identifier && filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
-            return ['mail'];
-        }
-
-        return [SmsChannel::class];
+        return $channels;
     }
 
     /**
@@ -52,11 +46,7 @@ class SendOtpCode extends Notification
      */
     public function toMail(object $notifiable): Mailable|MailMessage
     {
-        return new SendOtpCodeMail(
-            code: $this->code,
-            userEmail: $notifiable->email ?? $notifiable->routeNotificationFor('mail'),
-            userName: $notifiable->name ?? null,
-        );
+        return new AccountDeletionScheduledMail($notifiable);
     }
 
     /**
@@ -64,10 +54,7 @@ class SendOtpCode extends Notification
      */
     public function toSms(object $notifiable): string
     {
-        return __('Your verification code is: :code. Valid for :minutes minutes.', [
-            'code' => $this->code,
-            'minutes' => config('otp.expiry', 10),
-        ]);
+        return __('Your account is scheduled for deletion in 48h. To cancel, simply log back into the app and verify your identity with an OTP.');
     }
 
     /**
@@ -78,7 +65,8 @@ class SendOtpCode extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            //
+            'type' => 'account_deletion_scheduled',
+            'scheduled_at' => $notifiable->scheduled_for_deletion_at,
         ];
     }
 }

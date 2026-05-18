@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Mail\SubscriptionReceiptEmailMail;
 use App\Models\Subscription;
 use DateTimeInterface;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -43,27 +44,6 @@ class SendSubscriptionReceiptEmail implements ShouldQueue
             return;
         }
 
-        $member = $subscription->member;
-        $email = $member->fallback_email;
-
-        if ($email === null || $email === '') {
-            return;
-        }
-
-        $planName = $subscription->plan?->name ?? 'N/A';
-        $amount = number_format((float) $subscription->amount_paid, 3, '.', '');
-        $receiptPath = $subscription->receipt_path ?? 'N/A';
-
-        Mail::raw(
-            'Your subscription enrollment has been recorded. '
-            ."Plan: {$planName}. "
-            ."Amount paid: {$amount} TND. "
-            ."Receipt path: {$receiptPath}.",
-            function ($message) use ($email): void {
-                $message
-                    ->to($email)
-                    ->subject('Bourgo Arena subscription receipt');
-            },
-        );
+        Mail::send(new SubscriptionReceiptEmailMail($subscription));
     }
 }

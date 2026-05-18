@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Mail\MemberWelcomeEmailMail;
 use App\Models\Member;
 use DateTimeInterface;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -48,18 +49,11 @@ class SendMemberWelcomeEmail implements ShouldQueue
             return;
         }
 
-        $messageBody = sprintf(
-            "Welcome to Bourgo Arena, %s.\n\nYour temporary password is: %s\n\nPlease set a new password within 24 hours using this secure link:\n%s\n\nThis link expires at: %s\n\nFor your security, do not share this email.",
-            $member->name,
-            $this->temporaryPassword,
-            $this->onboardingUrl,
-            $this->expiresAt,
-        );
-
-        Mail::raw($messageBody, function ($message) use ($email): void {
-            $message
-                ->to($email)
-                ->subject('Welcome to Bourgo Arena - complete your account setup');
-        });
+        Mail::send(new MemberWelcomeEmailMail(
+            member: $member,
+            temporaryPassword: $this->temporaryPassword,
+            onboardingUrl: $this->onboardingUrl,
+            expiresAt: $this->expiresAt,
+        ));
     }
 }

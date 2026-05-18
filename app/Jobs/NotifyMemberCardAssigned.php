@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Mail\MemberCardAssignedMail;
 use App\Models\Member;
 use DateTimeInterface;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -49,16 +50,6 @@ class NotifyMemberCardAssigned implements ShouldQueue
             return;
         }
 
-        $cardUid = $member->nfcCard?->uid ?? 'N/A';
-        $cardStatus = $member->nfcCard?->status ?? 'N/A';
-
-        Mail::raw(
-            "Your NFC card has been assigned. UID: {$cardUid}. Status: {$cardStatus}.",
-            function ($message) use ($email): void {
-                $message
-                    ->to($email)
-                    ->subject('Your Bourgo Arena NFC card has been assigned');
-            },
-        );
+        Mail::send(new MemberCardAssignedMail($member));
     }
 }
