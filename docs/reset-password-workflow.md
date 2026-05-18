@@ -42,7 +42,9 @@ The `identifier` can be:
 **Important behavior:**
 - The API returns a generic success message even when no account exists.
 - This avoids account enumeration.
-- If the identifier belongs to a member account that is not verified yet, the API returns a 403 error.
+- The server first searches for a matching member or user account by email or phone.
+- If the identifier belongs to a member account that is not verified yet, the API returns a 403 error and does not send an OTP.
+- OTP is only generated and sent after the matching account passes that verification check.
 
 **Error Responses:**
 
@@ -55,6 +57,7 @@ The `identifier` can be:
 **Flutter notes:**
 - Show the same generic confirmation message for privacy.
 - If the API returns 403, route the user to the account verification flow instead of the reset form.
+- Treat the OTP request as successful only when the backend accepts the account lookup and verification guard.
 - Keep the `identifier` so it can be reused in Step 2.
 
 ---
