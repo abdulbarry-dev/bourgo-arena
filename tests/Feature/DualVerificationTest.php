@@ -49,13 +49,13 @@ test('verifying one method transitions to pending_additional_verification', func
     ]);
 
     $response->assertStatus(200)
-        ->assertJsonPath('data.state', 'pending_additional_verification')
+        ->assertJsonPath('data.state', 'pending_onboarding')
         ->assertJsonPath('data.verification_status.email_verified', true)
         ->assertJsonPath('data.verification_status.phone_verified', false);
 
     $member->refresh();
     expect($member->email_verified_at)->not->toBeNull();
-    expect($member->status)->toBe('pending_additional_verification');
+    expect($member->status)->toBe('pending_onboarding');
 });
 
 test('verifying second method transitions to pending_onboarding', function () {
@@ -101,8 +101,8 @@ test('middleware blocks access until fully verified', function () {
     $response = $this->getJson(route('api.v1.user.profile'));
 
     $response->assertStatus(403)
-        ->assertJsonPath('code', 'ADDITIONAL_VERIFICATION_REQUIRED')
-        ->assertJsonPath('state', 'pending_additional_verification');
+        ->assertJsonPath('code', 'ONBOARDING_INCOMPLETE')
+        ->assertJsonPath('state', 'pending_onboarding');
 });
 
 test('verification status returns correct data', function () {

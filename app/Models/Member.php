@@ -36,10 +36,13 @@ class Member extends Authenticatable
         'onboarding_completed_at',
         'password',
         'is_family_account',
+        'is_archived',
+        'scheduled_for_deletion_at',
         'otp_code',
         'otp_expires_at',
         'otp_attempts',
         'otp_last_sent_at',
+        'loyalty_points',
         'pin',
     ];
 
@@ -51,10 +54,12 @@ class Member extends Authenticatable
         'onboarding_completed_at' => 'datetime',
         'otp_expires_at' => 'datetime',
         'otp_last_sent_at' => 'datetime',
+        'scheduled_for_deletion_at' => 'datetime',
         'password' => 'hashed',
         'otp_code' => 'hashed',
         'pin' => 'hashed',
         'is_family_account' => 'boolean',
+        'is_archived' => 'boolean',
     ];
 
     protected $hidden = [

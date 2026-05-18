@@ -48,12 +48,12 @@ test('full mobile auth flow strictly follows state machine', function () {
     ]);
 
     $verifyResponse->assertStatus(200);
-    $verifyResponse->assertJsonPath('data.state', 'pending_additional_verification');
+    $verifyResponse->assertJsonPath('data.state', 'pending_onboarding');
     $verifyResponse->assertJsonStructure(['data' => ['token']]);
 
     $token = $verifyResponse->json('data.token');
     $member->refresh();
-    expect($member->status)->toBe('pending_additional_verification');
+    expect($member->status)->toBe('pending_onboarding');
 
     // 4. Phone Verification
     $otp = '654321';

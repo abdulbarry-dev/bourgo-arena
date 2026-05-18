@@ -6,11 +6,13 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CourseController;
 use App\Http\Controllers\Api\V1\DeviceTokenController;
 use App\Http\Controllers\Api\V1\FamilyController;
+use App\Http\Controllers\Api\V1\LoyaltyController;
 use App\Http\Controllers\Api\V1\MemberController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\ReservationController;
 use App\Http\Controllers\Api\V1\SearchController;
 use App\Http\Controllers\Api\V1\SubscriptionController;
+use App\Http\Controllers\Api\V1\TierController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -34,6 +36,7 @@ Route::prefix('v1')->group(function () {
             Route::post('skip-additional-verification', [AuthController::class, 'skipAdditionalVerification'])->name('api.v1.auth.skip-additional-verification');
             Route::post('request-family-otp', [AuthController::class, 'requestFamilyOtp'])->middleware('throttle:api.otp')->name('api.v1.auth.request-family-otp');
             Route::post('complete-registration', [AuthController::class, 'completeRegistration'])->middleware('throttle:api.auth')->name('api.v1.auth.complete-registration');
+            Route::post('delete-account', [AuthController::class, 'deleteAccount'])->name('api.v1.auth.delete-account');
         });
     });
 
@@ -59,13 +62,19 @@ Route::prefix('v1')->group(function () {
         Route::post('reservations', [ReservationController::class, 'store'])->name('api.v1.reservations.store');
         Route::delete('reservations/{reservation}', [ReservationController::class, 'destroy'])->name('api.v1.reservations.destroy');
 
+        Route::get('member/tier', [TierController::class, 'show'])->name('api.v1.member.tier');
+        Route::get('loyalty/balance', [LoyaltyController::class, 'balance'])->name('api.v1.loyalty.balance');
+
         Route::get('notifications', [NotificationController::class, 'index'])->name('api.v1.notifications.index');
         Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('api.v1.notifications.mark-all-read');
 
         Route::get('family/children', [FamilyController::class, 'index'])->name('api.v1.family.children.index');
         Route::get('family/members', [FamilyController::class, 'index'])->name('api.v1.family.members.index'); // Alias
         Route::post('family/children', [FamilyController::class, 'store'])->name('api.v1.family.children.store');
+        Route::post('family/disable-feature', [FamilyController::class, 'disableFamilyFeature'])->name('api.v1.family.disable-feature');
         Route::post('family/members', [FamilyController::class, 'store'])->name('api.v1.family.members.store'); // Alias
+        Route::put('family/children/{member}', [FamilyController::class, 'update'])->name('api.v1.family.children.update');
+        Route::put('family/members/{member}', [FamilyController::class, 'update'])->name('api.v1.family.members.update'); // Alias
         Route::delete('family/children/{member}', [FamilyController::class, 'destroy'])->name('api.v1.family.children.destroy');
         Route::delete('family/members/{member}', [FamilyController::class, 'destroy'])->name('api.v1.family.members.destroy'); // Alias
 

@@ -76,8 +76,24 @@ return [
         ],
 
         'array' => [
-            'transport' => 'array',
-        ],
+            ],
+
+            /*
+            |--------------------------------------------------------------------------
+            | Markdown Mail Settings
+            |--------------------------------------------------------------------------
+            |
+            | If you are using Markdown based email rendering, define the theme and
+            | path here. Emails will be rendered using Tailwind CSS by default.
+            |
+            */
+
+            'markdown' => [
+                'theme' => 'default',
+                'paths' => [
+                    resource_path('views/mail'),
+                ],
+            ],
 
         'failover' => [
             'transport' => 'failover',

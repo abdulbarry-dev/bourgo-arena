@@ -17,20 +17,22 @@ class EnsureAccountIsVerified
         $user = $request->user();
 
         if ($user instanceof Member) {
-            // `status` is the authoritative DB column for account state; fall back
-            // to `state` if `status` is not set on the model instance.
-            $state = $user->status ?? $user->state ?? null;
+            // Check if at least one verification method is completed.
+            // Members with neither email nor phone verified are blocked.
+            $hasEmailVerified = $user->email_verified_at !== null;
+            $hasPhoneVerified = $user->phone_verified_at !== null;
+            $isVerified = $hasEmailVerified || $hasPhoneVerified;
 
-            if (in_array($state, ['pending_verification', 'pending_additional_verification'])) {
-                // Normalize blocked verification state for API clients so both
-                // pending states funnel to the additional verification screen.
-                $responseState = $state === 'pending_verification' ? 'pending_additional_verification' : $state;
-                $code = 'ADDITIONAL_VERIFICATION_REQUIRED';
+            if (! $isVerified) {
+                // Allow notification routes to bypass verification checks
+                if ($request->routeIs('api.v1.notifications.*')) {
+                    return $next($request);
+                }
 
                 return response()->json([
                     'message' => __('Your account requires verification.'),
-                    'code' => $code,
-                    'state' => $responseState,
+                    'code' => 'ADDITIONAL_VERIFICATION_REQUIRED',
+                    'state' => 'pending_additional_verification',
                     'verification_status' => $user->getVerificationStatus(),
                 ], 403);
             }

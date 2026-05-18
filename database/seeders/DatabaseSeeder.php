@@ -9,6 +9,12 @@ class DatabaseSeeder extends Seeder
 {
     /**
      * Seed the application's database.
+     *
+     * Use ComprehensiveAppDataSeeder for full test data with realistic scenarios:
+     *   php artisan db:seed --class=ComprehensiveAppDataSeeder
+     *
+     * Or use this default minimal seeding:
+     *   php artisan db:seed
      */
     public function run(): void
     {

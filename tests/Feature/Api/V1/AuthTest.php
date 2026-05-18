@@ -2,6 +2,7 @@
 
 use App\Models\Member;
 use App\Notifications\SendOtpCode;
+use App\Services\Auth\OtpService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
@@ -112,6 +113,27 @@ test('member can register successfully and gets pending_verification state', fun
     );
 });
 
+test('otp generation is deduplicated during a short resend window', function () {
+    Notification::fake();
+
+    $member = Member::factory()->create([
+        'email' => 'burst@example.com',
+        'state' => 'pending_verification',
+        'email_verified_at' => null,
+        'phone_verified_at' => null,
+        'onboarding_completed_at' => null,
+    ]);
+
+    $otpService = app(OtpService::class);
+
+    $firstCode = $otpService->generate('burst@example.com');
+    $secondCode = $otpService->generate('burst@example.com');
+
+    expect($firstCode)->not->toBeEmpty();
+    expect($secondCode)->toBe($firstCode);
+    expect(Notification::sent($member, SendOtpCode::class)->count())->toBe(1);
+});
+
 test('logout revokes token', function () {
     $member = Member::factory()->create([
         'state' => 'active',
@@ -164,12 +186,12 @@ test('OTP generate and verify flow', function () {
             'success' => true,
             'data' => [
                 'valid' => true,
-                'state' => 'pending_additional_verification',
+                'state' => 'pending_onboarding',
             ],
         ]);
 
     $member->refresh();
-    expect($member->state)->toBe('pending_additional_verification');
+    expect($member->state)->toBe('pending_onboarding');
     expect($member->email_verified_at)->not->toBeNull();
 });
 

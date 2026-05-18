@@ -7,6 +7,7 @@ use App\Models\Member;
 use App\Models\OtpCode;
 use App\Models\User;
 use App\Notifications\SendOtpCode;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
@@ -17,13 +18,23 @@ class OtpService
 
     protected int $maxAttempts = 5;
 
-    // TODO: Enable in production - currently disabled for development
-    protected int $resendCooldownSeconds = 0;
+    protected int $resendCooldownSeconds = 60;
 
     public function generate(string $identifier): string
     {
-        $code = (string) rand(100000, 999999);
+        $code = (string) random_int(100000, 999999);
         $expiryMinutes = config('otp.expiry', $this->expiryMinutes);
+        $cooldownSeconds = (int) config('otp.resend_cooldown_seconds', $this->resendCooldownSeconds);
+        $recentSendKey = $this->recentSendCacheKey($identifier);
+        $cachedCodeKey = $this->cachedCodeCacheKey($identifier);
+
+        if ($cooldownSeconds > 0 && Cache::has($recentSendKey)) {
+            return (string) Cache::get($cachedCodeKey, $code);
+        }
+
+        if ($cooldownSeconds > 0 && ! Cache::add($recentSendKey, true, $cooldownSeconds)) {
+            return (string) Cache::get($cachedCodeKey, $code);
+        }
 
         // Check if identifier belongs to a Member
         $member = Member::where('email', $identifier)
@@ -32,8 +43,8 @@ class OtpService
 
         if ($member) {
             // Check cooldown only in production
-            if ($this->resendCooldownSeconds > 0 && $member->otp_last_sent_at && $member->otp_last_sent_at->addSeconds($this->resendCooldownSeconds)->isFuture()) {
-                throw new \Exception(__('Please wait before requesting a new code.'));
+            if ($cooldownSeconds > 0 && $member->otp_last_sent_at && $member->otp_last_sent_at->addSeconds($cooldownSeconds)->isFuture()) {
+                return (string) Cache::get($cachedCodeKey, $code);
             }
 
             $member->update([
@@ -44,6 +55,15 @@ class OtpService
             ]);
         } else {
             // Fallback to otp_codes table for other users or general use
+            $latestOtp = OtpCode::where('identifier', $identifier)
+                ->whereNull('used_at')
+                ->latest()
+                ->first();
+
+            if ($cooldownSeconds > 0 && $latestOtp && $latestOtp->created_at?->addSeconds($cooldownSeconds)->isFuture()) {
+                return (string) Cache::get($cachedCodeKey, $code);
+            }
+
             OtpCode::where('identifier', $identifier)->delete(); // Invalidate previous
 
             OtpCode::create([
@@ -52,6 +72,8 @@ class OtpService
                 'expires_at' => now()->addMinutes($expiryMinutes),
             ]);
         }
+
+        Cache::put($cachedCodeKey, $code, now()->addMinutes($expiryMinutes));
 
         $this->send($identifier, $code);
 
@@ -85,6 +107,7 @@ class OtpService
                 'otp_code' => null,
                 'otp_expires_at' => null,
                 'otp_attempts' => 0,
+                'scheduled_for_deletion_at' => null,
             ];
 
             if (filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
@@ -99,17 +122,22 @@ class OtpService
                 $updateData['state'] = 'active';
                 $updateData['status'] = 'active';
             } else {
-                // Update status based on verification completeness for non-active users
+                // Update status based on verification completeness for non-active users.
+                // At least ONE verification method (email OR phone) is sufficient to proceed.
+                // Only block if NEITHER email nor phone is verified.
                 $isEmailVerified = $updateData['email_verified_at'] ?? $member->email_verified_at;
                 $isPhoneVerified = $updateData['phone_verified_at'] ?? $member->phone_verified_at;
 
-                if (! $isEmailVerified || ! $isPhoneVerified) {
+                if (! $isEmailVerified && ! $isPhoneVerified) {
+                    // Neither email nor phone is verified - still pending
                     $updateData['state'] = 'pending_additional_verification';
                     $updateData['status'] = 'pending_additional_verification';
                 } elseif (! $member->isOnboardingCompleted()) {
+                    // At least one method is verified, but onboarding not completed
                     $updateData['state'] = 'pending_onboarding';
                     $updateData['status'] = 'pending_onboarding';
                 } else {
+                    // At least one method verified AND onboarding completed
                     $updateData['state'] = 'active';
                     $updateData['status'] = 'active';
                 }
@@ -191,5 +219,15 @@ class OtpService
                 throw $e;
             }
         }
+    }
+
+    protected function recentSendCacheKey(string $identifier): string
+    {
+        return 'otp:recent-send:'.sha1($identifier);
+    }
+
+    protected function cachedCodeCacheKey(string $identifier): string
+    {
+        return 'otp:code:'.sha1($identifier);
     }
 }

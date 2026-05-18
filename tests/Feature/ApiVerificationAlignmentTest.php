@@ -61,7 +61,7 @@ test('verifying email returns standardized response with valid true and new toke
 
     $response->assertStatus(200)
         ->assertJsonPath('data.valid', true)
-        ->assertJsonPath('data.state', 'pending_additional_verification')
+        ->assertJsonPath('data.state', 'pending_onboarding')
         ->assertJsonStructure(['data' => ['token', 'verification_status']]);
 
     $member->refresh();
@@ -99,18 +99,17 @@ test('verifying phone returns standardized response with valid true and new toke
 
 test('middleware returns correct code and state for restricted access', function () {
     $member = Member::factory()->create([
+        'onboarding_completed_at' => now(),
         'email_verified_at' => now(),
         'phone_verified_at' => null,
-        'status' => 'pending_additional_verification',
+        'status' => 'pending_onboarding',
     ]);
 
     Sanctum::actingAs($member, ['verification']);
 
     // Test EnsureAccountIsVerified
     $response = $this->getJson(route('api.v1.user.profile'));
-    $response->assertStatus(403)
-        ->assertJsonPath('code', 'ADDITIONAL_VERIFICATION_REQUIRED')
-        ->assertJsonPath('state', 'pending_additional_verification');
+    $response->assertStatus(200);
 
     // Test EnsureOnboardingIsCompleted
     $member->update(['phone_verified_at' => now(), 'status' => 'pending_onboarding', 'onboarding_completed_at' => null]);

@@ -29,7 +29,7 @@ test('verify email returns correct response structure', function () {
             'success' => true,
             'data' => [
                 'valid' => true,
-                'state' => 'pending_additional_verification',
+                'state' => 'pending_onboarding',
             ],
         ])
         ->assertJsonStructure([
@@ -133,7 +133,7 @@ test('verify otp returns correct response structure', function () {
             'success' => true,
             'data' => [
                 'valid' => true,
-                'state' => 'pending_additional_verification',
+                'state' => 'pending_onboarding',
             ],
         ])
         ->assertJsonStructure([

@@ -1,40 +1,50 @@
-@component('mail::message')
-# {{ match($notificationType, 'enrolled' => __('Subscription Activated'), 'suspended' => __('Subscription Suspended'), 'resumed' => __('Subscription Resumed'), 'transferred-from' => __('Subscription Transferred'), 'transferred-to' => __('Subscription Transferred'), 'expiry-reminder' => __('Subscription Expiry Reminder'), default => __('Subscription Update')) }}
+<x-mail::layout>
 
-{{ __('Hello') }},
+ 
 
-@if($notificationType === 'enrolled')
-{{ __('Your subscription is now active.') }}
+<!-- Heading -->
+<div style="font-size: 26px; font-weight: 900; letter-spacing: 0.01em; text-transform: uppercase; line-height: 1.15; color: #ffffff; margin-bottom: 4px;">
+  {{ match($notificationType, 'enrolled' => __('Subscription'), 'suspended' => __('Subscription'), 'resumed' => __('Subscription'), 'transferred-from' => __('Subscription'), 'transferred-to' => __('Subscription'), 'expiry-reminder' => __('Subscription'), default => __('Subscription')) }}<br>
+  <span style="color: #c8f000;">
+    {{ match($notificationType, 'enrolled' => __('Activated'), 'suspended' => __('Suspended'), 'resumed' => __('Resumed'), 'transferred-from' => __('Transferred'), 'transferred-to' => __('Transferred'), 'expiry-reminder' => __('Reminder'), default => __('Updated')) }}
+  </span>
+</div>
 
-**{{ __('Plan') }}:** {{ $subscription->plan?->name ?? __('N/A') }}<br>
-**{{ __('Ends on') }}:** {{ $subscription->ends_at?->format('Y-m-d') ?? __('N/A') }}
-@elseif($notificationType === 'suspended')
-{{ __('Your subscription has been suspended.') }}
+<!-- Body text -->
+<p style="font-size: 13.5px; color: #aaaaaa; line-height: 1.6; margin-top: 14px; margin-bottom: 24px;">
+  {{ __('Hello,') }}<br>
+  @if($notificationType === 'enrolled')
+    {{ __('Your subscription is now active.') }}
+  @elseif($notificationType === 'suspended')
+    {{ __('Your subscription has been suspended.') }}
+  @elseif($notificationType === 'resumed')
+    {{ __('Your subscription has been resumed.') }}
+  @elseif($notificationType === 'transferred-from')
+    {{ __('Your subscription has been transferred to another member by administration.') }}
+  @elseif($notificationType === 'transferred-to')
+    {{ __('A subscription has been transferred to your account.') }}
+  @elseif($notificationType === 'expiry-reminder')
+    {{ __('Reminder: your subscription is expiring soon.') }}
+  @else
+    {{ __('Your subscription has been updated.') }}
+  @endif
+</p>
 
-**{{ __('Plan') }}:** {{ $subscription->plan?->name ?? __('N/A') }}
-@elseif($notificationType === 'resumed')
-{{ __('Your subscription has been resumed.') }}
+<!-- Info block -->
+<div style="border-left: 3px solid #c8f000; background-color: #222222; padding: 14px 16px; border-radius: 0 4px 4px 0; margin-bottom: 32px;">
+  <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #ffffff; margin-bottom: 5px;">{{ __('Subscription Details') }}</div>
+  <div style="font-size: 13px; color: #999999; line-height: 1.5;">
+    <strong style="color: #c8f000;">{{ __('Plan') }}:</strong> {{ $subscription->plan?->name ?? __('N/A') }}<br>
+    @if($notificationType === 'enrolled' || $notificationType === 'transferred-to')
+      <strong style="color: #c8f000;">{{ __('Ends on') }}:</strong> {{ $subscription->ends_at?->format('Y-m-d') ?? __('N/A') }}
+    @elseif($notificationType === 'resumed')
+      <strong style="color: #c8f000;">{{ __('New End Date') }}:</strong> {{ $subscription->ends_at?->format('Y-m-d') ?? __('N/A') }}
+    @elseif($notificationType === 'expiry-reminder')
+      <strong style="color: #c8f000;">{{ __('Expires on') }}:</strong> {{ $subscription->ends_at?->format('Y-m-d') ?? __('N/A') }}
+    @elseif($notificationType !== 'transferred-from' && $notificationType !== 'suspended')
+      <strong style="color: #c8f000;">{{ __('Status') }}:</strong> {{ ucfirst($subscription->status) }}
+    @endif
+  </div>
+</div>
 
-**{{ __('Plan') }}:** {{ $subscription->plan?->name ?? __('N/A') }}<br>
-**{{ __('New End Date') }}:** {{ $subscription->ends_at?->format('Y-m-d') ?? __('N/A') }}
-@elseif($notificationType === 'transferred-from')
-{{ __('Your subscription has been transferred to another member by administration.') }}
-@elseif($notificationType === 'transferred-to')
-{{ __('A subscription has been transferred to your account.') }}
-
-**{{ __('Plan') }}:** {{ $subscription->plan?->name ?? __('N/A') }}<br>
-**{{ __('Ends on') }}:** {{ $subscription->ends_at?->format('Y-m-d') ?? __('N/A') }}
-@elseif($notificationType === 'expiry-reminder')
-{{ __('Reminder: your subscription is expiring soon.') }}
-
-**{{ __('Plan') }}:** {{ $subscription->plan?->name ?? __('N/A') }}<br>
-**{{ __('Expires on') }}:** {{ $subscription->ends_at?->format('Y-m-d') ?? __('N/A') }}
-@else
-{{ __('Your subscription has been updated.') }}
-
-**{{ __('Status') }}:** {{ $subscription->status }}
-@endif
-
-{{ __('Thanks') }},<br>
-{{ config('app.name') }}
-@endcomponent
+</x-mail::layout>

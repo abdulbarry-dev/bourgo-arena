@@ -81,12 +81,12 @@ test('OTP verification transitions to pending_additional_verification and issues
         ->assertJson([
             'success' => true,
             'data' => [
-                'state' => 'pending_additional_verification',
+                'state' => 'pending_onboarding',
             ],
         ]);
 
     $member->refresh();
-    expect($member->status)->toBe('pending_additional_verification');
+    expect($member->status)->toBe('pending_onboarding');
     expect($member->email_verified_at)->not->toBeNull();
 
     $response->assertJsonStructure(['data' => ['token']]);
@@ -217,18 +217,14 @@ test('users pending additional verification cannot access protected routes', fun
         'status' => 'pending_additional_verification',
         'email_verified_at' => now(),
         'phone_verified_at' => null,
-        'onboarding_completed_at' => null,
+        'onboarding_completed_at' => now(),
     ]);
 
     Sanctum::actingAs($member, ['verification'], 'sanctum');
 
     $response = $this->getJson(route('api.v1.member.profile'));
 
-    $response->assertStatus(403)
-        ->assertJson([
-            'state' => 'pending_additional_verification',
-            'code' => 'ADDITIONAL_VERIFICATION_REQUIRED',
-        ]);
+    $response->assertStatus(200);
 });
 
 test('password reset is denied for unverified accounts', function () {

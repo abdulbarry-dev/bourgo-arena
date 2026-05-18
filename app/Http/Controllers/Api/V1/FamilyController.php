@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\AddChildRequest;
+use App\Http\Requests\Api\V1\UpdateChildRequest;
 use App\Http\Resources\Api\V1\MemberResource;
 use App\Models\Member;
+use App\Services\ApiFamilyService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,6 +16,10 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 class FamilyController extends Controller
 {
     use ApiResponse;
+
+    public function __construct(
+        protected ApiFamilyService $familyService
+    ) {}
 
     /**
      * Return authenticated member's children.
@@ -37,15 +43,13 @@ class FamilyController extends Controller
      */
     public function store(AddChildRequest $request): JsonResponse
     {
-        $validated = $request->validated();
+        $parent = $request->user();
 
-        $child = $request->user()->children()->create([
-            'name' => trim(($validated['first_name'] ?? '').' '.($validated['last_name'] ?? '')),
-            'date_of_birth' => $validated['birth_date'],
-            'gender' => $validated['gender'],
-            'status' => 'active',
-            'password' => null,
-        ]);
+        if (! $parent instanceof Member) {
+            abort(403, __('Forbidden'));
+        }
+
+        $child = $this->familyService->createChild($parent, $request->validated());
 
         return (new MemberResource($child))->additional([
             'success' => true,
@@ -54,15 +58,62 @@ class FamilyController extends Controller
     }
 
     /**
+     * Update an existing child member.
+     */
+    public function update(UpdateChildRequest $request, Member $member): JsonResponse
+    {
+        $parent = $request->user();
+
+        if (! $parent instanceof Member) {
+            abort(403, __('Forbidden'));
+        }
+
+        $child = $this->familyService->updateChild($parent, $member, $request->validated());
+
+        if ($child === null) {
+            return $this->error('Unauthorized', 403);
+        }
+
+        return (new MemberResource($child))->additional([
+            'success' => true,
+            'message' => 'Child updated successfully',
+        ])->response();
+    }
+
+    /**
+     * Disable the family account feature.
+     */
+    public function disableFamilyFeature(Request $request): JsonResponse
+    {
+        $member = $request->user();
+
+        if (! $member instanceof Member) {
+            abort(403, __('Forbidden'));
+        }
+
+        if (! $member->is_family_account) {
+            return $this->error('Not a family account', 400);
+        }
+
+        $this->familyService->disableFamilyAccount($member);
+
+        return $this->success(null, 'Family account feature disabled and children archived successfully');
+    }
+
+    /**
      * Delete a child member.
      */
     public function destroy(Request $request, Member $member): JsonResponse
     {
-        if ($member->parent_id !== $request->user()->id) {
-            return $this->error('Unauthorized', 403);
+        $parent = $request->user();
+
+        if (! $parent instanceof Member) {
+            abort(403, __('Forbidden'));
         }
 
-        $member->delete();
+        if (! $this->familyService->deleteChild($parent, $member)) {
+            return $this->error('Unauthorized', 403);
+        }
 
         return $this->success(null, 'Child removed successfully');
     }

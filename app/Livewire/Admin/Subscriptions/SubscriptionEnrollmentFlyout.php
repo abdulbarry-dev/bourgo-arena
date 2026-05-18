@@ -8,6 +8,7 @@ use App\Jobs\SyncTerminalWhitelist;
 use App\Models\Member;
 use App\Models\Plan;
 use App\Models\Subscription;
+use App\Services\LoyaltyCalculatorService;
 use App\Services\ReceiptGenerator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -173,6 +174,8 @@ class SubscriptionEnrollmentFlyout extends Component
 
                 return $subscription->fresh();
             });
+
+            app(LoyaltyCalculatorService::class)->creditFixedMonthlyRenewal($subscription);
 
             SendSubscriptionReceiptEmail::dispatch($subscription->id);
             SendSubscriptionNotification::dispatch(

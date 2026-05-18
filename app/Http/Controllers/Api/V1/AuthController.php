@@ -14,6 +14,7 @@ use App\Http\Requests\Auth\VerifyOtpRequest;
 use App\Http\Resources\Api\V1\MemberResource;
 use App\Models\Member;
 use App\Models\User;
+use App\Notifications\AccountDeletionScheduled;
 use App\Services\Auth\AuthService;
 use App\Services\Auth\OtpService;
 use App\Traits\ApiResponse;
@@ -49,6 +50,21 @@ class AuthController extends Controller
 
             $state = $member->status ?? $member->state;
             $verificationStatus = $member->getVerificationStatus();
+
+            if ($member->scheduled_for_deletion_at && $member->scheduled_for_deletion_at->isFuture()) {
+                $identifier = $member->phone ?? $member->email;
+                $this->otpService->generate($identifier);
+
+                $token = $member->createToken('auth_token', ['deletion-cancellation'])->plainTextToken;
+
+                return $this->success([
+                    'token' => $token,
+                    'state' => 'pending_deletion_cancellation',
+                    'code' => 'ACCOUNT_DELETION_PENDING',
+                    'user' => new MemberResource($member),
+                    'verification_status' => $verificationStatus,
+                ], __('Your account is scheduled for deletion. An OTP has been sent to your registered contact to cancel the process.'));
+            }
 
             if ($state === 'pending_verification' || $state === 'pending_additional_verification') {
                 $token = $member->createToken('auth_token', ['verification'])->plainTextToken;
@@ -195,8 +211,40 @@ class AuthController extends Controller
      */
     public function requestFamilyOtp(Request $request): JsonResponse
     {
+        $request->validate([
+            'method' => ['sometimes', 'string', 'in:email,phone,sms'],
+        ]);
+
         $member = $request->user();
-        $identifier = $member->phone ?? $member->email;
+
+        if (! $member instanceof Member) {
+            return $this->error(__('Only members can request family OTP.'), 403);
+        }
+
+        $method = $request->input('method');
+        $identifier = null;
+
+        if ($method === 'email') {
+            if (! $member->email || ! $member->email_verified_at) {
+                return $this->error(__('Your email is not verified.'), 422);
+            }
+            $identifier = $member->email;
+        } elseif ($method === 'phone' || $method === 'sms') {
+            if (! $member->phone || ! $member->phone_verified_at) {
+                return $this->error(__('Your phone number is not verified.'), 422);
+            }
+            $identifier = $member->phone;
+        } else {
+            // Default logic: prioritize verified phone, then verified email
+            if ($member->phone && $member->phone_verified_at) {
+                $identifier = $member->phone;
+            } elseif ($member->email && $member->email_verified_at) {
+                $identifier = $member->email;
+            } else {
+                // Fallback to whatever is available if nothing is verified yet
+                $identifier = $member->phone ?? $member->email;
+            }
+        }
 
         if (! $identifier) {
             return $this->error(__('No contact information found for this account.'), 422);
@@ -208,7 +256,9 @@ class AuthController extends Controller
             return $this->error($e->getMessage(), 422);
         }
 
-        return $this->success(null, __('OTP code sent to your registered contact information.'));
+        return $this->success(null, __('OTP code sent to your registered :method.', [
+            'method' => filter_var($identifier, FILTER_VALIDATE_EMAIL) ? __('email') : __('phone number'),
+        ]));
     }
 
     /**
@@ -325,13 +375,17 @@ class AuthController extends Controller
         ]);
 
         // Revoke current token and issue a new one with full abilities
+        // Refresh model to ensure latest attributes (and any observers) are present
+        $member->refresh();
+
         $member->tokens()->delete();
         $token = $member->createToken('auth_token')->plainTextToken;
 
         return $this->success([
             'token' => $token,
-            'state' => 'active',
+            'state' => $member->status ?? $member->state,
             'user' => new MemberResource($member),
+            'verification_status' => $member->getVerificationStatus(),
         ], __('Registration completed successfully.'), 201);
     }
 
@@ -474,5 +528,29 @@ class AuthController extends Controller
             'state' => 'pending_onboarding',
             'verification_status' => $member->getVerificationStatus(),
         ], __('Additional verification skipped.'));
+    }
+
+    public function deleteAccount(Request $request): JsonResponse
+    {
+        $request->validate([
+            'password' => ['required', 'string'],
+        ]);
+
+        $member = $request->user();
+
+        if (! Hash::check($request->password, $member->password)) {
+            return $this->error(__('The provided password does not match our records.'), 422);
+        }
+
+        $member->update([
+            'scheduled_for_deletion_at' => now()->addHours(48),
+        ]);
+
+        $member->notify(new AccountDeletionScheduled);
+
+        // Revoke all tokens
+        $member->tokens()->delete();
+
+        return $this->success(null, __('Your account has been scheduled for deletion in 48 hours. You can cancel this by logging back in before then.'));
     }
 }

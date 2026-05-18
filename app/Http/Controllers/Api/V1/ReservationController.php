@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\StoreReservationRequest;
 use App\Http\Resources\Api\ApiReservationResource;
+use App\Models\ActivitySlot;
 use App\Models\ApiReservation;
+use App\Services\LoyaltyCalculatorService;
 use App\Services\ReservationService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -17,7 +20,8 @@ class ReservationController extends Controller
     use ApiResponse;
 
     public function __construct(
-        protected ReservationService $reservationService
+        protected ReservationService $reservationService,
+        protected LoyaltyCalculatorService $loyaltyCalculatorService
     ) {}
 
     /**
@@ -40,23 +44,15 @@ class ReservationController extends Controller
      *
      * @return ApiReservationResource
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreReservationRequest $request): JsonResponse
     {
-        if ($request->has('slot_id') && ! $request->has('activity_slot_id')) {
-            $request->merge(['activity_slot_id' => $request->slot_id]);
-        }
-
-        $validated = $request->validate([
-            'activity_id' => ['required', 'exists:activities,id'],
-            'activity_slot_id' => ['required', 'exists:activity_slots,id'],
-            'date' => ['required', 'date', 'after_or_equal:today'],
-            'price' => ['required', 'numeric', 'min:0'],
-        ]);
+        $validated = $request->validated();
+        $slot = ActivitySlot::query()->findOrFail($validated['activity_slot_id']);
 
         // Check if already booked for same slot by this member
         $exists = ApiReservation::where('member_id', $request->user()->id)
             ->where('activity_slot_id', $validated['activity_slot_id'])
-            ->where('date', $validated['date'])
+            ->where('date', $slot->date)
             ->where('status', '!=', 'cancelled')
             ->exists();
 
@@ -67,6 +63,7 @@ class ReservationController extends Controller
         }
 
         $reservation = $this->reservationService->makeActivityReservation($request->user(), $validated);
+        $this->loyaltyCalculatorService->creditVariableForReservation($reservation);
 
         return (new ApiReservationResource($reservation->load(['activity', 'slot'])))->additional([
             'success' => true,

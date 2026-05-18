@@ -17,6 +17,11 @@ class EnsureOnboardingIsCompleted
         $user = $request->user();
 
         if ($user instanceof Member && ! $user->isOnboardingCompleted()) {
+            // Allow notification routes to bypass onboarding checks
+            if ($request->routeIs('api.v1.notifications.*')) {
+                return $next($request);
+            }
+
             return response()->json([
                 'message' => __('Please complete your onboarding first.'),
                 'code' => 'ONBOARDING_INCOMPLETE',
