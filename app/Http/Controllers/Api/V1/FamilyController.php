@@ -81,6 +81,29 @@ class FamilyController extends Controller
     }
 
     /**
+     * Enable the family account feature.
+     */
+    public function enableFamilyFeature(Request $request): JsonResponse
+    {
+        $member = $request->user();
+
+        if (! $member instanceof Member) {
+            abort(403, __('Forbidden'));
+        }
+
+        if ($member->is_family_account) {
+            return $this->error('Family account feature already enabled', 400);
+        }
+
+        $member->update(['is_family_account' => true]);
+
+        return (new MemberResource($member->fresh()))->additional([
+            'success' => true,
+            'message' => 'Family account feature enabled successfully',
+        ])->response();
+    }
+
+    /**
      * Disable the family account feature.
      */
     public function disableFamilyFeature(Request $request): JsonResponse

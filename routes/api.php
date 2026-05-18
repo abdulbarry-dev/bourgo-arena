@@ -71,6 +71,7 @@ Route::prefix('v1')->group(function () {
         Route::get('family/children', [FamilyController::class, 'index'])->name('api.v1.family.children.index');
         Route::get('family/members', [FamilyController::class, 'index'])->name('api.v1.family.members.index'); // Alias
         Route::post('family/children', [FamilyController::class, 'store'])->name('api.v1.family.children.store');
+        Route::post('family/enable-feature', [FamilyController::class, 'enableFamilyFeature'])->name('api.v1.family.enable-feature');
         Route::post('family/disable-feature', [FamilyController::class, 'disableFamilyFeature'])->name('api.v1.family.disable-feature');
         Route::post('family/members', [FamilyController::class, 'store'])->name('api.v1.family.members.store'); // Alias
         Route::put('family/children/{member}', [FamilyController::class, 'update'])->name('api.v1.family.children.update');
