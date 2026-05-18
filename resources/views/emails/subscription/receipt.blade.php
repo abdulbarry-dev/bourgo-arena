@@ -1,6 +1,7 @@
 <x-mail::layout>
 
- 
+<!-- Logo -->
+<!-- logo removed per request -->
 
 <!-- Heading -->
 <div style="font-size: 26px; font-weight: 900; letter-spacing: 0.01em; text-transform: uppercase; line-height: 1.15; color: #ffffff; margin-bottom: 4px;">

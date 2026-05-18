@@ -13,11 +13,13 @@
         <!-- Wrapper -->
         <table width="520" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;max-width:520px;">
 
-          <!-- Header with logo -->
+          <!-- Header -->
           <tr>
             <td style="text-align:center;padding-bottom:12px;">
-              <img src="{{ asset('assets/images/brandmark-noir.webp') }}" alt="{{ config('app.name') }}" width="140" style="display:block;margin:0 auto;max-width:100%;height:auto;" />
-              <div style="font-size:9px;color:#888888;letter-spacing:0.25em;text-transform:uppercase;margin-top:8px;">Le QG du Sport à Djerba</div>
+              <div style="display:inline-block;font-size:22px;font-weight:900;letter-spacing:0.06em;text-transform:uppercase;color:#ffffff;">
+                BOURGO<span style="color:#c8f000">ARENA</span>
+              </div>
+              <div style="font-size:9px;color:#888888;letter-spacing:0.25em;text-transform:uppercase;margin-top:4px;">Le QG du Sport à Djerba</div>
             </td>
           </tr>
 
