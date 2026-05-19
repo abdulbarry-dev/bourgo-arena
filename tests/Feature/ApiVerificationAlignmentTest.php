@@ -117,6 +117,8 @@ test('middleware returns correct code and state for restricted access', function
 
     $response = $this->getJson(route('api.v1.user.profile'));
     $response->assertStatus(403)
+        ->assertJsonPath('message', 'Must complete onboarding to access your account.')
         ->assertJsonPath('code', 'ONBOARDING_INCOMPLETE')
-        ->assertJsonPath('state', 'pending_onboarding');
+        ->assertJsonPath('state', 'pending_onboarding')
+        ->assertJsonPath('required_action', 'complete_onboarding');
 });

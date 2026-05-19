@@ -137,8 +137,12 @@ test('login returns pending_onboarding if fully verified but onboarding incomple
             'success' => true,
             'data' => [
                 'state' => 'pending_onboarding',
+                'code' => 'ONBOARDING_INCOMPLETE',
+                'required_action' => 'complete_onboarding',
             ],
-        ]);
+        ])
+        ->assertJsonPath('data.cta', 'Complete Setup')
+        ->assertJsonPath('message', 'Must complete onboarding to unlock your account.');
 });
 
 test('registration completion transitions to active', function () {
@@ -208,7 +212,10 @@ test('users with incomplete onboarding cannot access protected routes', function
 
     $response->assertStatus(403)
         ->assertJson([
+            'message' => 'Must complete onboarding to access your account.',
+            'code' => 'ONBOARDING_INCOMPLETE',
             'state' => 'pending_onboarding',
+            'required_action' => 'complete_onboarding',
         ]);
 });
 

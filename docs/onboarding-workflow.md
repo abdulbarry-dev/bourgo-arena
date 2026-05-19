@@ -11,6 +11,16 @@ Account onboarding happens in two scenarios:
 
 Both scenarios converge to the same `complete-registration` endpoint.
 
+## Flutter Mobile Contract
+
+Use the backend state as the source of truth.
+
+- `pending_verification` or `pending_additional_verification` means the user must complete OTP verification first.
+- `pending_onboarding` means the user is authenticated but must finish setup before accessing the home screen.
+- `active` means the user can enter the app normally.
+
+When login returns `pending_onboarding`, the app should show a modal that says the account setup is not completed, with a `Complete Setup` button that continues onboarding and a `Cancel` button that closes the modal and keeps the user on the login screen.
+
 ---
 
 ## Flow 1: New Registration → Onboarding
@@ -188,10 +198,13 @@ Or with phone:
 ```json
 {
   "success": true,
-  "message": "Please complete your onboarding.",
+  "message": "Must complete onboarding to unlock your account.",
   "data": {
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "state": "pending_onboarding",
+    "code": "ONBOARDING_INCOMPLETE",
+    "required_action": "complete_onboarding",
+    "cta": "Complete Setup",
     "user": {
       "id": "11",
       "name": null,
@@ -215,7 +228,8 @@ Or with phone:
 **Key Indicators:**
 - `state` is `pending_onboarding`
 - Token returned has `onboarding` ability only
-- User needs to complete onboarding before accessing the main app
+- User must complete onboarding before accessing the main app
+- Flutter should show the setup modal, not the home screen
 
 ### Step 2: Complete Onboarding (Same as Flow 1, Step 3)
 
@@ -347,9 +361,13 @@ Future<Map<String, dynamic>> loginUser({
     
     // Check account state
     if (state == 'pending_onboarding') {
-      // Route to onboarding screen with the token
-      showInfo(data['message']);
-      navigateTo(OnboardingScreen(token: token));
+      // Keep the user on the login screen and show the setup modal.
+      showSetupModal(
+        message: data['message'],
+        onCompleteSetup: () {
+          navigateTo(OnboardingScreen(token: token));
+        },
+      );
       return {'success': true, 'state': state};
     } else if (state == 'active') {
       // Route to dashboard
@@ -421,9 +439,8 @@ Future<Map<String, dynamic>> loginUser({
 └────────────┬────────────────────┘
              ↓
 ┌─────────────────────────────────┐
-│  Account Not Complete           │
-│  [Continue to Onboarding]       │
-│  (or skip for now?)             │
+│  Account Setup Not Completed    │
+│  [Complete Setup] [Cancel]      │
 └────────────┬────────────────────┘
              ↓
 ┌─────────────────────────────────┐
@@ -492,4 +509,5 @@ Future<Map<String, dynamic>> loginUser({
 - [ ] Test that old token is revoked after onboarding
 - [ ] Test that new token has full `*` abilities
 - [ ] Test user can access protected endpoints after onboarding
+- [ ] Test login with pending onboarding returns the setup modal state and does not enter home
 - [ ] Test logout clears all temporary state

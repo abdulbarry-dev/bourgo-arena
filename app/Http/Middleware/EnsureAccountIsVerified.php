@@ -24,11 +24,6 @@ class EnsureAccountIsVerified
             $isVerified = $hasEmailVerified || $hasPhoneVerified;
 
             if (! $isVerified) {
-                // Allow notification routes to bypass verification checks
-                if ($request->routeIs('api.v1.notifications.*')) {
-                    return $next($request);
-                }
-
                 return response()->json([
                     'message' => __('Your account requires verification.'),
                     'code' => 'ADDITIONAL_VERIFICATION_REQUIRED',

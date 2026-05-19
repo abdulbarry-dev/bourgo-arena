@@ -84,15 +84,18 @@ class AuthController extends Controller
                 ], __('Verification required.'));
             }
 
-            if ($state === 'pending_onboarding') {
+            if (! $member->isOnboardingCompleted()) {
                 $token = $member->createToken('auth_token', ['onboarding'])->plainTextToken;
 
                 return $this->success([
                     'token' => $token,
-                    'state' => $state,
+                    'state' => 'pending_onboarding',
+                    'code' => 'ONBOARDING_INCOMPLETE',
+                    'required_action' => 'complete_onboarding',
+                    'cta' => __('Complete Setup'),
                     'user' => new MemberResource($member),
                     'verification_status' => $verificationStatus,
-                ], __('Please complete your onboarding.'));
+                ], __('Must complete onboarding to unlock your account.'));
             }
 
             // Active or other states get full access
