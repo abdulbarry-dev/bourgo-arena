@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\DeviceTokenController;
 use App\Http\Controllers\Api\V1\FamilyController;
 use App\Http\Controllers\Api\V1\LoyaltyController;
 use App\Http\Controllers\Api\V1\MemberController;
+use App\Http\Controllers\Api\V1\MemberNfcController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\ReservationController;
 use App\Http\Controllers\Api\V1\SearchController;
@@ -82,6 +83,12 @@ Route::prefix('v1')->group(function () {
         Route::post('device-token', [DeviceTokenController::class, 'store'])->name('api.v1.device-token.store');
 
         Route::get('member/subscription', [SubscriptionController::class, 'active'])->name('api.v1.member.subscription');
+
+        Route::prefix('member/nfc')->group(function () {
+            Route::get('physical-status', [MemberNfcController::class, 'physicalStatus'])->name('api.v1.member.nfc.physical-status');
+            Route::get('digital-status', [MemberNfcController::class, 'digitalStatus'])->name('api.v1.member.nfc.digital-status');
+            Route::post('digital-setup', [MemberNfcController::class, 'setupDigital'])->name('api.v1.member.nfc.digital-setup');
+        });
     });
 });
 

@@ -76,9 +76,9 @@ return [
         ],
 
         'array' => [
-            ],
+        ],
 
-            /*
+        /*
             |--------------------------------------------------------------------------
             | Markdown Mail Settings
             |--------------------------------------------------------------------------
@@ -88,12 +88,12 @@ return [
             |
             */
 
-            'markdown' => [
-                'theme' => 'default',
-                'paths' => [
-                    resource_path('views/mail'),
-                ],
+        'markdown' => [
+            'theme' => 'default',
+            'paths' => [
+                resource_path('views/mail'),
             ],
+        ],
 
         'failover' => [
             'transport' => 'failover',

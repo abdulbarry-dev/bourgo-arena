@@ -171,6 +171,11 @@ class Member extends Authenticatable
         return $this->hasMany(MemberNotification::class);
     }
 
+    public function digitalNfcDevices(): HasMany
+    {
+        return $this->hasMany(MemberDigitalNfcDevice::class);
+    }
+
     public function reservations(): HasMany
     {
         return $this->hasMany(ApiReservation::class);
