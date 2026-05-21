@@ -84,6 +84,18 @@ class AuthController extends Controller
                 ], __('Verification required.'));
             }
 
+            if (! $member->isVerified()) {
+                $token = $member->createToken('auth_token', ['verification'])->plainTextToken;
+
+                return $this->success([
+                    'token' => $token,
+                    'state' => 'pending_additional_verification',
+                    'code' => 'ADDITIONAL_VERIFICATION_REQUIRED',
+                    'user' => new MemberResource($member),
+                    'verification_status' => $verificationStatus,
+                ], __('Verification required.'));
+            }
+
             if (! $member->isOnboardingCompleted()) {
                 $token = $member->createToken('auth_token', ['onboarding'])->plainTextToken;
 
@@ -232,20 +244,25 @@ class AuthController extends Controller
                 return $this->error(__('Your email is not verified.'), 422);
             }
             $identifier = $member->email;
+            $preferred = 'mail';
         } elseif ($method === 'phone' || $method === 'sms') {
             if (! $member->phone || ! $member->phone_verified_at) {
                 return $this->error(__('Your phone number is not verified.'), 422);
             }
             $identifier = $member->phone;
+            $preferred = 'sms';
         } else {
             // Default logic: prioritize verified phone, then verified email
             if ($member->phone && $member->phone_verified_at) {
                 $identifier = $member->phone;
+                $preferred = 'sms';
             } elseif ($member->email && $member->email_verified_at) {
                 $identifier = $member->email;
+                $preferred = 'mail';
             } else {
                 // Fallback to whatever is available if nothing is verified yet
                 $identifier = $member->phone ?? $member->email;
+                $preferred = filter_var($identifier, FILTER_VALIDATE_EMAIL) ? 'mail' : 'sms';
             }
         }
 
@@ -254,7 +271,7 @@ class AuthController extends Controller
         }
 
         try {
-            $this->otpService->generate($identifier);
+            $this->otpService->generate($identifier, $preferred ?? null);
         } catch (\Exception $e) {
             return $this->error($e->getMessage(), 422);
         }
@@ -511,10 +528,7 @@ class AuthController extends Controller
             return $this->error(__('Only members can skip verification.'), 403);
         }
 
-        $isPendingAdditionalVerification = $member->status === 'pending_additional_verification'
-            || $member->state === 'pending_additional_verification';
-
-        if (! $isPendingAdditionalVerification) {
+        if (! $member->isVerified() || $member->isFullyVerified()) {
             return $this->error(__('You are not in a state where additional verification can be skipped.'), 403);
         }
 

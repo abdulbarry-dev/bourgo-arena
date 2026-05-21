@@ -26,6 +26,25 @@ test('user can skip additional verification when in pending_additional_verificat
     expect($member->status)->toBe('pending_onboarding');
 });
 
+test('user can skip additional verification when in pending_onboarding with one verified method', function () {
+    $member = Member::factory()->create([
+        'email_verified_at' => now(),
+        'phone_verified_at' => null,
+        'status' => 'pending_onboarding',
+    ]);
+
+    Sanctum::actingAs($member, ['onboarding']);
+
+    $response = $this->postJson(route('api.v1.auth.skip-additional-verification'));
+
+    $response->assertSuccessful()
+        ->assertJsonPath('data.state', 'pending_onboarding')
+        ->assertJsonStructure(['data' => ['token']]);
+
+    $member->refresh();
+    expect($member->status)->toBe('pending_onboarding');
+});
+
 test('skipping additional verification fails if already fully verified', function () {
     $member = Member::factory()->create([
         'email_verified_at' => now(),

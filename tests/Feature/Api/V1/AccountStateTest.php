@@ -145,6 +145,31 @@ test('login returns pending_onboarding if fully verified but onboarding incomple
         ->assertJsonPath('message', 'Must complete onboarding to unlock your account.');
 });
 
+test('login keeps unverified onboarding members in verification flow', function () {
+    $member = Member::factory()->create([
+        'email' => 'unverified-onboarding@example.com',
+        'password' => Hash::make('password123'),
+        'status' => 'pending_onboarding',
+        'email_verified_at' => null,
+        'phone_verified_at' => null,
+        'onboarding_completed_at' => now(),
+    ]);
+
+    $response = $this->postJson(route('api.v1.auth.login'), [
+        'email' => 'unverified-onboarding@example.com',
+        'password' => 'password123',
+    ]);
+
+    $response->assertStatus(200)
+        ->assertJson([
+            'success' => true,
+            'data' => [
+                'state' => 'pending_additional_verification',
+                'code' => 'ADDITIONAL_VERIFICATION_REQUIRED',
+            ],
+        ]);
+});
+
 test('registration completion transitions to active', function () {
     $member = Member::factory()->create([
         'name' => 'John Doe',
@@ -179,6 +204,41 @@ test('registration completion transitions to active', function () {
     expect($member->status)->toBe('active');
     expect($member->onboarding_completed_at)->not->toBeNull();
     expect($member->pin)->not->toBeNull();
+});
+
+test('registration completion is blocked until otp verification exists', function () {
+    $member = Member::factory()->create([
+        'name' => 'No Verify User',
+        'email' => 'no-verify@example.com',
+        'phone' => '87654322',
+        'status' => 'pending_onboarding',
+        'state' => 'pending_onboarding',
+        'email_verified_at' => null,
+        'phone_verified_at' => null,
+        'onboarding_completed_at' => null,
+    ]);
+
+    Sanctum::actingAs($member, ['onboarding'], 'sanctum');
+
+    $response = $this->postJson(route('api.v1.auth.complete-registration'), [
+        'name' => 'No Verify User',
+        'email' => 'no-verify@example.com',
+        'phone' => '87654322',
+        'date_of_birth' => '1992-02-02',
+        'gender' => 'female',
+        'is_parent_account' => true,
+        'pin' => '1234',
+    ]);
+
+    $response->assertStatus(403)
+        ->assertJson([
+            'code' => 'ADDITIONAL_VERIFICATION_REQUIRED',
+            'state' => 'pending_additional_verification',
+        ]);
+
+    $member->refresh();
+    expect($member->onboarding_completed_at)->toBeNull();
+    expect($member->state)->toBe('pending_onboarding');
 });
 
 test('unverified users cannot access protected routes', function () {

@@ -20,7 +20,7 @@ class OtpService
 
     protected int $resendCooldownSeconds = 60;
 
-    public function generate(string $identifier): string
+    public function generate(string $identifier, ?string $preferredChannel = null): string
     {
         $code = (string) random_int(100000, 999999);
         $expiryMinutes = config('otp.expiry', $this->expiryMinutes);
@@ -75,7 +75,7 @@ class OtpService
 
         Cache::put($cachedCodeKey, $code, now()->addMinutes($expiryMinutes));
 
-        $this->send($identifier, $code);
+        $this->send($identifier, $code, $preferredChannel);
 
         return $code;
     }
@@ -171,17 +171,26 @@ class OtpService
         return true;
     }
 
-    public function send(string $identifier, string $code): void
+    public function send(string $identifier, string $code, ?string $preferredChannel = null): void
     {
         $isEmail = (bool) filter_var($identifier, FILTER_VALIDATE_EMAIL);
-        $preferredChannel = $isEmail ? 'mail' : 'sms';
+
+        // If a preferred channel was passed in from the caller, use it.
+        if ($preferredChannel) {
+            $computedPreferred = $preferredChannel;
+        } else {
+            $computedPreferred = $isEmail ? 'mail' : 'sms';
+        }
 
         // Check if we should re-route from phone to email for web requests
-        $isApiRequest = request()->is('api/*') || request()->expectsJson();
+        $request = app('request');
+        $isApiRequest = $request->is('api/*') || $request->expectsJson();
         $isConsole = app()->runningInConsole();
 
         try {
             $notifiable = null;
+
+            $forcedPreferred = null;
 
             if (! $isApiRequest && ! $isConsole && ! $isEmail) {
                 // For non-API/non-Console requests, if it's a phone, try to find the user's email
@@ -191,7 +200,8 @@ class OtpService
                 if ($user && $user->email) {
                     $identifier = $user->email;
                     $notifiable = $user;
-                    $preferredChannel = 'mail';
+                    // This is an explicit reroute decision, keep forced preferred channel
+                    $forcedPreferred = 'mail';
                 }
             }
 
@@ -201,8 +211,29 @@ class OtpService
             }
 
             if ($notifiable) {
-                Log::info("Sending OTP to found notifiable ({$identifier}) via {$preferredChannel}");
-                $notifiable->notify(new SendOtpCode($code, $preferredChannel));
+                // If we explicitly forced a preferred channel (reroute case), pass it through.
+                // Otherwise pass null so the notification can decide and deliver to all
+                // verified channels (email + sms) when applicable.
+                // If caller explicitly asked for a preferred channel, respect it.
+                // Else if we forced a reroute earlier, respect it.
+                // For account-deletion cancellation (scheduled future deletion),
+                // let notification auto-select verified channels so users receive
+                // OTP on all verified methods immediately.
+                if (
+                    $notifiable instanceof Member
+                    && ! $preferredChannel
+                    && ! $forcedPreferred
+                    && $notifiable->scheduled_for_deletion_at
+                    && $notifiable->scheduled_for_deletion_at->isFuture()
+                ) {
+                    $passPreferred = null;
+                } else {
+                    // Default behavior: follow computed channel from identifier.
+                    $passPreferred = $preferredChannel ?? $forcedPreferred ?? $computedPreferred ?? null;
+                }
+
+                Log::info("Sending OTP to found notifiable ({$identifier}) via ".($passPreferred ?? 'auto'));
+                $notifiable->notify(new SendOtpCode($code, $passPreferred));
             } elseif ($isEmail) {
                 Log::info("Sending OTP to email ({$identifier}) via mail (Anonymous)");
                 Notification::route('mail', $identifier)->notify(new SendOtpCode($code, 'mail'));

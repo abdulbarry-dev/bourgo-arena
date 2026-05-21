@@ -35,7 +35,7 @@ Route::prefix('v1')->group(function () {
             Route::post('logout', [AuthController::class, 'logout'])->name('api.v1.auth.logout');
             Route::post('skip-additional-verification', [AuthController::class, 'skipAdditionalVerification'])->name('api.v1.auth.skip-additional-verification');
             Route::post('request-family-otp', [AuthController::class, 'requestFamilyOtp'])->middleware('throttle:api.otp')->name('api.v1.auth.request-family-otp');
-            Route::post('complete-registration', [AuthController::class, 'completeRegistration'])->middleware('throttle:api.auth')->name('api.v1.auth.complete-registration');
+            Route::post('complete-registration', [AuthController::class, 'completeRegistration'])->middleware(['verified.account', 'throttle:api.auth'])->name('api.v1.auth.complete-registration');
             Route::post('delete-account', [AuthController::class, 'deleteAccount'])->name('api.v1.auth.delete-account');
         });
     });

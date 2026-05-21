@@ -1,5 +1,6 @@
 <?php
 
+use App\Channels\SmsChannel;
 use App\Models\Member;
 use App\Notifications\AccountDeletionScheduled;
 use App\Notifications\SendOtpCode;
@@ -53,8 +54,11 @@ it('fails deletion request with incorrect password', function () {
 it('triggers otp cancellation flow upon login if scheduled for deletion', function () {
     $member = Member::factory()->active()->create([
         'email' => 'deleting@example.com',
+        'phone' => '55512345',
         'password' => Hash::make('Password@123'),
         'scheduled_for_deletion_at' => now()->addHours(24),
+        'email_verified_at' => now(),
+        'phone_verified_at' => now(),
     ]);
 
     $response = $this->postJson(route('api.v1.auth.login'), [
@@ -66,7 +70,11 @@ it('triggers otp cancellation flow upon login if scheduled for deletion', functi
         ->assertJsonPath('data.state', 'pending_deletion_cancellation')
         ->assertJsonPath('data.code', 'ACCOUNT_DELETION_PENDING');
 
-    Notification::assertSentTo($member, SendOtpCode::class);
+    Notification::assertSentTo(
+        $member,
+        SendOtpCode::class,
+        fn ($notification, $channels) => in_array('mail', $channels, true) && in_array(SmsChannel::class, $channels, true)
+    );
 });
 
 it('cancels account deletion upon successful otp verification', function () {

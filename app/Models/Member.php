@@ -99,7 +99,14 @@ class Member extends Authenticatable
 
     public function isOnboardingCompleted(): bool
     {
-        return $this->onboarding_completed_at !== null || $this->pin !== null;
+        $has_onboarded = $this->onboarding_completed_at !== null || $this->pin !== null;
+
+        // Require at least one verified OTP method (email or phone) to
+        // consider onboarding complete. This ensures accounts flagged as
+        // completed also have a verified contact method.
+        $has_verified_contact = $this->email_verified_at !== null || $this->phone_verified_at !== null;
+
+        return $has_onboarded && $has_verified_contact;
     }
 
     public function isActive(): bool

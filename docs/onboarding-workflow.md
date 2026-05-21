@@ -237,157 +237,34 @@ Use the same `POST /api/v1/auth/complete-registration` endpoint with the same re
 
 ---
 
-## Flutter Implementation Example
+## Flutter Implementation Details
+
+The Bourgo Arena mobile application uses Clean Architecture principles. Direct HTTP calls and manual routing have been abstracted away:
+
+*   **API Management**: `ApiClient` (`lib/data/api/api_client.dart`) handles HTTP requests.
+*   **Authentication Repository**: `ApiAuthRepository` (`lib/data/repositories/api_auth_repository.dart`) defines the operations (`register`, `verifyOtp`, `completeRegistration`).
+*   **State Management**: `AuthStateNotifier` retains `AuthSession` including verification and user data.
+*   **Routing**: `GoRouter` (`lib/router.dart`) relies on a global configuration to redirect implicitly based on `AuthState`. For instance: `AuthState.pendingOnboarding` routes the user to `/account-setup` unless resting on a specific entry route so it can show the `OnboardingSetupModal`.
 
 ### Flow 1: Register → Verify → Onboard
 
-```dart
-// Step 1: Register
-Future<Map<String, dynamic>> registerUser({
-  required String email,
-  required String phone,
-  required String password,
-  required String passwordConfirmation,
-}) async {
-  final response = await http.post(
-    Uri.parse('https://api.bourgoarena.com/api/v1/auth/register'),
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({
-      'email': email,
-      'phone': phone,
-      'password': password,
-      'password_confirmation': passwordConfirmation,
-    }),
-  );
-
-  if (response.statusCode == 201) {
-    final data = jsonDecode(response.body);
-    final token = data['data']['token'];
-    
-    // Store token temporarily
-    await secureStorage.write(key: 'onboarding_token', value: token);
-    
-    // Navigate to verification screen
-    return {'success': true, 'state': 'pending_verification'};
-  } else {
-    final error = jsonDecode(response.body);
-    return {'success': false, 'message': error['message']};
-  }
-}
-
-// Step 2: Verify Email/Phone (use your verification workflow doc)
-
-// Step 3: Complete Onboarding
-Future<bool> completeOnboarding({
-  required String name,
-  required String email,
-  required String phone,
-  required String dateOfBirth,  // "YYYY-MM-DD"
-  required String gender,         // "male" or "female"
-  required bool isParentAccount,
-  required String pin,            // 4 digits
-}) async {
-  final token = await secureStorage.read(key: 'onboarding_token');
-  
-  if (token == null) {
-    showError('Session expired. Please log in again.');
-    return false;
-  }
-
-  final response = await http.post(
-    Uri.parse('https://api.bourgoarena.com/api/v1/auth/complete-registration'),
-    headers: {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    },
-    body: jsonEncode({
-      'name': name,
-      'email': email,
-      'phone': phone,
-      'date_of_birth': dateOfBirth,
-      'gender': gender,
-      'is_parent_account': isParentAccount,
-      'pin': pin,
-    }),
-  );
-
-  final data = jsonDecode(response.body);
-
-  if (response.statusCode == 201) {
-    final newToken = data['data']['token'];
-    
-    // Clear temporary token and save permanent one
-    await secureStorage.delete(key: 'onboarding_token');
-    await secureStorage.write(key: 'auth_token', value: newToken);
-    
-    // Save user data
-    final userData = data['data']['user'];
-    await secureStorage.write(key: 'user_data', value: jsonEncode(userData));
-    
-    showSuccess(data['message']);
-    navigateTo(DashboardScreen());
-    return true;
-  } else {
-    showError(data['message'] ?? 'Failed to complete onboarding.');
-    return false;
-  }
-}
-```
+1. **Register User (`RegisterViewModel`)**: Dispatches a call to `registerUseCase`. The back-end returns a `pending_verification` state. `GoRouter` intercepts this enum state change and routes the user to the `/otp` screen to confirm the code.
+2. **Verify User (`OtpViewModel`)**: Dispatches a call to `verifyOtpUseCase`. `ApiAuthRepository` unboxes the response, which could update the `state` to either `pending_additional_verification` or `pending_onboarding`. Wait, if `pending_onboarding`, the user is shown the local `OnboardingSetupModal` prior to moving further in the setup.
+3. **Complete Onboarding (`AccountSetupViewModel`)**: Form validates fields locally then dials `ApiAuthRepository.completeRegistration`. The new token provides full abilities, updates the `state` to `active`, forcing `GoRouter` to immediately dispatch the user to `/home`.
 
 ### Flow 2: Login with Pending Onboarding
 
-```dart
-// Step 1: Login
-Future<Map<String, dynamic>> loginUser({
-  required String identifier,  // email or phone
-  required String password,
-}) async {
-  final response = await http.post(
-    Uri.parse('https://api.bourgoarena.com/api/v1/auth/login'),
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({
-      'email': identifier.contains('@') ? identifier : null,
-      'phone': !identifier.contains('@') ? identifier : null,
-      'password': password,
-    }),
-  );
-
-  if (response.statusCode == 200) {
-    final data = jsonDecode(response.body);
-    final state = data['data']['state'];
-    final token = data['data']['token'];
-    
-    await secureStorage.write(key: 'auth_token', value: token);
-    
-    // Check account state
-    if (state == 'pending_onboarding') {
-      // Keep the user on the login screen and show the setup modal.
-      showSetupModal(
-        message: data['message'],
-        onCompleteSetup: () {
-          navigateTo(OnboardingScreen(token: token));
-        },
-      );
-      return {'success': true, 'state': state};
-    } else if (state == 'active') {
-      // Route to dashboard
-      await secureStorage.write(key: 'user_data', value: jsonEncode(data['data']['user']));
-      navigateTo(DashboardScreen());
-      return {'success': true, 'state': state};
-    } else {
-      showError('Account state not supported: $state');
-      return {'success': false, 'state': state};
-    }
-  } else {
-    final error = jsonDecode(response.body);
-    showError(error['message'] ?? 'Login failed.');
-    return {'success': false};
-  }
-}
-
-// Step 2: Complete Onboarding (same as above)
-// Pass the token from login response to the completeOnboarding function
-```
+1. **Login User (`LoginViewModel`)**: Dialing `loginUseCase` results in an `AuthSession` with a limited token and `pending_onboarding` flag.
+2. **Setup Modal Hook (`LoginViewModel.login`)**: The `LoginViewModel` awaits the modal configuration natively:
+   ```dart
+   if (session.state == AuthState.pendingOnboarding && context.mounted) {
+     final shouldComplete = await OnboardingSetupModal.show(context);
+     if (shouldComplete == true && context.mounted) {
+       context.push('/account-setup');
+     }
+   }
+   ```
+3. **Complete Onboarding**: Functions identically to flow 1.
 
 ---
 

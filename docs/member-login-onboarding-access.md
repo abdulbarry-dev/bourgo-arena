@@ -96,6 +96,43 @@ If one verification method is complete and onboarding is still pending, login re
 
 The member should be routed to the onboarding flow, not home.
 
+#### How the API handles login when onboarding is incomplete
+
+- The login endpoint authenticates credentials first. If the credentials are valid but the member has not completed onboarding, the API intentionally grants a limited session rather than full access.
+- Response characteristics:
+	- Token abilities: `onboarding` (restricted scope — not `*`)
+	- `state`: `pending_onboarding`
+	- `code`: `ONBOARDING_INCOMPLETE`
+	- `required_action`: `complete_onboarding`
+	- `cta`: `Complete Setup`
+	- `user` and `verification_status` snapshot included
+- Client guidance:
+	- Treat the returned token as an authenticated session but restrict navigation to onboarding-related endpoints and UI.
+	- Do not navigate to the home screen; instead show the onboarding/setup UI (modal or route) and call the `complete-registration` endpoint.
+- Middleware enforcement:
+	- Protected routes that require full access are gated by the `EnsureOnboardingIsCompleted` middleware which returns HTTP 403 and the same `ONBOARDING_INCOMPLETE` payload when onboarding is still pending.
+- Completing onboarding:
+	- `POST /api/v1/auth/complete-registration` is accessible using the onboarding-scoped token.
+	- On success the server sets `onboarding_completed_at`, revokes the previous token, issues a new full-access token (abilities `*`) and returns `state: active` with the refreshed `verification_status`.
+
+Example login response when onboarding is incomplete:
+
+```json
+{
+	"success": true,
+	"message": "Must complete onboarding to unlock your account.",
+	"data": {
+		"token": "<onboarding-scoped-token>",
+		"state": "pending_onboarding",
+		"code": "ONBOARDING_INCOMPLETE",
+		"required_action": "complete_onboarding",
+		"cta": "Complete Setup",
+		"user": { "id": 11, "email": "john@example.com" },
+		"verification_status": { "email_verified": true, "phone_verified": false }
+	}
+}
+```
+
 ### Case 3: Member has verified at least one method and completed onboarding
 
 Only this case should open the Flutter home screen.

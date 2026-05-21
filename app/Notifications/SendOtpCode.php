@@ -30,6 +30,7 @@ class SendOtpCode extends Notification
      */
     public function via(object $notifiable): array
     {
+        // If an explicit preferred channel was provided, respect it.
         if ($this->preferredChannel === 'mail') {
             return ['mail'];
         }
@@ -38,13 +39,42 @@ class SendOtpCode extends Notification
             return [SmsChannel::class];
         }
 
-        $identifier = $notifiable->routeNotificationFor('mail') ?: ($notifiable->email ?? null);
+        // Try to detect verified contact methods on the notifiable and send
+        // the OTP to all verified channels. If neither verification flag is
+        // present (anonymous/not route-based delivery), fall back to existing
+        // heuristics.
+        $channels = [];
 
-        if ($identifier && filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
+        $email = $notifiable->routeNotificationFor('mail') ?: ($notifiable->email ?? null);
+        $phone = $notifiable->routeNotificationFor('sms') ?: ($notifiable->phone ?? null);
+
+        $hasEmailVerified = $notifiable->email_verified_at ?? null;
+        $hasPhoneVerified = $notifiable->phone_verified_at ?? null;
+
+        if ($email && filter_var($email, FILTER_VALIDATE_EMAIL) && $hasEmailVerified) {
+            $channels[] = 'mail';
+        }
+
+        if ($phone && $hasPhoneVerified) {
+            $channels[] = SmsChannel::class;
+        }
+
+        // If we found verified channels, return them (may be both).
+        if (! empty($channels)) {
+            return $channels;
+        }
+
+        // Fallback: if the notifiable has an email, prefer mail; else sms.
+        if ($email && filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return ['mail'];
         }
 
-        return [SmsChannel::class];
+        if ($phone) {
+            return [SmsChannel::class];
+        }
+
+        // Last resort - prefer mail for anonymous deliveries.
+        return ['mail'];
     }
 
     /**

@@ -39,7 +39,7 @@ class UpdateProfileRequest extends BaseFormRequest
             ],
             'avatar_url' => ['sometimes', 'string', 'nullable'],
             'birth_date' => ['sometimes', 'date', 'nullable'],
-            'gender' => ['sometimes', 'string', 'in:male,female,other'],
+            'gender' => ['sometimes', 'string', 'in:male,female'],
         ];
     }
 
