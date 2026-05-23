@@ -24,7 +24,7 @@ class TerminalAuthMiddleware
         }
 
         $terminal = HikvisionTerminal::query()
-            ->where('api_token', $token)
+            ->where('api_token', hash('sha256', $token))
             ->where('status', '!=', 'decommissioned')
             ->first();
 

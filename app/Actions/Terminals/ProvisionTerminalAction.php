@@ -7,20 +7,26 @@ use Illuminate\Support\Str;
 
 class ProvisionTerminalAction
 {
-    public function execute(array $data): HikvisionTerminal
+    /**
+     * @return array{terminal: HikvisionTerminal, plaintext_token: string}
+     */
+    public function execute(array $data): array
     {
-        $data['api_token'] = $this->generateUniqueToken();
+        $plaintextToken = $this->generateUniqueToken();
+
+        $data['api_token'] = hash('sha256', $plaintextToken);
         $data['status'] = 'offline';
 
-        return HikvisionTerminal::query()->create($data);
+        $terminal = HikvisionTerminal::query()->create($data);
+
+        return [
+            'terminal' => $terminal,
+            'plaintext_token' => $plaintextToken,
+        ];
     }
 
     private function generateUniqueToken(): string
     {
-        do {
-            $token = Str::random(64);
-        } while (HikvisionTerminal::query()->where('api_token', $token)->exists());
-
-        return $token;
+        return Str::random(64);
     }
 }

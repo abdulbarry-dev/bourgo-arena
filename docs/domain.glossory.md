@@ -141,8 +141,8 @@ A Member's reservation for a `CourseSession` or `CourtSlot`.
 
 ### Payment Rules
 
-- Accepted methods: `cash` | `konnect` | `paymee`
-- All online payments go through the configured Tunisian gateway (Konnect or Paymee)
+- Accepted methods: `cash` | `konnect`
+- All online payments go through Konnect
 - Staging and production API keys are always separate
 - A PDF receipt is always generated and emailed after successful payment
 
@@ -188,7 +188,6 @@ A Member's reservation for a `CourseSession` or `CourtSlot`.
 | Term       | Definition                                                                   |
 | ---------- | ---------------------------------------------------------------------------- |
 | Konnect    | Tunisian online payment gateway — primary option                             |
-| Paymee     | Tunisian online payment gateway — secondary option                           |
 | RGPD       | French acronym for GDPR — data protection regulation applied in this project |
 | Espèces    | Cash payment — always a valid payment method alongside gateway               |
 | Front Desk | Physical reception manager; use the admin web panel on desktop               |

@@ -43,7 +43,7 @@ class ReservationService
                 'ends_at' => $slot->ends_at,
                 'price' => $price,
                 'status' => 'confirmed',
-                'payment_status' => 'paid', // Assuming paid for now as per DTO
+                'payment_status' => 'pending',
             ]);
 
             $reservation->update([

@@ -66,7 +66,7 @@ class ActiveSubscriptionSeeder extends Seeder
                 'status' => 'active',
                 'starts_at' => $startsAt,
                 'ends_at' => Subscription::calculateEndDate($startsAt, (int) $plan->duration_days),
-                'payment_method' => fake()->randomElement(['cash', 'konnect', 'paymee']),
+                'payment_method' => fake()->randomElement(['cash', 'konnect']),
                 'payment_reference' => fake()->optional()->bothify('TXN-####-??'),
                 'amount_paid' => $plan->price,
                 'enrolled_by' => $manager->id,

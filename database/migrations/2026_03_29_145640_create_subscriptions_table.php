@@ -21,7 +21,7 @@ return new class extends Migration
             $table->timestamp('suspended_at')->nullable();
             $table->integer('days_remaining')->nullable();
             $table->timestamp('resumed_at')->nullable();
-            $table->enum('payment_method', ['cash', 'konnect', 'paymee']);
+            $table->enum('payment_method', ['cash', 'konnect']);
             $table->string('payment_reference')->nullable();
             $table->decimal('amount_paid', 10, 3);
             $table->string('receipt_path')->nullable();

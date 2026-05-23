@@ -169,7 +169,7 @@
 | `$memberId`         | int          |                               |
 | `$planId`           | int\|null    | Selected plan                 |
 | `$startsAt`         | date         | Default today                 |
-| `$paymentMethod`    | string       | `cash` / `konnect` / `paymee` |
+| `$paymentMethod`    | string       | `cash` / `konnect` |
 | `$paymentReference` | string\|null | Gateway transaction ID        |
 
 | Action     | Description                                                                         |

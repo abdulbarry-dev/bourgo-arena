@@ -366,7 +366,7 @@ OUTSIDE → [ENTRY tap] → INSIDE → [EXIT tap] → OUTSIDE
 2. A donut chart shows the ratio of active vs expired subscriptions at the selected date range.
 3. The churn rate KPI is calculated and prominently displayed.
 4. A ranking of subscription plans is shown by both subscriber count and total revenue generated.
-5. Revenue is broken down by payment method (cash, Konnect, Paymee).
+5. Revenue is broken down by payment method (cash, Konnect).
 6. All charts are filterable by custom date range; the full report is exportable to PDF and CSV.
 
 ### Implementation Logic

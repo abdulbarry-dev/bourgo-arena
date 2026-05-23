@@ -6,25 +6,15 @@ return [
     | Payment Gateway Configuration
     |--------------------------------------------------------------------------
     |
-    | This configuration file allows you to specify which payment gateway
-    | to use for processing payments. Currently supported gateways:
-    | 'konnect' and 'paymee'
+    | Konnect is the only supported online payment gateway.
     |
     */
-
-    'driver' => env('PAYMENT_GATEWAY', 'konnect'),
 
     'konnect' => [
         'api_key' => env('KONNECT_API_KEY'),
         'api_secret' => env('KONNECT_API_SECRET'),
         'sandbox' => env('KONNECT_SANDBOX', true),
-    ],
-
-    'paymee' => [
-        'api_key' => env('PAYMEE_API_KEY'),
-        'api_secret' => env('PAYMEE_API_SECRET'),
-        'sandbox' => env('PAYMEE_SANDBOX', true),
-        'webhook_url' => env('PAYMEE_WEBHOOK_URL'),
+        'webhook_secret' => env('KONNECT_WEBHOOK_SECRET'),
     ],
 
     /*
@@ -33,15 +23,16 @@ return [
     |--------------------------------------------------------------------------
     |
     | Define which payment methods are enabled for subscriptions.
-    | Supported values: 'cash', 'konnect', 'paymee'
+    | Supported values: 'cash', 'konnect'
     |
     */
 
     'methods' => [
         'cash' => true,
         'konnect' => true,
-        'paymee' => true,
     ],
+
+    'initiate_per_minute' => env('PAYMENT_INITIATE_PER_MINUTE', 10),
 
     /*
     |--------------------------------------------------------------------------
@@ -70,5 +61,8 @@ return [
     'webhooks' => [
         'verify_signature' => true,
         'timeout' => 30,
+        // When true, webhook dispatches reconciliation jobs synchronously (useful for tests).
+        // Default to false in non-test environments so webhooks are enqueued asynchronously.
+        'dispatch_sync' => env('PAYMENT_WEBHOOK_DISPATCH_SYNC', false),
     ],
 ];

@@ -13,23 +13,24 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class ApiReservationFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    protected $model = ApiReservation::class;
+
     public function definition(): array
     {
+        $activity = Activity::factory()->create();
+        $slot = ActivitySlot::factory()->create(['activity_id' => $activity->id]);
+
         return [
             'member_id' => Member::factory(),
-            'activity_id' => Activity::factory(),
-            'activity_slot_id' => ActivitySlot::factory(),
-            'date' => now()->addDay(),
-            'starts_at' => '10:00:00',
-            'ends_at' => '11:00:00',
-            'price' => 50.00,
+            'activity_id' => $activity->id,
+            'activity_slot_id' => $slot->id,
+            'date' => $slot->date->toDateString(),
+            'starts_at' => $slot->starts_at,
+            'ends_at' => $slot->ends_at,
+            'price' => $activity->base_price,
             'status' => 'confirmed',
+            'payment_status' => 'pending',
+            'qr_code' => null,
         ];
-
     }
 }

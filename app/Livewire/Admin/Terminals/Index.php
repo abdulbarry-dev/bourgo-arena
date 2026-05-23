@@ -2,10 +2,10 @@
 
 namespace App\Livewire\Admin\Terminals;
 
+use App\Actions\Terminals\ProvisionTerminalAction;
 use App\Jobs\SyncTerminalWhitelist;
 use App\Models\HikvisionTerminal;
 use App\Models\Member;
-use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -33,6 +33,8 @@ class Index extends Component
     public ?HikvisionTerminal $selectedTerminal = null;
 
     public bool $showFlyout = false;
+
+    public ?string $generatedToken = null;
 
     // Terminal Creation Form Properties
     public string $name = '';
@@ -82,33 +84,30 @@ class Index extends Component
         \Flux::modal('terminal-form-modal')->show();
     }
 
-    public function saveTerminal()
+    public function saveTerminal(ProvisionTerminalAction $action)
     {
         $this->validate();
 
-        HikvisionTerminal::create([
+        $result = $action->execute([
             'name' => $this->name,
             'ip_address' => $this->ip_address,
             'serial_number' => $this->serial_number,
             'location' => $this->location,
             'terminal_type' => $this->terminal_type,
-            'api_token' => Str::random(60),
-            'status' => 'offline',
         ]);
+
+        $this->generatedToken = $result['plaintext_token'];
 
         $this->dispatch(
             'toast',
-            message: __('Terminal created successfully. API token has been automatically generated.'),
+            message: __('Terminal created successfully. Please copy the API token below; it will not be shown again.'),
             type: 'success'
         );
-
-        \Flux::modal('terminal-form-modal')->close();
-        $this->resetForm();
     }
 
     public function resetForm()
     {
-        $this->reset(['name', 'ip_address', 'serial_number', 'location', 'terminal_type']);
+        $this->reset(['name', 'ip_address', 'serial_number', 'location', 'terminal_type', 'generatedToken']);
         $this->resetValidation();
     }
 

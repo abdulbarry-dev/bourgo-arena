@@ -142,7 +142,7 @@ class ComprehensiveMembersSeeder extends Seeder
                             $startsAt,
                             (int) $plan->duration_days
                         ),
-                        'payment_method' => fake()->randomElement(['cash', 'konnect', 'paymee']),
+                        'payment_method' => fake()->randomElement(['cash', 'konnect']),
                         'payment_reference' => fake()->optional(0.7)->bothify('TXN-####-??'),
                         'amount_paid' => $plan->price,
                         'enrolled_by' => $manager->id,
@@ -311,7 +311,7 @@ class ComprehensiveMembersSeeder extends Seeder
                         'starts_at' => $endsAt->clone()->subDays((int) $plan->duration_days)
                             ->toDateString(),
                         'ends_at' => $endsAt->toDateString(),
-                        'payment_method' => fake()->randomElement(['cash', 'paymee']),
+                        'payment_method' => fake()->randomElement(['cash', 'konnect']),
                         'enrolled_by' => $manager->id,
                     ]);
             });

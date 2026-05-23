@@ -1,11 +1,10 @@
 <?php
 
-namespace App\Services\PaymentGateway\Drivers;
+namespace App\Services\PaymentGateway;
 
-use App\Services\PaymentGateway\Contracts\PaymentGatewayDriver;
 use Illuminate\Support\Facades\Http;
 
-class KonnectDriver implements PaymentGatewayDriver
+class KonnectGateway
 {
     private ?string $apiKey;
 
@@ -35,7 +34,7 @@ class KonnectDriver implements PaymentGatewayDriver
             'Authorization' => 'Bearer '.$this->apiKey,
         ])->post($this->baseUrl.'/api/v2/payments/init-payment', [
             'receiverWalletId' => $this->apiSecret,
-            'amount' => intval($payload['amount'] * 1000), // Convert to millimes
+            'amount' => intval($payload['amount'] * 1000),
             'token' => $payload['payment_reference'],
             'successUrl' => $payload['success_url'],
             'failureUrl' => $payload['failure_url'],
@@ -50,12 +49,22 @@ class KonnectDriver implements PaymentGatewayDriver
             ];
         }
 
-        return [
+        $data = $response->json();
+
+        $result = [
             'success' => true,
-            'payment_url' => $response->json('payUrl'),
-            'payment_reference' => $response->json('paymentRef'),
-            'gateway_transaction_id' => $response->json('paymentRef'),
+            'payment_url' => $data['payUrl'] ?? $response->json('payUrl'),
+            'payment_reference' => $data['paymentRef'] ?? $response->json('paymentRef'),
+            'gateway_transaction_id' => $data['paymentRef'] ?? $response->json('paymentRef'),
         ];
+
+        if (isset($data['requires3DS'])) {
+            $result['requires3DS'] = (bool) $data['requires3DS'];
+        }
+
+        $result['raw'] = $data;
+
+        return $result;
     }
 
     public function verify(string $transactionId): array
@@ -79,10 +88,11 @@ class KonnectDriver implements PaymentGatewayDriver
 
         return [
             'success' => true,
-            'status' => $data['status'], // completed, failed, pending
-            'amount' => $data['amount'] / 1000, // Convert from millimes
-            'transaction_id' => $data['paymentRef'],
-            'paid_at' => $data['createdAt'],
+            'status' => $data['status'] ?? null,
+            'amount' => isset($data['amount']) ? $data['amount'] / 1000 : null,
+            'transaction_id' => $data['paymentRef'] ?? $transactionId,
+            'paid_at' => $data['createdAt'] ?? null,
+            'raw' => $data,
         ];
     }
 
@@ -108,6 +118,7 @@ class KonnectDriver implements PaymentGatewayDriver
         return [
             'success' => true,
             'refund_id' => $response->json('refundRef'),
+            'raw' => $response->json(),
         ];
     }
 

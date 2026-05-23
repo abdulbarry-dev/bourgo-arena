@@ -5,7 +5,9 @@ namespace App\Livewire\Admin\AccessControl;
 use App\Models\AdminAlert;
 use App\Models\CheckInEvent;
 use App\Models\HikvisionTerminal;
+use App\Services\Terminals\HikvisionService;
 use Illuminate\Support\Facades\Cache;
+use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -25,6 +27,7 @@ class CheckInMonitor extends Component
     }
 
     #[On('echo-private:checkins,.CheckInProcessed')]
+    #[Layout('layouts.app')]
     public function handleCheckInProcessed($eventData)
     {
         $this->resetPage(); // Refresh the paginated table of checkins
@@ -69,19 +72,37 @@ class CheckInMonitor extends Component
         $this->loadAlerts();
     }
 
-    public function setTerminalMode(int $terminalId, string $mode)
+    public function setTerminalMode(int $terminalId, string $mode, HikvisionService $service)
     {
         $terminal = HikvisionTerminal::findOrFail($terminalId);
         $terminal->update(['operating_mode' => $mode]);
+
+        if ($mode === 'unlocked') {
+            $service->remoteControl($terminal, 'unlock');
+        } elseif ($mode === 'locked') {
+            $service->remoteControl($terminal, 'lock');
+        }
+
         $this->dispatch('toast', message: __("Terminal {$terminal->name} mode set to {$mode}."), type: 'success');
     }
 
-    public function setGlobalMode(string $mode)
+    public function setGlobalMode(string $mode, HikvisionService $service)
     {
         HikvisionTerminal::query()->update(['operating_mode' => $mode]);
+
+        $terminals = HikvisionTerminal::where('status', 'online')->get();
+        foreach ($terminals as $terminal) {
+            if ($mode === 'unlocked') {
+                $service->remoteControl($terminal, 'unlock');
+            } elseif ($mode === 'locked') {
+                $service->remoteControl($terminal, 'lock');
+            }
+        }
+
         $this->dispatch('toast', message: __("All terminals set to {$mode} mode."), type: 'success');
     }
 
+    #[Layout('layouts.app')]
     public function render()
     {
         return view('livewire.admin.access-control.check-in-monitor', [
@@ -89,6 +110,6 @@ class CheckInMonitor extends Component
             'events' => CheckInEvent::with(['member', 'terminal'])
                 ->latest('checked_in_at')
                 ->paginate(10),
-        ])->layout('layouts.app');
+        ]);
     }
 }

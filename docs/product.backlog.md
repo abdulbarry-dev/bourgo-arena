@@ -10,7 +10,7 @@
 ### 1.1 Payment Gateway Integration
 
 - **US-028** · Must Have · 8 pts · Sprint 0
-- **Description:** Select and integrate a Tunisian local payment gateway (Konnect / Paymee)
+- **Description:** Select and integrate Konnect as the platform payment gateway
 - **Key Actions / Components:**
     - Livewire comparison form (gateway options, fees, sandbox status)
     - Config panel for API key management (staging vs. production)

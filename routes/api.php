@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\LoyaltyController;
 use App\Http\Controllers\Api\V1\MemberController;
 use App\Http\Controllers\Api\V1\MemberNfcController;
 use App\Http\Controllers\Api\V1\NotificationController;
+use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\ReservationController;
 use App\Http\Controllers\Api\V1\SearchController;
 use App\Http\Controllers\Api\V1\SubscriptionController;
@@ -89,6 +90,13 @@ Route::prefix('v1')->group(function () {
             Route::get('digital-status', [MemberNfcController::class, 'digitalStatus'])->name('api.v1.member.nfc.digital-status');
             Route::post('digital-setup', [MemberNfcController::class, 'setupDigital'])->name('api.v1.member.nfc.digital-setup');
         });
+    });
+
+    // Konnect payment endpoints (initiate / verify)
+    Route::prefix('payments')->group(function () {
+        Route::post('initiate', [PaymentController::class, 'initiate'])->middleware('throttle:payments')->name('api.v1.payments.initiate');
+        Route::post('verify', [PaymentController::class, 'verify'])->name('api.v1.payments.verify');
+        Route::post('webhook/konnect', [PaymentController::class, 'webhook'])->name('api.v1.payments.webhook');
     });
 });
 

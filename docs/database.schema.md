@@ -196,7 +196,7 @@ belongsToMany(Course::class)
 | `suspended_at`              | timestamp nullable                                 | set on suspension                       |
 | `days_remaining`            | integer nullable                                   | frozen on suspension                    |
 | `resumed_at`                | timestamp nullable                                 | set on resume                           |
-| `payment_method`            | enum(`cash`,`konnect`,`paymee`)                    |                                         |
+| `payment_method`            | enum(`cash`,`konnect`)                             |                                         |
 | `payment_reference`         | string nullable                                    | gateway transaction ID                  |
 | `amount_paid`               | decimal(10,3)                                      |                                         |
 | `receipt_path`              | string nullable                                    | path to generated PDF                   |

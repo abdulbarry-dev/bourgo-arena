@@ -8,7 +8,9 @@ use App\Events\OccupancyUpdated;
 use App\Models\AdminAlert;
 use App\Models\CheckInEvent;
 use App\Models\HikvisionTerminal;
+use App\Models\Member;
 use App\Models\NfcCard;
+use App\Models\Subscription;
 use App\Services\AntiPassbackRule;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -20,14 +22,42 @@ class ProcessTerminalCheckInAction
     {
         $isSuspicious = $data['is_suspicious'] ?? false;
         $result = $data['result'];
-
-        if (isset($data['card_uid']) && ! $isSuspicious && $result === 'authorized') {
-            $isSuspicious = app(AntiPassbackRule::class)->isSuspicious($data['card_uid'], $terminal->terminal_type ?? 'entry');
-        }
+        $denialReason = $data['denial_reason'] ?? null;
 
         $memberId = $data['member_id'] ?? null;
         if (! $memberId && isset($data['card_uid'])) {
+            // 1. Try lookup by Physical/Digital NFC UID
             $memberId = NfcCard::where('uid', $data['card_uid'])->value('member_id');
+
+            // 2. Fallback: Try lookup by Member ID (if PIN was entered and mapped to employee string)
+            if (! $memberId && is_numeric($data['card_uid'])) {
+                $memberId = Member::where('id', $data['card_uid'])->value('id');
+            }
+        }
+
+        // Perform strict authorization checks for Entry terminals
+        if ($memberId && ($terminal->terminal_type === 'entry' || strtolower($terminal->type ?? '') === 'entry')) {
+            $member = Member::find($memberId);
+
+            if ($member) {
+                $hasSubscription = Subscription::query()
+                    ->where('member_id', $member->id)
+                    ->active()
+                    ->exists();
+                $hasTodayReservation = $member->reservations()
+                    ->where('date', now()->toDateString())
+                    ->whereIn('status', ['confirmed', 'active'])
+                    ->exists();
+
+                if (! $hasSubscription && ! $hasTodayReservation) {
+                    $result = 'denied';
+                    $denialReason = 'expired_subscription';
+                }
+            }
+        }
+
+        if (isset($data['card_uid']) && ! $isSuspicious && $result === 'authorized') {
+            $isSuspicious = app(AntiPassbackRule::class)->isSuspicious($data['card_uid'], $terminal->terminal_type ?? 'entry');
         }
 
         $event = CheckInEvent::query()->create([
@@ -35,7 +65,7 @@ class ProcessTerminalCheckInAction
             'card_uid' => $data['card_uid'],
             'terminal_id' => $terminal->id,
             'result' => $result,
-            'denial_reason' => $data['denial_reason'] ?? null,
+            'denial_reason' => $denialReason,
             'is_suspicious' => $isSuspicious,
             'checked_in_at' => $data['checked_in_at'] ?? now(),
         ]);

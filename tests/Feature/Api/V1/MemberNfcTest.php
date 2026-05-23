@@ -6,7 +6,13 @@ use App\Models\NfcCard;
 use Laravel\Sanctum\Sanctum;
 
 beforeEach(function () {
-    $this->member = Member::factory()->active()->create();
+    $this->member = Member::factory()->create([
+        'status' => 'active',
+        'state' => 'active',
+        'onboarding_completed_at' => now(),
+        'email_verified_at' => now(),
+        'pin' => '1234',
+    ]);
     Sanctum::actingAs($this->member);
 });
 

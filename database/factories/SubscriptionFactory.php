@@ -32,7 +32,7 @@ class SubscriptionFactory extends Factory
             'suspended_at' => null,
             'days_remaining' => null,
             'resumed_at' => null,
-            'payment_method' => fake()->randomElement(['cash', 'konnect', 'paymee']),
+            'payment_method' => fake()->randomElement(['cash', 'konnect']),
             'payment_reference' => fake()->optional()->bothify('TXN-####-??'),
             'amount_paid' => fake()->randomFloat(3, 20, 500),
             'receipt_path' => null,

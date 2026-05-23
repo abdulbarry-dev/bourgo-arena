@@ -71,7 +71,6 @@
                 <flux:select wire:model.live="paymentMethod">
                     <option value="cash">{{ __('Cash') }}</option>
                     <option value="konnect">{{ __('Konnect') }}</option>
-                    <option value="paymee">{{ __('Paymee') }}</option>
                 </flux:select>
                 <flux:error name="paymentMethod" />
             </flux:field>
