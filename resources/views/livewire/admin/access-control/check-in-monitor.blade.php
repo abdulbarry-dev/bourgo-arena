@@ -26,7 +26,7 @@
     </div>
 
     @if($alertCount > 0)
-        <div class="mb-6 rounded-lg bg-red-50 p-4 border border-red-200 dark:bg-red-900/20 dark:border-red-800 relative">
+        <x-ui.dashboard.panel class="mb-6 border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20 relative">
             <div class="flex items-start">
                 <div class="flex-shrink-0">
                     <flux:icon.exclamation-triangle class="h-5 w-5 text-red-400" />
@@ -40,12 +40,12 @@
                     </flux:button>
                 </div>
             </div>
-        </div>
+        </x-ui.dashboard.panel>
     @endif
 
     <div class="flex flex-col gap-4">
         <flux:heading size="md">{{ __('Recent Check-ins') }}</flux:heading>
-        <flux:card class="!p-0 overflow-hidden">
+        <x-ui.dashboard.panel class="overflow-hidden">
             <ul role="list" class="divide-y divide-zinc-200 dark:divide-zinc-700">
                 @forelse($events as $event)
                     <li class="px-4 py-4" wire:key="event-{{ $event->id }}">
@@ -86,7 +86,7 @@
                     </li>
                 @endforelse
             </ul>
-        </flux:card>
+            </x-ui.dashboard.panel>
 
         @if($events->hasPages())
             <div class="mt-4">
@@ -134,9 +134,7 @@
                                 <div class="text-xs text-zinc-500">{{ $terminal->location ?? __('No location') }}</div>
                             </div>
                             <div>
-                                <flux:badge size="sm" variant="solid" color="{{ match($terminal->operating_mode) { 'locked' => 'red', 'unlocked' => 'green', default => 'zinc' } }}">
-                                    {{ __(ucfirst($terminal->operating_mode)) }}
-                                </flux:badge>
+                                <x-ui.dashboard.status-badge :status="$terminal->operating_mode" :label="__(ucfirst($terminal->operating_mode))" />
                             </div>
                         </div>
                         

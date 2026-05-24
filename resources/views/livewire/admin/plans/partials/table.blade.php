@@ -8,40 +8,12 @@
     <table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-700">
         <thead class="bg-zinc-50 dark:bg-zinc-900/80">
             <tr>
-                <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">
-                    <button type="button" class="inline-flex items-center gap-1" wire:click="sort('name')">
-                        {{ __('Name') }}
-                        @if ($sortBy === 'name')
-                            <span aria-hidden="true">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span>
-                        @endif
-                    </button>
-                </th>
-                <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">
-                    <button type="button" class="inline-flex items-center gap-1" wire:click="sort('price')">
-                        {{ __('Price') }}
-                        @if ($sortBy === 'price')
-                            <span aria-hidden="true">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span>
-                        @endif
-                    </button>
-                </th>
-                <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">
-                    <button type="button" class="inline-flex items-center gap-1" wire:click="sort('duration_days')">
-                        {{ __('Duration (days)') }}
-                        @if ($sortBy === 'duration_days')
-                            <span aria-hidden="true">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span>
-                        @endif
-                    </button>
-                </th>
+                    <x-ui.dashboard.sortable-th :label="__('Name')" column="name" :sort-by="$sortBy" :sort-direction="$sortDirection" />
+                    <x-ui.dashboard.sortable-th :label="__('Price')" column="price" :sort-by="$sortBy" :sort-direction="$sortDirection" />
+                    <x-ui.dashboard.sortable-th :label="__('Duration (days)')" column="duration_days" :sort-by="$sortBy" :sort-direction="$sortDirection" />
                 <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Included Services') }}</th>
                 <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Courses') }}</th>
-                <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">
-                    <button type="button" class="inline-flex items-center gap-1" wire:click="sort('is_archived')">
-                        {{ __('Archived') }}
-                        @if ($sortBy === 'is_archived')
-                            <span aria-hidden="true">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span>
-                        @endif
-                    </button>
-                </th>
+                    <x-ui.dashboard.sortable-th :label="__('Archived')" column="is_archived" :sort-by="$sortBy" :sort-direction="$sortDirection" />
                 <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Subscriptions') }}</th>
                 <th class="px-4 py-3 text-right font-medium text-zinc-700 dark:text-zinc-200">{{ __('Actions') }}</th>
             </tr>
@@ -55,15 +27,15 @@
                     <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ empty($plan->included_services) ? __('None') : implode(', ', $plan->included_services) }}</td>
                     <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">
                         @if($plan->has_all_courses)
-                            <flux:badge size="sm" color="green">{{ __('All-Inclusive') }}</flux:badge>
+                            <x-ui.dashboard.status-badge status="all-inclusive" :label="__('All-Inclusive')" />
                         @else
-                            <flux:badge size="sm" color="zinc">{{ $plan->courses_count }} {{ __('Courses') }}</flux:badge>
+                            <x-ui.dashboard.status-badge status="courses" color="zinc" :label="$plan->courses_count . ' ' . __('Courses')" />
                         @endif
                     </td>
                     <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ $plan->is_archived ? __('Yes') : __('No') }}</td>
                     <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ $plan->subscriptions_count }}</td>
                     <td class="px-4 py-3 text-right">
-                        <div class="flex items-center justify-end gap-2">
+                        <x-ui.dashboard.row-actions>
                             <flux:button
                                 variant="subtle"
                                 size="sm"
@@ -81,7 +53,7 @@
                                     {{ __('Edit') }}
                                 </flux:button>
                             @endcan
-                        </div>
+                        </x-ui.dashboard.row-actions>
                     </td>
                 </tr>
             @empty

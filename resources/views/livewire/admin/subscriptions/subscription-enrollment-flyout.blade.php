@@ -19,11 +19,11 @@
         </flux:field>
 
         @if ($this->selectedMember === null)
-            <div class="rounded-lg border border-dashed border-zinc-300 bg-zinc-50 p-4 text-sm dark:border-zinc-700 dark:bg-zinc-900/40">
+            <x-ui.dashboard.panel class="border-dashed border-zinc-300 bg-zinc-50 p-4 text-sm dark:border-zinc-700 dark:bg-zinc-900/40">
                 <flux:text variant="subtle">{{ __('Select a member before creating a subscription enrollment.') }}</flux:text>
-            </div>
+            </x-ui.dashboard.panel>
         @else
-            <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
+            <x-ui.dashboard.panel class="p-4">
                 <dl class="grid gap-2 text-sm sm:grid-cols-3">
                     <div>
                         <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Member') }}</dt>
@@ -38,7 +38,7 @@
                         <dd class="text-zinc-800 dark:text-zinc-200">{{ $this->selectedMember->activeSubscription?->plan?->name ?? __('No active plan') }}</dd>
                     </div>
                 </dl>
-            </div>
+            </x-ui.dashboard.panel>
         @endif
 
         <div class="grid gap-4 md:grid-cols-2">

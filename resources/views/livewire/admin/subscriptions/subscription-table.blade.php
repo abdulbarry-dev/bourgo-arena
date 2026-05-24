@@ -21,7 +21,7 @@
         </flux:button>
     </div>
 
-    <div class="grid gap-4 md:grid-cols-3">
+    <x-ui.dashboard.filters>
         <flux:input
             wire:model.live.debounce.300ms="search"
             type="search"
@@ -49,7 +49,7 @@
                 @endforeach
             </flux:select>
         </flux:field>
-    </div>
+    </x-ui.dashboard.filters>
 
     <x-ui.dashboard.table-shell loading-targets="search,statusFilter,planFilter">
         <x-slot name="loading">
@@ -61,46 +61,11 @@
         <table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-700">
             <thead class="bg-zinc-50 dark:bg-zinc-900/80">
                 <tr>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">
-                        <button type="button" class="inline-flex items-center gap-1" wire:click="sort('member')">
-                            {{ __('Member') }}
-                            @if ($sortBy === 'member')
-                                <span aria-hidden="true">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span>
-                            @endif
-                        </button>
-                    </th>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">
-                        <button type="button" class="inline-flex items-center gap-1" wire:click="sort('plan')">
-                            {{ __('Plan') }}
-                            @if ($sortBy === 'plan')
-                                <span aria-hidden="true">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span>
-                            @endif
-                        </button>
-                    </th>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">
-                        <button type="button" class="inline-flex items-center gap-1" wire:click="sort('status')">
-                            {{ __('Status') }}
-                            @if ($sortBy === 'status')
-                                <span aria-hidden="true">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span>
-                            @endif
-                        </button>
-                    </th>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">
-                        <button type="button" class="inline-flex items-center gap-1" wire:click="sort('starts_at')">
-                            {{ __('Starts At') }}
-                            @if ($sortBy === 'starts_at')
-                                <span aria-hidden="true">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span>
-                            @endif
-                        </button>
-                    </th>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">
-                        <button type="button" class="inline-flex items-center gap-1" wire:click="sort('ends_at')">
-                            {{ __('Ends At') }}
-                            @if ($sortBy === 'ends_at')
-                                <span aria-hidden="true">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span>
-                            @endif
-                        </button>
-                    </th>
+                    <x-ui.dashboard.sortable-th :label="__('Member')" column="member" :sort-by="$sortBy" :sort-direction="$sortDirection" />
+                    <x-ui.dashboard.sortable-th :label="__('Plan')" column="plan" :sort-by="$sortBy" :sort-direction="$sortDirection" />
+                    <x-ui.dashboard.sortable-th :label="__('Status')" column="status" :sort-by="$sortBy" :sort-direction="$sortDirection" />
+                    <x-ui.dashboard.sortable-th :label="__('Starts At')" column="starts_at" :sort-by="$sortBy" :sort-direction="$sortDirection" />
+                    <x-ui.dashboard.sortable-th :label="__('Ends At')" column="ends_at" :sort-by="$sortBy" :sort-direction="$sortDirection" />
                     <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Days Remaining') }}</th>
                     <th class="px-4 py-3 text-right font-medium text-zinc-700 dark:text-zinc-200">{{ __('Actions') }}</th>
                 </tr>
@@ -120,7 +85,7 @@
                             {{ $subscription->status === 'suspended' ? ($subscription->days_remaining ?? 0) : $subscription->daysRemaining() }}
                         </td>
                         <td class="px-4 py-3 text-right">
-                            <div class="flex items-center justify-end gap-2">
+                            <x-ui.dashboard.row-actions>
                                 <flux:button
                                     variant="subtle"
                                     size="sm"
@@ -138,7 +103,7 @@
                                 >
                                     {{ __('Manage') }}
                                 </flux:button>
-                            </div>
+                            </x-ui.dashboard.row-actions>
                         </td>
                     </tr>
                 @empty

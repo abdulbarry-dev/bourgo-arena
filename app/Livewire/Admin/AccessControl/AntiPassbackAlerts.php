@@ -6,6 +6,8 @@ use App\Jobs\NotifyMemberCardSuspended;
 use App\Models\CheckInEvent;
 use App\Models\NfcCard;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
+use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -63,7 +65,7 @@ class AntiPassbackAlerts extends Component
 
             if ($card->member) {
                 // Log logic / change member status to pending review
-                \Log::info("Admin manually suspended card due to anti-passback. Member: {$card->member->id}");
+                Log::info("Admin manually suspended card due to anti-passback. Member: {$card->member->id}");
             }
 
             // Dispatch notification job
@@ -72,8 +74,9 @@ class AntiPassbackAlerts extends Component
         $this->loadAlerts();
     }
 
+    #[Layout('layouts.app')]
     public function render()
     {
-        return view('livewire.admin.access-control.anti-passback-alerts')->layout('layouts.app');
+        return view('livewire.admin.access-control.anti-passback-alerts');
     }
 }

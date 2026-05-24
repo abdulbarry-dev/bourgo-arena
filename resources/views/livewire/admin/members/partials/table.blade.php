@@ -8,57 +8,13 @@
     <table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-700">
         <thead class="bg-zinc-50 dark:bg-zinc-900/80">
             <tr>
-                <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">
-                    <button type="button" class="inline-flex items-center gap-1" wire:click="sort('name')">
-                        {{ __('Name') }}
-                        @if ($sortBy === 'name')
-                            <span aria-hidden="true">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span>
-                        @endif
-                    </button>
-                </th>
-                <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">
-                    <button type="button" class="inline-flex items-center gap-1" wire:click="sort('email')">
-                        {{ __('Email') }}
-                        @if ($sortBy === 'email')
-                            <span aria-hidden="true">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span>
-                        @endif
-                    </button>
-                </th>
-                <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">
-                    <button type="button" class="inline-flex items-center gap-1" wire:click="sort('phone')">
-                        {{ __('Phone') }}
-                        @if ($sortBy === 'phone')
-                            <span aria-hidden="true">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span>
-                        @endif
-                    </button>
-                </th>
-                <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">
-                    <button type="button" class="inline-flex items-center gap-1" wire:click="sort('status')">
-                        {{ __('Status') }}
-                        @if ($sortBy === 'status')
-                            <span aria-hidden="true">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span>
-                        @endif
-                    </button>
-                </th>
-                <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">
-                    <button type="button" class="inline-flex items-center gap-1" wire:click="sort('plan')">
-                        {{ __('Plan') }}
-                        @if ($sortBy === 'plan')
-                            <span aria-hidden="true">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span>
-                        @endif
-                    </button>
-                </th>
-                <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">
-                    <button type="button" class="inline-flex items-center gap-1" wire:click="sort('nfc_status')">
-                        {{ __('NFC') }}
-                        @if ($sortBy === 'nfc_status')
-                            <span aria-hidden="true">{{ $sortDirection === 'asc' ? '▲' : '▼' }}</span>
-                        @endif
-                    </button>
-                </th>
-                <th class="px-4 py-3 text-right font-medium text-zinc-700 dark:text-zinc-200">
-                    {{ __('Actions') }}
-                </th>
+                    <x-ui.dashboard.sortable-th :label="__('Name')" column="name" :sort-by="$sortBy" :sort-direction="$sortDirection" />
+                    <x-ui.dashboard.sortable-th :label="__('Email')" column="email" :sort-by="$sortBy" :sort-direction="$sortDirection" />
+                    <x-ui.dashboard.sortable-th :label="__('Phone')" column="phone" :sort-by="$sortBy" :sort-direction="$sortDirection" />
+                    <x-ui.dashboard.sortable-th :label="__('Status')" column="status" :sort-by="$sortBy" :sort-direction="$sortDirection" />
+                    <x-ui.dashboard.sortable-th :label="__('Plan')" column="plan" :sort-by="$sortBy" :sort-direction="$sortDirection" />
+                    <x-ui.dashboard.sortable-th :label="__('NFC')" column="nfc_status" :sort-by="$sortBy" :sort-direction="$sortDirection" />
+                    <th class="px-4 py-3 text-right font-medium text-zinc-700 dark:text-zinc-200">{{ __('Actions') }}</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-zinc-100 bg-white dark:divide-zinc-800 dark:bg-zinc-900/40">
@@ -80,15 +36,17 @@
                     <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ $member->activeSubscription?->plan?->name ? __($member->activeSubscription->plan->name) : __('No active plan') }}</td>
                     <td class="px-4 py-3 capitalize text-zinc-600 dark:text-zinc-300">{{ $member->nfcCard?->status ? __($member->nfcCard->status) : __('Unassigned') }}</td>
                     <td class="px-4 py-3 text-right">
-                        <flux:button
-                            variant="subtle"
-                            size="sm"
-                            icon="eye"
-                            :href="route('admin.members.show', $member)"
-                            wire:navigate
-                            x-on:click.stop
-                            aria-label="{{ __('View member details for :name', ['name' => $member->name]) }}"
-                        />
+                        <x-ui.dashboard.row-actions>
+                            <flux:button
+                                variant="subtle"
+                                size="sm"
+                                icon="eye"
+                                :href="route('admin.members.show', $member)"
+                                wire:navigate
+                                x-on:click.stop
+                                aria-label="{{ __('View member details for :name', ['name' => $member->name]) }}"
+                            />
+                        </x-ui.dashboard.row-actions>
                     </td>
                 </tr>
             @empty

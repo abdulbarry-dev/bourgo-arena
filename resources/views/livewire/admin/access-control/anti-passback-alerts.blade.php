@@ -7,13 +7,13 @@
         @endif
     </div>
 
-    <div class="mb-4 rounded-lg border border-orange-200 bg-orange-50 p-4 dark:border-orange-800 dark:bg-orange-900/20">
+    <x-ui.dashboard.panel class="mb-4 border-orange-200 bg-orange-50 p-4 dark:border-orange-800 dark:bg-orange-900/20">
         <p class="text-sm font-medium text-orange-800 dark:text-orange-200">
             {{ __('Flags members swiping \'entry\' consecutively without an \'exit\'.') }}
         </p>
-    </div>
+    </x-ui.dashboard.panel>
 
-    <flux:card class="!p-0 overflow-hidden">
+    <x-ui.dashboard.panel class="overflow-hidden">
         <ul role="list" class="divide-y divide-zinc-200 dark:divide-zinc-700">
             @forelse($alerts as $alert)
                 <li class="px-4 py-4">
@@ -32,14 +32,14 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2 mt-2 sm:mt-0">
+                        <x-ui.dashboard.row-actions class="mt-2 sm:mt-0">
                             <flux:button size="sm" variant="subtle" wire:click="dismissAlert({{ $alert->id }})">
                                 {{ __('Dismiss') }}
                             </flux:button>
                             <flux:button size="sm" variant="danger" wire:click="escalateAndSuspend('{{ $alert->card_uid }}')">
                                 {{ __('Suspend Card') }}
                             </flux:button>
-                        </div>
+                        </x-ui.dashboard.row-actions>
                     </div>
                 </li>
             @empty
@@ -51,5 +51,5 @@
                 </li>
             @endforelse
         </ul>
-    </flux:card>
+    </x-ui.dashboard.panel>
 </div>

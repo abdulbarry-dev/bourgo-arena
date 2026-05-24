@@ -15,7 +15,7 @@
         </flux:button>
     </div>
 
-    <div class="grid gap-4 md:grid-cols-3">
+    <x-ui.dashboard.filters>
         <flux:input
             wire:model.live.debounce.300ms="search"
             type="search"
@@ -43,7 +43,7 @@
                 @endforeach
             </flux:select>
         </flux:field>
-    </div>
+    </x-ui.dashboard.filters>
 
     @include('livewire.admin.members.partials.table')
 </section>

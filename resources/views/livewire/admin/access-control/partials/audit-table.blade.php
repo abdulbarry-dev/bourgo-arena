@@ -25,9 +25,7 @@
                         </td>
                         <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ $event->terminal ? $event->terminal->name : __('Unknown') }}</td>
                         <td class="px-4 py-3">
-                            <flux:badge size="sm" color="{{ $event->result === 'authorized' ? 'green' : 'red' }}" inset="top bottom">
-                                {{ ucfirst($event->result) }}
-                            </flux:badge>
+                            <x-ui.dashboard.status-badge :status="$event->result" :label="ucfirst($event->result)" />
                         </td>
                         <td class="px-4 py-3 text-right">
                             <flux:button

@@ -1,9 +1,9 @@
 <section class="w-full space-y-6">
     @if ($member === null)
-        <div class="rounded-xl border border-dashed border-zinc-300 bg-zinc-50 p-8 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
+        <x-ui.dashboard.panel class="border-dashed border-zinc-300 bg-zinc-50 p-8 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
             <flux:heading size="sm">{{ __('No member selected') }}</flux:heading>
             <flux:text variant="subtle">{{ __('Choose a member from the table to inspect profile, subscription, card status, and check-ins.') }}</flux:text>
-        </div>
+        </x-ui.dashboard.panel>
     @else
         {{-- Status/Danger Alerts --}}
         @if ($member->status === 'suspended')
@@ -14,7 +14,8 @@
         @endif
 
         {{-- Action Bar --}}
-        <div class="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-zinc-200 bg-zinc-50/50 p-4 dark:border-zinc-700 dark:bg-zinc-900/20">
+        <x-ui.dashboard.panel class="bg-zinc-50/50 p-4 dark:bg-zinc-900/20">
+            <div class="flex flex-wrap items-center justify-between gap-4">
             <div class="flex flex-wrap items-center gap-2">
                 {{-- Primary Identity Actions --}}
                 @can('update', $member)
@@ -73,7 +74,8 @@
                     </flux:menu>
                 </flux:dropdown>
             </div>
-        </div>
+            </div>
+        </x-ui.dashboard.panel>
 
         {{-- Hidden Flyouts --}}
         <livewire:admin.members.manage-family-flyout />

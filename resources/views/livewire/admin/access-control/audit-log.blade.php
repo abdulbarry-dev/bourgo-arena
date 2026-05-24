@@ -33,7 +33,7 @@
         </div>
     @endif
 
-    <div class="grid gap-4 md:grid-cols-4">
+    <x-ui.dashboard.filters columns="md:grid-cols-4">
         <flux:input
             wire:model.live.debounce.300ms="memberSearch"
             type="search"
@@ -61,7 +61,7 @@
             wire:model.live="dateTo"
             :label="__('Date To')"
         />
-    </div>
+    </x-ui.dashboard.filters>
 
     @include('livewire.admin.access-control.partials.audit-table')
 
