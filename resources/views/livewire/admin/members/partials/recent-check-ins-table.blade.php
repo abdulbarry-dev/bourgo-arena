@@ -1,4 +1,4 @@
-<div class="space-y-3 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
+<x-ui.dashboard.panel class="space-y-3 p-4">
     <flux:heading size="sm">{{ __('Recent Check-ins') }}</flux:heading>
 
     <x-ui.dashboard.table-shell>
@@ -32,4 +32,4 @@
             </tbody>
         </table>
     </x-ui.dashboard.table-shell>
-</div>
+</x-ui.dashboard.panel>

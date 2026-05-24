@@ -1,11 +1,12 @@
 <div class="space-y-6">
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <flux:heading size="lg">{{ __('Course Catalog Manager') }}</flux:heading>
-            <flux:text variant="subtle">{{ __('Design and manage the master templates for course sessions.') }}</flux:text>
-        </div>
-        <flux:button wire:click="openCreateModal" variant="primary" icon="plus">{{ __('New Course Template') }}</flux:button>
-    </div>
+    <x-ui.dashboard.page-header
+        :title="__('Course Catalog Manager')"
+        :subtitle="__('Design and manage the master templates for course sessions.')"
+    >
+        <x-slot name="actions">
+            <flux:button wire:click="openCreateModal" variant="primary" icon="plus">{{ __('New Course Template') }}</flux:button>
+        </x-slot>
+    </x-ui.dashboard.page-header>
 
     <div class="max-w-md">
         <flux:input

@@ -1,11 +1,11 @@
 <x-layouts::app :title="__('Subscription Detail')">
     <section class="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
-        <div class="space-y-1">
-            <flux:heading size="xl">{{ __('Subscription Detail') }}</flux:heading>
-            <flux:text variant="subtle">{{ __('Review subscription information, payment context, and recent lifecycle audit events.') }}</flux:text>
-        </div>
+        <x-ui.dashboard.page-header
+            :title="__('Subscription Detail')"
+            :subtitle="__('Review subscription information, payment context, and recent lifecycle audit events.')"
+        />
 
-        <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900/40">
+        <x-ui.dashboard.panel class="p-5">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <flux:heading size="lg">{{ $subscription->member->name }}</flux:heading>
@@ -49,9 +49,9 @@
                     <div class="font-medium text-zinc-900 dark:text-zinc-100">{{ number_format((float) $subscription->amount_paid, 3) }} TND</div>
                 </div>
             </div>
-        </div>
+        </x-ui.dashboard.panel>
 
-        <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900/40">
+        <x-ui.dashboard.panel class="p-5">
             <div class="mb-3 flex items-center justify-between">
                 <flux:heading size="sm">{{ __('Recent Audit Events') }}</flux:heading>
                 <flux:text variant="subtle">{{ __('Most recent 8 actions') }}</flux:text>
@@ -77,6 +77,6 @@
                     @endforeach
                 </ul>
             @endif
-        </div>
+        </x-ui.dashboard.panel>
     </section>
 </x-layouts::app>

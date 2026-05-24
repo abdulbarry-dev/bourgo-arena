@@ -11,11 +11,11 @@
         </flux:button>
     </div>
 
-    <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-900/30">
+    <x-ui.dashboard.panel class="border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-900/30">
         <flux:text>
             {{ __(':count subscriptions are expiring in the next 7 days. Reminders queued this session: :sent.', ['count' => $expiringSubscriptions->count(), 'sent' => $touchedCount]) }}
         </flux:text>
-    </div>
+    </x-ui.dashboard.panel>
 
     <flux:error name="subscriptionId" />
 
@@ -44,7 +44,7 @@
                             <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ $subscription->ends_at?->toDateString() }}</td>
                             <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ $subscription->daysRemaining() }}</td>
                             <td class="px-4 py-3">
-                                <div class="flex flex-wrap items-center gap-2">
+                                <x-ui.dashboard.row-actions justify="start">
                                     <flux:button wire:click="sendReminder({{ $subscription->id }})" wire:loading.attr="disabled" wire:target="sendReminder({{ $subscription->id }})" size="sm">
                                         <span wire:loading.remove wire:target="sendReminder({{ $subscription->id }})">{{ __('Send Reminder') }}</span>
                                         <span wire:loading wire:target="sendReminder({{ $subscription->id }})">{{ __('Queueing...') }}</span>
@@ -57,7 +57,7 @@
                                     >
                                         {{ __('Open Subscription') }}
                                     </a>
-                                </div>
+                                </x-ui.dashboard.row-actions>
                             </td>
                         </tr>
                     @endforeach
