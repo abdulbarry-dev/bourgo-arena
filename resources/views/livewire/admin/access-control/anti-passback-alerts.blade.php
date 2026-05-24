@@ -1,24 +1,16 @@
 <div>
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
-        <flux:heading size="lg">{{ __('Anti-Passback Alerts') }}</flux:heading>
-        @if($alerts->count() > 0)
+    <div class="mb-4 flex items-center justify-end">
+        @if ($alerts->count() > 0)
             <flux:button size="sm" variant="subtle" wire:click="dismissAllAlerts">
                 {{ __('Dismiss All') }}
             </flux:button>
         @endif
     </div>
 
-    <div class="mb-4 rounded-lg bg-orange-50 p-4 border border-orange-200 dark:bg-orange-900/20 dark:border-orange-800">
-        <div class="flex">
-            <div class="flex-shrink-0">
-                <flux:icon.information-circle class="h-5 w-5 text-orange-400" />
-            </div>
-            <div class="ml-3">
-                <p class="text-sm font-medium text-orange-800 dark:text-orange-200">
-                    {{ __('Flags members swiping \'entry\' consecutively without an \'exit\'.') }}
-                </p>
-            </div>
-        </div>
+    <div class="mb-4 rounded-lg border border-orange-200 bg-orange-50 p-4 dark:border-orange-800 dark:bg-orange-900/20">
+        <p class="text-sm font-medium text-orange-800 dark:text-orange-200">
+            {{ __('Flags members swiping \'entry\' consecutively without an \'exit\'.') }}
+        </p>
     </div>
 
     <flux:card class="!p-0 overflow-hidden">
@@ -51,7 +43,12 @@
                     </div>
                 </li>
             @empty
-                <li class="px-4 py-8 text-center text-zinc-500 dark:text-zinc-400 text-sm">{{ __('No suspicious check-ins detected.') }}</li>
+                <li class="px-4 py-8 text-center">
+                    <x-ui.dashboard.empty-state
+                        :title="__('No suspicious check-ins detected.')"
+                        :subtitle="__('All active taps are currently passing the anti-passback rules.')"
+                    />
+                </li>
             @endforelse
         </ul>
     </flux:card>

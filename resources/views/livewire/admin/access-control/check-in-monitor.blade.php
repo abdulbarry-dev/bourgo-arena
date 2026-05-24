@@ -78,7 +78,12 @@
                         </div>
                     </li>
                 @empty
-                    <li class="px-4 py-8 text-center text-zinc-500 dark:text-zinc-400 text-sm">{{ __('No recent events today.') }}</li>
+                    <li class="px-4 py-8 text-center">
+                        <x-ui.dashboard.empty-state
+                            :title="__('No recent events today.')"
+                            :subtitle="__('The real-time feed will populate as members tap in or out.')"
+                        />
+                    </li>
                 @endforelse
             </ul>
         </flux:card>

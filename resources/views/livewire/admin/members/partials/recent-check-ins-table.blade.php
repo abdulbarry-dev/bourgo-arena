@@ -1,7 +1,7 @@
 <div class="space-y-3 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
     <flux:heading size="sm">{{ __('Recent Check-ins') }}</flux:heading>
 
-    <div class="overflow-x-auto">
+    <x-ui.dashboard.table-shell>
         <table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-700">
             <thead class="bg-zinc-50 dark:bg-zinc-900/70">
                 <tr>
@@ -22,11 +22,14 @@
                 @empty
                     <tr>
                         <td colspan="4" class="px-3 py-6 text-center">
-                            <flux:text variant="subtle">{{ __('No check-ins recorded yet.') }}</flux:text>
+                            <x-ui.dashboard.empty-state
+                                :title="__('No check-ins recorded yet.')"
+                                :subtitle="__('Recent tap events will appear here once the member starts using the gym.')"
+                            />
                         </td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
-    </div>
+    </x-ui.dashboard.table-shell>
 </div>

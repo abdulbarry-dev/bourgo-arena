@@ -1,5 +1,8 @@
-<x-layouts::app :title="__('Plans')">
-    <section class="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
-        <livewire:admin.plans.plan-table />
-    </section>
-</x-layouts::app>
+<x-layouts::dashboard :title="__('Plans')">
+    <x-ui.dashboard.page-header
+        :title="__('Plans')"
+        :subtitle="__('Manage subscription plan catalog, pricing, and durations.')"
+    />
+
+    <livewire:admin.plans.plan-table />
+</x-layouts::dashboard>
