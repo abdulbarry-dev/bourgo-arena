@@ -4,15 +4,21 @@ use App\Livewire\Admin\Members\AddMemberFlyout;
 use App\Livewire\Admin\Members\ManageFamilyFlyout;
 use App\Models\Member;
 use App\Models\User;
+use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
 
 test('manager can create a parent and multiple children at once', function () {
+    Queue::fake();
+
     $this->actingAs(User::factory()->manager()->create());
+
+    $email = fake()->unique()->safeEmail();
+    $phone = '+216'.fake()->unique()->numerify('########');
 
     Livewire::test(AddMemberFlyout::class)
         ->set('name', 'Parent Member')
-        ->set('email', 'parent@example.com')
-        ->set('phone', '+21620111222')
+        ->set('email', $email)
+        ->set('phone', $phone)
         ->set('dateOfBirth', '1990-01-01')
         ->set('gender', 'male')
         ->set('isFamilyAccount', true)
@@ -23,7 +29,7 @@ test('manager can create a parent and multiple children at once', function () {
         ->call('create')
         ->assertHasNoErrors();
 
-    $parent = Member::query()->where('email', 'parent@example.com')->first();
+    $parent = Member::query()->where('email', $email)->first();
     expect($parent)->not->toBeNull();
     expect($parent->children)->toHaveCount(2);
     expect($parent->children->pluck('name')->toArray())->toContain('Child One', 'Child Two');

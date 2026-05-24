@@ -41,7 +41,7 @@
                         <div class="relative space-y-4 rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
                             <div class="flex items-center justify-between">
                                 <flux:heading size="xs">{{ __('Child #:index', ['index' => $index + 1]) }}</flux:heading>
-                                <flux:button variant="ghost" icon="x-mark" size="sm" wire:click="removeChild({{ $index }})" />
+                                <flux:button type="button" variant="ghost" icon="x-mark" size="sm" wire:click="removeChild({{ $index }})" />
                             </div>
 
                             <div class="grid gap-4 md:grid-cols-2">
@@ -55,7 +55,7 @@
                         </div>
                     @endforeach
 
-                    <flux:button variant="subtle" icon="plus" class="w-full" wire:click="addChild">
+                    <flux:button type="button" variant="subtle" icon="plus" class="w-full" wire:click="addChild">
                         {{ __('Add Child') }}
                     </flux:button>
                 </div>
@@ -66,7 +66,7 @@
 
         <div class="flex items-center gap-2 pt-6">
             <flux:spacer />
-            <flux:button variant="ghost" wire:click="$set('show', false)">{{ __('Cancel') }}</flux:button>
+            <flux:button type="button" variant="ghost" wire:click="$set('show', false)">{{ __('Cancel') }}</flux:button>
             <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="create">
                 <span wire:loading.remove wire:target="create">{{ __('Create Member') }}</span>
                 <span wire:loading wire:target="create">{{ __('Creating...') }}</span>
