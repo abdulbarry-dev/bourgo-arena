@@ -2,30 +2,37 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\DTOs\StoreDeviceTokenDTO;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Member\StoreDeviceTokenRequest;
+use App\Http\Resources\Api\V1\DeviceTokenResource;
+use App\Services\Members\MemberDeviceTokenService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class DeviceTokenController extends Controller
 {
     use ApiResponse;
 
+    public function __construct(private readonly MemberDeviceTokenService $memberDeviceTokenService) {}
+
     /**
      * Store or update a device token for the authenticated member.
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreDeviceTokenRequest $request): JsonResponse
     {
-        $request->validate([
-            'token' => ['required', 'string'],
-            'platform' => ['required', 'string', 'in:ios,android'],
-        ]);
+        $validated = $request->validated();
+        $dto = StoreDeviceTokenDTO::fromRequest($validated);
 
-        $request->user()->deviceTokens()->updateOrCreate(
-            ['token' => $request->token],
-            ['device_type' => $request->platform]
+        $member = $request->user();
+
+        $deviceToken = $this->memberDeviceTokenService->register(
+            $member,
+            $dto,
         );
 
-        return $this->success(null, 'Device token registered successfully');
+        $resource = new DeviceTokenResource($deviceToken);
+
+        return $this->success($resource->toArray($request), 'Device token registered successfully.', 200);
     }
 }

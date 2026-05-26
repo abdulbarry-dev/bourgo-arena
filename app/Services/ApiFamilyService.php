@@ -2,34 +2,34 @@
 
 namespace App\Services;
 
+use App\DTOs\FamilyChildDTO;
 use App\Models\Member;
+use App\Repositories\FamilyRepository;
 
 class ApiFamilyService
 {
+    public function __construct(
+        protected FamilyRepository $familyRepository
+    ) {}
+
     /**
      * Create a child record under the provided parent member.
-     *
-     * @param  array<string, mixed>  $validatedData
      */
-    public function createChild(Member $parent, array $validatedData): Member
+    public function createChild(Member $parent, FamilyChildDTO $dto): Member
     {
-        return $parent->children()->create($this->mapChildPayload($validatedData));
+        return $this->familyRepository->createChild($parent, $this->mapChildPayload($dto));
     }
 
     /**
      * Update a child only when it belongs to the authenticated parent.
-     *
-     * @param  array<string, mixed>  $validatedData
      */
-    public function updateChild(Member $parent, Member $child, array $validatedData): ?Member
+    public function updateChild(Member $parent, Member $child, FamilyChildDTO $dto): ?Member
     {
         if (! $this->isOwnedByParent($parent, $child)) {
             return null;
         }
 
-        $child->update($this->mapChildPayload($validatedData));
-
-        return $child->fresh();
+        return $this->familyRepository->updateChild($child, $this->mapChildPayload($dto));
     }
 
     /**
@@ -37,8 +37,16 @@ class ApiFamilyService
      */
     public function disableFamilyAccount(Member $member): void
     {
-        $member->update(['is_family_account' => false]);
-        $member->children()->update(['is_archived' => true]);
+        $this->familyRepository->disableFamilyAccount($member);
+        $this->familyRepository->archiveChildren($member);
+    }
+
+    /**
+     * Enable family account feature for the member.
+     */
+    public function enableFamilyAccount(Member $member): Member
+    {
+        return $this->familyRepository->enableFamilyAccount($member);
     }
 
     /**
@@ -50,9 +58,7 @@ class ApiFamilyService
             return false;
         }
 
-        $child->delete();
-
-        return true;
+        return $this->familyRepository->deleteChild($child);
     }
 
     private function isOwnedByParent(Member $parent, Member $child): bool
@@ -61,15 +67,16 @@ class ApiFamilyService
     }
 
     /**
-     * @param  array<string, mixed>  $validatedData
+     * Map DTO to an array for Eloquent.
+     *
      * @return array<string, mixed>
      */
-    private function mapChildPayload(array $validatedData): array
+    private function mapChildPayload(FamilyChildDTO $dto): array
     {
         return [
-            'name' => trim(($validatedData['first_name'] ?? '').' '.($validatedData['last_name'] ?? '')),
-            'date_of_birth' => $validatedData['birth_date'],
-            'gender' => $validatedData['gender'],
+            'name' => trim(($dto->firstName ?? '').' '.($dto->lastName ?? '')),
+            'date_of_birth' => $dto->birthDate,
+            'gender' => $dto->gender,
             'status' => 'active',
             'password' => null,
         ];

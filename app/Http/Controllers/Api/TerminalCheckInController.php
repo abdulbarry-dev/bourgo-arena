@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StoreTerminalCheckInRequest;
 use App\Http\Resources\Api\TerminalCheckInResource;
 use App\Models\HikvisionTerminal;
+use App\Services\TerminalService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -22,17 +23,13 @@ class TerminalCheckInController extends Controller
         return $this->success(new TerminalCheckInResource($event), 'Check-in event received', 200);
     }
 
-    public function heartbeat(Request $request, HikvisionTerminal $terminal): JsonResponse
+    public function heartbeat(Request $request, HikvisionTerminal $terminal, TerminalService $terminalService): JsonResponse
     {
-        // terminal.auth already verifies the token and matches it to a device.
         $terminalAuth = $request->attributes->get('terminal');
 
-        // Optional: Ensure the authenticated terminal matches the requested endpoint id
-        if ($terminalAuth && $terminalAuth->id !== $terminal->id) {
-            return $this->error('Unauthorized for this terminal', 403);
-        }
+        $terminalService->assertAuthorizedForTerminal($terminalAuth, $terminal);
 
-        $terminal->markSeen();
+        $terminalService->heartbeat($terminal);
 
         return $this->success(null, 'Heartbeat received');
     }

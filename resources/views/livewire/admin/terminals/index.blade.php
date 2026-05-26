@@ -31,11 +31,19 @@
         </flux:field>
     </x-ui.dashboard.filters>
 
-    <x-ui.dashboard.table-shell loading-targets="search,statusFilter,sortByColumn">
+    <x-ui.dashboard.table-shell loading-targets="search,statusFilter,sortByColumn" :has-rows="$terminals->count() > 0">
         <x-slot name="loading">
             @for ($i = 0; $i < 5; $i++)
                 <flux:skeleton class="h-12 w-full" />
             @endfor
+        </x-slot>
+
+        <x-slot name="empty">
+            <x-ui.dashboard.empty-state
+                table
+                :title="__('No hardware terminals found.')"
+                :subtitle="empty($search) && empty($statusFilter) ? __('Try adding a new terminal.') : __('Adjust your search or filters to find what you are looking for.')"
+            />
         </x-slot>
 
         <table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-700">
@@ -50,7 +58,7 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-zinc-100 bg-white dark:divide-zinc-800 dark:bg-zinc-900/40">
-                @forelse ($terminals as $terminal)
+                @foreach ($terminals as $terminal)
                     <tr wire:key="terminal-row-{{ $terminal->id }}" class="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/70">
                         <td class="px-4 py-3">
                             <div class="flex flex-col">
@@ -70,16 +78,7 @@
                             </x-ui.dashboard.row-actions>
                         </td>
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="6" class="px-4 py-10 text-center">
-                            <x-ui.dashboard.empty-state
-                                :title="__('No hardware terminals found.')"
-                                :subtitle="empty($search) && empty($statusFilter) ? __('Try adding a new terminal.') : __('Adjust your search or filters to find what you are looking for.')"
-                            />
-                        </td>
-                    </tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
 
@@ -131,7 +130,7 @@
                     <span class="text-xs font-semibold uppercase text-zinc-500">{{ __('Type') }}</span>
                     <p class="text-sm font-medium capitalize dark:text-zinc-200">{{ $selectedTerminal->terminal_type }}</p>
                 </div>
-            </div>
+            </x-ui.dashboard.panel>
 
             @if($selectedTerminal->status !== 'decommissioned')
                 <flux:separator variant="subtle" />

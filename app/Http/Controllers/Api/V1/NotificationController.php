@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\V1\NotificationResource;
+use App\Services\NotificationService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -33,11 +34,8 @@ class NotificationController extends Controller
      */
     public function markAllRead(Request $request): JsonResponse
     {
-        $request->user()
-            ->notifications()
-            ->where('is_read', false)
-            ->update(['is_read' => true]);
+        $count = app(NotificationService::class)->markAllRead($request->user());
 
-        return $this->success(null, 'Marked as read');
+        return $this->success(null, 'Marked as read', 200);
     }
 }

@@ -51,11 +51,19 @@
         </flux:field>
     </x-ui.dashboard.filters>
 
-    <x-ui.dashboard.table-shell loading-targets="search,statusFilter,planFilter">
+    <x-ui.dashboard.table-shell loading-targets="search,statusFilter,planFilter" :has-rows="$this->subscriptions->count() > 0">
         <x-slot name="loading">
             <flux:skeleton class="h-12 w-full" />
             <flux:skeleton class="h-12 w-full" />
             <flux:skeleton class="h-12 w-full" />
+        </x-slot>
+
+        <x-slot name="empty">
+            <x-ui.dashboard.empty-state
+                table
+                :title="__('No subscriptions found')"
+                :subtitle="__('Try adjusting your search or filters.')"
+            />
         </x-slot>
 
         <table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-700">
@@ -71,7 +79,7 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-zinc-100 bg-white dark:divide-zinc-800 dark:bg-zinc-900/40">
-                @forelse ($this->subscriptions as $subscription)
+                @foreach ($this->subscriptions as $subscription)
                     <tr wire:key="subscription-row-{{ $subscription->id }}">
                         <td class="px-4 py-3">
                             <div class="font-medium text-zinc-900 dark:text-zinc-100">{{ $subscription->member->name }}</div>
@@ -106,16 +114,7 @@
                             </x-ui.dashboard.row-actions>
                         </td>
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="7" class="px-4 py-10 text-center">
-                            <x-ui.dashboard.empty-state
-                                :title="__('No subscriptions found')"
-                                :subtitle="__('Try adjusting your search or filters.')"
-                            />
-                        </td>
-                    </tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
 

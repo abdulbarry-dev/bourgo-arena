@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\DTOs\FamilyChildDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\AddChildRequest;
 use App\Http\Requests\Api\V1\UpdateChildRequest;
@@ -38,8 +39,6 @@ class FamilyController extends Controller
 
     /**
      * Create a new child Member record.
-     *
-     * @return MemberResource
      */
     public function store(AddChildRequest $request): JsonResponse
     {
@@ -49,7 +48,9 @@ class FamilyController extends Controller
             abort(403, __('Forbidden'));
         }
 
-        $child = $this->familyService->createChild($parent, $request->validated());
+        $dto = FamilyChildDTO::fromRequest($request);
+
+        $child = $this->familyService->createChild($parent, $dto);
 
         return (new MemberResource($child))->additional([
             'success' => true,
@@ -68,7 +69,9 @@ class FamilyController extends Controller
             abort(403, __('Forbidden'));
         }
 
-        $child = $this->familyService->updateChild($parent, $member, $request->validated());
+        $dto = FamilyChildDTO::fromRequest($request);
+
+        $child = $this->familyService->updateChild($parent, $member, $dto);
 
         if ($child === null) {
             return $this->error('Unauthorized', 403);
@@ -95,9 +98,9 @@ class FamilyController extends Controller
             return $this->error('Family account feature already enabled', 400);
         }
 
-        $member->update(['is_family_account' => true]);
+        $member = $this->familyService->enableFamilyAccount($member);
 
-        return (new MemberResource($member->fresh()))->additional([
+        return (new MemberResource($member))->additional([
             'success' => true,
             'message' => 'Family account feature enabled successfully',
         ])->response();

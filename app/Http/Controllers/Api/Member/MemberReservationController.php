@@ -2,62 +2,30 @@
 
 namespace App\Http\Controllers\Api\Member;
 
+use App\DTOs\StoreReservationDTO;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\StoreReservationRequest;
 use App\Http\Resources\Api\ApiReservationResource;
-use App\Models\Activity;
-use App\Models\ActivitySlot;
-use App\Models\ApiReservation;
+use App\Repositories\Members\MemberRepository;
+use App\Services\ReservationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class MemberReservationController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    public function index(Request $request, MemberRepository $repository): JsonResponse
     {
-        $reservations = $request->user()->reservations()
-            ->with(['activity', 'slot'])
-            ->latest()
-            ->paginate();
+        $reservations = $repository->getReservationsPaginated($request->user());
 
         return $this->paginated($reservations, ApiReservationResource::class);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreReservationRequest $request, ReservationService $reservationService): JsonResponse
     {
-        $request->validate([
-            'activity_id' => ['required', 'exists:activities,id'],
-            'activity_slot_id' => ['required', 'exists:activity_slots,id'],
-        ]);
+        $member = $request->user();
+        $dto = StoreReservationDTO::fromRequest($request->validated());
 
-        $activity = Activity::findOrFail($request->activity_id);
-        $slot = ActivitySlot::findOrFail($request->activity_slot_id);
-
-        if ($slot->isFullyBooked()) {
-            return $this->error(__('This slot is already fully booked.'), 422);
-        }
-
-        if (! $slot->is_available) {
-            return $this->error(__('This slot is not available for booking.'), 422);
-        }
-
-        $reservation = DB::transaction(function () use ($activity, $slot, $request) {
-            $reservation = ApiReservation::create([
-                'member_id' => $request->user()->id,
-                'activity_id' => $activity->id,
-                'activity_slot_id' => $slot->id,
-                'date' => $slot->date,
-                'starts_at' => $slot->starts_at,
-                'ends_at' => $slot->ends_at,
-                'price' => $activity->base_price,
-                'status' => 'confirmed',
-                'payment_status' => 'pending',
-            ]);
-
-            $slot->increment('booked_count');
-
-            return $reservation;
-        });
+        $reservation = $reservationService->makeActivityReservation($member, $dto);
 
         return $this->success(
             new ApiReservationResource($reservation->load(['activity', 'slot'])),
@@ -66,24 +34,11 @@ class MemberReservationController extends Controller
         );
     }
 
-    public function cancel(Request $request, int $id): JsonResponse
+    public function cancel(Request $request, int $id, ReservationService $reservationService): JsonResponse
     {
         $reservation = $request->user()->reservations()->findOrFail($id);
 
-        if ($reservation->status === 'cancelled') {
-            return $this->error(__('Reservation is already cancelled.'), 422);
-        }
-
-        DB::transaction(function () use ($reservation) {
-            $reservation->update([
-                'status' => 'cancelled',
-                'cancelled_at' => now(),
-            ]);
-
-            if ($reservation->slot) {
-                $reservation->slot->decrement('booked_count');
-            }
-        });
+        $reservationService->cancelActivityReservation($reservation);
 
         return $this->success(
             new ApiReservationResource($reservation->load(['activity', 'slot'])),
