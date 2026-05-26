@@ -1,5 +1,13 @@
 <div class="mt-6">
-    <x-ui.dashboard.table-shell>
+    <x-ui.dashboard.table-shell :has-rows="$courses->count() > 0">
+        <x-slot name="empty">
+            <x-ui.dashboard.empty-state
+                table
+                :title="__('No courses found')"
+                :subtitle="__('Try adding a new course template.')"
+            />
+        </x-slot>
+
         <table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-700">
             <thead class="bg-zinc-50 dark:bg-zinc-900/80">
                 <tr>
@@ -11,7 +19,7 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-zinc-100 bg-white dark:divide-zinc-800 dark:bg-zinc-900/40">
-                @forelse($courses as $course)
+                @foreach($courses as $course)
                     <tr wire:key="course-row-{{ $course->id }}">
                         <td class="px-4 py-3">
                             @if ($course->image_url)
@@ -42,14 +50,7 @@
                             </x-ui.dashboard.row-actions>
                         </td>
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="5" class="px-4 py-10 text-center">
-                            <flux:heading size="sm">{{ __('No courses found') }}</flux:heading>
-                            <flux:text variant="subtle">{{ __('Try adding a new course template.') }}</flux:text>
-                        </td>
-                    </tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
     </x-ui.dashboard.table-shell>

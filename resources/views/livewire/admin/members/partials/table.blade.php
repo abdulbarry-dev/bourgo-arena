@@ -1,8 +1,16 @@
-<x-ui.dashboard.table-shell loading-targets="search,statusFilter,planFilter">
+<x-ui.dashboard.table-shell loading-targets="search,statusFilter,planFilter" :has-rows="$this->members->count() > 0">
     <x-slot name="loading">
         <flux:skeleton class="h-12 w-full" />
         <flux:skeleton class="h-12 w-full" />
         <flux:skeleton class="h-12 w-full" />
+    </x-slot>
+
+    <x-slot name="empty">
+        <x-ui.dashboard.empty-state
+            table
+            :title="__('No members found')"
+            :subtitle="__('Try adjusting your search or filters.')"
+        />
     </x-slot>
 
     <table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-700">
@@ -18,7 +26,7 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-zinc-100 bg-white dark:divide-zinc-800 dark:bg-zinc-900/40">
-            @forelse ($this->members as $member)
+            @foreach ($this->members as $member)
                 <tr
                     wire:key="member-row-{{ $member->id }}"
                     @if ($selectionEnabled)
@@ -49,16 +57,7 @@
                         </x-ui.dashboard.row-actions>
                     </td>
                 </tr>
-            @empty
-                <tr>
-                    <td colspan="7" class="px-4 py-10 text-center">
-                        <x-ui.dashboard.empty-state
-                            :title="__('No members found')"
-                            :subtitle="__('Try adjusting your search or filters.')"
-                        />
-                    </td>
-                </tr>
-            @endforelse
+            @endforeach
         </tbody>
     </table>
 
