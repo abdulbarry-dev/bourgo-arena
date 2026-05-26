@@ -2,20 +2,18 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\DTOs\PaymentInitiateDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\StoreReservationRequest;
 use App\Http\Resources\Api\ApiReservationResource;
-use App\Models\ActivitySlot;
 use App\Models\ApiReservation;
-use App\Models\Payment;
 use App\Services\LoyaltyCalculatorService;
-use App\Services\PaymentGateway\KonnectGateway;
+use App\Services\PaymentService;
 use App\Services\ReservationService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Validation\ValidationException;
 
 class ReservationController extends Controller
 {
@@ -24,7 +22,7 @@ class ReservationController extends Controller
     public function __construct(
         protected ReservationService $reservationService,
         protected LoyaltyCalculatorService $loyaltyCalculatorService,
-        protected KonnectGateway $konnectGateway
+        protected PaymentService $paymentService
     ) {}
 
     /**
@@ -45,65 +43,46 @@ class ReservationController extends Controller
     /**
      * Store a new reservation.
      *
-     * @return ApiReservationResource
+     * @return JsonResponse
      */
     public function store(StoreReservationRequest $request): JsonResponse
     {
-        $validated = $request->validated();
-        $slot = ActivitySlot::query()->findOrFail($validated['activity_slot_id']);
+        $dto = \App\DTOs\StoreReservationDTO::fromRequest($request->validated());
 
-        // Check if already booked for same slot by this member
-        $exists = ApiReservation::where('member_id', $request->user()->id)
-            ->where('activity_slot_id', $validated['activity_slot_id'])
-            ->where('date', $slot->date)
-            ->where('status', '!=', 'cancelled')
-            ->exists();
+        $this->reservationService->assertNoActiveReservationForSlot($request->user(), $dto->activitySlotId);
 
-        if ($exists) {
-            throw ValidationException::withMessages([
-                'activity_slot_id' => ['You already have an active reservation for this slot.'],
-            ]);
-        }
-
-        $reservation = $this->reservationService->makeActivityReservation($request->user(), $validated);
+        $reservation = $this->reservationService->makeActivityReservation($request->user(), $dto);
 
         // Create deposit payment (10%) and initiate checkout
         $depositAmount = round($reservation->price * 0.10, 3);
 
-        $payment = Payment::create([
-            'member_id' => $request->user()->id,
-            'reservation_id' => $reservation->id,
-            'driver' => 'konnect',
-            'type' => 'reservation_deposit',
-            'amount' => $depositAmount,
-            'currency' => 'TND',
-            'status' => 'pending',
-            'payment_reference' => 'konnect_'.bin2hex(random_bytes(6)),
-        ]);
+        $paymentDto = new PaymentInitiateDTO(
+            memberId: $request->user()->id,
+            reservationId: $reservation->id,
+            subscriptionId: null,
+            amount: $depositAmount,
+            currency: 'TND',
+            description: null,
+            type: 'reservation_deposit',
+            paymentReference: null,
+            metadata: null
+        );
 
-        $payload = [
-            'amount' => (float) $payment->amount,
-            'description' => 'Reservation deposit for activity #'.$reservation->activity_id,
-            'payment_reference' => $payment->payment_reference,
-            'success_url' => $request->input('success_url', config('app.url')),
-            'failure_url' => $request->input('failure_url', config('app.url')),
-        ];
+        $payment = $this->paymentService->createPayment($paymentDto);
 
         try {
-            $result = $this->konnectGateway->initiate($payload);
+            $result = $this->paymentService->initiate($payment, [
+                'description' => 'Reservation deposit for activity #'.$reservation->activity_id,
+                'success_url' => $request->input('success_url', config('app.url')),
+                'failure_url' => $request->input('failure_url', config('app.url')),
+            ]);
         } catch (\Throwable $e) {
-            $payment->update(['status' => 'failed', 'metadata' => ['error' => $e->getMessage()]]);
+            $this->paymentService->markFailed($payment, ['error' => $e->getMessage()]);
 
             return $this->error('Payment initiation failed', 500);
         }
 
         if (! empty($result['success'])) {
-            $payment->update([
-                'status' => 'initiated',
-                'gateway_transaction_id' => $result['gateway_transaction_id'] ?? null,
-                'metadata' => $result,
-            ]);
-
             return (new ApiReservationResource($reservation->load(['activity', 'slot'])))->additional([
                 'success' => true,
                 'message' => 'Reservation created successfully',
@@ -115,7 +94,7 @@ class ReservationController extends Controller
             ])->response()->setStatusCode(201);
         }
 
-        $payment->update(['status' => 'failed', 'metadata' => $result]);
+        $this->paymentService->markFailed($payment, $result);
 
         return $this->error('Payment initiation failed', 400);
     }
