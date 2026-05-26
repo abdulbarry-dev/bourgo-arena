@@ -6,13 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\V1\ActivityResource;
 use App\Http\Resources\Api\V1\ActivitySlotResource;
 use App\Models\Activity;
-use App\Models\ActivitySlot;
+use App\Services\ActivityService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ActivityController extends Controller
 {
     use ApiResponse;
+
+    public function __construct(
+        protected ActivityService $activityService
+    ) {}
 
     /**
      * Display a listing of active activities.
@@ -21,7 +25,7 @@ class ActivityController extends Controller
      */
     public function index(): AnonymousResourceCollection
     {
-        $activities = Activity::active()->paginate(10);
+        $activities = $this->activityService->paginateActiveActivities();
 
         return $this->paginated($activities, ActivityResource::class);
     }
@@ -44,14 +48,7 @@ class ActivityController extends Controller
      */
     public function slots(?Activity $activity = null): AnonymousResourceCollection
     {
-        $query = $activity ? $activity->slots() : ActivitySlot::query();
-
-        $slots = $query->where('is_available', true)
-            ->where('date', '>=', now()->toDateString())
-            ->whereColumn('booked_count', '<', 'capacity')
-            ->orderBy('date')
-            ->orderBy('starts_at')
-            ->get();
+        $slots = $this->activityService->getAvailableSlots($activity);
 
         return ActivitySlotResource::collection($slots)->additional([
             'success' => true,
