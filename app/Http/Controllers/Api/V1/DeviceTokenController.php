@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\DTOs\StoreDeviceTokenDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Member\StoreDeviceTokenRequest;
 use App\Http\Resources\Api\V1\DeviceTokenResource;
@@ -21,17 +22,17 @@ class DeviceTokenController extends Controller
     public function store(StoreDeviceTokenRequest $request): JsonResponse
     {
         $validated = $request->validated();
+        $dto = StoreDeviceTokenDTO::fromRequest($validated);
 
         $member = $request->user();
 
         $deviceToken = $this->memberDeviceTokenService->register(
             $member,
-            $validated['token'],
-            $validated['device_type'] ?? null,
+            $dto,
         );
 
         $resource = new DeviceTokenResource($deviceToken);
 
-        return $this->success($resource->toArray($request), 'Device token registered successfully.', $deviceToken->wasRecentlyCreated ? 201 : 200);
+        return $this->success($resource->toArray($request), 'Device token registered successfully.', 200);
     }
 }

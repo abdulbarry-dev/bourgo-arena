@@ -6,6 +6,7 @@ use App\Events\AdminAlertGenerated;
 use App\Events\CheckInProcessed;
 use App\Events\OccupancyUpdated;
 use App\Models\AdminAlert;
+use App\Models\ApiReservation;
 use App\Models\CheckInEvent;
 use App\Models\HikvisionTerminal;
 use App\Models\Member;
@@ -44,8 +45,9 @@ class ProcessTerminalCheckInAction
                     ->where('member_id', $member->id)
                     ->active()
                     ->exists();
-                $hasTodayReservation = $member->reservations()
-                    ->where('date', now()->toDateString())
+                $hasTodayReservation = ApiReservation::query()
+                    ->where('member_id', $member->id)
+                    ->whereDate('date', now())
                     ->whereIn('status', ['confirmed', 'active'])
                     ->exists();
 

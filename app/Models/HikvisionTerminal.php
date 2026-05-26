@@ -5,6 +5,7 @@ namespace App\Models;
 use Database\Factories\HikvisionTerminalFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class HikvisionTerminal extends Model
 {
@@ -26,6 +27,23 @@ class HikvisionTerminal extends Model
     protected $casts = [
         'last_seen_at' => 'datetime',
     ];
+
+    public function setApiTokenAttribute(?string $token): void
+    {
+        if ($token === null || $token === '') {
+            $this->attributes['api_token'] = $token;
+
+            return;
+        }
+
+        if (Str::length($token) === 64 && ctype_xdigit($token)) {
+            $this->attributes['api_token'] = $token;
+
+            return;
+        }
+
+        $this->attributes['api_token'] = hash('sha256', $token);
+    }
 
     public function isOnline(): bool
     {

@@ -51,7 +51,12 @@ class AuthController extends Controller
                 $payload['user'] = new MemberResource($payload['user']);
             }
 
-            return $this->success($payload, __('Login successful.'));
+            $message = match ($payload['state'] ?? null) {
+                'pending_onboarding' => __('Must complete onboarding to unlock your account.'),
+                default => __('Login successful.'),
+            };
+
+            return $this->success($payload, $message);
         } catch (ValidationException $e) {
             return $this->error($e->getMessage(), 401);
         } catch (\Exception $e) {

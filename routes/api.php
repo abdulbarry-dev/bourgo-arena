@@ -48,6 +48,11 @@ Route::prefix('v1')->group(function () {
         Route::post('verify-phone', [AuthController::class, 'verifyPhone'])->name('api.v1.auth.verify-phone');
     });
 
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('notifications', [NotificationController::class, 'index'])->name('api.v1.notifications.index');
+        Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('api.v1.notifications.mark-all-read');
+    });
+
     Route::middleware(['auth:sanctum', 'verified.account', 'onboarding.completed'])->group(function () {
         Route::get('member/profile', [MemberController::class, 'profile'])->name('api.v1.member.profile');
         Route::put('member/profile', [MemberController::class, 'updateProfile'])->name('api.v1.member.update-profile');
@@ -66,9 +71,6 @@ Route::prefix('v1')->group(function () {
 
         Route::get('member/tier', [TierController::class, 'show'])->name('api.v1.member.tier');
         Route::get('loyalty/balance', [LoyaltyController::class, 'balance'])->name('api.v1.loyalty.balance');
-
-        Route::get('notifications', [NotificationController::class, 'index'])->name('api.v1.notifications.index');
-        Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('api.v1.notifications.mark-all-read');
 
         Route::get('family/children', [FamilyController::class, 'index'])->name('api.v1.family.children.index');
         Route::get('family/members', [FamilyController::class, 'index'])->name('api.v1.family.members.index'); // Alias

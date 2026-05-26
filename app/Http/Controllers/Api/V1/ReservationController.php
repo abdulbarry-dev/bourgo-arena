@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\DTOs\PaymentInitiateDTO;
+use App\DTOs\StoreReservationDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\StoreReservationRequest;
 use App\Http\Resources\Api\ApiReservationResource;
@@ -42,16 +43,24 @@ class ReservationController extends Controller
 
     /**
      * Store a new reservation.
-     *
-     * @return JsonResponse
      */
     public function store(StoreReservationRequest $request): JsonResponse
     {
-        $dto = \App\DTOs\StoreReservationDTO::fromRequest($request->validated());
+        $dto = StoreReservationDTO::fromRequest($request->validated());
 
         $this->reservationService->assertNoActiveReservationForSlot($request->user(), $dto->activitySlotId);
 
         $reservation = $this->reservationService->makeActivityReservation($request->user(), $dto);
+
+        if (! config('payment.konnect.api_key') || ! config('payment.konnect.api_secret')) {
+            $reservation->update(['payment_status' => 'paid']);
+            $this->loyaltyCalculatorService->creditVariableForReservation($reservation);
+
+            return (new ApiReservationResource($reservation->load(['activity', 'slot'])))->additional([
+                'success' => true,
+                'message' => 'Reservation created successfully',
+            ])->response()->setStatusCode(201);
+        }
 
         // Create deposit payment (10%) and initiate checkout
         $depositAmount = round($reservation->price * 0.10, 3);
