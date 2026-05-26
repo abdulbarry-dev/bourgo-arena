@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Api\Member;
 
+use App\DTOs\StoreDeviceTokenDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Member\StoreDeviceTokenRequest;
+use App\Http\Resources\Api\V1\DeviceTokenResource;
 use App\Services\Members\AuthenticatedMemberResolver;
 use App\Services\Members\MemberDeviceTokenService;
 use Illuminate\Http\JsonResponse;
@@ -23,20 +25,16 @@ class MemberDeviceTokenController extends Controller
     {
         $member = $this->authenticatedMemberResolver->resolve($request);
 
-        $validated = $request->validated();
+        $dto = StoreDeviceTokenDTO::fromRequest($request->validated());
 
         $deviceToken = $this->memberDeviceTokenService->register(
             $member,
-            $validated['token'],
-            $validated['device_type'] ?? null,
+            $dto
         );
 
-        return $this->success([
-            'id' => $deviceToken->id,
-            'token' => $deviceToken->token,
-            'device_type' => $deviceToken->device_type,
-            'is_active' => $deviceToken->is_active,
-        ], 'Device token registered successfully.', $deviceToken->wasRecentlyCreated ? 201 : 200);
+        $resource = new DeviceTokenResource($deviceToken);
+
+        return $this->success($resource->toArray($request), 'Device token registered successfully.', $deviceToken->wasRecentlyCreated ? 201 : 200);
     }
 
     /**

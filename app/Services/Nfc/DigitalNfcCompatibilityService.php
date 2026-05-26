@@ -2,6 +2,8 @@
 
 namespace App\Services\Nfc;
 
+use App\DTOs\DigitalNfcSetupDTO;
+use App\DTOs\DigitalNfcStatusDTO;
 use Illuminate\Support\Str;
 
 class DigitalNfcCompatibilityService
@@ -9,12 +11,12 @@ class DigitalNfcCompatibilityService
     /**
      * Check if a device is compatible with digital NFC access.
      */
-    public function checkCompatibility(array $deviceData): array
+    public function checkCompatibility(DigitalNfcStatusDTO|DigitalNfcSetupDTO $dto): array
     {
-        $model = $deviceData['device_model'] ?? 'Unknown';
-        $osVersion = $deviceData['os_version'] ?? '0';
-        $supportsHce = $deviceData['supports_hce'] ?? false;
-        $nfcEnabled = $deviceData['nfc_enabled'] ?? false;
+        $model = $dto->deviceModel;
+        $osVersion = $dto->osVersion;
+        $supportsHce = $dto->supportsHce;
+        $nfcEnabled = $dto->nfcEnabled;
 
         $isSupportedModel = $this->isModelSupported($model);
         $isSupportedOs = $this->isOsVersionSupported($osVersion);
