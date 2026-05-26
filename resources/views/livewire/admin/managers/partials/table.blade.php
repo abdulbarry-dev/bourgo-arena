@@ -1,8 +1,16 @@
-<x-ui.dashboard.table-shell loading-targets="search">
+<x-ui.dashboard.table-shell loading-targets="search" :has-rows="$managers->count() > 0">
     <x-slot name="loading">
         <flux:skeleton class="h-12 w-full" />
         <flux:skeleton class="h-12 w-full" />
         <flux:skeleton class="h-12 w-full" />
+    </x-slot>
+
+    <x-slot name="empty">
+        <x-ui.dashboard.empty-state
+            table
+            :title="__('No managers found')"
+            :subtitle="__('Try adjusting your search.')"
+        />
     </x-slot>
 
     <table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-700">
@@ -17,7 +25,7 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-zinc-100 bg-white dark:divide-zinc-800 dark:bg-zinc-900/40">
-            @forelse ($managers as $manager)
+            @foreach ($managers as $manager)
                 <tr wire:key="manager-row-{{ $manager->id }}">
                     <td class="px-4 py-3 font-medium text-zinc-900 dark:text-zinc-100">{{ $manager->name }}</td>
                     <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ $manager->email }}</td>
@@ -40,16 +48,7 @@
                         </x-ui.dashboard.row-actions>
                     </td>
                 </tr>
-            @empty
-                <tr>
-                    <td colspan="4" class="px-4 py-10 text-center">
-                        <x-ui.dashboard.empty-state
-                            :title="__('No managers found')"
-                            :subtitle="__('Try adjusting your search.')"
-                        />
-                    </td>
-                </tr>
-            @endforelse
+            @endforeach
         </tbody>
     </table>
 
