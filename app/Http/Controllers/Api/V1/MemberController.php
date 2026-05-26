@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\DTOs\UpdateProfileDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Member\UpdateProfileRequest;
 use App\Http\Resources\Api\V1\CheckInEventResource;
 use App\Http\Resources\Api\V1\MemberResource;
 use App\Models\Member;
+use App\Repositories\Members\MemberRepository;
+use App\Services\Members\MemberService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -14,6 +17,11 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 class MemberController extends Controller
 {
     use ApiResponse;
+
+    public function __construct(
+        protected MemberRepository $memberRepository,
+        protected MemberService $memberService
+    ) {}
 
     /**
      * Get the authenticated member's profile.
@@ -26,8 +34,7 @@ class MemberController extends Controller
             abort(403, __('Forbidden'));
         }
 
-        $member->load(['activeSubscription.plan', 'children'])
-            ->loadCount('checkInEvents');
+        $member = $this->memberRepository->loadProfileRelations($member);
 
         return (new MemberResource($member))->additional([
             'success' => true,
@@ -46,10 +53,10 @@ class MemberController extends Controller
             abort(403, __('Forbidden'));
         }
 
-        $member->update($request->mappedData());
+        $dto = UpdateProfileDTO::fromRequest($request->validated());
+        $member = $this->memberService->updateProfile($member, $dto);
 
-        $member->load(['activeSubscription.plan', 'children'])
-            ->loadCount('checkInEvents');
+        $member = $this->memberRepository->loadProfileRelations($member);
 
         return (new MemberResource($member))->additional([
             'success' => true,
@@ -68,14 +75,8 @@ class MemberController extends Controller
             abort(403, __('Forbidden'));
         }
 
-        $history = $member->checkInEvents()
-            ->with('terminal')
-            ->latest('checked_in_at')
-            ->get();
+        $history = $this->memberService->getAccessHistory($member);
 
-        return CheckInEventResource::collection($history)->additional([
-            'success' => true,
-            'message' => null,
-        ]);
+        return CheckInEventResource::collection($history)->additional(['success' => true, 'message' => null]);
     }
 }

@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\DTOs\DigitalNfcSetupDTO;
+use App\DTOs\DigitalNfcStatusDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\DigitalNfcSetupRequest;
 use App\Http\Requests\Api\V1\DigitalNfcStatusRequest;
 use App\Http\Resources\Api\V1\DigitalNfcStatusResource;
 use App\Http\Resources\Api\V1\PhysicalNfcStatusResource;
+use App\Services\Members\MemberService;
 use App\Services\Nfc\DigitalNfcCompatibilityService;
 use App\Services\Nfc\DigitalNfcSetupService;
 use App\Services\Nfc\PhysicalNfcStatusService;
@@ -41,9 +44,9 @@ class MemberNfcController extends Controller
     public function digitalStatus(DigitalNfcStatusRequest $request): JsonResponse
     {
         $member = $request->user();
-        $deviceData = $request->validated();
+        $dto = DigitalNfcStatusDTO::fromRequest($request->validated());
 
-        $compatibility = $this->digitalNfcCompatibilityService->checkCompatibility($deviceData);
+        $compatibility = $this->digitalNfcCompatibilityService->checkCompatibility($dto);
 
         $existingDevice = $member->digitalNfcDevices()
             ->where('is_active', true)
@@ -59,7 +62,7 @@ class MemberNfcController extends Controller
             'is_ready' => $isReady,
             'setup_status' => $existingDevice?->setup_status ?? ($compatibility['supported'] ? 'not_started' : 'unsupported'),
             'reasons' => $compatibility['reasons'],
-            'fallback_methods' => $this->getFallbackMethods($member),
+            'fallback_methods' => app(MemberService::class)->getNfcFallbackMethods($member),
         ];
 
         return response()->json([
@@ -75,7 +78,8 @@ class MemberNfcController extends Controller
     public function setupDigital(DigitalNfcSetupRequest $request): JsonResponse
     {
         $member = $request->user();
-        $device = $this->digitalNfcSetupService->setup($member, $request->validated());
+        $dto = DigitalNfcSetupDTO::fromRequest($request->validated());
+        $device = $this->digitalNfcSetupService->setup($member, $dto);
 
         return response()->json([
             'success' => true,
