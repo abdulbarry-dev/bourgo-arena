@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\DTOs\Auth\CompleteRegistrationDTO;
+use App\DTOs\Auth\LoginDTO;
+use App\DTOs\Auth\RegisterDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Auth\CompleteRegistrationRequest;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
@@ -14,9 +17,10 @@ use App\Http\Requests\Auth\VerifyOtpRequest;
 use App\Http\Resources\Api\V1\MemberResource;
 use App\Models\Member;
 use App\Models\User;
-use App\Notifications\AccountDeletionScheduled;
+use App\Services\Auth\AuthOrchestrationService;
 use App\Services\Auth\AuthService;
 use App\Services\Auth\OtpService;
+use App\Services\Members\MemberService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -29,7 +33,8 @@ class AuthController extends Controller
 
     public function __construct(
         protected AuthService $authService,
-        protected OtpService $otpService
+        protected OtpService $otpService,
+        protected AuthOrchestrationService $orchestration
     ) {}
 
     /**
@@ -37,88 +42,18 @@ class AuthController extends Controller
      */
     public function login(LoginRequest $request): JsonResponse
     {
-        $credentials = $request->validated();
+        $dto = LoginDTO::fromRequest($request);
 
         try {
-            $member = Member::where('email', $credentials['email'] ?? null)
-                ->orWhere('phone', $credentials['phone'] ?? null)
-                ->first();
+            $payload = $this->orchestration->login($dto);
 
-            if (! $member || ! Hash::check($credentials['password'], $member->password)) {
-                return $this->error(__('auth.failed'), 401);
+            if (isset($payload['user']) && $payload['user'] instanceof Member) {
+                $payload['user'] = new MemberResource($payload['user']);
             }
 
-            $state = $member->status ?? $member->state;
-            $verificationStatus = $member->getVerificationStatus();
-
-            if ($member->scheduled_for_deletion_at && $member->scheduled_for_deletion_at->isFuture()) {
-                $identifier = $member->phone ?? $member->email;
-                $this->otpService->generate($identifier);
-
-                $token = $member->createToken('auth_token', ['deletion-cancellation'])->plainTextToken;
-
-                return $this->success([
-                    'token' => $token,
-                    'state' => 'pending_deletion_cancellation',
-                    'code' => 'ACCOUNT_DELETION_PENDING',
-                    'user' => new MemberResource($member),
-                    'verification_status' => $verificationStatus,
-                ], __('Your account is scheduled for deletion. An OTP has been sent to your registered contact to cancel the process.'));
-            }
-
-            if ($state === 'pending_verification' || $state === 'pending_additional_verification') {
-                $token = $member->createToken('auth_token', ['verification'])->plainTextToken;
-
-                // Normalize response state for client flows: when a user is in
-                // `pending_verification` we surface `pending_additional_verification`
-                // so the mobile client knows to trigger the secondary method flow.
-                $responseState = $state === 'pending_verification' ? 'pending_additional_verification' : $state;
-                $code = $responseState === 'pending_additional_verification' ? 'ADDITIONAL_VERIFICATION_REQUIRED' : 'EMAIL_NOT_VERIFIED';
-
-                return $this->success([
-                    'token' => $token,
-                    'state' => $responseState,
-                    'code' => $code,
-                    'user' => new MemberResource($member),
-                    'verification_status' => $verificationStatus,
-                ], __('Verification required.'));
-            }
-
-            if (! $member->isVerified()) {
-                $token = $member->createToken('auth_token', ['verification'])->plainTextToken;
-
-                return $this->success([
-                    'token' => $token,
-                    'state' => 'pending_additional_verification',
-                    'code' => 'ADDITIONAL_VERIFICATION_REQUIRED',
-                    'user' => new MemberResource($member),
-                    'verification_status' => $verificationStatus,
-                ], __('Verification required.'));
-            }
-
-            if (! $member->isOnboardingCompleted()) {
-                $token = $member->createToken('auth_token', ['onboarding'])->plainTextToken;
-
-                return $this->success([
-                    'token' => $token,
-                    'state' => 'pending_onboarding',
-                    'code' => 'ONBOARDING_INCOMPLETE',
-                    'required_action' => 'complete_onboarding',
-                    'cta' => __('Complete Setup'),
-                    'user' => new MemberResource($member),
-                    'verification_status' => $verificationStatus,
-                ], __('Must complete onboarding to unlock your account.'));
-            }
-
-            // Active or other states get full access
-            $token = $member->createToken('auth_token', ['*'])->plainTextToken;
-
-            return $this->success([
-                'token' => $token,
-                'state' => $state,
-                'user' => new MemberResource($member),
-                'verification_status' => $verificationStatus,
-            ], __('Login successful.'));
+            return $this->success($payload, __('Login successful.'));
+        } catch (ValidationException $e) {
+            return $this->error($e->getMessage(), 401);
         } catch (\Exception $e) {
             return $this->error($e->getMessage(), 500);
         }
@@ -129,7 +64,8 @@ class AuthController extends Controller
      */
     public function register(RegisterRequest $request): JsonResponse
     {
-        $member = $this->authService->register($request->validated());
+        $dto = RegisterDTO::fromRequest($request);
+        $member = $this->authService->register($dto);
 
         // Generate OTP immediately
         $identifier = $member->email ?? $member->phone;
@@ -177,48 +113,18 @@ class AuthController extends Controller
     public function verifyOtp(VerifyOtpRequest $request): JsonResponse
     {
         try {
-            if ($this->otpService->verify($request->identifier, $request->otp)) {
-                // Find the user (Member or User/Staff)
-                $user = Member::where('email', $request->identifier)
-                    ->orWhere('phone', $request->identifier)
-                    ->first()
-                    ?? User::where('email', $request->identifier)
-                        ->orWhere('phone', $request->identifier)
-                        ->first();
+            $payload = $this->orchestration->verifyOtp($request->identifier, $request->otp);
 
-                if ($user) {
-                    $state = $user instanceof Member ? ($user->status ?? $user->state) : 'active';
-                    $abilities = ['*'];
-
-                    if ($user instanceof Member) {
-                        $userState = $user->status ?? $user->state;
-                        if ($userState === 'pending_verification' || $userState === 'pending_additional_verification') {
-                            $abilities = ['verification'];
-                        } elseif ($userState === 'pending_onboarding') {
-                            $abilities = ['onboarding'];
-                        }
-                    }
-
-                    $token = $user->createToken('auth_token', $abilities)->plainTextToken;
-
-                    return $this->success([
-                        'valid' => true,
-                        'token' => $token,
-                        'state' => $state,
-                        'user' => $user instanceof Member ? new MemberResource($user) : $user,
-                        'verification_status' => $user instanceof Member ? $user->getVerificationStatus() : null,
-                    ], __('OTP verified successfully.'));
-                }
-
-                return $this->success([
-                    'valid' => true,
-                ], __('OTP verified successfully.'));
+            if (isset($payload['user']) && $payload['user'] instanceof Member) {
+                $payload['user'] = new MemberResource($payload['user']);
             }
+
+            return $this->success($payload, __('OTP verified successfully.'));
+        } catch (ValidationException $e) {
+            return $this->error($e->getMessage(), 422);
         } catch (\Exception $e) {
             return $this->error($e->getMessage(), 422);
         }
-
-        return $this->error(__('Invalid or expired OTP code.'), 422);
     }
 
     /**
@@ -306,12 +212,7 @@ class AuthController extends Controller
     {
         $identifier = $request->identifier;
 
-        $user = Member::where('email', $identifier)
-            ->orWhere('phone', $identifier)
-            ->first()
-            ?? User::where('email', $identifier)
-                ->orWhere('phone', $identifier)
-                ->first();
+        $user = $this->authService->findUserByIdentifier($identifier);
 
         if ($user) {
             if ($user instanceof Member && ! $user->isVerified()) {
@@ -338,12 +239,7 @@ class AuthController extends Controller
      */
     public function resetPassword(ResetPasswordRequest $request): JsonResponse
     {
-        $user = Member::where('email', $request->identifier)
-            ->orWhere('phone', $request->identifier)
-            ->first()
-            ?? User::where('email', $request->identifier)
-                ->orWhere('phone', $request->identifier)
-                ->first();
+        $user = $this->authService->findUserByIdentifier($request->identifier);
 
         if ($user && $user instanceof Member && ! $user->isVerified()) {
             return response()->json([
@@ -366,9 +262,7 @@ class AuthController extends Controller
             return $this->error(__('User not found.'), 404);
         }
 
-        $user->update([
-            'password' => Hash::make($request->password),
-        ]);
+        $this->authService->resetPasswordByOtp($user, $request->password);
 
         return $this->success(null, __('Password reset successfully.'));
     }
@@ -378,34 +272,16 @@ class AuthController extends Controller
      */
     public function completeRegistration(CompleteRegistrationRequest $request): JsonResponse
     {
-        $validated = $request->validated();
+        $dto = CompleteRegistrationDTO::fromRequest($request);
         $member = $request->user();
 
-        $member->update([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'phone' => $validated['phone'],
-            'date_of_birth' => $validated['date_of_birth'],
-            'gender' => $validated['gender'],
-            'is_family_account' => $validated['is_parent_account'],
-            'pin' => $validated['pin'],
-            'status' => 'active',
-            'state' => 'active',
-            'onboarding_completed_at' => now(),
-        ]);
-
-        // Revoke current token and issue a new one with full abilities
-        // Refresh model to ensure latest attributes (and any observers) are present
-        $member->refresh();
-
-        $member->tokens()->delete();
-        $token = $member->createToken('auth_token')->plainTextToken;
+        $result = $this->authService->completeRegistration($member, $dto);
 
         return $this->success([
-            'token' => $token,
-            'state' => $member->status ?? $member->state,
-            'user' => new MemberResource($member),
-            'verification_status' => $member->getVerificationStatus(),
+            'token' => $result['token'],
+            'state' => $result['member']->status ?? $result['member']->state,
+            'user' => new MemberResource($result['member']),
+            'verification_status' => $result['member']->getVerificationStatus(),
         ], __('Registration completed successfully.'), 201);
     }
 
@@ -433,44 +309,24 @@ class AuthController extends Controller
             return $this->error(__('Only members can verify email.'), 403);
         }
 
-        if ($member->email !== $request->email) {
-            return $this->error(__('Email does not match your account.'), 422);
-        }
-
-        if (! $request->has('otp')) {
-            $this->otpService->generate($request->email);
-
-            return $this->success(null, __('OTP Sent'));
-        }
-
         try {
-            if ($this->otpService->verify($request->email, $request->otp)) {
-                $member->refresh();
+            $result = $this->authService->verifyIdentifier($member, $request->email, $request->otp ?? null, 'email');
 
-                $abilities = ['verification'];
-                $memberState = $member->status ?? $member->state;
-                if ($memberState === 'pending_onboarding') {
-                    $abilities = ['onboarding'];
-                } elseif ($memberState === 'active') {
-                    $abilities = ['*'];
-                }
-
-                // Revoke current token and issue a new one with updated abilities
-                $request->user()->currentAccessToken()->delete();
-                $token = $member->createToken('auth_token', $abilities)->plainTextToken;
-
-                return $this->success([
-                    'valid' => true,
-                    'token' => $token,
-                    'state' => $member->status ?? $member->state,
-                    'verification_status' => $member->getVerificationStatus(),
-                ], __('Email verified successfully.'));
+            if (isset($result['generated']) && $result['generated'] === true) {
+                return $this->success(null, __('OTP Sent'));
             }
+
+            return $this->success([
+                'valid' => true,
+                'token' => $result['token'],
+                'state' => $result['state'],
+                'verification_status' => $result['verification_status'],
+            ], __('Email verified successfully.'));
+        } catch (ValidationException $e) {
+            return $this->error($e->getMessage(), 422);
         } catch (\Exception $e) {
             return $this->error($e->getMessage(), 422);
         }
-
-        return $this->error(__('Invalid or expired OTP code.'), 422);
     }
 
     public function verifyPhone(Request $request): JsonResponse
@@ -486,38 +342,20 @@ class AuthController extends Controller
             return $this->error(__('Only members can verify phone.'), 403);
         }
 
-        if ($member->phone !== $request->phone) {
-            return $this->error(__('Phone number does not match your account.'), 422);
-        }
-
         try {
-            if ($this->otpService->verify($request->phone, $request->otp)) {
-                $member->refresh();
+            $result = $this->authService->verifyIdentifier($member, $request->phone, $request->otp, 'phone');
 
-                $abilities = ['verification'];
-                $memberState = $member->status ?? $member->state;
-                if ($memberState === 'pending_onboarding') {
-                    $abilities = ['onboarding'];
-                } elseif ($memberState === 'active') {
-                    $abilities = ['*'];
-                }
-
-                // Revoke current token and issue a new one with updated abilities
-                $request->user()->currentAccessToken()->delete();
-                $token = $member->createToken('auth_token', $abilities)->plainTextToken;
-
-                return $this->success([
-                    'valid' => true,
-                    'token' => $token,
-                    'state' => $member->status ?? $member->state,
-                    'verification_status' => $member->getVerificationStatus(),
-                ], __('Phone verified successfully.'));
-            }
+            return $this->success([
+                'valid' => true,
+                'token' => $result['token'],
+                'state' => $result['state'],
+                'verification_status' => $result['verification_status'],
+            ], __('Phone verified successfully.'));
+        } catch (ValidationException $e) {
+            return $this->error($e->getMessage(), 422);
         } catch (\Exception $e) {
             return $this->error($e->getMessage(), 422);
         }
-
-        return $this->error(__('Invalid or expired OTP code.'), 422);
     }
 
     public function skipAdditionalVerification(Request $request): JsonResponse
@@ -532,18 +370,12 @@ class AuthController extends Controller
             return $this->error(__('You are not in a state where additional verification can be skipped.'), 403);
         }
 
-        // Persist both `status` and `state` for compatibility
-        $member->update(['status' => 'pending_onboarding', 'state' => 'pending_onboarding']);
-
-        // Revoke current token and issue a new one with onboarding ability
-        $request->user()->currentAccessToken()->delete();
-
-        $token = $member->createToken('auth_token', ['onboarding'])->plainTextToken;
+        $result = $this->authService->skipAdditionalVerification($member);
 
         return $this->success([
-            'token' => $token,
+            'token' => $result['token'],
             'state' => 'pending_onboarding',
-            'verification_status' => $member->getVerificationStatus(),
+            'verification_status' => $result['member']->getVerificationStatus(),
         ], __('Additional verification skipped.'));
     }
 
@@ -559,14 +391,7 @@ class AuthController extends Controller
             return $this->error(__('The provided password does not match our records.'), 422);
         }
 
-        $member->update([
-            'scheduled_for_deletion_at' => now()->addHours(48),
-        ]);
-
-        $member->notify(new AccountDeletionScheduled);
-
-        // Revoke all tokens
-        $member->tokens()->delete();
+        app(MemberService::class)->scheduleAccountDeletion($member);
 
         return $this->success(null, __('Your account has been scheduled for deletion in 48 hours. You can cancel this by logging back in before then.'));
     }
