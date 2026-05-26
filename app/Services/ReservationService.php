@@ -2,17 +2,19 @@
 
 namespace App\Services;
 
+use App\DTOs\StoreReservationDTO;
 use App\Models\Activity;
-use App\Models\ActivitySlot;
 use App\Models\ApiReservation;
 use App\Models\Member;
+use App\Repositories\ReservationRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class ReservationService
 {
     public function __construct(
-        protected TierResolutionService $tierResolutionService
+        protected TierResolutionService $tierResolutionService,
+        protected ReservationRepository $reservationRepository
     ) {}
 
     /**
@@ -20,11 +22,11 @@ class ReservationService
      *
      * @throws ValidationException
      */
-    public function makeActivityReservation(Member $member, array $data): ApiReservation
+    public function makeActivityReservation(Member $member, StoreReservationDTO $dto): ApiReservation
     {
-        return DB::transaction(function () use ($member, $data) {
-            $slot = ActivitySlot::lockForUpdate()->findOrFail($data['activity_slot_id']);
-            $activity = Activity::query()->findOrFail($data['activity_id']);
+        return DB::transaction(function () use ($member, $dto) {
+            $slot = $this->reservationRepository->lockSlotForUpdate($dto->activitySlotId);
+            $activity = $this->reservationRepository->getActivity($dto->activityId);
 
             if ($slot->isFullyBooked()) {
                 throw ValidationException::withMessages([
@@ -34,10 +36,10 @@ class ReservationService
 
             $price = $this->calculateReservationPrice($member, $activity);
 
-            $reservation = ApiReservation::create([
+            $reservation = $this->reservationRepository->createReservation([
                 'member_id' => $member->id,
-                'activity_id' => $data['activity_id'],
-                'activity_slot_id' => $data['activity_slot_id'],
+                'activity_id' => $dto->activityId,
+                'activity_slot_id' => $dto->activitySlotId,
                 'date' => $slot->date,
                 'starts_at' => $slot->starts_at,
                 'ends_at' => $slot->ends_at,
@@ -46,7 +48,7 @@ class ReservationService
                 'payment_status' => 'pending',
             ]);
 
-            $reservation->update([
+            $this->reservationRepository->updateReservation($reservation, [
                 'qr_code' => hash('sha256', $reservation->id.$member->id.now()),
             ]);
 
@@ -54,6 +56,26 @@ class ReservationService
 
             return $reservation;
         });
+    }
+
+    /**
+     * Ensure the member does not already have an active reservation for the slot.
+     *
+     * @throws ValidationException
+     */
+    public function assertNoActiveReservationForSlot(Member $member, int $activitySlotId): void
+    {
+        // We get the slot just to know the date
+        // Since we don't need a lock here, we can just find it normally
+        $slot = \App\Models\ActivitySlot::query()->findOrFail($activitySlotId);
+
+        $exists = $this->reservationRepository->hasActiveReservationForSlot($member, $activitySlotId, $slot->date);
+
+        if ($exists) {
+            throw ValidationException::withMessages([
+                'activity_slot_id' => ['You already have an active reservation for this slot.'],
+            ]);
+        }
     }
 
     protected function calculateReservationPrice(Member $member, Activity $activity): float
@@ -77,7 +99,7 @@ class ReservationService
                 return;
             }
 
-            $reservation->update([
+            $this->reservationRepository->updateReservation($reservation, [
                 'status' => 'cancelled',
                 'cancelled_at' => now(),
             ]);
