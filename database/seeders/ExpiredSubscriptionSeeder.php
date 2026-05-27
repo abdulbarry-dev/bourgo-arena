@@ -2,10 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\CheckInEvent;
-use App\Models\HikvisionTerminal;
 use App\Models\Member;
-use App\Models\NfcCard;
 use App\Models\Plan;
 use App\Models\Subscription;
 use App\Models\User;
@@ -31,18 +28,6 @@ class ExpiredSubscriptionSeeder extends Seeder
                 'email' => 'seed.manager@bourgoarena.com',
             ]);
 
-        $exitTerminal = HikvisionTerminal::query()
-            ->where('serial_number', 'MAIN-EXIT-001')
-            ->first();
-
-        if ($exitTerminal === null) {
-            $this->call(HikvisionTerminalSeeder::class);
-
-            $exitTerminal = HikvisionTerminal::query()
-                ->where('serial_number', 'MAIN-EXIT-001')
-                ->firstOrFail();
-        }
-
         $plans = Plan::query()
             ->where('is_archived', false)
             ->orderBy('duration_days')
@@ -56,11 +41,6 @@ class ExpiredSubscriptionSeeder extends Seeder
             $plan = $plans->values()->get($index % $plans->count());
             $endedDaysAgo = random_int(2, 40);
             $startsAt = now()->subDays((int) $plan->duration_days + $endedDaysAgo)->toDateString();
-
-            $card = NfcCard::factory()->for($member)->create([
-                'status' => 'active',
-                'assigned_by' => $manager->id,
-            ]);
 
             Subscription::factory()
                 ->expired()
@@ -76,11 +56,6 @@ class ExpiredSubscriptionSeeder extends Seeder
                     'enrolled_by' => $manager->id,
                 ]);
 
-            CheckInEvent::factory()->denied('expired_subscription')->create([
-                'member_id' => $member->id,
-                'card_uid' => $card->uid,
-                'terminal_id' => $exitTerminal->id,
-            ]);
         }
     }
 }

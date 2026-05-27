@@ -21,7 +21,6 @@
                     <x-ui.dashboard.sortable-th :label="__('Phone')" column="phone" :sort-by="$sortBy" :sort-direction="$sortDirection" />
                     <x-ui.dashboard.sortable-th :label="__('Status')" column="status" :sort-by="$sortBy" :sort-direction="$sortDirection" />
                     <x-ui.dashboard.sortable-th :label="__('Plan')" column="plan" :sort-by="$sortBy" :sort-direction="$sortDirection" />
-                    <x-ui.dashboard.sortable-th :label="__('NFC')" column="nfc_status" :sort-by="$sortBy" :sort-direction="$sortDirection" />
                     <th class="px-4 py-3 text-right font-medium text-zinc-700 dark:text-zinc-200">{{ __('Actions') }}</th>
             </tr>
         </thead>
@@ -42,7 +41,7 @@
                     <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ $member->phone }}</td>
                     <td class="px-4 py-3 capitalize text-zinc-700 dark:text-zinc-200">{{ __($member->status) }}</td>
                     <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ $member->activeSubscription?->plan?->name ? __($member->activeSubscription->plan->name) : __('No active plan') }}</td>
-                    <td class="px-4 py-3 capitalize text-zinc-600 dark:text-zinc-300">{{ $member->nfcCard?->status ? __($member->nfcCard->status) : __('Unassigned') }}</td>
+                    
                     <td class="px-4 py-3 text-right">
                         <x-ui.dashboard.row-actions>
                             <flux:button

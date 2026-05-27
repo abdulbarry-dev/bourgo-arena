@@ -35,16 +35,12 @@ class ComprehensiveLoyaltySeeder extends Seeder
             // Calculate loyalty points based on membership duration and activity
             $daysActive = $member->created_at->diffInDays(now());
             $basePoints = $daysActive * 5; // 5 points per day
-            $checkInCount = $member->checkInEvents()
-                ->where('result', 'authorized')
-                ->count();
-            $checkInPoints = $checkInCount * 2; // 2 points per check-in
             $bookingCount = $member->bookings()
                 ->where('status', 'confirmed')
                 ->count();
             $bookingPoints = $bookingCount * 10; // 10 points per booking
 
-            $totalPoints = max(0, $basePoints + $checkInPoints + $bookingPoints + random_int(-50, 100));
+            $totalPoints = max(0, $basePoints + $bookingPoints + random_int(-50, 100));
 
             // Update member with loyalty points
             $member->update(['loyalty_points' => $totalPoints]);
@@ -72,7 +68,7 @@ class ComprehensiveLoyaltySeeder extends Seeder
             $pointsAccumulated += $pointsToAdd;
         }
 
-        // Transaction 2-N: Regular earning from check-ins
+        // Transaction 2-N: Regular earning from bookings
         $daysActive = $member->created_at->diffInDays(now());
         $weekCount = max(1, intdiv($daysActive, 7));
 
@@ -88,8 +84,8 @@ class ComprehensiveLoyaltySeeder extends Seeder
                 'member_id' => $member->id,
                 'points' => $pointsToAdd,
                 'type' => 'earned',
-                'description' => 'Weekly check-in points',
-                'source' => 'check_in',
+                'description' => 'Weekly booking points',
+                'source' => 'booking',
                 'created_at' => $member->created_at->clone()->addWeeks($week),
             ]);
 

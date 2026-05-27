@@ -14,8 +14,6 @@ use Illuminate\Database\Seeder;
  * - Courses with image URLs and scheduled sessions
  * - Activities with time slots and online images
  * - Bookings with different statuses
- * - Check-in events with various results
- * - Terminals with online/offline states
  * - Device tokens for push notifications
  * - Family accounts and relationships
  * - Loyalty points and tier data
@@ -34,11 +32,6 @@ class ComprehensiveAppDataSeeder extends Seeder
         $this->call([
             ManagerUserSeeder::class,
             AdminUserSeeder::class,
-        ]);
-
-        // Terminals
-        $this->call([
-            HikvisionTerminalSeeder::class,
         ]);
 
         // Comprehensive Member Data with Subscriptions
@@ -64,11 +57,6 @@ class ComprehensiveAppDataSeeder extends Seeder
         // Bookings & Reservations
         $this->call([
             ComprehensiveBookingsSeeder::class,
-        ]);
-
-        // Check-in History
-        $this->call([
-            ComprehensiveCheckInEventsSeeder::class,
         ]);
 
         // Device Tokens for Push Notifications

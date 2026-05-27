@@ -2,7 +2,7 @@
     @if ($member === null)
         <x-ui.dashboard.panel class="border-dashed border-zinc-300 bg-zinc-50 p-8 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
             <flux:heading size="sm">{{ __('No member selected') }}</flux:heading>
-            <flux:text variant="subtle">{{ __('Choose a member from the table to inspect profile, subscription, card status, and check-ins.') }}</flux:text>
+            <flux:text variant="subtle">{{ __('Choose a member from the table to inspect profile, subscription, and card status.') }}</flux:text>
         </x-ui.dashboard.panel>
     @else
         {{-- Status/Danger Alerts --}}
@@ -34,11 +34,7 @@
                 @endif
 
                 {{-- Facility Access Actions --}}
-                @can('assign', \App\Models\NfcCard::class)
-                    <flux:button variant="subtle" icon="credit-card" :href="route('admin.members.assign-card', $member)" wire:navigate>
-                        {{ __('Assign Card') }}
-                    </flux:button>
-                @endcan
+                
             </div>
 
             <div class="flex flex-wrap items-center gap-2">
@@ -90,8 +86,6 @@
                 @include('livewire.admin.members.partials.family-details-table')
             @endif
 
-            {{-- Activity Table --}}
-            @include('livewire.admin.members.partials.recent-check-ins-table')
         </div>
     @endif
 

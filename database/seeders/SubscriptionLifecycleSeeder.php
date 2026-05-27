@@ -17,7 +17,6 @@ class SubscriptionLifecycleSeeder extends Seeder
         }
 
         $this->call([
-            HikvisionTerminalSeeder::class,
             PendingMemberSeeder::class,
             ActiveSubscriptionSeeder::class,
             SuspendedSubscriptionSeeder::class,

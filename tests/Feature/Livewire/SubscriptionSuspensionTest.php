@@ -1,7 +1,6 @@
 <?php
 
 use App\Jobs\SendSubscriptionNotification;
-use App\Jobs\SyncTerminalWhitelist;
 use App\Livewire\Admin\Subscriptions\SubscriptionSuspension;
 use App\Models\Member;
 use App\Models\Plan;
@@ -56,11 +55,6 @@ test('manager can suspend an active subscription and queue notifications', funct
             && $job->notificationType === 'suspended'
             && ($job->metadata['reason'] ?? null) === 'medical',
     );
-    Queue::assertPushed(
-        SyncTerminalWhitelist::class,
-        fn (SyncTerminalWhitelist $job): bool => $job->memberId === $member->id
-            && $job->subscriptionId === $subscription->id,
-    );
 
     Carbon::setTestNow();
 });
@@ -103,11 +97,6 @@ test('manager can resume a suspended subscription and restore remaining days', f
         SendSubscriptionNotification::class,
         fn (SendSubscriptionNotification $job): bool => $job->subscriptionId === $subscription->id
             && $job->notificationType === 'resumed',
-    );
-    Queue::assertPushed(
-        SyncTerminalWhitelist::class,
-        fn (SyncTerminalWhitelist $job): bool => $job->memberId === $subscription->member_id
-            && $job->subscriptionId === $subscription->id,
     );
 
     Carbon::setTestNow();
@@ -215,7 +204,6 @@ test('admin can transfer subscription to another member with approval confirmati
             && $job->notificationType === 'transferred-to'
             && $job->targetMemberId === $targetMember->id,
     );
-    Queue::assertPushed(SyncTerminalWhitelist::class, 2);
 
     Carbon::setTestNow();
 });

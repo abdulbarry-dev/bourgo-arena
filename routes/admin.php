@@ -2,7 +2,7 @@
 
 use App\Livewire\Admin\Courses\CourseManager;
 use App\Livewire\Admin\CourseSessions\CourseSessionManager;
-use App\Livewire\Admin\Terminals\Index;
+use App\Livewire\Admin\Managers\Index;
 use App\Models\Member;
 use App\Models\Subscription;
 use Illuminate\Support\Facades\Route;
@@ -61,29 +61,17 @@ Route::middleware('role:admin,manager')->group(function () {
 
 // -------------------------------------------------------------
 // Routes accessible ONLY by Admins
-// Retains the /admin prefix. E.g. /admin/plans, /admin/access-control
+// Retains the /admin prefix. E.g. /admin/plans, /admin/courses
 // -------------------------------------------------------------
 Route::prefix('admin')->middleware('role:admin')->group(function () {
 
     Route::view('/plans', 'livewire.admin.plans.dashboard')
         ->name('admin.plans');
 
-    Route::view('/access-control', 'livewire.admin.access-control.check-in-monitor-page')
-        ->name('admin.access-control.dashboard');
-
-    Route::view('/access-control/alerts', 'livewire.admin.access-control.anti-passback-alerts-page')
-        ->name('admin.access-control.alerts');
-
-    Route::view('/access-control/logs', 'livewire.admin.access-control.audit-logs-page')
-        ->name('admin.access-control.logs');
-
     Route::get('/courses', CourseManager::class)
         ->name('admin.courses.index');
 
-    Route::get('/terminals', Index::class)
-        ->name('admin.terminals.index');
-
-    Route::get('/managers', App\Livewire\Admin\Managers\Index::class)
+    Route::get('/managers', Index::class)
         ->name('admin.managers.index');
 
 });

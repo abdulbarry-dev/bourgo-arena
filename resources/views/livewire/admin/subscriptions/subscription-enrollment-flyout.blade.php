@@ -104,12 +104,6 @@
             </div>
         @endif
 
-        <div class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-800 dark:bg-amber-900/30">
-            <flux:text class="text-amber-800 dark:text-amber-200 text-sm">
-                {{ __('Terminal whitelist sync is queued as a placeholder contract until terminal sync infrastructure is implemented.') }}
-            </flux:text>
-        </div>
-
         <div class="flex items-center gap-2 pt-2">
             <flux:spacer />
             <flux:button variant="ghost" wire:click="$set('show', false)">{{ __('Cancel') }}</flux:button>

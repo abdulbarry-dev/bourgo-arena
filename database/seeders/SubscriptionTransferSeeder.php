@@ -2,10 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\CheckInEvent;
-use App\Models\HikvisionTerminal;
 use App\Models\Member;
-use App\Models\NfcCard;
 use App\Models\Plan;
 use App\Models\Subscription;
 use App\Models\User;
@@ -36,24 +33,6 @@ class SubscriptionTransferSeeder extends Seeder
                 'email' => 'seed.manager@bourgoarena.com',
             ]);
 
-        $entryTerminal = HikvisionTerminal::query()
-            ->where('serial_number', 'MAIN-ENTRY-001')
-            ->first();
-        $exitTerminal = HikvisionTerminal::query()
-            ->where('serial_number', 'MAIN-EXIT-001')
-            ->first();
-
-        if ($entryTerminal === null || $exitTerminal === null) {
-            $this->call(HikvisionTerminalSeeder::class);
-
-            $entryTerminal = HikvisionTerminal::query()
-                ->where('serial_number', 'MAIN-ENTRY-001')
-                ->firstOrFail();
-            $exitTerminal = HikvisionTerminal::query()
-                ->where('serial_number', 'MAIN-EXIT-001')
-                ->firstOrFail();
-        }
-
         $transferPlan = Plan::query()
             ->where('is_archived', false)
             ->orderBy('duration_days')
@@ -66,16 +45,7 @@ class SubscriptionTransferSeeder extends Seeder
         $sourceMember = Member::factory()->active()->create();
         $targetMember = Member::factory()->active()->create();
 
-        $sourceCard = NfcCard::factory()->for($sourceMember)->create([
-            'status' => 'active',
-            'assigned_by' => $manager->id,
-        ]);
-        $targetCard = NfcCard::factory()->for($targetMember)->create([
-            'status' => 'active',
-            'assigned_by' => $manager->id,
-        ]);
-
-        $daysUntilEnd = 12;
+        $sourceCard = $targetCard = $daysUntilEnd = 12;
         $startsAt = now()->subDays(max(1, (int) $transferPlan->duration_days - $daysUntilEnd))->toDateString();
 
         $sourceSubscription = Subscription::factory()->create([
@@ -92,30 +62,5 @@ class SubscriptionTransferSeeder extends Seeder
 
         $sourceSubscription->transfer($targetMember->id, $manager->id);
 
-        CheckInEvent::factory()->denied('invalid_card')->create([
-            'member_id' => $sourceMember->id,
-            'card_uid' => $sourceCard->uid,
-            'terminal_id' => $entryTerminal->id,
-        ]);
-
-        CheckInEvent::factory()->authorized()->create([
-            'member_id' => $targetMember->id,
-            'card_uid' => $targetCard->uid,
-            'terminal_id' => $entryTerminal->id,
-            'checked_in_at' => now()->subMinute(),
-            'created_at' => now()->subMinute(),
-        ]);
-
-        CheckInEvent::factory()->suspicious()->create([
-            'member_id' => $targetMember->id,
-            'card_uid' => $targetCard->uid,
-            'terminal_id' => $entryTerminal->id,
-        ]);
-
-        CheckInEvent::factory()->authorized()->create([
-            'member_id' => $targetMember->id,
-            'card_uid' => $targetCard->uid,
-            'terminal_id' => $exitTerminal->id,
-        ]);
     }
 }

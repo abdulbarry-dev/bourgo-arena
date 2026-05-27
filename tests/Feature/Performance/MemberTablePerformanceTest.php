@@ -40,7 +40,7 @@ test('csv export for five hundred members stays under two seconds', function () 
     $elapsedMilliseconds = (hrtime(true) - $startedAt) / 1_000_000;
 
     expect($response->headers->get('content-disposition'))->toContain('members.csv');
-    expect($csv)->toContain('Name,Email,Phone,Status,Plan,"NFC Status"');
+    expect($csv)->toContain('Name,Email,Phone,Status,Plan');
     expect($elapsedMilliseconds)->toBeLessThan(2000.0);
 });
 

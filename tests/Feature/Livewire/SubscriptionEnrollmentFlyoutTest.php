@@ -2,7 +2,6 @@
 
 use App\Jobs\SendSubscriptionNotification;
 use App\Jobs\SendSubscriptionReceiptEmail;
-use App\Jobs\SyncTerminalWhitelist;
 use App\Livewire\Admin\Subscriptions\SubscriptionEnrollmentFlyout;
 use App\Models\Member;
 use App\Models\Plan;
@@ -57,7 +56,6 @@ test('manager can enroll pending member and activate access', function () {
 
     Queue::assertPushed(SendSubscriptionReceiptEmail::class, fn (SendSubscriptionReceiptEmail $job): bool => $job->subscriptionId === $subscription->id);
     Queue::assertPushed(SendSubscriptionNotification::class, fn (SendSubscriptionNotification $job): bool => $job->subscriptionId === $subscription->id && $job->notificationType === 'enrolled');
-    Queue::assertPushed(SyncTerminalWhitelist::class, fn (SyncTerminalWhitelist $job): bool => $job->memberId === $member->id && $job->subscriptionId === $subscription->id);
 });
 
 test('gateway payment method requires payment reference', function () {

@@ -49,18 +49,9 @@ class MemberDetailPanel extends Component
         $this->member = Member::query()
             ->with([
                 'parent.activeSubscription.plan',
-                'parent.nfcCard',
                 'children.activeSubscription.plan',
-                'children.nfcCard',
                 'activeSubscription.plan',
                 'activeSubscription.enrolledBy',
-                'nfcCard.assignedBy',
-                'checkInEvents' => function ($query): void {
-                    $query
-                        ->with('terminal')
-                        ->latest('checked_in_at')
-                        ->limit(10);
-                },
             ])
             ->find($memberId);
     }

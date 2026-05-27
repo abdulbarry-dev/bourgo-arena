@@ -2,10 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\CheckInEvent;
-use App\Models\HikvisionTerminal;
 use App\Models\Member;
-use App\Models\NfcCard;
 use App\Models\Plan;
 use App\Models\Subscription;
 use App\Models\User;
@@ -31,18 +28,6 @@ class SuspendedSubscriptionSeeder extends Seeder
                 'email' => 'seed.manager@bourgoarena.com',
             ]);
 
-        $entryTerminal = HikvisionTerminal::query()
-            ->where('serial_number', 'MAIN-ENTRY-001')
-            ->first();
-
-        if ($entryTerminal === null) {
-            $this->call(HikvisionTerminalSeeder::class);
-
-            $entryTerminal = HikvisionTerminal::query()
-                ->where('serial_number', 'MAIN-ENTRY-001')
-                ->firstOrFail();
-        }
-
         $plans = Plan::query()
             ->where('is_archived', false)
             ->orderBy('duration_days')
@@ -56,10 +41,6 @@ class SuspendedSubscriptionSeeder extends Seeder
             $plan = $plans->values()->get($index % $plans->count());
             $daysUntilEnd = random_int(10, 25);
             $startsAt = now()->subDays(max(1, (int) $plan->duration_days - $daysUntilEnd))->toDateString();
-
-            $card = NfcCard::factory()->suspended()->for($member)->create([
-                'assigned_by' => $manager->id,
-            ]);
 
             Subscription::factory()
                 ->suspendedWithRemaining($daysUntilEnd)
@@ -75,11 +56,6 @@ class SuspendedSubscriptionSeeder extends Seeder
                     'enrolled_by' => $manager->id,
                 ]);
 
-            CheckInEvent::factory()->denied('suspended_card')->create([
-                'member_id' => $member->id,
-                'card_uid' => $card->uid,
-                'terminal_id' => $entryTerminal->id,
-            ]);
         }
     }
 }

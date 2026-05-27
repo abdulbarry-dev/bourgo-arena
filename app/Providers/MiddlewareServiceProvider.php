@@ -8,7 +8,6 @@ use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\EnsureUserIsNotBanned;
 use App\Http\Middleware\ForceJsonResponse;
 use App\Http\Middleware\SetLocale;
-use App\Http\Middleware\TerminalAuthMiddleware;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Support\ServiceProvider;
 
@@ -60,7 +59,6 @@ class MiddlewareServiceProvider extends ServiceProvider
     {
         $middleware->alias([
             'role' => EnsureUserHasRole::class,
-            'terminal.auth' => TerminalAuthMiddleware::class,
             'verified.account' => EnsureAccountIsVerified::class,
             'onboarding.completed' => EnsureOnboardingIsCompleted::class,
         ]);

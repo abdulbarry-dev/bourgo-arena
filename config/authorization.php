@@ -31,33 +31,6 @@ return [
             'view_payment' => ['admin'],
         ],
 
-        'nfc_cards' => [
-            'view' => ['admin', 'manager'],
-            'view_all' => ['admin', 'manager'],
-            'assign' => ['admin', 'manager'],
-            'suspend' => ['admin', 'manager'],
-            'mark_lost' => ['admin', 'manager'],
-            'reactivate' => ['admin', 'manager'],
-        ],
-
-        'terminals' => [
-            'view' => ['admin', 'manager'],
-            'view_all' => ['admin', 'manager'],
-            'provision' => ['admin'],
-            'revoke_token' => ['admin'],
-            'decommission' => ['admin'],
-            'view_logs' => ['admin', 'manager'],
-        ],
-
-        'check_in' => [
-            'view_monitor' => ['admin', 'manager'],
-            'view_audit_log' => ['admin', 'manager'],
-            'export_events' => ['admin', 'manager'],
-            'view_anti_passback_alerts' => ['admin', 'manager'],
-            'dismiss_alert' => ['admin', 'manager'],
-            'escalate_alert' => ['admin'],
-        ],
-
         'analytics' => [
             'view_revenue' => ['admin'],
             'view_occupancy' => ['admin', 'manager'],
@@ -95,8 +68,8 @@ return [
         ],
         'manager' => [
             'title' => 'Manager',
-            'description' => 'Member management, card assignment, check-in monitoring. No financial access.',
-            'permissions' => 'Members, Subscriptions (enroll/suspend/resume), NFC Cards, Check-in, Scheduling',
+            'description' => 'Member management and card assignment. No financial access.',
+            'permissions' => 'Members, Subscriptions (enroll/suspend/resume),Scheduling',
         ],
     ],
 ];

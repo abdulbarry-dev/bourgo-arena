@@ -22,23 +22,12 @@
 - **US-030** · Must Have · 5 pts · Sprint 0
 - **Description:** Define and enforce role-based access control across all admin resources
 - **Key Actions / Components:**
-    - Flux UI matrix table: Roles (Admin, Manager, Member, Terminal) × Resources × Actions
+    - Flux UI matrix table: Roles (Admin, Manager, Member) × Resources × Actions
     - Laravel middleware enforcement per role
     - Swagger/OpenAPI role annotations per endpoint
     - Integration test suite for each role boundary
 
-### 1.3 Hikvision Terminal Provisioning
-
-- **US-031** · Must Have · 5 pts · Sprint 0
-- **Description:** Register and configure Hikvision DS-K1T805MX terminals in the admin panel
-- **Key Actions / Components:**
-    - Livewire form: terminal name, IP, serial number, location
-    - Auto-generated unique API token per terminal on registration
-    - Token revocation action in dashboard
-    - Terminal list with online/offline connectivity indicator
-    - HTTP 401 rejection for unregistered terminals
-
-### 1.4 CI/CD Pipeline
+### 1.3 CI/CD Pipeline
 
 - **US-032** · Must Have · 5 pts · Sprint 0
 - **Description:** Automated CI/CD pipeline for staging and production deployments
@@ -73,7 +62,7 @@
 - **Key Actions / Components:**
     - Filterable Flux UI data table: name, phone, status, plan
     - Pagination: 50 members per page
-    - Member detail view: profile, subscription, payments, check-ins, NFC card
+    - Member detail view: profile, subscription, payments, NFC card
     - Inline actions: Suspend, Activate, Assign Card, Reset Password, Delete
     - CSV export of full member list
     - RBAC enforcement per action (US-030)
@@ -114,45 +103,7 @@
 
 ---
 
-## 4. Access Control & Check-in
-
-### 4.1 Real-Time Check-in Monitoring
-
-- **US-019** · Must Have · 8 pts · Sprint 4
-- **Description:** Live dashboard view of gym occupancy and check-in activity
-- **Key Actions / Components:**
-    - Live counter: members currently inside (latency < 3s)
-    - Livewire WebSocket feed: last 20 check-ins (name, time, result)
-    - Visual indicators: Authorized (green) / Denied (red)
-    - Alert trigger: > 3 denials in 5 min on same terminal
-    - Configurable capacity thresholds with occupancy indicator
-    - Persistent WebSocket connection status badge
-
-### 4.2 Immutable Access Audit Log
-
-- **US-012** · Must Have · 5 pts · Sprint 4
-- **Description:** Read-only tamper-proof log of all access events for incident investigation
-- **Key Actions / Components:**
-    - Log table: member name, card UID, timestamp, result, terminal ID
-    - Filters: date range, member, result (Authorized / Denied)
-    - Export: CSV and PDF
-    - Minimum 12-month retention; entries are read-only
-    - Accessible from individual member profile view
-
-### 4.3 Anti-Passback (Card Sharing Prevention)
-
-- **US-013** · Must Have · 5 pts · Sprint 4
-- **Description:** Detect and block card sharing fraud automatically
-- **Key Actions / Components:**
-    - System tracks last check-in and check-out per card
-    - Suspicious entry detection: entry without prior exit
-    - Real-time alert in admin dashboard with event detail
-    - Admin review actions: Dismiss / Escalate
-    - Auto-suspension after 3 unresolved alerts (pending review status)
-
----
-
-## 5. Analytics & Reporting
+## 4. Analytics & Reporting
 
 ### 5.1 Revenue & Subscription Analytics
 
@@ -178,7 +129,7 @@
 
 ---
 
-## 6. Class & Facility Scheduling
+## 5. Class & Facility Scheduling
 
 ### 6.1 Group Class Schedule Management
 
@@ -194,15 +145,14 @@
 
 ---
 
-## 7. Backend Infrastructure (Admin-Impacting)
+## 6. Backend Infrastructure (Admin-Impacting)
 
 ### 7.1 API Authentication & RBAC (Sanctum)
 
 - **US-024** · Must Have · 8 pts · Sprint 1
 - **Description:** Secure all admin API endpoints with scoped tokens and role enforcement
 - **Key Actions / Components:**
-    - Sanctum tokens scoped per role: Admin, Manager, Member, Terminal
-    - Long-lived terminal tokens tied to device, renewably managed
+    - Sanctum tokens scoped per role: Admin, Manager, Member
     - RBAC middleware on all endpoints (resource-level)
     - Token revocation endpoint
     - Full Swagger authentication schema
@@ -219,17 +169,15 @@
     - Email alert on backup success or failure
     - RTO target: < 4 hours
 
-### 7.3 Async Queue Processing (Laravel Horizon)
+### 6.3 Async Queue Processing (Laravel Horizon)
 
 - **US-027** · Should Have · 5 pts · Sprint 4
-- **Description:** Offload heavy tasks to queues to keep check-in API under 500ms
+- **Description:** Offload heavy tasks to queues to keep API responses fast
 - **Key Actions / Components:**
     - Notifications dispatched asynchronously
-    - Check-in logs via dedicated queue
     - Reports dispatched via queue
     - Failed job retry: up to 3 attempts
     - Horizon dashboard accessible to Admin
-    - `/api/checkin` ≤ 500ms verified under load
 
 ---
 
@@ -237,19 +185,16 @@
 
 | Epic                 | Admin Stories         | Total Points |
 | -------------------- | --------------------- | ------------ |
-| EP-00 Infrastructure | US-028, 030, 031, 032 | 23           |
+| EP-00 Infrastructure | US-028, 030, 032      | 18           |
 | EP-01 Members        | US-002, 022           | 10           |
 | EP-02 Subscriptions  | US-005, 006, 008      | 18           |
-| EP-03 Access Control | US-012, 013, 019      | 18           |
 | EP-05 Analytics      | US-020, 021, 023      | 18           |
 | EP-06 Backend        | US-024, 026, 027      | 18           |
-| **TOTAL**            | **16 User Stories**   | **105 pts**  |
+| **TOTAL**            | **13 User Stories**   | **82 pts**   |
 
-- Check-in logs via dedicated queue
 - Reports dispatched via queue
 - Failed job retry: up to 3 attempts
 - Horizon dashboard accessible to Admin
-- `/api/checkin` ≤ 500ms verified under load
 
 ---
 
@@ -257,10 +202,9 @@
 
 | Epic                 | Admin Stories         | Total Points |
 | -------------------- | --------------------- | ------------ |
-| EP-00 Infrastructure | US-028, 030, 031, 032 | 23           |
+| EP-00 Infrastructure | US-028, 030, 032      | 18           |
 | EP-01 Members        | US-002, 022           | 10           |
 | EP-02 Subscriptions  | US-005, 006, 008      | 18           |
-| EP-03 Access Control | US-012, 013, 019      | 18           |
 | EP-05 Analytics      | US-020, 021, 023      | 18           |
 | EP-06 Backend        | US-024, 026, 027      | 18           |
-| **TOTAL**            | **16 User Stories**   | **105 pts**  |
+| **TOTAL**            | **13 User Stories**   | **82 pts**   |

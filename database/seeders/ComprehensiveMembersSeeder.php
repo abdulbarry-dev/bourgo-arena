@@ -2,10 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\CheckInEvent;
-use App\Models\HikvisionTerminal;
 use App\Models\Member;
-use App\Models\NfcCard;
 use App\Models\Plan;
 use App\Models\Subscription;
 use App\Models\User;
@@ -105,7 +102,7 @@ class ComprehensiveMembersSeeder extends Seeder
             ->count(20)
             ->active()
             ->create()
-            ->each(function (Member $member, int $index) use ($manager, $entryTerminal, $plans) {
+            ->each(function (Member $member, int $index) use ($manager, $plans) {
                 // Assign random avatar
                 $avatarUrl = $member->gender === 'female'
                     ? fake()->randomElement($this->femaleAvatars)
@@ -114,15 +111,7 @@ class ComprehensiveMembersSeeder extends Seeder
                 $member->update(['avatar' => $avatarUrl]);
 
                 // Create NFC Card
-                $card = NfcCard::factory()
-                    ->for($member)
-                    ->create([
-                        'status' => 'active',
-                        'assigned_by' => $manager->id,
-                        'assigned_at' => now()->subDays(random_int(1, 120)),
-                    ]);
-
-                // Select a plan
+                $card = // Select a plan
                 $plan = $plans->values()->get($index % $plans->count());
 
                 // Vary subscription start dates
@@ -149,15 +138,6 @@ class ComprehensiveMembersSeeder extends Seeder
                     ]);
 
                 // Create check-in events for active members
-                CheckInEvent::factory()
-                    ->authorized()
-                    ->count(random_int(2, 8))
-                    ->create([
-                        'member_id' => $member->id,
-                        'card_uid' => $card->uid,
-                        'terminal_id' => $entryTerminal->id,
-                        'checked_in_at' => fake()->dateTimeBetween('-30 days', 'now'),
-                    ]);
             });
     }
 
@@ -170,21 +150,14 @@ class ComprehensiveMembersSeeder extends Seeder
             ->count(5)
             ->active()
             ->create()
-            ->each(function (Member $member, int $index) use ($manager, $entryTerminal, $plans) {
+            ->each(function (Member $member, int $index) use ($manager, $plans) {
                 $avatarUrl = $member->gender === 'female'
                     ? fake()->randomElement($this->femaleAvatars)
                     : fake()->randomElement($this->maleAvatars);
 
                 $member->update(['avatar' => $avatarUrl]);
 
-                $card = NfcCard::factory()
-                    ->for($member)
-                    ->create([
-                        'status' => 'active',
-                        'assigned_by' => $manager->id,
-                    ]);
-
-                $plan = $plans->values()->get($index % $plans->count());
+                $card = $plan = $plans->values()->get($index % $plans->count());
 
                 // Expiring within 1-7 days
                 $daysUntilEnd = random_int(1, 7);
@@ -207,15 +180,6 @@ class ComprehensiveMembersSeeder extends Seeder
                     ]);
 
                 // Recent check-ins
-                CheckInEvent::factory()
-                    ->authorized()
-                    ->count(2)
-                    ->create([
-                        'member_id' => $member->id,
-                        'card_uid' => $card->uid,
-                        'terminal_id' => $entryTerminal->id,
-                        'checked_in_at' => fake()->dateTimeBetween('-7 days', 'now'),
-                    ]);
             });
     }
 
@@ -253,13 +217,6 @@ class ComprehensiveMembersSeeder extends Seeder
                 $member->update(['avatar' => $avatarUrl]);
 
                 // Create suspended NFC card
-                NfcCard::factory()
-                    ->for($member)
-                    ->create([
-                        'status' => 'suspended',
-                        'assigned_by' => $manager->id,
-                    ]);
-
                 $plan = $plans->values()->get($index % $plans->count());
 
                 // Create suspended subscription
@@ -291,13 +248,6 @@ class ComprehensiveMembersSeeder extends Seeder
 
                 $member->update(['avatar' => $avatarUrl]);
 
-                NfcCard::factory()
-                    ->for($member)
-                    ->create([
-                        'status' => 'active',
-                        'assigned_by' => $manager->id,
-                    ]);
-
                 $plan = $plans->values()->get($index % $plans->count());
 
                 // Expired subscription (ended 10-30 days ago)
@@ -327,13 +277,6 @@ class ComprehensiveMembersSeeder extends Seeder
             'avatar' => fake()->randomElement($this->maleAvatars),
         ]);
 
-        NfcCard::factory()
-            ->for($lostCardMember)
-            ->create([
-                'status' => 'lost',
-                'assigned_by' => $manager->id,
-            ]);
-
         $plan = $plans->first();
         Subscription::factory()
             ->create([
@@ -346,13 +289,5 @@ class ComprehensiveMembersSeeder extends Seeder
             ]);
 
         // Try to check in with lost card (denied)
-        CheckInEvent::factory()
-            ->denied('invalid_card')
-            ->create([
-                'member_id' => $lostCardMember->id,
-                'card_uid' => $lostCardMember->nfcCard->uid,
-                'terminal_id' => $entryTerminal->id,
-                'checked_in_at' => now()->subHours(2),
-            ]);
     }
 }

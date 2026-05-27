@@ -134,11 +134,6 @@ class Member extends Authenticatable
         return $this->hasMany(Member::class, 'parent_id');
     }
 
-    public function nfcCard(): HasOne
-    {
-        return $this->hasOne(NfcCard::class);
-    }
-
     public function subscriptions(): HasMany
     {
         return $this->hasMany(Subscription::class);
@@ -213,7 +208,7 @@ class Member extends Authenticatable
 
     public function scopeWithDetails(Builder $query): Builder
     {
-        return $query->with(['activeSubscription', 'nfcCard']);
+        return $query->with(['activeSubscription']);
     }
 
     public function scopeSearchable(Builder $query, ?string $term): Builder

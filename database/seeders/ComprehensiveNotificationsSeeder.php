@@ -11,7 +11,6 @@ use Illuminate\Database\Seeder;
  * - Subscription-related notifications
  * - Booking confirmations and cancellations
  * - Course session updates
- * - Check-in alerts
  * - Promotional messages
  * - Read and unread notifications
  */
@@ -60,17 +59,6 @@ class ComprehensiveNotificationsSeeder extends Seeder
             'type' => 'course.reminder',
             'title' => 'Upcoming Course Session',
             'body' => 'Your course session starts in 1 hour.',
-        ],
-        // Check-in notifications
-        [
-            'type' => 'checkin.denied',
-            'title' => 'Access Denied',
-            'body' => 'Your access was denied due to an expired subscription.',
-        ],
-        [
-            'type' => 'checkin.card_issue',
-            'title' => 'Card Issue Detected',
-            'body' => 'We detected an issue with your NFC card. Please contact support.',
         ],
         // Promotional
         [
