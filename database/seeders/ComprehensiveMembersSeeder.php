@@ -56,21 +56,17 @@ class ComprehensiveMembersSeeder extends Seeder
                 'email' => 'seed.admin@bourgoarena.com',
             ]);
 
-        $entryTerminal = HikvisionTerminal::query()
-            ->where('serial_number', 'MAIN-ENTRY-001')
-            ->first();
-
         $plans = Plan::query()->where('is_archived', false)->get();
 
         // =====================================================================
         // 1. ACTIVE MEMBERS WITH CURRENT SUBSCRIPTIONS (20 members)
         // =====================================================================
-        $this->createActiveMembersWithSubscriptions($manager, $entryTerminal, $plans);
+        $this->createActiveMembersWithSubscriptions($manager, $plans);
 
         // =====================================================================
         // 2. MEMBERS WITH EXPIRING SUBSCRIPTIONS (5 members - expiring within 7 days)
         // =====================================================================
-        $this->createMembersWithExpiringSubscriptions($manager, $entryTerminal, $plans);
+        $this->createMembersWithExpiringSubscriptions($manager, $plans);
 
         // =====================================================================
         // 3. PENDING VERIFICATION MEMBERS (5 members)
@@ -87,15 +83,11 @@ class ComprehensiveMembersSeeder extends Seeder
         // =====================================================================
         $this->createExpiredMembers($manager, $plans);
 
-        // =====================================================================
-        // 6. MEMBERS WITH DIFFERENT NFC CARD STATUSES (2 with lost/suspended cards)
-        // =====================================================================
-        $this->createMembersWithCardIssues($manager, $entryTerminal, $plans);
+
     }
 
     private function createActiveMembersWithSubscriptions(
         User $manager,
-        HikvisionTerminal $entryTerminal,
         $plans
     ): void {
         $activeMembers = Member::factory()
@@ -110,8 +102,7 @@ class ComprehensiveMembersSeeder extends Seeder
 
                 $member->update(['avatar' => $avatarUrl]);
 
-                // Create NFC Card
-                $card = // Select a plan
+                // Select a plan
                 $plan = $plans->values()->get($index % $plans->count());
 
                 // Vary subscription start dates
@@ -143,7 +134,6 @@ class ComprehensiveMembersSeeder extends Seeder
 
     private function createMembersWithExpiringSubscriptions(
         User $manager,
-        HikvisionTerminal $entryTerminal,
         $plans
     ): void {
         $expiringMembers = Member::factory()
@@ -157,7 +147,7 @@ class ComprehensiveMembersSeeder extends Seeder
 
                 $member->update(['avatar' => $avatarUrl]);
 
-                $card = $plan = $plans->values()->get($index % $plans->count());
+                $plan = $plans->values()->get($index % $plans->count());
 
                 // Expiring within 1-7 days
                 $daysUntilEnd = random_int(1, 7);
@@ -216,7 +206,6 @@ class ComprehensiveMembersSeeder extends Seeder
 
                 $member->update(['avatar' => $avatarUrl]);
 
-                // Create suspended NFC card
                 $plan = $plans->values()->get($index % $plans->count());
 
                 // Create suspended subscription
@@ -267,27 +256,5 @@ class ComprehensiveMembersSeeder extends Seeder
             });
     }
 
-    private function createMembersWithCardIssues(
-        User $manager,
-        HikvisionTerminal $entryTerminal,
-        $plans
-    ): void {
-        // Member with lost card
-        $lostCardMember = Member::factory()->active()->create([
-            'avatar' => fake()->randomElement($this->maleAvatars),
-        ]);
 
-        $plan = $plans->first();
-        Subscription::factory()
-            ->create([
-                'member_id' => $lostCardMember->id,
-                'plan_id' => $plan->id,
-                'status' => 'active',
-                'starts_at' => now()->subMonths(1)->toDateString(),
-                'ends_at' => now()->addMonths(5)->toDateString(),
-                'enrolled_by' => $manager->id,
-            ]);
-
-        // Try to check in with lost card (denied)
-    }
 }

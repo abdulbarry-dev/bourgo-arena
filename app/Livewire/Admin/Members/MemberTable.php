@@ -82,7 +82,7 @@ class MemberTable extends Component
     }
 
     #[On('member-updated')]
-    #[On('card-assigned')]
+
     public function refreshTable(): void
     {
         // Trigger a refresh when sibling components mutate member data.

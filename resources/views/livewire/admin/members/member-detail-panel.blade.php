@@ -2,7 +2,7 @@
     @if ($member === null)
         <x-ui.dashboard.panel class="border-dashed border-zinc-300 bg-zinc-50 p-8 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
             <flux:heading size="sm">{{ __('No member selected') }}</flux:heading>
-            <flux:text variant="subtle">{{ __('Choose a member from the table to inspect profile, subscription, and card status.') }}</flux:text>
+            <flux:text variant="subtle">{{ __('Choose a member from the table to inspect profile and subscription.') }}</flux:text>
         </x-ui.dashboard.panel>
     @else
         {{-- Status/Danger Alerts --}}

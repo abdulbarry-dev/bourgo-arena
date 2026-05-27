@@ -21,11 +21,7 @@ Route::middleware('role:admin,manager')->group(function () {
         ]);
     })->name('admin.members.show');
 
-    Route::get('/members/{member}/assign-card', function (Member $member) {
-        return view('livewire.admin.members.assign-card', [
-            'member' => $member,
-        ]);
-    })->name('admin.members.assign-card');
+
 
     Route::view('/subscriptions', 'livewire.admin.subscriptions.dashboard')
         ->name('admin.subscriptions');

@@ -68,7 +68,7 @@ return [
         ],
         'manager' => [
             'title' => 'Manager',
-            'description' => 'Member management and card assignment. No financial access.',
+            'description' => 'Member management. No financial access.',
             'permissions' => 'Members, Subscriptions (enroll/suspend/resume),Scheduling',
         ],
     ],

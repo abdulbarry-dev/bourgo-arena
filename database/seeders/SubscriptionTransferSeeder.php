@@ -45,7 +45,7 @@ class SubscriptionTransferSeeder extends Seeder
         $sourceMember = Member::factory()->active()->create();
         $targetMember = Member::factory()->active()->create();
 
-        $sourceCard = $targetCard = $daysUntilEnd = 12;
+        $daysUntilEnd = 12;
         $startsAt = now()->subDays(max(1, (int) $transferPlan->duration_days - $daysUntilEnd))->toDateString();
 
         $sourceSubscription = Subscription::factory()->create([

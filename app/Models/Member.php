@@ -146,11 +146,6 @@ class Member extends Authenticatable
             ->whereDate('ends_at', '>', now());
     }
 
-    public function checkInEvents(): HasMany
-    {
-        return $this->hasMany(CheckInEvent::class);
-    }
-
     public function onboardingTokens(): HasMany
     {
         return $this->hasMany(MemberOnboardingToken::class);
@@ -164,11 +159,6 @@ class Member extends Authenticatable
     public function notifications(): HasMany
     {
         return $this->hasMany(MemberNotification::class);
-    }
-
-    public function digitalNfcDevices(): HasMany
-    {
-        return $this->hasMany(MemberDigitalNfcDevice::class);
     }
 
     public function reservations(): HasMany

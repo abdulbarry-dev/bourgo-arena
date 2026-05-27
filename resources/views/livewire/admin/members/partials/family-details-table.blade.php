@@ -13,7 +13,7 @@
                         <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Role') }}</th>
                         <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Status') }}</th>
                         <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Subscription') }}</th>
-                        <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Access Card') }}</th>
+
                         <th class="px-4 py-3 text-right font-medium text-zinc-700 dark:text-zinc-200"></th>
                     </tr>
                 </thead>
@@ -35,9 +35,7 @@
                             <td class="px-4 py-3 text-zinc-600 dark:text-zinc-400">
                                 {{ $member->parent->activeSubscription?->plan?->name ?? __('No active plan') }}
                             </td>
-                            <td class="px-4 py-3">
-                                
-                            </td>
+
                             <td class="px-4 py-3 text-right">
                                 <flux:button variant="ghost" size="sm" icon="arrow-right" :href="route('admin.members.show', $member->parent)" wire:navigate aria-label="{{ __('View Profile') }}" />
                             </td>
@@ -61,9 +59,7 @@
                             <td class="px-4 py-3 text-zinc-600 dark:text-zinc-400">
                                 {{ $child->activeSubscription?->plan?->name ?? __('No active plan') }}
                             </td>
-                            <td class="px-4 py-3">
-                                
-                            </td>
+
                             <td class="px-4 py-3 text-right">
                                 <flux:button variant="ghost" size="sm" icon="arrow-right" :href="route('admin.members.show', $child)" wire:navigate aria-label="{{ __('View Profile') }}" />
                             </td>
