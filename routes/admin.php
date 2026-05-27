@@ -21,8 +21,6 @@ Route::middleware('role:admin,manager')->group(function () {
         ]);
     })->name('admin.members.show');
 
-
-
     Route::view('/subscriptions', 'livewire.admin.subscriptions.dashboard')
         ->name('admin.subscriptions');
 

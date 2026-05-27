@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Seeders;
+namespace Database\Seeders\Dashboard\Users;
 
 use App\Models\User;
 use App\UserRole;
