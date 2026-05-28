@@ -73,6 +73,46 @@ class MemberDetailPanel extends Component
         $this->dispatch('open-manage-family-flyout', memberId: $member->id);
     }
 
+    public function openSuspendModal(): void
+    {
+        $member = $this->resolveSelectedMember();
+
+        $this->authorize('suspend', $member);
+
+        $this->isDetailPanelOpen = false;
+        $this->showSuspendModal = true;
+    }
+
+    public function openActivateModal(): void
+    {
+        $member = $this->resolveSelectedMember();
+
+        $this->authorize('activate', $member);
+
+        $this->isDetailPanelOpen = false;
+        $this->showActivateModal = true;
+    }
+
+    public function openResetPasswordModal(): void
+    {
+        $member = $this->resolveSelectedMember();
+
+        $this->authorize('resetPassword', Member::class);
+
+        $this->isDetailPanelOpen = false;
+        $this->showResetPasswordModal = true;
+    }
+
+    public function openDeleteModal(): void
+    {
+        $member = $this->resolveSelectedMember();
+
+        $this->authorize('delete', $member);
+
+        $this->isDetailPanelOpen = false;
+        $this->showDeleteModal = true;
+    }
+
     #[On('member-selected')]
     public function loadMember(int $memberId): void
     {
