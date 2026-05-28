@@ -21,18 +21,18 @@
         </flux:button>
     </div>
 
-    <div class="flex flex-wrap items-end gap-4">
-        <div class="flex-auto min-w-[240px]">
+    <x-ui.filter-row>
+        <x-slot name="search">
             <flux:input
                 wire:model.live.debounce.300ms="search"
                 type="search"
                 :label="__('Search')"
                 :placeholder="__('Member, email, phone, or plan')"
             />
-        </div>
+        </x-slot>
 
-        <div class="flex gap-4 flex-wrap items-end">
-            <div class="w-56 min-w-[160px]">
+        <x-slot name="controls">
+            <div class="w-56" style="min-width:160px">
                 <flux:field>
                     <flux:label>{{ __('Status') }}</flux:label>
                     <flux:select wire:model.live="statusFilter">
@@ -45,7 +45,7 @@
                 </flux:field>
             </div>
 
-            <div class="w-56 min-w-[160px]">
+            <div class="w-56" style="min-width:160px">
                 <flux:field>
                     <flux:label>{{ __('Plan') }}</flux:label>
                     <flux:select wire:model.live="planFilter">
@@ -56,8 +56,8 @@
                     </flux:select>
                 </flux:field>
             </div>
-        </div>
-    </div>
+        </x-slot>
+    </x-ui.filter-row>
 
     <x-ui.dashboard.table-shell loading-targets="search,statusFilter,planFilter" :has-rows="$this->subscriptions->count() > 0">
         <x-slot name="loading">

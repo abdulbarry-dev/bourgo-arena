@@ -8,8 +8,8 @@
         </x-slot>
     </x-ui.dashboard.page-header>
 
-    <div class="flex flex-wrap items-end gap-4">
-        <div class="flex-auto min-w-[240px]">
+    <x-ui.filter-row>
+        <x-slot name="search">
             <flux:input
                 wire:model.live.debounce.300ms="search"
                 type="search"
@@ -17,10 +17,10 @@
                 :placeholder="__('Course name or instructor')"
                 icon="magnifying-glass"
             />
-        </div>
+        </x-slot>
 
-        <div class="flex gap-4 flex-wrap items-end">
-            <div class="w-56 min-w-[160px]">
+        <x-slot name="controls">
+            <div class="w-56" style="min-width:160px">
                 <flux:field>
                     <flux:label>{{ __('Category') }}</flux:label>
                     <flux:select wire:model.live="categoryFilter">
@@ -32,7 +32,7 @@
                 </flux:field>
             </div>
 
-            <div class="w-56 min-w-[160px]">
+            <div class="w-56" style="min-width:160px">
                 <flux:field>
                     <flux:label>{{ __('Instructor') }}</flux:label>
                     <flux:select wire:model.live="instructorFilter">
@@ -44,7 +44,7 @@
                 </flux:field>
             </div>
 
-            <div class="w-56 min-w-[160px]">
+            <div class="w-56" style="min-width:160px">
                 <flux:field>
                     <flux:label>{{ __('Sessions') }}</flux:label>
                     <flux:select wire:model.live="hasSessionsFilter">
@@ -54,8 +54,8 @@
                     </flux:select>
                 </flux:field>
             </div>
-        </div>
-    </div>
+        </x-slot>
+    </x-ui.filter-row>
 
     @include('livewire.admin.courses.partials.courses-table')
     
