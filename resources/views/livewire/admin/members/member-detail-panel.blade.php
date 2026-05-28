@@ -1,6 +1,10 @@
 <div>
-    <flux:modal wire:model="isDetailPanelOpen" variant="flyout" class="max-w-4xl w-full shrink-0">
-        <section class="w-full space-y-6">
+    <flux:modal
+        wire:model="isDetailPanelOpen"
+        variant="flyout"
+        class="max-w-4xl w-full shrink-0 [&_[data-flux-modal-close]]:mt-6 [&_[data-flux-modal-close]]:me-6"
+    >
+        <section class="w-full space-y-6 pt-2">
             @if ($member === null)
                 <x-ui.dashboard.panel class="border-dashed border-zinc-300 bg-zinc-50 p-8 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
                     <flux:heading size="sm">{{ __('No member selected') }}</flux:heading>
