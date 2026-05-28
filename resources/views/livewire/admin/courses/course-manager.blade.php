@@ -8,14 +8,16 @@
         </x-slot>
     </x-ui.dashboard.page-header>
 
-    <x-ui.dashboard.filters>
-        <flux:input
-            wire:model.live.debounce.300ms="search"
-            type="search"
-            :label="__('Search')"
-            :placeholder="__('Course name or instructor')"
-            icon="magnifying-glass"
-        />
+    <x-ui.dashboard.filters columns="md:grid-cols-4">
+        <div class="md:col-span-2">
+            <flux:input
+                wire:model.live.debounce.300ms="search"
+                type="search"
+                :label="__('Search')"
+                :placeholder="__('Course name or instructor')"
+                icon="magnifying-glass"
+            />
+        </div>
 
         <flux:field>
             <flux:label>{{ __('Category') }}</flux:label>
