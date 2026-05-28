@@ -36,13 +36,6 @@ class MemberDetailResource extends JsonResource
                     'ends_at' => $this->activeSubscription->ends_at?->format('Y-m-d'),
                 ] : null;
             }),
-            'nfc_card' => $this->whenLoaded('nfcCard', function () {
-                return $this->nfcCard ? [
-                    'id' => $this->nfcCard->id,
-                    'uid' => $this->nfcCard->uid,
-                    'status' => $this->nfcCard->status,
-                ] : null;
-            }),
         ];
     }
 }

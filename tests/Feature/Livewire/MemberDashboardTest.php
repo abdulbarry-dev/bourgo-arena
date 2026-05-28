@@ -8,8 +8,7 @@ test('admin can view members dashboard page', function () {
         ->assertOk()
         ->assertSee('Members')
         ->assertSee('Add Member')
-        ->assertSee('Search, filter, and manage member records')
-        ->assertDontSee('NFC Card Assignment');
+        ->assertSee('Search, filter, and manage member records');
 });
 
 test('manager can view members dashboard page', function () {

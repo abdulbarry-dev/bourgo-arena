@@ -17,12 +17,12 @@
             @if ($image)
                 <div class="mt-2 text-sm text-zinc-500">
                     {{ __('Image preview:') }}
-                    <img src="{{ $image->temporaryUrl() }}" class="mt-1 h-20 w-auto rounded object-cover border border-zinc-200 dark:border-zinc-700" alt="Preview">
+                    <img src="{{ $image->temporaryUrl() }}" class="mt-1 h-20 w-auto rounded object-cover border border-zinc-200 dark:border-zinc-700" alt="{{ __('Preview') }}">
                 </div>
             @elseif ($existingImageUrl)
                 <div class="mt-2 text-sm text-zinc-500">
                     {{ __('Current image:') }}
-                    <img src="{{ $existingImageUrl }}" class="mt-1 h-20 w-auto rounded object-cover border border-zinc-200 dark:border-zinc-700" alt="Current Image">
+                    <img src="{{ $existingImageUrl }}" class="mt-1 h-20 w-auto rounded object-cover border border-zinc-200 dark:border-zinc-700" alt="{{ __('Current Image') }}">
                 </div>
             @endif
         </flux:field>

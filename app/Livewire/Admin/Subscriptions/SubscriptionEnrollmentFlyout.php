@@ -4,7 +4,6 @@ namespace App\Livewire\Admin\Subscriptions;
 
 use App\Jobs\SendSubscriptionNotification;
 use App\Jobs\SendSubscriptionReceiptEmail;
-use App\Jobs\SyncTerminalWhitelist;
 use App\Models\Member;
 use App\Models\Payment;
 use App\Models\Plan;
@@ -237,11 +236,6 @@ class SubscriptionEnrollmentFlyout extends Component
                     'push_status' => 'pending-infrastructure',
                     'source' => 'subscription_enrollment',
                 ],
-            );
-            SyncTerminalWhitelist::dispatch(
-                $member->id,
-                $subscription->id,
-                ['trigger' => 'subscription_enrolled'],
             );
 
             $this->dispatch('subscription-created', memberId: $member->id, subscriptionId: $subscription->id);

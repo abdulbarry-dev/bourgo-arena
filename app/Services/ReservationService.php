@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\DTOs\StoreReservationDTO;
 use App\Models\Activity;
+use App\Models\ActivitySlot;
 use App\Models\ApiReservation;
 use App\Models\Member;
 use App\Repositories\ReservationRepository;
@@ -67,7 +68,7 @@ class ReservationService
     {
         // We get the slot just to know the date
         // Since we don't need a lock here, we can just find it normally
-        $slot = \App\Models\ActivitySlot::query()->findOrFail($activitySlotId);
+        $slot = ActivitySlot::query()->findOrFail($activitySlotId);
 
         $exists = $this->reservationRepository->hasActiveReservationForSlot($member, $activitySlotId, $slot->date);
 

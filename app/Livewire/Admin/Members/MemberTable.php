@@ -3,7 +3,6 @@
 namespace App\Livewire\Admin\Members;
 
 use App\Models\Member;
-use App\Models\NfcCard;
 use App\Models\Plan;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -68,7 +67,7 @@ class MemberTable extends Component
 
     public function sort(string $column): void
     {
-        if (! in_array($column, ['name', 'email', 'phone', 'status', 'plan', 'nfc_status'], true)) {
+        if (! in_array($column, ['name', 'email', 'phone', 'status', 'plan'], true)) {
             return;
         }
 
@@ -83,7 +82,6 @@ class MemberTable extends Component
     }
 
     #[On('member-updated')]
-    #[On('card-assigned')]
     public function refreshTable(): void
     {
         // Trigger a refresh when sibling components mutate member data.
@@ -94,7 +92,7 @@ class MemberTable extends Component
         $this->authorize('viewAny', Member::class);
 
         $membersQuery = $this->filteredMembersQuery()
-            ->with(['activeSubscription.plan', 'nfcCard'])
+            ->with(['activeSubscription.plan'])
             ->orderBy('id');
 
         return response()->streamDownload(function () use ($membersQuery): void {
@@ -104,7 +102,7 @@ class MemberTable extends Component
                 return;
             }
 
-            fputcsv($output, ['Name', 'Email', 'Phone', 'Status', 'Plan', 'NFC Status']);
+            fputcsv($output, ['Name', 'Email', 'Phone', 'Status', 'Plan']);
 
             $membersQuery->chunkById(200, function (Collection $members) use ($output): void {
                 foreach ($members as $member) {
@@ -114,7 +112,6 @@ class MemberTable extends Component
                         $member->phone,
                         $member->status,
                         $member->activeSubscription?->plan?->name ?? 'No active plan',
-                        $member->nfcCard?->status ?? 'unassigned',
                     ]);
                 }
             });
@@ -174,13 +171,6 @@ class MemberTable extends Component
                     ->whereColumn('subscriptions.member_id', 'members.id')
                     ->where('subscriptions.status', 'active')
                     ->whereDate('subscriptions.ends_at', '>', now())
-                    ->limit(1),
-                $this->sortDirection,
-            ),
-            'nfc_status' => $query->orderBy(
-                NfcCard::query()
-                    ->select('status')
-                    ->whereColumn('nfc_cards.member_id', 'members.id')
                     ->limit(1),
                 $this->sortDirection,
             ),

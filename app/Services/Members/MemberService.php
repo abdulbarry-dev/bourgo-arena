@@ -6,7 +6,6 @@ use App\DTOs\UpdateProfileDTO;
 use App\Models\Member;
 use App\Notifications\AccountDeletionScheduled;
 use App\Repositories\Members\MemberRepository;
-use Illuminate\Database\Eloquent\Collection;
 
 class MemberService
 {
@@ -33,31 +32,5 @@ class MemberService
 
         // Revoke all tokens
         $member->tokens()->delete();
-    }
-
-    /**
-     * Return the member's check-in/access history with terminal relation.
-     *
-     * @return Collection
-     */
-    public function getAccessHistory(Member $member)
-    {
-        return $this->memberRepository->getAccessHistory($member);
-    }
-
-    /**
-     * Determine fallback methods for NFC based on physical card presence.
-     *
-     * @return string[]
-     */
-    public function getNfcFallbackMethods(Member $member): array
-    {
-        $methods = ['pin'];
-
-        if ($member->nfcCard()->where('status', 'active')->exists()) {
-            $methods[] = 'physical_card';
-        }
-
-        return $methods;
     }
 }

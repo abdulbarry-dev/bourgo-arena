@@ -134,11 +134,6 @@ class Member extends Authenticatable
         return $this->hasMany(Member::class, 'parent_id');
     }
 
-    public function nfcCard(): HasOne
-    {
-        return $this->hasOne(NfcCard::class);
-    }
-
     public function subscriptions(): HasMany
     {
         return $this->hasMany(Subscription::class);
@@ -149,11 +144,6 @@ class Member extends Authenticatable
         return $this->hasOne(Subscription::class)
             ->where('status', 'active')
             ->whereDate('ends_at', '>', now());
-    }
-
-    public function checkInEvents(): HasMany
-    {
-        return $this->hasMany(CheckInEvent::class);
     }
 
     public function onboardingTokens(): HasMany
@@ -169,11 +159,6 @@ class Member extends Authenticatable
     public function notifications(): HasMany
     {
         return $this->hasMany(MemberNotification::class);
-    }
-
-    public function digitalNfcDevices(): HasMany
-    {
-        return $this->hasMany(MemberDigitalNfcDevice::class);
     }
 
     public function reservations(): HasMany
@@ -213,7 +198,7 @@ class Member extends Authenticatable
 
     public function scopeWithDetails(Builder $query): Builder
     {
-        return $query->with(['activeSubscription', 'nfcCard']);
+        return $query->with(['activeSubscription']);
     }
 
     public function scopeSearchable(Builder $query, ?string $term): Builder

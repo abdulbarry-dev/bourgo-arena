@@ -50,18 +50,6 @@
                 <dd class="text-zinc-800 dark:text-zinc-200">{{ $member->activeSubscription?->ends_at?->format('Y-m-d') ?? __('N/A') }}</dd>
             </div>
             <div>
-                <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Card UID') }}</dt>
-                <dd class="text-zinc-800 dark:text-zinc-200">{{ $member->nfcCard?->uid ?? __('Not assigned') }}</dd>
-            </div>
-            <div>
-                <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Card Status') }}</dt>
-                <dd class="capitalize text-zinc-800 dark:text-zinc-200">{{ $member->nfcCard?->status ?? __('Unassigned') }}</dd>
-            </div>
-            <div>
-                <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Card Assigned') }}</dt>
-                <dd class="text-zinc-800 dark:text-zinc-200">{{ $member->nfcCard?->assigned_at?->format('Y-m-d H:i') ?? __('N/A') }}</dd>
-            </div>
-            <div>
                 <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Enrolled By') }}</dt>
                 <dd class="text-zinc-800 dark:text-zinc-200">{{ $member->activeSubscription?->enrolledBy?->name ?? __('N/A') }}</dd>
             </div>

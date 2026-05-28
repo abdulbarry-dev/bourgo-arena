@@ -46,16 +46,6 @@ test('member detail panel keeps suspend and activate actions visible for suspend
         ->assertSee('Activate');
 });
 
-test('member detail panel renders assign card route action', function () {
-    $this->actingAs(User::factory()->manager()->create());
-
-    $member = Member::factory()->create(['status' => 'active']);
-
-    Livewire::test(MemberDetailPanel::class)
-        ->call('loadMember', $member->id)
-        ->assertSee(route('admin.members.assign-card', $member));
-});
-
 test('member detail panel can suspend a member', function () {
     $this->actingAs(User::factory()->manager()->create());
 

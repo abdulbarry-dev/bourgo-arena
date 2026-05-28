@@ -41,7 +41,6 @@ test('authenticated returns correct field names', function () {
                 'avatar_url',
                 'loyalty_points',
                 'is_parent_account',
-                'total_check_ins',
             ],
         ])
         ->assertJsonPath('data.birth_date', '1990-01-01')

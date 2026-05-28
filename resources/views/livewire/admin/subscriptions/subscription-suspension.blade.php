@@ -58,11 +58,7 @@
             @include('livewire.admin.subscriptions.partials.actions.resume-form')
             @include('livewire.admin.subscriptions.partials.actions.transfer-form')
 
-            <div class="rounded-lg border border-dashed border-zinc-300 px-3 py-2 dark:border-zinc-700">
-                <flux:text>
-                    {{ __('Terminal whitelist sync is queued as a placeholder contract until terminal sync infrastructure is implemented.') }}
-                </flux:text>
-            </div>
+
         </x-ui.dashboard.panel>
 
         <x-ui.dashboard.panel class="space-y-3 p-4">

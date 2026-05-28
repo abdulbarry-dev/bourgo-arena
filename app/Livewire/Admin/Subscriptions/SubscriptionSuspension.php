@@ -3,7 +3,6 @@
 namespace App\Livewire\Admin\Subscriptions;
 
 use App\Jobs\SendSubscriptionNotification;
-use App\Jobs\SyncTerminalWhitelist;
 use App\Models\Member;
 use App\Models\Subscription;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -94,11 +93,6 @@ class SubscriptionSuspension extends Component
                 'reason' => $this->suspensionReason,
             ],
         );
-        SyncTerminalWhitelist::dispatch(
-            $subscription->member_id,
-            $subscription->id,
-            ['trigger' => 'subscription_suspended'],
-        );
 
         $this->suspensionReason = '';
         $this->confirmSuspension = false;
@@ -136,11 +130,6 @@ class SubscriptionSuspension extends Component
                 'push_intent' => true,
                 'push_status' => 'pending-infrastructure',
             ],
-        );
-        SyncTerminalWhitelist::dispatch(
-            $subscription->member_id,
-            $subscription->id,
-            ['trigger' => 'subscription_resumed'],
         );
 
         $this->action = '';
@@ -199,17 +188,6 @@ class SubscriptionSuspension extends Component
                 'from_member_id' => $oldMemberId,
                 'source_subscription_id' => $subscription->id,
             ],
-        );
-
-        SyncTerminalWhitelist::dispatch(
-            $oldMemberId,
-            $subscription->id,
-            ['trigger' => 'subscription_transferred_from'],
-        );
-        SyncTerminalWhitelist::dispatch(
-            $newSubscription->member_id,
-            $newSubscription->id,
-            ['trigger' => 'subscription_transferred_to'],
         );
 
         $this->subscriptionId = $newSubscription->id;

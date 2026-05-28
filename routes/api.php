@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Api\TerminalCheckInController;
 use App\Http\Controllers\Api\V1\ActivityController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CourseController;
@@ -8,7 +7,6 @@ use App\Http\Controllers\Api\V1\DeviceTokenController;
 use App\Http\Controllers\Api\V1\FamilyController;
 use App\Http\Controllers\Api\V1\LoyaltyController;
 use App\Http\Controllers\Api\V1\MemberController;
-use App\Http\Controllers\Api\V1\MemberNfcController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\ReservationController;
@@ -86,12 +84,6 @@ Route::prefix('v1')->group(function () {
         Route::post('device-token', [DeviceTokenController::class, 'store'])->name('api.v1.device-token.store');
 
         Route::get('member/subscription', [SubscriptionController::class, 'active'])->name('api.v1.member.subscription');
-
-        Route::prefix('member/nfc')->group(function () {
-            Route::get('physical-status', [MemberNfcController::class, 'physicalStatus'])->name('api.v1.member.nfc.physical-status');
-            Route::get('digital-status', [MemberNfcController::class, 'digitalStatus'])->name('api.v1.member.nfc.digital-status');
-            Route::post('digital-setup', [MemberNfcController::class, 'setupDigital'])->name('api.v1.member.nfc.digital-setup');
-        });
     });
 
     // Konnect payment endpoints (initiate / verify)
@@ -101,11 +93,3 @@ Route::prefix('v1')->group(function () {
         Route::post('webhook/konnect', [PaymentController::class, 'webhook'])->name('api.v1.payments.webhook');
     });
 });
-
-Route::middleware(['terminal.auth'])
-    ->post('checkin', [TerminalCheckInController::class, 'store'])
-    ->name('api.terminals.checkin');
-
-Route::middleware(['terminal.auth'])
-    ->post('terminals/{terminal}/heartbeat', [TerminalCheckInController::class, 'heartbeat'])
-    ->name('api.terminals.heartbeat');

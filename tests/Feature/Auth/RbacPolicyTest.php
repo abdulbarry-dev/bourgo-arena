@@ -2,9 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
-use App\Models\HikvisionTerminal;
 use App\Models\Member;
-use App\Models\NfcCard;
 use App\Models\Subscription;
 use App\Models\User;
 use App\UserRole;
@@ -85,27 +83,6 @@ class RbacPolicyTest extends TestCase
 
         $this->actingAs($this->manager);
         $this->assertFalse($this->manager->can('transfer', Subscription::class));
-    }
-
-    /**
-     * Test only admin can provision terminals.
-     */
-    public function test_only_admin_can_provision_terminals(): void
-    {
-        $this->actingAs($this->admin);
-        $this->assertTrue($this->admin->can('provision', HikvisionTerminal::class));
-
-        $this->actingAs($this->manager);
-        $this->assertFalse($this->manager->can('provision', HikvisionTerminal::class));
-    }
-
-    /**
-     * Test manager can assign NFC cards.
-     */
-    public function test_manager_can_assign_nfc_cards(): void
-    {
-        $this->actingAs($this->manager);
-        $this->assertTrue($this->manager->can('assign', NfcCard::class));
     }
 
     /**
