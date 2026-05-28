@@ -2,23 +2,23 @@
     <flux:modal
         wire:model="isDetailPanelOpen"
         variant="flyout"
-        class="max-w-4xl w-full shrink-0 [&_[data-flux-modal-close]]:mt-6 [&_[data-flux-modal-close]]:me-6"
+        class="max-w-5xl w-full shrink-0 [&_[data-flux-modal-close]]:mt-8 [&_[data-flux-modal-close]]:me-8"
     >
-        <section class="w-full space-y-6 pt-2">
+        <section class="w-full space-y-8 px-6 py-8 md:px-8 md:py-10">
             @if ($member === null)
                 <x-ui.dashboard.panel class="border-dashed border-zinc-300 bg-zinc-50 p-8 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
                     <flux:heading size="sm">{{ __('No member selected') }}</flux:heading>
                     <flux:text variant="subtle">{{ __('Choose a member from the table to inspect profile and subscription.') }}</flux:text>
                 </x-ui.dashboard.panel>
             @else
-                <x-ui.dashboard.panel class="space-y-4 border border-zinc-200 bg-white/90 p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/80">
-                    <div class="flex flex-col gap-4 border-b border-zinc-200 pb-4 dark:border-zinc-700 sm:flex-row sm:items-start sm:justify-between">
-                        <div class="space-y-1">
+                <x-ui.dashboard.panel class="space-y-6 border border-zinc-200 bg-white/90 p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/80 md:p-8">
+                    <div class="flex flex-col gap-5 border-b border-zinc-200 pb-5 dark:border-zinc-700 sm:flex-row sm:items-start sm:justify-between">
+                        <div class="space-y-1.5">
                             <flux:heading size="sm">{{ $member->name }}</flux:heading>
                             <flux:text variant="subtle">{{ __('Member profile actions and account controls') }}</flux:text>
                         </div>
 
-                        <div class="flex flex-wrap items-center gap-2 sm:justify-end">
+                        <div class="flex flex-wrap items-center gap-2 sm:justify-end sm:pt-1">
                             @can('suspend', $member)
                                 <flux:button variant="ghost" color="danger" icon="no-symbol" wire:click="$set('showSuspendModal', true)" :disabled="$member->status === 'suspended'">
                                     {{ __('Suspend') }}
@@ -58,7 +58,7 @@
                         </div>
                     @endif
 
-                    <div class="flex flex-wrap items-center gap-2">
+                    <div class="flex flex-wrap items-center gap-2 pt-1">
                         @can('update', $member)
                             <flux:button variant="subtle" icon="pencil-square" wire:click="$dispatch('open-edit-member-flyout', { memberId: {{ $member->id }} })">
                                 {{ __('Edit Profile') }}
@@ -73,23 +73,22 @@
                             @endcan
                         @endif
                     </div>
+
+                    {{-- Member Core Information (Profile & Subscription) --}}
+                    @include('livewire.admin.members.partials.member-info-cards')
+
+                    <div class="grid gap-6">
+                        {{-- Family Table --}}
+                        @if ($member->parent || $member->children->isNotEmpty())
+                            @include('livewire.admin.members.partials.family-details-table')
+                        @endif
+                    </div>
                 </x-ui.dashboard.panel>
-
-        {{-- Hidden Flyouts --}}
-        <livewire:admin.members.manage-family-flyout />
-        <livewire:admin.members.edit-member-flyout />
-
-        {{-- Member Core Information (Profile & Subscription) --}}
-        @include('livewire.admin.members.partials.member-info-cards')
-
-        <div class="grid gap-6">
-            {{-- Family Table --}}
-            @if ($member->parent || $member->children->isNotEmpty())
-                @include('livewire.admin.members.partials.family-details-table')
             @endif
 
-        </div>
-            @endif
+            {{-- Hidden Flyouts --}}
+            <livewire:admin.members.manage-family-flyout />
+            <livewire:admin.members.edit-member-flyout />
 
             {{-- Modals --}}
             @include('livewire.admin.members.partials.modals.suspend-modal')
