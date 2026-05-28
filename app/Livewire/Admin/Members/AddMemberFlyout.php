@@ -137,7 +137,7 @@ class AddMemberFlyout extends Component
                 'type' => 'success',
             ]);
 
-            $this->redirectRoute('admin.members.show', ['member' => $member->id]);
+            $this->redirectRoute('admin.members', ['member' => $member->id]);
         } catch (ValidationException $exception) {
             throw $exception;
         } catch (Throwable $exception) {

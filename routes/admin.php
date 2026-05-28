@@ -15,12 +15,6 @@ Route::middleware('role:admin,manager')->group(function () {
     Route::view('/members', 'livewire.admin.members.dashboard')
         ->name('admin.members');
 
-    Route::get('/members/{member}', function (Member $member) {
-        return view('livewire.admin.members.detail', [
-            'member' => $member,
-        ]);
-    })->name('admin.members.show');
-
     Route::view('/subscriptions', 'livewire.admin.subscriptions.dashboard')
         ->name('admin.subscriptions');
 

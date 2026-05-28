@@ -36,7 +36,7 @@ test('manager can create a member and queue onboarding notifications', function 
         'type' => 'success',
     ]);
 
-    $component->assertRedirect(route('admin.members.show', $member));
+    $component->assertRedirect(route('admin.members', ['member' => $member?->id]));
 
     $this->assertDatabaseHas('member_onboarding_tokens', [
         'member_id' => $member?->id,

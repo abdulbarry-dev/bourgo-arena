@@ -13,7 +13,7 @@
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">
-                    <flux:button variant="subtle" :href="route('admin.members.show', $subscription->member)" wire:navigate>
+                        <flux:button variant="subtle" :href="route('admin.members', ['member' => $subscription->member->id])" wire:navigate>
                         {{ __('Open Member') }}
                     </flux:button>
 

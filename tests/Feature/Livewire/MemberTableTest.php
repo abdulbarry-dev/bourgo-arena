@@ -102,14 +102,15 @@ test('member table does not dispatch selected event when selection mode is disab
         ->assertNotDispatched('member-selected');
 });
 
-test('member table renders detail view action link per row', function () {
+test('member table renders detail flyout action per row', function () {
     $this->actingAs(User::factory()->manager()->create());
 
     $member = Member::factory()->create();
 
     Livewire::test(MemberTable::class)
         ->assertSee('Actions')
-        ->assertSee(route('admin.members.show', $member));
+    ->assertSee('open-member-detail-panel')
+    ->assertSee((string) $member->id);
 });
 
 test('member table toggles sorting direction on repeated column sort', function () {

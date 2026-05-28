@@ -37,7 +37,7 @@
                             </td>
 
                             <td class="px-4 py-3 text-right">
-                                <flux:button variant="ghost" size="sm" icon="arrow-right" wire:click="$dispatch('open-member-detail-panel', { memberId: {{ $member->parent->id }} })" aria-label="{{ __('View Profile') }}" />
+                                <flux:button variant="ghost" size="sm" icon="arrow-right" :href="route('admin.members', ['member' => $member->parent->id])" wire:navigate aria-label="{{ __('View Profile') }}" />
                             </td>
                         </tr>
                     @endif
@@ -61,7 +61,7 @@
                             </td>
 
                             <td class="px-4 py-3 text-right">
-                                <flux:button variant="ghost" size="sm" icon="arrow-right" wire:click="$dispatch('open-member-detail-panel', { memberId: {{ $child->id }} })" aria-label="{{ __('View Profile') }}" />
+                                <flux:button variant="ghost" size="sm" icon="arrow-right" :href="route('admin.members', ['member' => $child->id])" wire:navigate aria-label="{{ __('View Profile') }}" />
                             </td>
                         </tr>
                     @endforeach
