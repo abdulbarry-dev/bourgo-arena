@@ -5,6 +5,13 @@ use App\Models\Plan;
 use App\Models\Subscription;
 use App\Livewire\Admin\Members\MemberTable;
 use Livewire\Livewire;
+use App\Models\User;
+
+// Ensure an authorized user is present for Livewire components that call policies
+beforeEach(function () {
+    $user = User::factory()->admin()->create();
+    $this->actingAs($user);
+});
 
 beforeEach(function () {
     // database will be refreshed by Pest configuration
