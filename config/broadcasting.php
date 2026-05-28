@@ -15,7 +15,10 @@ return [
     |
     */
 
-    'default' => env('BROADCAST_CONNECTION', 'null'),
+    // Force broadcasting to `null` by default so the application does not
+    // attempt to connect to external websocket providers unless explicitly
+    // configured. This prevents console errors when Reverb isn't available.
+    'default' => 'null',
 
     /*
     |--------------------------------------------------------------------------
