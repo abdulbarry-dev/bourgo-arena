@@ -1,10 +1,12 @@
-<flux:modal wire:model="show" variant="flyout" class="space-y-6">
-    <div>
-        <flux:heading size="lg">{{ __('Subscription Enrollment') }}</flux:heading>
-        <flux:subheading>{{ __('Enroll a selected member into a plan, record payment, and dispatch receipt notifications.') }}</flux:subheading>
-    </div>
+<flux:modal wire:model="show" variant="flyout" class="max-w-5xl w-full shrink-0 [&_[data-flux-modal-close]]:mt-8 [&_[data-flux-modal-close]]:me-8">
+    <div class="px-6 py-8 md:px-8 md:py-10">
+        <div class="space-y-6 rounded-2xl border border-zinc-200 bg-white/90 p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/80 md:p-8">
+            <div class="border-b border-zinc-200 pb-5 dark:border-zinc-700">
+                <flux:heading size="lg">{{ __('Subscription Enrollment') }}</flux:heading>
+                <flux:subheading>{{ __('Enroll a selected member into a plan, record payment, and dispatch receipt notifications.') }}</flux:subheading>
+            </div>
 
-    <form wire:submit="enroll" class="mt-6 flex flex-col gap-6 w-full">
+    <form wire:submit="enroll" class="flex flex-col gap-6 w-full pt-1">
         <flux:field>
             <flux:label>{{ __('Member') }}</flux:label>
             <flux:select wire:model.live="memberId">
@@ -113,4 +115,6 @@
             </flux:button>
         </div>
     </form>
+        </div>
+    </div>
 </flux:modal>
