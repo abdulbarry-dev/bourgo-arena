@@ -53,6 +53,26 @@ class MemberDetailPanel extends Component
         $this->isDetailPanelOpen = false;
     }
 
+    public function editProfile(): void
+    {
+        $member = $this->resolveSelectedMember();
+
+        $this->authorize('update', $member);
+
+        $this->isDetailPanelOpen = false;
+        $this->dispatch('open-edit-member-flyout', memberId: $member->id);
+    }
+
+    public function manageFamily(): void
+    {
+        $member = $this->resolveSelectedMember();
+
+        $this->authorize('update', $member);
+
+        $this->isDetailPanelOpen = false;
+        $this->dispatch('open-manage-family-flyout', memberId: $member->id);
+    }
+
     #[On('member-selected')]
     public function loadMember(int $memberId): void
     {
