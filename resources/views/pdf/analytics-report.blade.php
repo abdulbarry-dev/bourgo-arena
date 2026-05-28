@@ -13,7 +13,7 @@
 </head>
 <body>
     <div class="header">
-        <img src="data:image/webp;base64,{{ base64_encode(file_get_contents(public_path('assets/images/brandmark-noir.webp'))) }}" alt="{{ __('Bourgo Arena Logo') }}" style="height: 48px; margin-bottom: 15px;">
+        <img src="data:image/webp;base64,{{ base64_encode(file_get_contents(public_path('assets/icons/brandmark-vert.webp'))) }}" alt="{{ __('Bourgo Arena Logo') }}" style="height: 48px; margin-bottom: 15px;">
         <h2>{{ __('Revenue & Subscription Analytics') }}</h2>
         <p>{{ __('Report Interval:') }} {{ $startDate }} {{ __('to') }} {{ $endDate }}</p>
     </div>

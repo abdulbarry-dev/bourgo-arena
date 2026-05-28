@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Database\Seeders\Dashboard\Catalog\PlanCatalogSeeder;
 use Database\Seeders\Dashboard\Users\AdminUserSeeder;
 use Database\Seeders\Dashboard\Users\ManagerUserSeeder;
 use Illuminate\Database\Seeder;

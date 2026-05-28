@@ -13,7 +13,7 @@
 </head>
 <body>
     <div style="text-align: center; margin-bottom: 20px;">
-        <img src="data:image/webp;base64,{{ base64_encode(file_get_contents(public_path('assets/images/brandmark-noir.webp'))) }}" alt="{{ __('Bourgo Arena Logo') }}" style="height: 48px; margin-bottom: 15px;">
+        <img src="data:image/webp;base64,{{ base64_encode(file_get_contents(public_path('assets/icons/brandmark-vert.webp'))) }}" alt="{{ __('Bourgo Arena Logo') }}" style="height: 48px; margin-bottom: 15px;">
         <h2 style="margin-top: 0;">{{ __('Subscriptions') }}</h2>
     </div>
     <p>{{ __('Generated on:') }} {{ now()->format('Y-m-d H:i:s') }}</p>

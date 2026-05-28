@@ -17,7 +17,6 @@ class Course extends Model
         'name',
         'instructor',
         'description',
-        'color',
         'category',
         'icon',
         'image_url',

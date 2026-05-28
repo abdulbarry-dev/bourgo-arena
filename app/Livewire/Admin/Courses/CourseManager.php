@@ -29,9 +29,6 @@ class CourseManager extends Component
     #[Validate('nullable|string|max:1000')]
     public $description = '';
 
-    #[Validate('nullable|string|max:7')]
-    public $color = '#8b5cf6';
-
     #[Validate('nullable|image|max:2048')]
     public $image;
 
@@ -101,7 +98,7 @@ class CourseManager extends Component
         $this->name = $course->name;
         $this->instructor = $course->instructor;
         $this->description = $course->description;
-        $this->color = $course->color ?? '#9ca3af';
+
         $this->existingImageUrl = $course->image_url;
         $this->image = null;
 
@@ -127,7 +124,6 @@ class CourseManager extends Component
                 'name' => $this->name,
                 'instructor' => $this->instructor,
                 'description' => $this->description,
-                'color' => $this->color,
             ];
 
             if ($this->image) {
@@ -321,7 +317,7 @@ class CourseManager extends Component
 
     public function resetForm()
     {
-        $this->reset(['name', 'instructor', 'description', 'color', 'editingCourseId', 'viewingCourseId', 'image', 'existingImageUrl', 'editingSessionId', 'deletingSessionId']);
+        $this->reset(['name', 'instructor', 'description', 'editingCourseId', 'viewingCourseId', 'image', 'existingImageUrl', 'editingSessionId', 'deletingSessionId']);
         $this->resetValidation();
     }
 

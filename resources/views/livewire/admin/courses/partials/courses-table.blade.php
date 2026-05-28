@@ -33,7 +33,7 @@
 
                         <td class="px-4 py-3 font-medium text-zinc-900 dark:text-zinc-100">
                             <div class="flex items-center gap-2">
-                                <div class="size-2 rounded-full" @style(['background-color: ' . ($course->color ?? '#9ca3af')])></div>
+                                <div class="size-2 rounded-full" style="background-color: #9ca3af"></div>
                                 {{ __($course->name) }}
                             </div>
                         </td>

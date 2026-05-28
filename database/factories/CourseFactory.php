@@ -21,7 +21,6 @@ class CourseFactory extends Factory
             'name' => $this->faker->words(2, true),
             'instructor' => $this->faker->name(),
             'description' => $this->faker->sentence(),
-            'color' => $this->faker->hexColor(),
             'category' => $this->faker->word(),
             'icon' => 'sports_martial_arts',
         ];

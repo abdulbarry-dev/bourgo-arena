@@ -44,7 +44,7 @@
                         >
                             <div class="flex justify-between items-start">
                                 <div class="flex items-center gap-2">
-                                    <div class="w-3 h-3 rounded-full {{ $status === 'validated' ? 'grayscale' : '' }}" style="background-color: {{ $session->course->color ?? '#9ca3af' }}"></div>
+                                    <div class="w-3 h-3 rounded-full {{ $status === 'validated' ? 'grayscale' : '' }}" style="background-color: #9ca3af"></div>
                                     <span class="text-sm font-semibold {{ $status === 'validated' ? 'text-zinc-500' : '' }}">{{ __($session->course->name) }}</span>
                                 </div>
                                 <span class="text-xs text-zinc-500">{{ \Carbon\Carbon::parse($session->starts_at)->format('H:i') }}</span>
