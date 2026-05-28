@@ -7,5 +7,6 @@
     <div>
         <livewire:admin.members.member-table :selection-enabled="false" />
         <livewire:admin.members.add-member-flyout />
+        <livewire:admin.members.member-detail-panel />
     </div>
 </x-layouts::dashboard>

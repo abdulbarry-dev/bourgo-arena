@@ -18,6 +18,8 @@ class MemberDetailPanel extends Component
 
     public ?Member $member = null;
 
+    public bool $isDetailPanelOpen = false;
+
     public bool $showSuspendModal = false;
 
     public bool $showActivateModal = false;
@@ -37,6 +39,18 @@ class MemberDetailPanel extends Component
         if ($resolvedMemberId !== null) {
             $this->loadMember((int) $resolvedMemberId);
         }
+    }
+
+    #[On('open-member-detail-panel')]
+    public function openDetailPanel(int $memberId): void
+    {
+        $this->loadMember($memberId);
+        $this->isDetailPanelOpen = true;
+    }
+
+    public function closeDetailPanel(): void
+    {
+        $this->isDetailPanelOpen = false;
     }
 
     #[On('member-selected')]

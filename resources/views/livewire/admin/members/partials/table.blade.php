@@ -48,9 +48,8 @@
                                 variant="subtle"
                                 size="sm"
                                 icon="eye"
-                                :href="route('admin.members.show', $member)"
-                                wire:navigate
                                 x-on:click.stop
+                                wire:click="$dispatch('open-member-detail-panel', { memberId: {{ $member->id }} })"
                                 aria-label="{{ __('View member details for :name', ['name' => $member->name]) }}"
                             />
                         </x-ui.dashboard.row-actions>

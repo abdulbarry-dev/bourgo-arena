@@ -1,10 +1,12 @@
-<section class="w-full space-y-6">
-    @if ($member === null)
-        <x-ui.dashboard.panel class="border-dashed border-zinc-300 bg-zinc-50 p-8 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
-            <flux:heading size="sm">{{ __('No member selected') }}</flux:heading>
-            <flux:text variant="subtle">{{ __('Choose a member from the table to inspect profile and subscription.') }}</flux:text>
-        </x-ui.dashboard.panel>
-    @else
+<div>
+    <flux:modal wire:model="isDetailPanelOpen" variant="flyout" class="max-w-4xl w-full shrink-0">
+        <section class="w-full space-y-6">
+            @if ($member === null)
+                <x-ui.dashboard.panel class="border-dashed border-zinc-300 bg-zinc-50 p-8 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
+                    <flux:heading size="sm">{{ __('No member selected') }}</flux:heading>
+                    <flux:text variant="subtle">{{ __('Choose a member from the table to inspect profile and subscription.') }}</flux:text>
+                </x-ui.dashboard.panel>
+            @else
         {{-- Status/Danger Alerts --}}
         @if ($member->status === 'suspended')
             <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-red-700 dark:border-red-900/30 dark:bg-red-900/20 dark:text-red-400">
@@ -87,11 +89,13 @@
             @endif
 
         </div>
-    @endif
+            @endif
 
-    {{-- Modals --}}
-    @include('livewire.admin.members.partials.modals.suspend-modal')
-    @include('livewire.admin.members.partials.modals.activate-modal')
-    @include('livewire.admin.members.partials.modals.reset-password-modal')
-    @include('livewire.admin.members.partials.modals.delete-modal')
-</section>
+            {{-- Modals --}}
+            @include('livewire.admin.members.partials.modals.suspend-modal')
+            @include('livewire.admin.members.partials.modals.activate-modal')
+            @include('livewire.admin.members.partials.modals.reset-password-modal')
+            @include('livewire.admin.members.partials.modals.delete-modal')
+        </section>
+    </flux:modal>
+</div>
