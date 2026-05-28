@@ -26,6 +26,8 @@ class MemberTable extends Component
 
     public ?int $planFilter = null;
 
+    public string $hasActiveSubscription = 'all';
+
     public int $perPage = 10;
 
     public bool $selectionEnabled = false;
@@ -40,6 +42,11 @@ class MemberTable extends Component
     }
 
     public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedHasActiveSubscription(): void
     {
         $this->resetPage();
     }
@@ -154,6 +161,13 @@ class MemberTable extends Component
             })
             ->when($this->planFilter !== null, function (Builder $query): void {
                 $query->byPlan($this->planFilter);
+            })
+            ->when($this->hasActiveSubscription !== 'all', function (Builder $query): void {
+                if ($this->hasActiveSubscription === 'with') {
+                    $query->whereHas('activeSubscription');
+                } else {
+                    $query->whereDoesntHave('activeSubscription');
+                }
             })
             ->withDetails()
             ->with('activeSubscription.plan');

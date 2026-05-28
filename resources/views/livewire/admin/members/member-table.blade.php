@@ -50,6 +50,16 @@
                     </flux:select>
                 </flux:field>
             </div>
+            <div class="w-56 min-w-[160px]">
+                <flux:field>
+                    <flux:label>{{ __('Has active subscription') }}</flux:label>
+                    <flux:select wire:model.live="hasActiveSubscription">
+                        <option value="all">{{ __('All') }}</option>
+                        <option value="with">{{ __('With active subscription') }}</option>
+                        <option value="without">{{ __('Without active subscription') }}</option>
+                    </flux:select>
+                </flux:field>
+            </div>
         </div>
     </div>
 
