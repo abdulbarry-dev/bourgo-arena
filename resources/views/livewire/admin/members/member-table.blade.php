@@ -15,35 +15,43 @@
         </flux:button>
     </div>
 
-    <x-ui.dashboard.filters>
-        <flux:input
-            wire:model.live.debounce.300ms="search"
-            type="search"
-            :label="__('Search')"
-            :placeholder="__('Name, email, or phone')"
-        />
+    <div class="flex flex-wrap items-end gap-4">
+        <div class="flex-auto min-w-[240px]">
+            <flux:input
+                wire:model.live.debounce.300ms="search"
+                type="search"
+                :label="__('Search')"
+                :placeholder="__('Name, email, or phone')"
+            />
+        </div>
 
-        <flux:field>
-            <flux:label>{{ __('Status') }}</flux:label>
-            <flux:select wire:model.live="statusFilter">
-                <option value="">{{ __('All statuses') }}</option>
-                <option value="pending">{{ __('Pending') }}</option>
-                <option value="active">{{ __('Active') }}</option>
-                <option value="suspended">{{ __('Suspended') }}</option>
-                <option value="expired">{{ __('Expired') }}</option>
-            </flux:select>
-        </flux:field>
+        <div class="flex gap-4 flex-wrap items-end">
+            <div class="w-56 min-w-[160px]">
+                <flux:field>
+                    <flux:label>{{ __('Status') }}</flux:label>
+                    <flux:select wire:model.live="statusFilter">
+                        <option value="">{{ __('All statuses') }}</option>
+                        <option value="pending">{{ __('Pending') }}</option>
+                        <option value="active">{{ __('Active') }}</option>
+                        <option value="suspended">{{ __('Suspended') }}</option>
+                        <option value="expired">{{ __('Expired') }}</option>
+                    </flux:select>
+                </flux:field>
+            </div>
 
-        <flux:field>
-            <flux:label>{{ __('Plan') }}</flux:label>
-            <flux:select wire:model.live="planFilter">
-                <option value="">{{ __('All plans') }}</option>
-                @foreach ($this->plans as $plan)
-                    <option value="{{ $plan->id }}">{{ __($plan->name) }}</option>
-                @endforeach
-            </flux:select>
-        </flux:field>
-    </x-ui.dashboard.filters>
+            <div class="w-56 min-w-[160px]">
+                <flux:field>
+                    <flux:label>{{ __('Plan') }}</flux:label>
+                    <flux:select wire:model.live="planFilter">
+                        <option value="">{{ __('All plans') }}</option>
+                        @foreach ($this->plans as $plan)
+                            <option value="{{ $plan->id }}">{{ __($plan->name) }}</option>
+                        @endforeach
+                    </flux:select>
+                </flux:field>
+            </div>
+        </div>
+    </div>
 
     @include('livewire.admin.members.partials.table')
 </section>
