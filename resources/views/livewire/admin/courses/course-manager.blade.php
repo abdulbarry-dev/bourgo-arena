@@ -8,7 +8,7 @@
         </x-slot>
     </x-ui.dashboard.page-header>
 
-    <div class="max-w-md">
+    <x-ui.dashboard.filters>
         <flux:input
             wire:model.live.debounce.300ms="search"
             type="search"
@@ -16,7 +16,36 @@
             :placeholder="__('Course name or instructor')"
             icon="magnifying-glass"
         />
-    </div>
+
+        <flux:field>
+            <flux:label>{{ __('Category') }}</flux:label>
+            <flux:select wire:model.live="categoryFilter">
+                <option value="">{{ __('All categories') }}</option>
+                @foreach($this->categories as $category)
+                    <option value="{{ $category }}">{{ $category }}</option>
+                @endforeach
+            </flux:select>
+        </flux:field>
+
+        <flux:field>
+            <flux:label>{{ __('Instructor') }}</flux:label>
+            <flux:select wire:model.live="instructorFilter">
+                <option value="">{{ __('All instructors') }}</option>
+                @foreach($this->instructors as $instructor)
+                    <option value="{{ $instructor }}">{{ $instructor }}</option>
+                @endforeach
+            </flux:select>
+        </flux:field>
+
+        <flux:field>
+            <flux:label>{{ __('Sessions') }}</flux:label>
+            <flux:select wire:model.live="hasSessionsFilter">
+                <option value="all">{{ __('All') }}</option>
+                <option value="with">{{ __('With sessions') }}</option>
+                <option value="without">{{ __('Without sessions') }}</option>
+            </flux:select>
+        </flux:field>
+    </x-ui.dashboard.filters>
 
     @include('livewire.admin.courses.partials.courses-table')
     

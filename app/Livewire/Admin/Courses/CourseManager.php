@@ -12,11 +12,13 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use App\Livewire\Concerns\HasFilters;
 
 #[Layout('layouts.app')]
 class CourseManager extends Component
 {
     use WithFileUploads;
+    use HasFilters;
 
     public $courses;
 
@@ -39,6 +41,12 @@ class CourseManager extends Component
     public $viewingCourseId = null;
 
     public $search = '';
+
+    public $categoryFilter = '';
+
+    public $instructorFilter = '';
+
+    public $hasSessionsFilter = 'all';
 
     public $deletingCourseId = null;
 
@@ -66,21 +74,54 @@ class CourseManager extends Component
         $this->loadCourses();
     }
 
+    public function updatedCategoryFilter()
+    {
+        $this->loadCourses();
+    }
+
+    public function updatedInstructorFilter()
+    {
+        $this->loadCourses();
+    }
+
+    public function updatedHasSessionsFilter()
+    {
+        $this->loadCourses();
+    }
+
     public function loadCourses()
     {
-        $this->courses = Course::query()
-            ->when($this->search, function ($query) {
-                $query->where('name', 'like', '%'.$this->search.'%')
-                    ->orWhere('instructor', 'like', '%'.$this->search.'%');
-            })
-            ->orderBy('name')
-            ->get();
+        $query = Course::query();
+
+        $query = $this->applySearchFilter($query, $this->search, ['name', 'instructor']);
+
+        if ($this->categoryFilter) {
+            $query->where('category', $this->categoryFilter);
+        }
+
+        if ($this->instructorFilter) {
+            $query->where('instructor', $this->instructorFilter);
+        }
+
+        $query = $this->applyRelationPresenceFilter($query, 'sessions', $this->hasSessionsFilter);
+
+        $this->courses = $query->orderBy('name')->get();
     }
 
     public function openViewModal($id)
     {
         $this->viewingCourseId = $id;
         Flux::modal('view-course-modal')->show();
+    }
+
+    public function getCategoriesProperty()
+    {
+        return Course::query()->select('category')->distinct()->orderBy('category')->pluck('category')->filter()->values();
+    }
+
+    public function getInstructorsProperty()
+    {
+        return Course::query()->select('instructor')->distinct()->orderBy('instructor')->pluck('instructor')->filter()->values();
     }
 
     public function openCreateModal()
