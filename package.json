@@ -20,9 +20,6 @@
         "lightningcss-linux-x64-gnu": "^1.29.1"
     },
     "devDependencies": {
-        "axios": "^1.14.0",
-        "laravel-echo": "^2.3.3",
-        "pusher-js": "^8.5.0",
-        "ws": "^8.20.0"
+        "axios": "^1.14.0"
     }
 }
