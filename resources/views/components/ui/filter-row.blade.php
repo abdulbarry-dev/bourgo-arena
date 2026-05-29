@@ -4,7 +4,7 @@
 ])
 
 <div {{ $attributes->class(['flex flex-wrap items-end gap-4']) }}>
-    <div class="flex-auto" style="min-width: {{ $searchMinWidth }};">
+    <div class="flex-auto" @style(['min-width: '.$searchMinWidth])>
         {{ $search ?? null }}
     </div>
 

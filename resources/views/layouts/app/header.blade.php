@@ -13,16 +13,37 @@
                 <flux:navbar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                     {{ __('Dashboard') }}
                 </flux:navbar.item>
+
+                @if(auth()->user()?->canAccessDashboardModule('members'))
                 <flux:navbar.item icon="user-group" :href="route('admin.members')" :current="request()->routeIs('admin.members*')" wire:navigate>
                     {{ __('Members') }}
                 </flux:navbar.item>
+                @endif
+
+                @if(auth()->user()?->canAccessDashboardModule('subscriptions'))
                 <flux:navbar.item icon="credit-card" :href="route('admin.subscriptions')" :current="request()->routeIs('admin.subscriptions*')" wire:navigate>
                     {{ __('Subscriptions') }}
                 </flux:navbar.item>
+                @endif
 
-                @if(auth()->check() && auth()->user()->isAdmin())
+                @if(auth()->user()?->canAccessDashboardModule('schedule'))
+                <flux:navbar.item icon="calendar-date-range" :href="route('admin.course-sessions.index')" :current="request()->routeIs('admin.course-sessions.*')" wire:navigate>
+                    {{ __('Schedule') }}
+                </flux:navbar.item>
+                @endif
+
+                @if(auth()->user()?->canAccessDashboardModule('courses'))
+                    <flux:navbar.item icon="book-open" :href="route('admin.courses.index')" :current="request()->routeIs('admin.courses.*')" wire:navigate>
+                        {{ __('Courses') }}
+                    </flux:navbar.item>
+                    <flux:navbar.item icon="trophy" :href="route('admin.events.index')" :current="request()->routeIs('admin.events.*')" wire:navigate>
+                        {{ __('Events & Tournaments') }}
+                    </flux:navbar.item>
                     <flux:navbar.item icon="clipboard-document-list" :href="route('admin.plans')" :current="request()->routeIs('admin.plans*')" wire:navigate>
                         {{ __('Plans') }}
+                    </flux:navbar.item>
+                    <flux:navbar.item icon="user-circle" :href="route('admin.managers.index')" :current="request()->routeIs('admin.managers.*')" wire:navigate>
+                        {{ __('Managers') }}
                     </flux:navbar.item>
                 @endif
             </flux:navbar>
@@ -68,15 +89,37 @@
                     <flux:sidebar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                         {{ __('Dashboard')  }}
                     </flux:sidebar.item>
+
+                    @if(auth()->user()?->canAccessDashboardModule('members'))
                     <flux:sidebar.item icon="user-group" :href="route('admin.members')" :current="request()->routeIs('admin.members*')" wire:navigate>
                         {{ __('Members') }}
                     </flux:sidebar.item>
+                    @endif
+
+                    @if(auth()->user()?->canAccessDashboardModule('subscriptions'))
                     <flux:sidebar.item icon="credit-card" :href="route('admin.subscriptions')" :current="request()->routeIs('admin.subscriptions*')" wire:navigate>
                         {{ __('Subscriptions') }}
                     </flux:sidebar.item>
-                    @if(auth()->check() && auth()->user()->isAdmin())
+                    @endif
+
+                    @if(auth()->user()?->canAccessDashboardModule('schedule'))
+                    <flux:sidebar.item icon="calendar-date-range" :href="route('admin.course-sessions.index')" :current="request()->routeIs('admin.course-sessions.*')" wire:navigate>
+                        {{ __('Schedule') }}
+                    </flux:sidebar.item>
+                    @endif
+
+                    @if(auth()->user()?->canAccessDashboardModule('courses'))
+                        <flux:sidebar.item icon="book-open" :href="route('admin.courses.index')" :current="request()->routeIs('admin.courses.*')" wire:navigate>
+                            {{ __('Courses') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="trophy" :href="route('admin.events.index')" :current="request()->routeIs('admin.events.*')" wire:navigate>
+                            {{ __('Events & Tournaments') }}
+                        </flux:sidebar.item>
                         <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.plans')" :current="request()->routeIs('admin.plans*')" wire:navigate>
                             {{ __('Plans') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="user-circle" :href="route('admin.managers.index')" :current="request()->routeIs('admin.managers.*')" wire:navigate>
+                            {{ __('Managers') }}
                         </flux:sidebar.item>
                     @endif
                 </flux:sidebar.group>

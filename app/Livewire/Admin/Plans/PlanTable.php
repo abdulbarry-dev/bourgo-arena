@@ -213,7 +213,7 @@ class PlanTable extends Component
                 }
 
                 $this->showFlyout = false;
-                $this->dispatch('toast', message: 'Plan created successfully.', type: 'success');
+                $this->dispatch('toast', message: __('Plan created successfully.'), type: 'success');
 
                 return;
             }
@@ -248,20 +248,20 @@ class PlanTable extends Component
 
             if (! $dirty && ! $syncDirty) {
                 $this->showFlyout = false;
-                $this->dispatch('toast', message: 'No changes detected for this plan.', type: 'info');
+                $this->dispatch('toast', message: __('No changes detected for this plan.'), type: 'info');
 
                 return;
             }
 
             $this->showFlyout = false;
-            $this->dispatch('toast', message: 'Plan updated successfully.', type: 'success');
+            $this->dispatch('toast', message: __('Plan updated successfully.'), type: 'success');
 
         } catch (Throwable $exception) {
             report($exception);
 
             if (! $exception instanceof ValidationException) {
-                $this->addError('save', 'Plan could not be saved right now. Please try again.');
-                $this->dispatch('toast', message: 'Plan save failed. Please review the form and try again.', type: 'danger');
+                $this->addError('save', __('Plan could not be saved right now. Please try again.'));
+                $this->dispatch('toast', message: __('Plan save failed. Please review the form and try again.'), type: 'danger');
             } else {
                 throw $exception;
             }

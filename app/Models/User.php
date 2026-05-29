@@ -78,6 +78,15 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->isAdmin() || $this->isManager();
     }
 
+    public function canAccessDashboardModule(string $module): bool
+    {
+        return match ($module) {
+            'dashboard', 'members', 'subscriptions', 'schedule' => $this->isStaff(),
+            'courses', 'events', 'plans', 'managers' => $this->isAdmin(),
+            default => false,
+        };
+    }
+
     /**
      * Get the user's initials
      */

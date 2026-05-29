@@ -75,12 +75,12 @@ class EditMemberFlyout extends Component
             ]);
 
             $this->dispatch('member-updated', memberId: $this->member->id);
-            $this->dispatch('toast', message: 'Member profile updated successfully.', type: 'success');
+            $this->dispatch('toast', message: __('Member profile updated successfully.'), type: 'success');
 
             $this->show = false;
         } catch (Throwable $exception) {
             report($exception);
-            $this->addError('update', 'Could not update member profile. Please try again.');
+            $this->addError('update', __('Could not update member profile. Please try again.'));
         } finally {
             $this->isProcessing = false;
         }
@@ -117,8 +117,8 @@ class EditMemberFlyout extends Component
     protected function messages(): array
     {
         return [
-            'phone.regex' => 'Phone number must be digits only, with optional leading +.',
-            'dateOfBirth.before_or_equal' => 'Member must be at least 16 years old.',
+            'phone.regex' => __('Phone number must be digits only, with optional leading +.'),
+            'dateOfBirth.before_or_equal' => __('Member must be at least 16 years old.'),
         ];
     }
 

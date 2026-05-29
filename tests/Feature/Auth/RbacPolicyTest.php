@@ -147,4 +147,20 @@ class RbacPolicyTest extends TestCase
         $this->assertTrue($this->manager->isManager());
         $this->assertTrue($this->manager->isStaff());
     }
+
+    /**
+     * Test dashboard module access helpers.
+     */
+    public function test_user_dashboard_module_access_helpers(): void
+    {
+        $this->assertTrue($this->admin->canAccessDashboardModule('members'));
+        $this->assertTrue($this->admin->canAccessDashboardModule('courses'));
+        $this->assertTrue($this->admin->canAccessDashboardModule('managers'));
+
+        $this->assertTrue($this->manager->canAccessDashboardModule('members'));
+        $this->assertTrue($this->manager->canAccessDashboardModule('schedule'));
+        $this->assertFalse($this->manager->canAccessDashboardModule('courses'));
+        $this->assertFalse($this->manager->canAccessDashboardModule('plans'));
+        $this->assertFalse($this->manager->canAccessDashboardModule('managers'));
+    }
 }

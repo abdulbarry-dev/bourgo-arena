@@ -3,7 +3,14 @@
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-screen bg-white dark:bg-zinc-800 overflow-x-hidden">
+    @php
+        $isLockedDashboardPage = request()->routeIs('dashboard', 'admin.members', 'admin.subscriptions', 'admin.events.index');
+    @endphp
+
+    <body @class([
+        'min-h-screen bg-white dark:bg-zinc-800 overflow-x-hidden',
+        'h-dvh overflow-hidden' => $isLockedDashboardPage,
+    ])>
         <flux:sidebar sticky collapsible class="transition-all duration-300 ease-in-out border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 overflow-x-hidden">
             <flux:sidebar.header>
                 <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
@@ -14,19 +21,31 @@
                 <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
+
+                    @if(auth()->user()?->canAccessDashboardModule('members'))
                     <flux:sidebar.item icon="user-group" :href="route('admin.members')" :current="request()->routeIs('admin.members*')" wire:navigate>
                         {{ __('Members') }}
                     </flux:sidebar.item>
+                    @endif
+
+                    @if(auth()->user()?->canAccessDashboardModule('subscriptions'))
                     <flux:sidebar.item icon="credit-card" :href="route('admin.subscriptions')" :current="request()->routeIs('admin.subscriptions*')" wire:navigate>
                         {{ __('Subscriptions') }}
                     </flux:sidebar.item>
+                    @endif
+
+                    @if(auth()->user()?->canAccessDashboardModule('schedule'))
                     <flux:sidebar.item icon="calendar-date-range" :href="route('admin.course-sessions.index')" :current="request()->routeIs('admin.course-sessions.*')" wire:navigate>
                         {{ __('Schedule') }}
                     </flux:sidebar.item>
+                    @endif
 
-                    @if(auth()->check() && auth()->user()->isAdmin())
+                    @if(auth()->user()?->canAccessDashboardModule('courses'))
                         <flux:sidebar.item icon="book-open" :href="route('admin.courses.index')" :current="request()->routeIs('admin.courses.*')" wire:navigate>
                             {{ __('Courses') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="trophy" :href="route('admin.events.index')" :current="request()->routeIs('admin.events.*')" wire:navigate>
+                            {{ __('Events & Tournaments') }}
                         </flux:sidebar.item>
                         <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.plans')" :current="request()->routeIs('admin.plans*')" wire:navigate>
                             {{ __('Plans') }}

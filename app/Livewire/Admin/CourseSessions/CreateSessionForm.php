@@ -80,10 +80,10 @@ class CreateSessionForm extends Component
             $this->reset(['course_id', 'starts_at', 'duration_minutes', 'capacity']);
 
             Flux::modal('create-course-session')->close();
-            $this->dispatch('toast', message: 'Course schedule added successfully!', type: 'success');
+            $this->dispatch('toast', message: __('Course schedule added successfully!'), type: 'success');
         } catch (\Exception $e) {
             Log::error('Session creation failed', ['error' => $e->getMessage()]);
-            $this->dispatch('toast', message: 'Failed to create schedule.', type: 'danger');
+            $this->dispatch('toast', message: __('Failed to create schedule.'), type: 'danger');
         }
     }
 

@@ -6,6 +6,7 @@ test('admin can view subscriptions dashboard page', function () {
     $this->actingAs(User::factory()->admin()->create())
         ->get(route('admin.subscriptions'))
         ->assertOk()
+        ->assertSee('h-dvh overflow-hidden', false)
         ->assertSee('Subscriptions')
         ->assertSee('Enroll Subscription')
         ->assertSee('Expiring Subscriptions')
