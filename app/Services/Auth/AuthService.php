@@ -168,7 +168,6 @@ class AuthService
             'date_of_birth' => $dto->date_of_birth,
             'gender' => $dto->gender,
             'is_family_account' => $dto->is_parent_account,
-            'pin' => $dto->pin,
             'status' => 'active',
             'state' => 'active',
             'onboarding_completed_at' => now(),

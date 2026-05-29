@@ -1,4 +1,4 @@
-<x-mail::layout>
+<x-mail.layout>
 
 <!-- Logo -->
 <!-- logo removed per request -->
@@ -32,4 +32,4 @@
   <div style="font-size: 13px; color: #999999; line-height: 1.5;">{{ __('This link expires on :date.', ['date' => $expiresAt]) }}</div>
 </div>
 
-</x-mail::layout>
+</x-mail.layout>

@@ -210,7 +210,6 @@ test('member can complete registration through the complete-registration endpoin
         'date_of_birth' => '1995-05-05',
         'gender' => 'female',
         'is_parent_account' => true,
-        'pin' => '1234',
     ]);
 
     $response->assertStatus(201);
@@ -219,6 +218,18 @@ test('member can complete registration through the complete-registration endpoin
         'email' => 'complete@example.com',
         'state' => 'active',
     ]);
+});
+
+test('access history endpoint is no longer exposed', function () {
+    $member = Member::factory()->create([
+        'email_verified_at' => now(),
+        'onboarding_completed_at' => now(),
+        'status' => 'active',
+    ]);
+
+    Sanctum::actingAs($member, ['*'], 'sanctum');
+
+    $this->getJson('/api/v1/user/access-history')->assertNotFound();
 });
 
 test('authenticated member can request family otp', function () {

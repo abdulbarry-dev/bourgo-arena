@@ -88,7 +88,6 @@ test('full mobile auth flow strictly follows state machine', function () {
         'date_of_birth' => '1990-01-01',
         'gender' => 'male',
         'is_parent_account' => true,
-        'pin' => '1234',
     ]);
 
     $completeResponse->assertStatus(201);
@@ -98,7 +97,6 @@ test('full mobile auth flow strictly follows state machine', function () {
     $member->refresh();
     expect($member->status)->toBe('active');
     expect($member->isOnboardingCompleted())->toBeTrue();
-    expect($member->pin)->not->toBeNull();
 
     // 7. Access protected route with full token
     $newToken = $completeResponse->json('data.token');

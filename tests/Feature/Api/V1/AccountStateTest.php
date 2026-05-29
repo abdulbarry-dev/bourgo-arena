@@ -189,7 +189,6 @@ test('registration completion transitions to active', function () {
         'date_of_birth' => '1992-02-02',
         'gender' => 'female',
         'is_parent_account' => true,
-        'pin' => '1234',
     ]);
 
     $response->assertSuccessful()
@@ -203,7 +202,6 @@ test('registration completion transitions to active', function () {
     $member->refresh();
     expect($member->status)->toBe('active');
     expect($member->onboarding_completed_at)->not->toBeNull();
-    expect($member->pin)->not->toBeNull();
 });
 
 test('registration completion is blocked until otp verification exists', function () {
@@ -227,7 +225,6 @@ test('registration completion is blocked until otp verification exists', functio
         'date_of_birth' => '1992-02-02',
         'gender' => 'female',
         'is_parent_account' => true,
-        'pin' => '1234',
     ]);
 
     $response->assertStatus(403)

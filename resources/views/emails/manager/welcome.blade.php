@@ -1,4 +1,4 @@
-<x-mail::layout>
+<x-mail.layout>
 
 <!-- Logo -->
 <!-- logo removed per request -->
@@ -27,4 +27,4 @@
 <!-- CTA -->
 <a href="{{ $resetUrl }}" style="display: block; width: 100%; background-color: #c8f000; color: #111111; font-size: 12.5px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; text-align: center; text-decoration: none; padding: 16px 20px; border-radius: 5px; border: none; box-sizing: border-box;">{{ __('Access Manager Portal') }}</a>
 
-</x-mail::layout>
+</x-mail.layout>

@@ -22,7 +22,6 @@ class CompleteRegistrationRequest extends BaseFormRequest
             'date_of_birth' => ['required', 'date', 'before:today'],
             'gender' => ['required', 'string', 'in:male,female'],
             'is_parent_account' => ['required', 'boolean'],
-            'pin' => ['required', 'string', 'size:4'],
         ];
     }
 }

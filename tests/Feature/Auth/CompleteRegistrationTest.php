@@ -38,7 +38,6 @@ it('completes onboarding and returns a full-access token', function () {
         'date_of_birth' => '1990-01-01',
         'gender' => 'female',
         'is_parent_account' => false,
-        'pin' => '1234',
     ];
 
     $response = $this->withHeaders(['Authorization' => "Bearer $token"])

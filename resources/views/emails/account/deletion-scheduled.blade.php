@@ -1,4 +1,4 @@
-<x-mail::layout>
+<x-mail.layout>
 
 <!-- Logo -->
 <!-- logo removed per request -->
@@ -21,4 +21,4 @@
   <div style="font-size: 13px; color: #999999; line-height: 1.5;">{{ __('If you did not request this, you can cancel the deletion by logging back into your account before the 48-hour window expires.') }}</div>
 </div>
 
-</x-mail::layout>
+</x-mail.layout>

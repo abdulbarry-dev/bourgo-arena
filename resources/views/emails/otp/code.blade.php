@@ -1,4 +1,4 @@
-<x-mail::layout>
+<x-mail.layout>
 
 <!-- Logo -->
 <!-- logo removed per request -->
@@ -28,4 +28,4 @@
   <div style="font-size: 13px; color: #999999; line-height: 1.5;">{{ __('This code will expire in :minutes minutes.', ['minutes' => config('otp.expiry', 10)]) }}</div>
 </div>
 
-</x-mail::layout>
+</x-mail.layout>

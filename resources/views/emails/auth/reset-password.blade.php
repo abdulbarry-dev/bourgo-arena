@@ -1,4 +1,4 @@
-<x-mail::layout>
+<x-mail.layout>
 
 <!-- Logo -->
 <!-- logo removed per request -->
@@ -24,4 +24,4 @@
   <div style="font-size: 13px; color: #999999; line-height: 1.5;">{{ __('This password reset link will expire in :count minutes.', ['count' => config('auth.passwords.users.expire', 60)]) }}</div>
 </div>
 
-</x-mail::layout>
+</x-mail.layout>

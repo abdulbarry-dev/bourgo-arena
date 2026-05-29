@@ -1,4 +1,4 @@
-<x-mail::layout>
+<x-mail.layout>
 
 <!-- Logo -->
 <!-- logo removed per request -->
@@ -48,4 +48,4 @@
   </div>
 </div>
 
-</x-mail::layout>
+</x-mail.layout>

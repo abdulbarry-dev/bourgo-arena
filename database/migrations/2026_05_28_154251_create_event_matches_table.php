@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('status')->default('scheduled');
             $table->foreignId('next_match_id')->nullable()->constrained('event_matches')->nullOnDelete();
             $table->timestamps();
+            $table->timestamp('scheduled_at')->nullable();
         });
     }
 

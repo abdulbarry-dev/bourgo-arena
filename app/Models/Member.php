@@ -44,7 +44,6 @@ class Member extends Authenticatable
         'otp_attempts',
         'otp_last_sent_at',
         'loyalty_points',
-        'pin',
     ];
 
     protected $casts = [
@@ -59,7 +58,6 @@ class Member extends Authenticatable
         'scheduled_for_deletion_at' => 'datetime',
         'password' => 'hashed',
         'otp_code' => 'hashed',
-        'pin' => 'hashed',
         'is_family_account' => 'boolean',
         'is_archived' => 'boolean',
     ];
@@ -72,7 +70,6 @@ class Member extends Authenticatable
     protected $hidden = [
         'password',
         'otp_code',
-        'pin',
         'remember_token',
     ];
 
@@ -106,7 +103,7 @@ class Member extends Authenticatable
 
     public function isOnboardingCompleted(): bool
     {
-        $has_onboarded = $this->onboarding_completed_at !== null || $this->pin !== null;
+        $has_onboarded = $this->onboarding_completed_at !== null;
 
         // Require at least one verified OTP method (email or phone) to
         // consider onboarding complete. This ensures accounts flagged as
