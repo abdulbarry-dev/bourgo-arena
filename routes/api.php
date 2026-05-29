@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\EventController;
+use App\Http\Controllers\Api\EventParticipantController;
 use App\Http\Controllers\Api\V1\ActivityController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CourseController;
@@ -20,7 +22,7 @@ Route::prefix('v1')->group(function () {
     Route::get('activities', [ActivityController::class, 'index'])->name('api.v1.activities.index');
     Route::get('activities/{activity}', [ActivityController::class, 'show'])->name('api.v1.activities.show');
     Route::get('activities/{activity}/slots', [ActivityController::class, 'slots'])->name('api.v1.activities.slots');
-    Route::get('reservations/slots', [ActivityController::class, 'slots'])->name('api.v1.reservations.slots'); // Alias
+    Route::get('reservations/slots', [ActivityController::class, 'slots'])->name('api.v1.reservations.slots');
     Route::get('courses', [CourseController::class, 'index'])->name('api.v1.courses.index');
 
     Route::prefix('auth')->group(function () {
@@ -55,7 +57,6 @@ Route::prefix('v1')->group(function () {
         Route::get('member/profile', [MemberController::class, 'profile'])->name('api.v1.member.profile');
         Route::put('member/profile', [MemberController::class, 'updateProfile'])->name('api.v1.member.update-profile');
 
-        // User Aliases
         Route::prefix('user')->group(function () {
             Route::get('profile', [MemberController::class, 'profile'])->name('api.v1.user.profile');
             Route::put('profile', [MemberController::class, 'updateProfile'])->name('api.v1.user.update-profile');
@@ -70,26 +71,39 @@ Route::prefix('v1')->group(function () {
         Route::get('member/tier', [TierController::class, 'show'])->name('api.v1.member.tier');
         Route::get('loyalty/balance', [LoyaltyController::class, 'balance'])->name('api.v1.loyalty.balance');
 
-        Route::get('family/children', [FamilyController::class, 'index'])->name('api.v1.family.children.index');
-        Route::get('family/members', [FamilyController::class, 'index'])->name('api.v1.family.members.index'); // Alias
-        Route::post('family/children', [FamilyController::class, 'store'])->name('api.v1.family.children.store');
-        Route::post('family/enable-feature', [FamilyController::class, 'enableFamilyFeature'])->name('api.v1.family.enable-feature');
-        Route::post('family/disable-feature', [FamilyController::class, 'disableFamilyFeature'])->name('api.v1.family.disable-feature');
-        Route::post('family/members', [FamilyController::class, 'store'])->name('api.v1.family.members.store'); // Alias
-        Route::put('family/children/{member}', [FamilyController::class, 'update'])->name('api.v1.family.children.update');
-        Route::put('family/members/{member}', [FamilyController::class, 'update'])->name('api.v1.family.members.update'); // Alias
-        Route::delete('family/children/{member}', [FamilyController::class, 'destroy'])->name('api.v1.family.children.destroy');
-        Route::delete('family/members/{member}', [FamilyController::class, 'destroy'])->name('api.v1.family.members.destroy'); // Alias
+        Route::prefix('family')->group(function () {
+            Route::get('children', [FamilyController::class, 'index'])->name('api.v1.family.children.index');
+            Route::get('members', [FamilyController::class, 'index'])->name('api.v1.family.members.index');
+            Route::post('children', [FamilyController::class, 'store'])->name('api.v1.family.children.store');
+            Route::post('members', [FamilyController::class, 'store'])->name('api.v1.family.members.store');
+            Route::post('enable-feature', [FamilyController::class, 'enableFamilyFeature'])->name('api.v1.family.enable-feature');
+            Route::post('disable-feature', [FamilyController::class, 'disableFamilyFeature'])->name('api.v1.family.disable-feature');
+            Route::put('children/{member}', [FamilyController::class, 'update'])->name('api.v1.family.children.update');
+            Route::put('members/{member}', [FamilyController::class, 'update'])->name('api.v1.family.members.update');
+            Route::delete('children/{member}', [FamilyController::class, 'destroy'])->name('api.v1.family.children.destroy');
+            Route::delete('members/{member}', [FamilyController::class, 'destroy'])->name('api.v1.family.members.destroy');
+        });
 
         Route::post('device-token', [DeviceTokenController::class, 'store'])->name('api.v1.device-token.store');
 
         Route::get('member/subscription', [SubscriptionController::class, 'active'])->name('api.v1.member.subscription');
     });
 
-    // Konnect payment endpoints (initiate / verify)
     Route::prefix('payments')->group(function () {
         Route::post('initiate', [PaymentController::class, 'initiate'])->middleware('throttle:payments')->name('api.v1.payments.initiate');
         Route::post('verify', [PaymentController::class, 'verify'])->name('api.v1.payments.verify');
         Route::post('webhook/konnect', [PaymentController::class, 'webhook'])->name('api.v1.payments.webhook');
     });
+});
+
+// Events API
+Route::get('/events', [EventController::class, 'index']);
+Route::get('/events/{event}', [EventController::class, 'show']);
+Route::get('/events/{event}/bracket', [EventController::class, 'bracket']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/user/events', [EventParticipantController::class, 'myEvents']);
+    Route::post('/events/{event}/register', [EventParticipantController::class, 'register']);
+    Route::post('/events/{event}/withdraw', [EventParticipantController::class, 'withdraw']);
+    Route::post('/events/{event}/check-in', [EventParticipantController::class, 'checkIn']);
 });

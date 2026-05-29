@@ -2,8 +2,8 @@
 
 use App\Livewire\Admin\Courses\CourseManager;
 use App\Livewire\Admin\CourseSessions\CourseSessionManager;
+use App\Livewire\Admin\Events\EventManager;
 use App\Livewire\Admin\Managers\Index;
-use App\Models\Member;
 use App\Models\Subscription;
 use Illuminate\Support\Facades\Route;
 
@@ -61,5 +61,8 @@ Route::prefix('admin')->middleware('role:admin')->group(function () {
 
     Route::get('/managers', Index::class)
         ->name('admin.managers.index');
+
+    Route::get('/events', EventManager::class)
+        ->name('admin.events.index');
 
 });
