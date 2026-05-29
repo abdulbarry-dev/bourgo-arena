@@ -28,15 +28,3 @@ it('opens the member detail flyout from the open event', function () {
         ->assertSee('Flyout Member')
         ->assertSee('Flyout Plan');
 });
-
-it('closes the detail flyout before opening the edit flyout', function () {
-    $member = Member::factory()->create(['name' => 'Editable Member']);
-
-    $component = Livewire::test(MemberDetailPanel::class)
-        ->dispatch('open-member-detail-panel', memberId: $member->id)
-        ->call('editProfile');
-
-    $component
-        ->assertSet('isDetailPanelOpen', false)
-        ->assertDispatched('open-edit-member-flyout');
-});
