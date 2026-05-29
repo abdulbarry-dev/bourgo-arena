@@ -153,14 +153,14 @@ class RbacPolicyTest extends TestCase
      */
     public function test_user_dashboard_module_access_helpers(): void
     {
-        $this->assertTrue($this->admin->canAccessDashboardModule('members'));
-        $this->assertTrue($this->admin->canAccessDashboardModule('courses'));
-        $this->assertTrue($this->admin->canAccessDashboardModule('managers'));
+        $this->assertTrue($this->admin->can('access-dashboard-module', 'members'));
+        $this->assertTrue($this->admin->can('access-dashboard-module', 'courses'));
+        $this->assertTrue($this->admin->can('access-dashboard-module', 'managers'));
 
-        $this->assertTrue($this->manager->canAccessDashboardModule('members'));
-        $this->assertTrue($this->manager->canAccessDashboardModule('schedule'));
-        $this->assertFalse($this->manager->canAccessDashboardModule('courses'));
-        $this->assertFalse($this->manager->canAccessDashboardModule('plans'));
-        $this->assertFalse($this->manager->canAccessDashboardModule('managers'));
+        $this->assertTrue($this->manager->can('access-dashboard-module', 'members'));
+        $this->assertTrue($this->manager->can('access-dashboard-module', 'schedule'));
+        $this->assertFalse($this->manager->can('access-dashboard-module', 'courses'));
+        $this->assertFalse($this->manager->can('access-dashboard-module', 'plans'));
+        $this->assertFalse($this->manager->can('access-dashboard-module', 'managers'));
     }
 }

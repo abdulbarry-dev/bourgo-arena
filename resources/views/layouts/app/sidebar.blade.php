@@ -22,25 +22,25 @@
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
 
-                    @if(auth()->user()?->canAccessDashboardModule('members'))
+                    @if(auth()->user()?->can('access-dashboard-module', 'members'))
                     <flux:sidebar.item icon="user-group" :href="route('admin.members')" :current="request()->routeIs('admin.members*')" wire:navigate>
                         {{ __('Members') }}
                     </flux:sidebar.item>
                     @endif
 
-                    @if(auth()->user()?->canAccessDashboardModule('subscriptions'))
+                    @if(auth()->user()?->can('access-dashboard-module', 'subscriptions'))
                     <flux:sidebar.item icon="credit-card" :href="route('admin.subscriptions')" :current="request()->routeIs('admin.subscriptions*')" wire:navigate>
                         {{ __('Subscriptions') }}
                     </flux:sidebar.item>
                     @endif
 
-                    @if(auth()->user()?->canAccessDashboardModule('schedule'))
+                    @if(auth()->user()?->can('access-dashboard-module', 'schedule'))
                     <flux:sidebar.item icon="calendar-date-range" :href="route('admin.course-sessions.index')" :current="request()->routeIs('admin.course-sessions.*')" wire:navigate>
                         {{ __('Schedule') }}
                     </flux:sidebar.item>
                     @endif
 
-                    @if(auth()->user()?->canAccessDashboardModule('courses'))
+                    @if(auth()->user()?->can('access-dashboard-module', 'courses'))
                         <flux:sidebar.item icon="book-open" :href="route('admin.courses.index')" :current="request()->routeIs('admin.courses.*')" wire:navigate>
                             {{ __('Courses') }}
                         </flux:sidebar.item>

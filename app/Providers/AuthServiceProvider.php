@@ -10,16 +10,13 @@ use App\Policies\MemberPolicy;
 use App\Policies\PlanPolicy;
 use App\Policies\ReservationPolicy;
 use App\Policies\SubscriptionPolicy;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 
 class AuthServiceProvider extends ServiceProvider
 {
-    /**
-     * The policy mappings for the application.
-     *
-     * @var array<class-string, class-string>
-     */
+   
     protected $policies = [
         Member::class => MemberPolicy::class,
         Subscription::class => SubscriptionPolicy::class,
@@ -27,15 +24,24 @@ class AuthServiceProvider extends ServiceProvider
         ApiReservation::class => ReservationPolicy::class,
     ];
 
-    /**
-     * Register any authentication / authorization services.
-     */
     public function boot(): void
     {
         $this->registerPolicies();
 
         Gate::define('viewApiDocs', function (?Member $member) {
             return true;
+        });
+
+        Gate::define('access-dashboard-module', function (\App\Models\User $user, string $module) {
+            return match ($module) {
+                'dashboard', 'members', 'subscriptions', 'schedule' => $user->isStaff(),
+                'courses', 'events', 'plans', 'managers' => $user->isAdmin(),
+                default => false,
+            };
+        });
+
+        ResetPassword::toMailUsing(function (object $notifiable, string $token) {
+            return new \App\Notifications\QueuedResetPassword($token);
         });
     }
 }

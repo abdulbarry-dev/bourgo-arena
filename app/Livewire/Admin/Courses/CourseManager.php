@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\Courses;
 
+use App\Livewire\Concerns\HasFilters;
 use App\Models\Course;
 use App\Models\CourseSession;
 use Carbon\Carbon;
@@ -12,13 +13,12 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\WithFileUploads;
-use App\Livewire\Concerns\HasFilters;
 
 #[Layout('layouts.app')]
 class CourseManager extends Component
 {
-    use WithFileUploads;
     use HasFilters;
+    use WithFileUploads;
 
     public $courses;
 

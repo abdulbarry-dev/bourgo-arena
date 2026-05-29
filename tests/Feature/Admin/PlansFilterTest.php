@@ -1,8 +1,8 @@
 <?php
 
+use App\Livewire\Admin\Plans\PlanTable;
 use App\Models\Plan;
 use App\Models\User;
-use App\Livewire\Admin\Plans\PlanTable;
 use Livewire\Livewire;
 
 beforeEach(function () {

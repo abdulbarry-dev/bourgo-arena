@@ -109,8 +109,8 @@ test('member table renders detail flyout action per row', function () {
 
     Livewire::test(MemberTable::class)
         ->assertSee('Actions')
-    ->assertSee('open-member-detail-panel')
-    ->assertSee((string) $member->id);
+        ->assertSee('open-member-detail-panel')
+        ->assertSee((string) $member->id);
 });
 
 test('member table toggles sorting direction on repeated column sort', function () {

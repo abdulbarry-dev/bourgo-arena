@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Notifications\QueuedResetPassword;
 use App\UserRole;
 use Database\Factories\Shared\Identity\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -25,14 +24,8 @@ class User extends Authenticatable implements MustVerifyEmail
         return UserFactory::new();
     }
 
-    /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable, TwoFactorAuthenticatable;
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -63,39 +56,13 @@ class User extends Authenticatable implements MustVerifyEmail
         return ! is_null($this->banned_at);
     }
 
-    public function ban(string $reason): void
-    {
-        $this->update([
-            'banned_at' => now(),
-            'ban_reason' => $reason,
-        ]);
-    }
-
-    public function unban(): void
-    {
-        $this->update([
-            'banned_at' => null,
-            'ban_reason' => null,
-        ]);
-    }
-
     public function isStaff(): bool
     {
         return $this->isAdmin() || $this->isManager();
     }
 
-    public function canAccessDashboardModule(string $module): bool
-    {
-        return match ($module) {
-            'dashboard', 'members', 'subscriptions', 'schedule' => $this->isStaff(),
-            'courses', 'events', 'plans', 'managers' => $this->isAdmin(),
-            default => false,
-        };
-    }
 
-    /**
-     * Get the user's initials
-     */
+
     public function initials(): string
     {
         return Str::of($this->name)
@@ -105,13 +72,10 @@ class User extends Authenticatable implements MustVerifyEmail
             ->implode('');
     }
 
-    /**
-     * Send the password reset notification.
-     *
-     * @param  string  $token
-     */
     public function sendPasswordResetNotification($token): void
     {
-        $this->notify(new QueuedResetPassword($token));
+        app(\App\Actions\Users\SendPasswordResetNotificationAction::class)->execute($this, $token);
     }
+
+
 }

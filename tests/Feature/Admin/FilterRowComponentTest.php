@@ -1,10 +1,11 @@
 <?php
 
 use App\Livewire\Admin\Courses\CourseManager;
+use App\Models\User;
 use Livewire\Livewire;
 
 it('renders the shared filter row component in courses filters', function () {
-    $user = \App\Models\User::factory()->admin()->create();
+    $user = User::factory()->admin()->create();
     $this->actingAs($user);
 
     Livewire::test(CourseManager::class)

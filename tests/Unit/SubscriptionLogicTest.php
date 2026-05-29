@@ -2,6 +2,9 @@
 
 namespace Tests\Unit;
 
+use App\Actions\Subscriptions\ResumeSubscriptionAction;
+use App\Actions\Subscriptions\SuspendSubscriptionAction;
+use App\Actions\Subscriptions\TransferSubscriptionAction;
 use App\Models\Member;
 use App\Models\Subscription;
 use App\Models\User;
@@ -117,7 +120,7 @@ it('suspend freezes remaining days and writes an audit log', function () {
         'ends_at' => '2026-04-11',
     ]);
 
-    $subscription->suspend('medical', $manager->id);
+    app(SuspendSubscriptionAction::class)->execute($subscription, 'medical', $manager->id);
     $subscription->refresh();
 
     expect($subscription->status)->toBe('suspended');
@@ -144,7 +147,7 @@ it('resume restores subscription and writes an audit log', function () {
         'ends_at' => '2026-04-30',
     ]);
 
-    $subscription->resume($manager->id);
+    app(ResumeSubscriptionAction::class)->execute($subscription, $manager->id);
     $subscription->refresh();
 
     expect($subscription->status)->toBe('active');
@@ -177,7 +180,7 @@ it('transfer creates a new active subscription, updates source status, and logs 
         'amount_paid' => 120.000,
     ]);
 
-    $newSubscription = $source->transfer($targetMember->id, $admin->id);
+    $newSubscription = app(TransferSubscriptionAction::class)->execute($source, $targetMember->id, $admin->id);
     $source->refresh();
 
     expect($source->status)->toBe('transferred');
@@ -211,7 +214,7 @@ it('transfer for suspended subscriptions uses frozen remaining days', function (
         'ends_at' => '2026-05-01',
     ]);
 
-    $newSubscription = $source->transfer($targetMember->id, $admin->id);
+    $newSubscription = app(TransferSubscriptionAction::class)->execute($source, $targetMember->id, $admin->id);
 
     expect($newSubscription->ends_at->toDateString())->toBe('2026-04-07');
 
@@ -233,16 +236,16 @@ it('transfer validates target member and source state', function () {
         'ends_at' => '2026-04-25',
     ]);
 
-    expect(fn () => $active->transfer($active->member_id, $admin->id))
+    expect(fn () => app(TransferSubscriptionAction::class)->execute($active, $active->member_id, $admin->id))
         ->toThrow(InvalidArgumentException::class);
 
-    expect(fn () => $active->transfer(999999, $admin->id))
+    expect(fn () => app(TransferSubscriptionAction::class)->execute($active, 999999, $admin->id))
         ->toThrow(InvalidArgumentException::class);
 
-    expect(fn () => $active->transfer($occupiedTargetMember->id, $admin->id))
+    expect(fn () => app(TransferSubscriptionAction::class)->execute($active, $occupiedTargetMember->id, $admin->id))
         ->toThrow(InvalidArgumentException::class);
 
-    expect(fn () => $expired->transfer($targetMember->id, $admin->id))
+    expect(fn () => app(TransferSubscriptionAction::class)->execute($expired, $targetMember->id, $admin->id))
         ->toThrow(InvalidArgumentException::class);
 
     Carbon::setTestNow();

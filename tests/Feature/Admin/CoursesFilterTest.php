@@ -1,9 +1,9 @@
 <?php
 
+use App\Livewire\Admin\Courses\CourseManager;
 use App\Models\Course;
 use App\Models\CourseSession;
 use App\Models\User;
-use App\Livewire\Admin\Courses\CourseManager;
 use Livewire\Livewire;
 
 beforeEach(function () {

@@ -16,7 +16,6 @@ class Plan extends Model
         return PlanFactory::new();
     }
 
-    /** @use HasFactory<PlanFactory> */
     use HasFactory;
 
     protected $fillable = [

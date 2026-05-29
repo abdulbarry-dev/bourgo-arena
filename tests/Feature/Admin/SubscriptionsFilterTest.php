@@ -1,10 +1,10 @@
 <?php
 
-use App\Models\Subscription;
+use App\Livewire\Admin\Subscriptions\SubscriptionTable;
 use App\Models\Member;
 use App\Models\Plan;
+use App\Models\Subscription;
 use App\Models\User;
-use App\Livewire\Admin\Subscriptions\SubscriptionTable;
 use Livewire\Livewire;
 
 beforeEach(function () {
