@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Factories;
+namespace Database\Factories\Shared\Members;
 
 use App\Models\Member;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -11,11 +11,8 @@ use Illuminate\Support\Facades\Hash;
  */
 class MemberFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    protected $model = Member::class;
+
     public function definition(): array
     {
         return [
@@ -39,12 +36,34 @@ class MemberFactory extends Factory
 
     public function active(): static
     {
-        return $this->state([
+        return $this->state(fn (): array => [
             'status' => 'active',
             'state' => 'active',
             'email_verified_at' => now(),
             'phone_verified_at' => now(),
             'onboarding_completed_at' => now(),
+        ]);
+    }
+
+    public function pendingOnboarding(): static
+    {
+        return $this->state(fn (): array => [
+            'status' => 'pending_onboarding',
+            'state' => 'pending_onboarding',
+            'email_verified_at' => now(),
+            'phone_verified_at' => now(),
+            'onboarding_completed_at' => null,
+        ]);
+    }
+
+    public function pendingAdditionalVerification(): static
+    {
+        return $this->state(fn (): array => [
+            'status' => 'pending_additional_verification',
+            'state' => 'pending_additional_verification',
+            'email_verified_at' => now(),
+            'phone_verified_at' => null,
+            'onboarding_completed_at' => null,
         ]);
     }
 }

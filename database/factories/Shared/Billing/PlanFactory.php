@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Factories;
+namespace Database\Factories\Shared\Billing;
 
 use App\Models\Plan;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -10,11 +10,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class PlanFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    protected $model = Plan::class;
+
     public function definition(): array
     {
         return [
@@ -29,14 +26,14 @@ class PlanFactory extends Factory
 
     public function archived(): static
     {
-        return $this->state([
+        return $this->state(fn (): array => [
             'is_archived' => true,
         ]);
     }
 
     public function withAllCourses(): static
     {
-        return $this->state([
+        return $this->state(fn (): array => [
             'has_all_courses' => true,
         ]);
     }

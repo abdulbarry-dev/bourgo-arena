@@ -2,12 +2,18 @@
 
 namespace App\Models;
 
-use Database\Factories\EventParticipantFactory;
+use Database\Factories\Dashboard\Events\EventParticipantFactory;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class EventParticipant extends Model
 {
+    protected static function newFactory(): Factory
+    {
+        return EventParticipantFactory::new();
+    }
+
     /** @use HasFactory<EventParticipantFactory> */
     use HasFactory;
 

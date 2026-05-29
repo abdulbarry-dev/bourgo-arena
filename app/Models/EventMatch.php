@@ -2,12 +2,18 @@
 
 namespace App\Models;
 
-use Database\Factories\EventMatchFactory;
+use Database\Factories\Dashboard\Events\EventMatchFactory;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class EventMatch extends Model
 {
+    protected static function newFactory(): Factory
+    {
+        return EventMatchFactory::new();
+    }
+
     /** @use HasFactory<EventMatchFactory> */
     use HasFactory;
 

@@ -3,8 +3,9 @@
 namespace App\Models;
 
 use App\UserRole;
-use Database\Factories\MemberFactory;
+use Database\Factories\Shared\Members\MemberFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -47,6 +48,7 @@ class Member extends Authenticatable
     ];
 
     protected $casts = [
+
         'date_of_birth' => 'date',
         'rgpd_consented_at' => 'datetime',
         'email_verified_at' => 'datetime',
@@ -61,6 +63,11 @@ class Member extends Authenticatable
         'is_family_account' => 'boolean',
         'is_archived' => 'boolean',
     ];
+
+    protected static function newFactory(): Factory
+    {
+        return MemberFactory::new();
+    }
 
     protected $hidden = [
         'password',

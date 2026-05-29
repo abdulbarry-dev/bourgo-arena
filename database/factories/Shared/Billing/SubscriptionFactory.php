@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Factories;
+namespace Database\Factories\Shared\Billing;
 
 use App\Models\Member;
 use App\Models\Plan;
@@ -13,22 +13,16 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class SubscriptionFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    protected $model = Subscription::class;
+
     public function definition(): array
     {
-        $startsAt = now()->subDays(3)->toDateString();
-        $endsAt = now()->addDays(27)->toDateString();
-
         return [
             'member_id' => Member::factory(),
             'plan_id' => Plan::factory(),
             'status' => 'active',
-            'starts_at' => $startsAt,
-            'ends_at' => $endsAt,
+            'starts_at' => now()->subDays(3)->toDateString(),
+            'ends_at' => now()->addDays(27)->toDateString(),
             'suspended_at' => null,
             'days_remaining' => null,
             'resumed_at' => null,
@@ -42,7 +36,7 @@ class SubscriptionFactory extends Factory
 
     public function suspended(): static
     {
-        return $this->state([
+        return $this->state(fn (): array => [
             'status' => 'suspended',
             'suspended_at' => now(),
             'days_remaining' => 10,
@@ -51,7 +45,7 @@ class SubscriptionFactory extends Factory
 
     public function suspendedWithRemaining(int $days): static
     {
-        return $this->state([
+        return $this->state(fn (): array => [
             'status' => 'suspended',
             'suspended_at' => now(),
             'days_remaining' => max(0, $days),
@@ -60,7 +54,7 @@ class SubscriptionFactory extends Factory
 
     public function expiringSoon(): static
     {
-        return $this->state([
+        return $this->state(fn (): array => [
             'status' => 'active',
             'ends_at' => now()->addDays(7)->toDateString(),
         ]);
@@ -68,7 +62,7 @@ class SubscriptionFactory extends Factory
 
     public function expired(): static
     {
-        return $this->state([
+        return $this->state(fn (): array => [
             'status' => 'expired',
             'ends_at' => now()->subDay()->toDateString(),
         ]);

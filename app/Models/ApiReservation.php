@@ -2,7 +2,8 @@
 
 namespace App\Models;
 
-use Database\Factories\ApiReservationFactory;
+use Database\Factories\Api\Reservations\ApiReservationFactory;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -44,6 +45,11 @@ class ApiReservation extends Model
     public function slot(): BelongsTo
     {
         return $this->belongsTo(ActivitySlot::class, 'activity_slot_id');
+    }
+
+    protected static function newFactory(): Factory
+    {
+        return ApiReservationFactory::new();
     }
 
     /** @use HasFactory<ApiReservationFactory> */

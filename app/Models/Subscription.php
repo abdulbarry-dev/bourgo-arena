@@ -3,9 +3,10 @@
 namespace App\Models;
 
 use Carbon\CarbonImmutable;
-use Database\Factories\SubscriptionFactory;
+use Database\Factories\Shared\Billing\SubscriptionFactory;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,6 +17,11 @@ use InvalidArgumentException;
 
 class Subscription extends Model
 {
+    protected static function newFactory(): Factory
+    {
+        return SubscriptionFactory::new();
+    }
+
     /** @use HasFactory<SubscriptionFactory> */
     use HasFactory;
 

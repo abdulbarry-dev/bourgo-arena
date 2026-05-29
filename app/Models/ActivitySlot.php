@@ -2,7 +2,8 @@
 
 namespace App\Models;
 
-use Database\Factories\ActivitySlotFactory;
+use Database\Factories\Shared\Activities\ActivitySlotFactory;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,6 +11,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ActivitySlot extends Model
 {
+    protected static function newFactory(): Factory
+    {
+        return ActivitySlotFactory::new();
+    }
+
     protected $fillable = [
         'activity_id',
         'date',
