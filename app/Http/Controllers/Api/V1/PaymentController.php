@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\InitiatePaymentRequest;
 use App\Http\Requests\Api\V1\VerifyPaymentRequest;
 use App\Models\Payment;
+use App\Services\Payment\PaymentManager;
 use App\Services\PaymentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,23 +14,28 @@ use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
+    public function __construct(
+        protected PaymentManager $paymentManager,
+        protected PaymentService $paymentService
+    ) {}
+
     /**
      * Initiate a payment via configured gateway.
      */
-    public function initiate(InitiatePaymentRequest $request, PaymentService $paymentService): JsonResponse
+    public function initiate(InitiatePaymentRequest $request): JsonResponse
     {
         $dto = $request->toDTO();
 
-        $payment = $paymentService->createPayment($dto);
+        $payment = $this->paymentService->createPayment($dto);
 
         try {
-            $result = $paymentService->initiate($payment, [
+            $result = $this->paymentService->initiate($payment, [
                 'description' => $dto->description ?? 'Payment',
                 'success_url' => $request->input('success_url', config('app.url')),
                 'failure_url' => $request->input('failure_url', config('app.url')),
             ]);
         } catch (\Throwable $e) {
-            $paymentService->markFailed($payment, ['error' => $e->getMessage()]);
+            $this->paymentService->markFailed($payment, ['error' => $e->getMessage()]);
 
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
@@ -43,7 +49,7 @@ class PaymentController extends Controller
             ]);
         }
 
-        $paymentService->markFailed($payment, $result);
+        $this->paymentService->markFailed($payment, $result);
 
         return response()->json(['success' => false, 'error' => $result['error'] ?? 'initiation_failed'], 400);
     }
@@ -51,18 +57,18 @@ class PaymentController extends Controller
     /**
      * Verify a payment by gateway transaction id or payment_reference
      */
-    public function verify(VerifyPaymentRequest $request, PaymentService $paymentService): JsonResponse
+    public function verify(VerifyPaymentRequest $request): JsonResponse
     {
         $dto = $request->toDTO();
 
-        $payment = $paymentService->findByIdentifiers($dto->paymentReference, $dto->gatewayTransactionId);
+        $payment = $this->paymentService->findByIdentifiers($dto->paymentReference, $dto->gatewayTransactionId);
 
         if ($payment === null) {
             return response()->json(['success' => false, 'error' => 'payment_not_found'], 404);
         }
 
         try {
-            $result = $paymentService->verify($payment);
+            $result = $this->paymentService->verify($payment);
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
@@ -77,45 +83,25 @@ class PaymentController extends Controller
     /**
      * Webhook endpoint for Konnect callbacks.
      */
-    public function webhook(Request $request, PaymentService $paymentService): JsonResponse
+    public function webhook(Request $request, string $provider): JsonResponse
     {
-        $payloadRaw = $request->getContent();
-        $data = array_merge($request->query->all(), $request->json()->all());
+        try {
+            $providerInstance = $this->paymentManager->driver($provider);
+        } catch (\InvalidArgumentException $e) {
+            Log::warning('Webhook received for unknown provider', ['provider' => $provider]);
+
+            return response()->json(['success' => false, 'error' => 'unknown_provider'], 400);
+        }
 
         if (config('payment.webhooks.verify_signature', true)) {
-            $secret = config('payment.konnect.webhook_secret');
-
-            if (empty($secret)) {
-                Log::warning('Webhook secret not configured for Konnect; falling back to verification by reference');
-            }
-
-            $headerNames = ['X-Konnect-Signature', 'X-konnect-Signature', 'X-Signature', 'X-Signature-256'];
-            $signature = null;
-            foreach ($headerNames as $h) {
-                $val = $request->header($h);
-                if (! empty($val)) {
-                    $signature = $val;
-                    break;
-                }
-            }
-
-            if (empty($signature)) {
-                Log::warning('Missing Konnect webhook signature header');
-
-                return response()->json(['success' => false, 'error' => 'missing_signature'], 403);
-            }
-
-            if (! empty($secret)) {
-                $expected = hash_hmac('sha256', $payloadRaw, $secret);
-                if (! hash_equals($expected, $signature)) {
-                    Log::warning('Invalid Konnect webhook signature');
-
-                    return response()->json(['success' => false, 'error' => 'invalid_signature'], 403);
-                }
+            if (! $providerInstance->validateWebhookSignature($request)) {
+                return response()->json(['success' => false, 'error' => 'invalid_signature'], 403);
             }
         }
 
-        $result = $paymentService->handleWebhook($data);
+        $dto = $providerInstance->normalizeWebhookPayload($request);
+
+        $result = $this->paymentService->handleWebhook($dto);
 
         if (! empty($result['success'])) {
             $response = ['success' => true, 'status' => $result['status'] ?? null];

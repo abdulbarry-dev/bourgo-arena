@@ -12,7 +12,8 @@ readonly class PaymentInitiateDTO
         public ?string $currency,
         public ?string $description,
         public ?string $type,
-        public ?string $paymentReference,
-        public ?array $metadata,
+        public ?string $paymentReference = null,
+        public ?array $metadata = null,
+        public ?string $provider = null,
     ) {}
 }

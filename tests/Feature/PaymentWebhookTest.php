@@ -8,7 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 test('konnect webhook verifies signature and reconciles payment', function () {
-    config(['payment.konnect.webhook_secret' => 'test-secret']);
+    config(['payment.providers.konnect.webhook_secret' => 'test-secret']);
 
     $member = Member::factory()->create();
 
@@ -36,7 +36,7 @@ test('konnect webhook verifies signature and reconciles payment', function () {
     ];
 
     $payloadJson = json_encode($payload);
-    $signature = hash_hmac('sha256', $payloadJson, config('payment.konnect.webhook_secret'));
+    $signature = hash_hmac('sha256', $payloadJson, config('payment.providers.konnect.webhook_secret'));
 
     $response = $this->postJson('/api/v1/payments/webhook/konnect', $payload, ['X-konnect-Signature' => $signature]);
 

@@ -2,17 +2,18 @@
 
 namespace App\Services;
 
+use App\DTOs\Payment\WebhookResultDTO;
 use App\DTOs\PaymentInitiateDTO;
 use App\Jobs\ReconcilePaymentJob;
 use App\Models\Payment;
 use App\Repositories\PaymentRepository;
-use App\Services\PaymentGateway\KonnectGateway;
+use App\Services\Payment\PaymentManager;
 use Illuminate\Support\Facades\Log;
 
 class PaymentService
 {
     public function __construct(
-        protected KonnectGateway $gateway,
+        protected PaymentManager $paymentManager,
         protected PaymentRepository $paymentRepository
     ) {}
 
@@ -27,7 +28,7 @@ class PaymentService
             'member_id' => $dto->memberId,
             'reservation_id' => $dto->reservationId,
             'subscription_id' => $dto->subscriptionId,
-            'driver' => 'konnect',
+            'driver' => $dto->provider ?? $this->paymentManager->getDefaultDriver(),
             'type' => $dto->type ?? 'reservation',
             'amount' => $dto->amount,
             'currency' => $dto->currency ?? 'TND',
@@ -39,21 +40,15 @@ class PaymentService
 
     public function initiate(Payment $payment, array $options = []): array
     {
-        $payload = [
-            'amount' => (float) $payment->amount,
-            'description' => $options['description'] ?? 'Payment',
-            'payment_reference' => $payment->payment_reference,
-            'success_url' => $options['success_url'] ?? config('app.url'),
-            'failure_url' => $options['failure_url'] ?? config('app.url'),
-        ];
+        $provider = $this->paymentManager->driver($payment->driver);
 
-        $result = $this->gateway->initiate($payload);
+        $result = $provider->initiate($payment, $options);
 
         if (! empty($result['success'])) {
             $this->paymentRepository->updatePayment($payment, [
                 'status' => 'initiated',
                 'gateway_transaction_id' => $result['gateway_transaction_id'] ?? null,
-                'metadata' => $result,
+                'metadata' => $result['raw'] ?? $result,
             ]);
         } else {
             $this->paymentRepository->updatePayment($payment, ['status' => 'failed', 'metadata' => $result]);
@@ -64,16 +59,18 @@ class PaymentService
 
     public function verify(Payment $payment, ?string $transactionId = null): array
     {
+        $provider = $this->paymentManager->driver($payment->driver);
+
         $transactionId = $transactionId ?? $payment->gateway_transaction_id ?? $payment->payment_reference;
 
-        $result = $this->gateway->verify($transactionId);
+        $result = $provider->verify($transactionId);
 
         $status = $result['status'] ?? null;
 
-        if ($status && in_array(strtolower($status), ['paid', 'completed'], true)) {
+        if (! empty($result['success']) && in_array(strtolower((string) $status), ['paid', 'completed'], true)) {
             $this->paymentRepository->updatePayment($payment, [
                 'status' => 'paid',
-                'metadata' => $result,
+                'metadata' => $result['raw'] ?? $result,
                 'verified_at' => now(),
                 'gateway_transaction_id' => $result['transaction_id'] ?? $payment->gateway_transaction_id,
             ]);
@@ -81,68 +78,62 @@ class PaymentService
             return ['success' => true, 'status' => 'paid', 'data' => $result];
         }
 
-        $this->paymentRepository->updatePayment($payment, ['status' => 'failed', 'metadata' => $result]);
+        $this->paymentRepository->updatePayment($payment, ['status' => 'failed', 'metadata' => $result['raw'] ?? $result]);
 
         return ['success' => false, 'status' => $status ?? 'unknown', 'data' => $result];
     }
 
-    public function handleWebhook(array $data): array
+    public function handleWebhook(WebhookResultDTO $dto): array
     {
-        // Normalize identifiers
-        $transactionId = $data['paymentRef'] ?? $data['payment_id'] ?? $data['transaction_id'] ?? null;
-        $orderId = $data['order_id'] ?? $data['token'] ?? $data['orderId'] ?? $data['payment_reference'] ?? null;
-
         $payment = null;
 
-        if ($transactionId) {
-            $payment = $this->paymentRepository->findByIdentifiers(null, $transactionId);
+        if ($dto->transactionId) {
+            $payment = $this->paymentRepository->findByIdentifiers(null, $dto->transactionId);
         }
 
-        if ($payment === null && $orderId) {
-            $payment = $this->paymentRepository->findByIdentifiers($orderId, null);
+        if ($payment === null && $dto->orderId) {
+            $payment = $this->paymentRepository->findByIdentifiers($dto->orderId, null);
         }
 
-        if ($payment === null && ! empty($data['payment_reference'])) {
-            $payment = $this->paymentRepository->findByIdentifiers($data['payment_reference'], null);
+        if ($payment === null && $dto->paymentReference) {
+            $payment = $this->paymentRepository->findByIdentifiers($dto->paymentReference, null);
         }
 
         if ($payment === null) {
-            Log::info('Payment webhook: no matching payment', ['payload' => $data]);
+            Log::info('Payment webhook: no matching payment', ['payload' => $dto->rawPayload]);
 
             return ['success' => false, 'error' => 'payment_not_found'];
         }
 
-        $status = strtolower((string) ($data['status'] ?? $data['transaction_status'] ?? ''));
-
-        if ($payment->status === 'paid' && in_array($status, ['paid', 'completed', 'success'], true)) {
+        if ($payment->status === 'paid' && $dto->isPaid()) {
             return ['success' => true, 'message' => 'already_processed'];
         }
 
-        if (in_array($status, ['paid', 'completed', 'success'], true)) {
+        if ($dto->isPaid()) {
             $dispatchSync = config('payment.webhooks.dispatch_sync', false);
             if ($dispatchSync) {
-                ReconcilePaymentJob::dispatchSync($payment->id, $data);
+                ReconcilePaymentJob::dispatchSync($payment->id, $dto->rawPayload);
             } else {
-                ReconcilePaymentJob::dispatch($payment->id, $data);
+                ReconcilePaymentJob::dispatch($payment->id, $dto->rawPayload);
             }
 
             return ['success' => true];
         }
 
-        if (in_array($status, ['refunded', 'refund', 'partially_refunded', 'partial_refund', 'refunded_partially'], true)) {
+        if ($dto->isRefund()) {
             $dispatchSync = config('payment.webhooks.dispatch_sync', false);
             if ($dispatchSync) {
-                ReconcilePaymentJob::dispatchSync($payment->id, $data);
+                ReconcilePaymentJob::dispatchSync($payment->id, $dto->rawPayload);
             } else {
-                ReconcilePaymentJob::dispatch($payment->id, $data);
+                ReconcilePaymentJob::dispatch($payment->id, $dto->rawPayload);
             }
 
             return ['success' => true, 'status' => 'refunded'];
         }
 
-        $this->paymentRepository->updatePayment($payment, ['status' => 'failed', 'metadata' => $data]);
+        $this->paymentRepository->updatePayment($payment, ['status' => 'failed', 'metadata' => $dto->rawPayload]);
 
-        return ['success' => false, 'status' => $status];
+        return ['success' => false, 'status' => $dto->status];
     }
 
     /**

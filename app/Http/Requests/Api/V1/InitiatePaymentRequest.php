@@ -22,6 +22,7 @@ class InitiatePaymentRequest extends FormRequest
             'currency' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
             'type' => ['nullable', 'string'],
+            'provider' => ['nullable', 'string', 'in:konnect,flouci'],
         ];
     }
 
@@ -36,7 +37,8 @@ class InitiatePaymentRequest extends FormRequest
             description: $this->validated('description'),
             type: $this->validated('type'),
             paymentReference: null,
-            metadata: null
+            metadata: null,
+            provider: $this->validated('provider')
         );
     }
 }

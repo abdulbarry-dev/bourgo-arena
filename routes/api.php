@@ -92,7 +92,7 @@ Route::prefix('v1')->group(function () {
     Route::prefix('payments')->group(function () {
         Route::post('initiate', [PaymentController::class, 'initiate'])->middleware('throttle:payments')->name('api.v1.payments.initiate');
         Route::post('verify', [PaymentController::class, 'verify'])->name('api.v1.payments.verify');
-        Route::post('webhook/konnect', [PaymentController::class, 'webhook'])->name('api.v1.payments.webhook');
+        Route::post('webhook/{provider}', [PaymentController::class, 'webhook'])->name('api.v1.payments.webhook');
     });
 });
 

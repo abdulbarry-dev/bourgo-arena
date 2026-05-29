@@ -10,6 +10,33 @@ return [
     |
     */
 
+    /*
+    |--------------------------------------------------------------------------
+    | Default Payment Provider
+    |--------------------------------------------------------------------------
+    */
+    'default' => env('PAYMENT_DRIVER', 'konnect'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Payment Providers Configuration
+    |--------------------------------------------------------------------------
+    */
+    'providers' => [
+        'konnect' => [
+            'api_key' => env('KONNECT_API_KEY'),
+            'api_secret' => env('KONNECT_API_SECRET'),
+            'sandbox' => env('KONNECT_SANDBOX', true),
+            'webhook_secret' => env('KONNECT_WEBHOOK_SECRET'),
+        ],
+        'flouci' => [
+            'app_token' => env('FLOUCI_APP_TOKEN'),
+            'app_secret' => env('FLOUCI_APP_SECRET'),
+            'sandbox' => env('FLOUCI_SANDBOX', true),
+        ],
+    ],
+
+    // Legacy fallback for tests/old implementations
     'konnect' => [
         'api_key' => env('KONNECT_API_KEY'),
         'api_secret' => env('KONNECT_API_SECRET'),
@@ -30,6 +57,7 @@ return [
     'methods' => [
         'cash' => true,
         'konnect' => true,
+        'flouci' => true,
     ],
 
     'initiate_per_minute' => env('PAYMENT_INITIATE_PER_MINUTE', 10),

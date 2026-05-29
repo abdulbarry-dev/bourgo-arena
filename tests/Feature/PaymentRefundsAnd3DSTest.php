@@ -17,10 +17,10 @@ test('initiate payment that requires 3ds preserves metadata and completes after 
     ]);
 
     config([
-        'payment.konnect.api_key' => 'test-key',
-        'payment.konnect.api_secret' => 'test-secret',
-        'payment.konnect.sandbox' => true,
-        'payment.konnect.webhook_secret' => '3ds-secret',
+        'payment.providers.konnect.api_key' => 'test-key',
+        'payment.providers.konnect.api_secret' => 'test-secret',
+        'payment.providers.konnect.sandbox' => true,
+        'payment.providers.konnect.webhook_secret' => '3ds-secret',
     ]);
 
     $member = Member::factory()->create();
@@ -41,7 +41,7 @@ test('initiate payment that requires 3ds preserves metadata and completes after 
 
     // Simulate webhook marking as paid
     $payload = ['payment_reference' => $payment->payment_reference, 'status' => 'paid'];
-    $sig = hash_hmac('sha256', json_encode($payload), config('payment.konnect.webhook_secret'));
+    $sig = hash_hmac('sha256', json_encode($payload), config('payment.providers.konnect.webhook_secret'));
 
     $web = $this->postJson('/api/v1/payments/webhook/konnect', $payload, ['X-konnect-Signature' => $sig]);
     $web->assertOk()->assertJson(['success' => true]);
@@ -50,12 +50,12 @@ test('initiate payment that requires 3ds preserves metadata and completes after 
 });
 
 test('refund webhook marks payment refunded with partial amount', function () {
-    config(['payment.konnect.webhook_secret' => 'refund-secret']);
+    config(['payment.providers.konnect.webhook_secret' => 'refund-secret']);
 
     $payment = Payment::factory()->create(['status' => 'paid', 'amount' => 100.000, 'driver' => 'konnect']);
 
     $payload = ['payment_reference' => $payment->payment_reference, 'status' => 'refunded', 'refund_amount' => 30.0];
-    $sig = hash_hmac('sha256', json_encode($payload), config('payment.konnect.webhook_secret'));
+    $sig = hash_hmac('sha256', json_encode($payload), config('payment.providers.konnect.webhook_secret'));
 
     $response = $this->postJson('/api/v1/payments/webhook/konnect', $payload, ['X-konnect-Signature' => $sig]);
 

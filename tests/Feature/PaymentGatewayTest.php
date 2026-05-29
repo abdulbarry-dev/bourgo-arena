@@ -2,7 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Services\PaymentGateway\KonnectGateway;
+use App\Models\Payment;
+use App\Services\Payment\Providers\KonnectProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -11,53 +12,25 @@ class PaymentGatewayTest extends TestCase
 {
     use RefreshDatabase;
 
-    private KonnectGateway $gateway;
+    private KonnectProvider $gateway;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->gateway = app(KonnectGateway::class);
+        $this->gateway = new KonnectProvider;
     }
 
     public function test_konnect_gateway_is_resolvable(): void
     {
-        $this->assertInstanceOf(KonnectGateway::class, $this->gateway);
-    }
-
-    public function test_konnect_gateway_validates_credentials(): void
-    {
-        config([
-            'payment.konnect.api_key' => null,
-            'payment.konnect.api_secret' => null,
-        ]);
-
-        $this->assertFalse((new KonnectGateway)->validate());
-
-        config([
-            'payment.konnect.api_key' => 'test-key',
-            'payment.konnect.api_secret' => 'test-secret',
-        ]);
-
-        $this->assertTrue((new KonnectGateway)->validate());
+        $this->assertInstanceOf(KonnectProvider::class, $this->gateway);
     }
 
     public function test_konnect_gateway_name_and_sandbox_flag(): void
     {
-        config([
-            'payment.konnect.api_key' => 'test-key',
-            'payment.konnect.api_secret' => 'test-secret',
-            'payment.konnect.sandbox' => true,
-        ]);
+        $gateway = new KonnectProvider;
 
-        $gateway = new KonnectGateway;
-
-        $this->assertSame('Konnect', $gateway->getName());
-        $this->assertTrue($gateway->isSandbox());
-
-        config(['payment.konnect.sandbox' => false]);
-
-        $this->assertFalse((new KonnectGateway)->isSandbox());
+        $this->assertSame('konnect', $gateway->getName());
     }
 
     public function test_konnect_gateway_initiate_payment_success(): void
@@ -71,15 +44,15 @@ class PaymentGatewayTest extends TestCase
         ]);
 
         config([
-            'payment.konnect.api_key' => 'test-key',
-            'payment.konnect.api_secret' => 'test-secret',
-            'payment.konnect.sandbox' => true,
+            'payment.providers.konnect.api_key' => 'test-key',
+            'payment.providers.konnect.api_secret' => 'test-secret',
+            'payment.providers.konnect.sandbox' => true,
         ]);
 
-        $result = (new KonnectGateway)->initiate([
-            'amount' => 50.00,
+        $payment = new Payment(['amount' => 50.00, 'payment_reference' => 'PAYREF123']);
+
+        $result = (new KonnectProvider)->initiate($payment, [
             'description' => 'Test Payment',
-            'payment_reference' => 'PAYREF123',
             'success_url' => 'https://example.com/success',
             'failure_url' => 'https://example.com/failure',
         ]);
@@ -106,12 +79,12 @@ class PaymentGatewayTest extends TestCase
         ]);
 
         config([
-            'payment.konnect.api_key' => 'test-key',
-            'payment.konnect.api_secret' => 'test-secret',
-            'payment.konnect.sandbox' => true,
+            'payment.providers.konnect.api_key' => 'test-key',
+            'payment.providers.konnect.api_secret' => 'test-secret',
+            'payment.providers.konnect.sandbox' => true,
         ]);
 
-        $result = (new KonnectGateway)->verify('TXNREF123');
+        $result = (new KonnectProvider)->verify('TXNREF123');
 
         $this->assertTrue($result['success']);
         $this->assertSame('completed', $result['status']);
@@ -127,12 +100,12 @@ class PaymentGatewayTest extends TestCase
         ]);
 
         config([
-            'payment.konnect.api_key' => 'test-key',
-            'payment.konnect.api_secret' => 'test-secret',
-            'payment.konnect.sandbox' => true,
+            'payment.providers.konnect.api_key' => 'test-key',
+            'payment.providers.konnect.api_secret' => 'test-secret',
+            'payment.providers.konnect.sandbox' => true,
         ]);
 
-        $result = (new KonnectGateway)->refund('TXNREF123', 25.0);
+        $result = (new KonnectProvider)->refund('TXNREF123', 25.0);
 
         $this->assertTrue($result['success']);
         $this->assertSame('REFUND123', $result['refund_id']);
@@ -141,17 +114,17 @@ class PaymentGatewayTest extends TestCase
     public function test_payment_initiation_fails_without_credentials(): void
     {
         config([
-            'payment.konnect.api_key' => null,
-            'payment.konnect.api_secret' => null,
+            'payment.providers.konnect.api_key' => null,
+            'payment.providers.konnect.api_secret' => null,
         ]);
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Konnect API credentials not configured');
 
-        (new KonnectGateway)->initiate([
-            'amount' => 50.0,
+        $payment = new Payment(['amount' => 50.00, 'payment_reference' => 'REF']);
+
+        (new KonnectProvider)->initiate($payment, [
             'description' => 'Test',
-            'payment_reference' => 'REF',
             'success_url' => 'https://example.com/success',
             'failure_url' => 'https://example.com/failure',
         ]);

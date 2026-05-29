@@ -8,7 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 test('webhook rejects invalid signature', function () {
-    config(['payment.konnect.webhook_secret' => 's3cret']);
+    config(['payment.providers.konnect.webhook_secret' => 's3cret']);
 
     $member = Member::factory()->create();
     $reservation = ApiReservation::factory()->create(['member_id' => $member->id, 'payment_status' => 'pending']);
@@ -27,11 +27,11 @@ test('webhook rejects invalid signature', function () {
 });
 
 test('webhook returns 404 for unknown payment reference', function () {
-    config(['payment.konnect.webhook_secret' => 'test-secret']);
+    config(['payment.providers.konnect.webhook_secret' => 'test-secret']);
 
     $payload = ['payment_reference' => 'nonexistent_ref', 'status' => 'paid'];
     $payloadJson = json_encode($payload);
-    $signature = hash_hmac('sha256', $payloadJson, config('payment.konnect.webhook_secret'));
+    $signature = hash_hmac('sha256', $payloadJson, config('payment.providers.konnect.webhook_secret'));
 
     $response = $this->postJson('/api/v1/payments/webhook/konnect', $payload, ['X-konnect-Signature' => $signature]);
 
@@ -39,7 +39,7 @@ test('webhook returns 404 for unknown payment reference', function () {
 });
 
 test('duplicate webhook calls are idempotent', function () {
-    config(['payment.konnect.webhook_secret' => 'dup-secret']);
+    config(['payment.providers.konnect.webhook_secret' => 'dup-secret']);
 
     $member = Member::factory()->create();
     $reservation = ApiReservation::factory()->create(['member_id' => $member->id, 'payment_status' => 'pending']);
@@ -47,7 +47,7 @@ test('duplicate webhook calls are idempotent', function () {
 
     $payload = ['payment_reference' => $payment->payment_reference, 'status' => 'paid', 'payment_id' => 'TXN_DUP_1'];
     $payloadJson = json_encode($payload);
-    $signature = hash_hmac('sha256', $payloadJson, config('payment.konnect.webhook_secret'));
+    $signature = hash_hmac('sha256', $payloadJson, config('payment.providers.konnect.webhook_secret'));
 
     // First call
     $r1 = $this->postJson('/api/v1/payments/webhook/konnect', $payload, ['X-konnect-Signature' => $signature]);

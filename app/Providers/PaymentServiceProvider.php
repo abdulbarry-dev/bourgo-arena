@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Services\PaymentGateway\KonnectGateway;
+use App\Services\Payment\PaymentManager;
 use Illuminate\Support\ServiceProvider;
 
 class PaymentServiceProvider extends ServiceProvider
@@ -12,11 +12,13 @@ class PaymentServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton(KonnectGateway::class, function (): KonnectGateway {
-            return new KonnectGateway;
+        $this->app->singleton('payment', function ($app) {
+            return new PaymentManager($app);
         });
 
-        $this->app->alias(KonnectGateway::class, 'payment');
+        $this->app->singleton(PaymentManager::class, function ($app) {
+            return $app->make('payment');
+        });
     }
 
     /**
