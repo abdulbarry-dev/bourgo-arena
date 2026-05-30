@@ -2,6 +2,7 @@
 
 use App\Jobs\SendMemberPasswordResetEmail;
 use App\Livewire\Admin\Members\MemberDetailPanel;
+use App\Models\LoyaltyPoint;
 use App\Models\Member;
 use App\Models\Subscription;
 use App\Models\User;
@@ -33,6 +34,36 @@ test('member detail panel can load member from query parameter context', functio
         ->test(MemberDetailPanel::class)
         ->assertSet('memberId', $member->id)
         ->assertSee('Query Param Member');
+});
+
+test('member detail panel shows loyalty tab content from query parameter context', function () {
+    $this->actingAs(User::factory()->manager()->create());
+
+    $member = Member::factory()->active()->create([
+        'name' => 'Loyalty Member',
+        'loyalty_points' => 25,
+    ]);
+
+    LoyaltyPoint::query()->create([
+        'member_id' => $member->id,
+        'points' => 25,
+        'transaction_type' => 'reservation_completed',
+        'source_type' => Member::class,
+        'source_id' => $member->id,
+        'created_at' => now(),
+    ]);
+
+    Livewire::withQueryParams([
+        'member' => $member->id,
+        'tab' => 'loyalty',
+    ])
+        ->test(MemberDetailPanel::class)
+        ->assertSet('memberId', $member->id)
+        ->assertSet('activeTab', 'loyalty')
+        ->assertSet('loyaltyPoints', 25)
+        ->assertSee('Loyalty History')
+        ->assertSee('Current Points')
+        ->assertSee('Reservation Completed');
 });
 
 test('member detail panel keeps suspend and activate actions visible for suspended members', function () {
