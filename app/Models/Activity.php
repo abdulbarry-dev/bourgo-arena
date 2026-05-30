@@ -21,7 +21,7 @@ class Activity extends Model
         'base_price',
         'currency',
         'image_url',
-        'icon',
+        'images',
         'description',
         'features',
         'rating',
@@ -31,6 +31,7 @@ class Activity extends Model
 
     protected $casts = [
         'features' => 'array',
+        'images' => 'array',
         'base_price' => 'decimal:2',
         'rating' => 'decimal:1',
         'is_active' => 'boolean',

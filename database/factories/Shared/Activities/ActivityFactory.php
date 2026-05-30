@@ -20,7 +20,7 @@ class ActivityFactory extends Factory
             'base_price' => fake()->randomFloat(2, 10, 100),
             'currency' => 'TND',
             'image_url' => null,
-            'icon' => 'sports_martial_arts',
+
             'description' => fake()->sentence(),
             'features' => [],
             'rating' => fake()->randomFloat(1, 3, 5),
