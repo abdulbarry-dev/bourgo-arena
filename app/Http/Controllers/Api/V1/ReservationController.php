@@ -54,7 +54,13 @@ class ReservationController extends Controller
 
         if (! config('payment.konnect.api_key') || ! config('payment.konnect.api_secret')) {
             $reservation->update(['payment_status' => 'paid']);
-            $this->loyaltyCalculatorService->creditVariableForReservation($reservation);
+
+            // Credit loyalty for the reservation (best-effort)
+            try {
+                $this->loyaltyCalculatorService->creditVariableForReservation($reservation);
+            } catch (\Throwable $e) {
+                // do not block reservation creation on loyalty failures
+            }
 
             return (new ApiReservationResource($reservation->load(['activity', 'slot'])))->additional([
                 'success' => true,

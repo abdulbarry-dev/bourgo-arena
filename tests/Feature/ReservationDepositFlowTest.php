@@ -11,7 +11,7 @@ uses(RefreshDatabase::class);
 test('reservation creation creates deposit payment and returns payment_url', function () {
     // Fake Konnect initiate endpoint
     Http::fake([
-        'https://api.sandbox.konnect.com.tn/api/v2/payments/init-payment' => Http::response([
+        'https://api.sandbox.konnect.network/api/v2/payments/init-payment' => Http::response([
             'payUrl' => 'https://pay.konnect.com/123',
             'paymentRef' => 'TXNREF123',
         ], 200),

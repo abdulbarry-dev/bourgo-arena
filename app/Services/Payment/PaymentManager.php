@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Payment;
 
-use App\Contracts\PaymentProviderInterface;
+use App\Contracts\PaymentGatewayInterface;
 use App\Services\Payment\Providers\FlouciProvider;
 use App\Services\Payment\Providers\KonnectProvider;
 use Illuminate\Support\Manager;
@@ -22,7 +22,7 @@ class PaymentManager extends Manager
     /**
      * Create an instance of the Konnect driver.
      */
-    public function createKonnectDriver(): PaymentProviderInterface
+    public function createKonnectDriver(): PaymentGatewayInterface
     {
         return new KonnectProvider;
     }
@@ -30,7 +30,7 @@ class PaymentManager extends Manager
     /**
      * Create an instance of the Flouci driver.
      */
-    public function createFlouciDriver(): PaymentProviderInterface
+    public function createFlouciDriver(): PaymentGatewayInterface
     {
         return new FlouciProvider;
     }

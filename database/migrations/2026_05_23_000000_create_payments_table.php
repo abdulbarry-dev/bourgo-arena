@@ -20,12 +20,17 @@ return new class extends Migration
             $table->string('gateway')->nullable();
             $table->string('type')->nullable(); // reservation, subscription, deposit, refund
             $table->decimal('amount', 10, 3)->default(0);
+            $table->decimal('refund_amount', 10, 3)->nullable();
             $table->string('currency', 8)->default('TND');
             $table->string('status')->default('pending'); // pending, initiated, paid, failed, refunded
             $table->string('payment_reference')->nullable()->unique();
             $table->string('gateway_transaction_id')->nullable();
             $table->json('metadata')->nullable();
             $table->timestamp('verified_at')->nullable();
+            $table->unsignedBigInteger('reconciled_by')->nullable();
+            $table->timestamp('reconciled_at')->nullable();
+            $table->unsignedBigInteger('refunded_by')->nullable();
+            $table->timestamp('refunded_at')->nullable();
             $table->timestamps();
         });
     }

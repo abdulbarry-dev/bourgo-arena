@@ -9,7 +9,7 @@ uses(RefreshDatabase::class);
 
 test('initiate payment that requires 3ds preserves metadata and completes after webhook', function () {
     Http::fake([
-        'https://api.sandbox.konnect.com.tn/api/v2/payments/init-payment' => Http::response([
+        'https://api.sandbox.konnect.network/api/v2/payments/init-payment' => Http::response([
             'payUrl' => 'https://pay.konnect.com/3ds',
             'paymentRef' => 'TXN3DS123',
             'requires3DS' => true,

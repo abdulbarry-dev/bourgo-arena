@@ -7,28 +7,15 @@ namespace App\Services\Payment\Providers;
 use App\Contracts\PaymentProviderInterface;
 use App\DTOs\Payment\WebhookResultDTO;
 use App\Models\Payment;
+use App\Services\PaymentGateway\FlouciPaymentService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 
 class FlouciProvider implements PaymentProviderInterface
 {
-    private ?string $appToken;
-
-    private ?string $appSecret;
-
-    private bool $sandbox;
-
-    private string $baseUrl;
-
-    public function __construct()
-    {
-        $this->appToken = config('payment.providers.flouci.app_token');
-        $this->appSecret = config('payment.providers.flouci.app_secret');
-        $this->sandbox = config('payment.providers.flouci.sandbox', true);
-
-        $this->baseUrl = $this->sandbox
-            ? 'https://developers.flouci.com/api' // Flouci Sandbox
-            : 'https://developers.flouci.com/api'; // Assuming same, user should verify
+    public function __construct(
+        protected ?FlouciPaymentService $service = null
+    ) {
+        $this->service ??= app(FlouciPaymentService::class);
     }
 
     public function getName(): string
@@ -36,122 +23,100 @@ class FlouciProvider implements PaymentProviderInterface
         return 'flouci';
     }
 
-    public function initiate(Payment $payment, array $options = []): array
+    public function initiatePayment(Payment $payment, array $options = []): array
     {
-        if (! $this->validate()) {
+        $result = $this->service->initiatePayment($this->buildPayload($payment, $options));
+
+        if (($result['success'] ?? false) === false && ($result['error'] ?? null) === 'Flouci API credentials not configured') {
             throw new \RuntimeException('Flouci API credentials not configured');
         }
 
-        $response = Http::withHeaders([
-            'Content-Type' => 'application/json',
-        ])->post($this->baseUrl.'/generate_payment', [
-            'app_token' => $this->appToken,
-            'app_secret' => $this->appSecret,
-            'amount' => intval($payment->amount * 1000), // Flouci expects millimes
-            'accept_card' => 'true',
-            'session_timeout_secs' => 1200,
-            'success_link' => $options['success_url'] ?? config('app.url'),
-            'fail_link' => $options['failure_url'] ?? config('app.url'),
-            'developer_tracking_id' => $payment->payment_reference,
-        ]);
+        return $result;
+    }
 
-        if (! $response->successful()) {
-            return [
-                'success' => false,
-                'error' => $response->json('message', 'Payment initiation failed via Flouci'),
-            ];
+    public function initiate(Payment $payment, array $options = []): array
+    {
+        return $this->initiatePayment($payment, $options);
+    }
+
+    public function verifyPayment(string $transactionId): array
+    {
+        $result = $this->service->verifyPayment($transactionId);
+
+        if (($result['success'] ?? false) === false && ($result['error'] ?? null) === 'Flouci API credentials not configured') {
+            throw new \RuntimeException('Flouci API credentials not configured');
         }
 
-        $data = $response->json('result');
-
-        return [
-            'success' => true,
-            'payment_url' => $data['link'] ?? null,
-            'payment_reference' => $payment->payment_reference,
-            'gateway_transaction_id' => $data['payment_id'] ?? null,
-            'raw' => $data,
-        ];
+        return $result;
     }
 
     public function verify(string $transactionId): array
     {
-        if (! $this->validate()) {
-            throw new \RuntimeException('Flouci API credentials not configured');
-        }
-
-        $response = Http::withHeaders([
-            'Content-Type' => 'application/json',
-            'apppublic' => $this->appToken,
-            'appsecret' => $this->appSecret,
-        ])->get($this->baseUrl.'/verify_payment/'.$transactionId);
-
-        if (! $response->successful()) {
-            return [
-                'success' => false,
-                'error' => $response->json('message', 'Verification failed via Flouci'),
-            ];
-        }
-
-        $data = $response->json('result');
-
-        // Flouci status logic: 'SUCCESS' is paid.
-        $status = strtolower($data['status'] ?? 'pending');
-        if ($status === 'success') {
-            $status = 'paid';
-        }
-
-        return [
-            'success' => true,
-            'status' => $status,
-            'amount' => isset($data['amount']) ? $data['amount'] / 1000 : null,
-            'transaction_id' => $data['payment_id'] ?? $transactionId,
-            'raw' => $data,
-        ];
+        return $this->verifyPayment($transactionId);
     }
 
     public function refund(string $transactionId, ?float $amount = null): array
     {
-        // Flouci currently may not have a public refund API or it requires manual handling.
-        // Implement as needed if documentation specifies.
-        return [
-            'success' => false,
-            'error' => 'Refund not automatically supported via Flouci API yet.',
-        ];
+        $result = $this->service->refund($transactionId, $amount);
+
+        if (($result['success'] ?? false) === false && ($result['error'] ?? null) === 'Flouci API credentials not configured') {
+            throw new \RuntimeException('Flouci API credentials not configured');
+        }
+
+        return $result;
     }
 
     public function validateWebhookSignature(Request $request): bool
     {
-        // Flouci webhooks do not use headers for signatures by default in their sandbox,
-        // they normally rely on you verifying the payment_id on callback.
-        // If they add signature headers, implement logic here.
-        return true;
+        return $this->service->validateWebhookSignature($request);
     }
 
     public function normalizeWebhookPayload(Request $request): WebhookResultDTO
     {
-        $data = array_merge($request->query->all(), $request->json()->all());
-
-        $transactionId = $data['payment_id'] ?? null;
-        $orderId = $data['developer_tracking_id'] ?? null;
-        $status = strtolower($data['status'] ?? 'unknown');
-
-        if ($status === 'success') {
-            $status = 'paid';
-        }
-
-        return new WebhookResultDTO(
-            success: $status === 'paid',
-            status: $status,
-            transactionId: $transactionId,
-            orderId: $orderId,
-            paymentReference: $orderId,
-            message: null,
-            rawPayload: $data
-        );
+        return $this->service->normalizeWebhookPayload($request);
     }
 
-    private function validate(): bool
+    private function buildPayload(Payment $payment, array $options): array
     {
-        return ! empty($this->appToken) && ! empty($this->appSecret);
+        $reservation = $payment->reservation;
+        $member = $payment->member;
+
+        return array_filter([
+            'amount' => (float) $payment->amount,
+            'currency' => $payment->currency ?? 'TND',
+            'payment_reference' => $payment->payment_reference,
+            'developer_tracking_id' => $payment->payment_reference,
+            'order_id' => $payment->payment_reference,
+            'description' => $options['description'] ?? 'Payment',
+            'success_url' => $options['success_url'] ?? config('app.url'),
+            'failure_url' => $options['failure_url'] ?? config('app.url'),
+            'webhook_url' => $options['webhook_url'] ?? null,
+            'type' => $options['type'] ?? 'immediate',
+            'accept_card' => $options['accept_card'] ?? true,
+            'session_timeout_secs' => $options['expires_in_seconds'] ?? 1200,
+            'user_id' => $payment->member_id,
+            'user' => array_filter([
+                'id' => $member?->id,
+                'name' => $member?->name,
+                'email' => $member?->email,
+                'phone' => $member?->phone,
+            ], static fn (mixed $value): bool => $value !== null && $value !== ''),
+            'reservation_id' => $payment->reservation_id,
+            'reservation_details' => $reservation ? [
+                'reservation_id' => $reservation->id,
+                'activity_id' => $reservation->activity_id,
+                'date' => $reservation->date,
+                'starts_at' => $reservation->starts_at,
+                'ends_at' => $reservation->ends_at,
+            ] : null,
+            'user_information' => $member ? [
+                'id' => $member->id,
+                'name' => $member->name,
+                'email' => $member->email,
+                'phone' => $member->phone,
+            ] : null,
+            'client_id' => $options['client_id'] ?? $member?->name ?? $payment->payment_reference,
+            'image_url' => $options['image_url'] ?? null,
+        ], static fn (mixed $value): bool => $value !== null && $value !== [] && $value !== '');
     }
 }
