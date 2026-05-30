@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Actions\Users\SendPasswordResetNotificationAction;
 use App\UserRole;
 use Database\Factories\Shared\Identity\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -61,8 +62,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->isAdmin() || $this->isManager();
     }
 
-
-
     public function initials(): string
     {
         return Str::of($this->name)
@@ -74,8 +73,6 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function sendPasswordResetNotification($token): void
     {
-        app(\App\Actions\Users\SendPasswordResetNotificationAction::class)->execute($this, $token);
+        app(SendPasswordResetNotificationAction::class)->execute($this, $token);
     }
-
-
 }

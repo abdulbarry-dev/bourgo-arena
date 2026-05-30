@@ -76,8 +76,14 @@ class LoyaltyCalculatorService
             ->whereBetween('date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()])
             ->count();
 
+        // Ensure the current reservation counts as the first paid reservation
+        // so first reservation in month gives base points.
+        $monthlyCount = max(1, $monthlyCount);
+
         $basePoints = (int) config('loyalty.variable.base_points_per_reservation', 0);
         $points = (int) round($basePoints * $monthlyCount * (float) $tier['multiplier']);
+
+        // computed points logged previously during debugging; removed for cleanup
 
         if ($points <= 0) {
             return false;

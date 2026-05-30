@@ -6,6 +6,8 @@ use App\Models\ApiReservation;
 use App\Models\Member;
 use App\Models\Plan;
 use App\Models\Subscription;
+use App\Models\User;
+use App\Notifications\QueuedResetPassword;
 use App\Policies\MemberPolicy;
 use App\Policies\PlanPolicy;
 use App\Policies\ReservationPolicy;
@@ -16,7 +18,6 @@ use Illuminate\Support\Facades\Gate;
 
 class AuthServiceProvider extends ServiceProvider
 {
-   
     protected $policies = [
         Member::class => MemberPolicy::class,
         Subscription::class => SubscriptionPolicy::class,
@@ -32,16 +33,17 @@ class AuthServiceProvider extends ServiceProvider
             return true;
         });
 
-        Gate::define('access-dashboard-module', function (\App\Models\User $user, string $module) {
+        Gate::define('access-dashboard-module', function (User $user, string $module) {
             return match ($module) {
-                'dashboard', 'members', 'subscriptions', 'schedule' => $user->isStaff(),
+                'dashboard', 'members', 'subscriptions', 'schedule', 'reservations' => $user->isStaff(),
                 'courses', 'events', 'plans', 'managers' => $user->isAdmin(),
+                'activities' => $user->isStaff(),
                 default => false,
             };
         });
 
         ResetPassword::toMailUsing(function (object $notifiable, string $token) {
-            return new \App\Notifications\QueuedResetPassword($token);
+            return new QueuedResetPassword($token);
         });
     }
 }
