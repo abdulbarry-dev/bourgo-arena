@@ -409,12 +409,13 @@ class ReservationManager extends Component
 
         $this->actionType = $action;
         $this->actionReservationId = $reservationId;
+        $reservation = ApiReservation::query()->with('member')->find($reservationId);
 
         match ($action) {
-            'confirm' => $this->setActionContent(__('Confirm Reservation'), __('Are you sure you want to confirm this reservation?')),
-            'cancel' => $this->setActionContent(__('Cancel Reservation'), __('Are you sure you want to cancel this reservation? This action cannot be undone.')),
-            'delete' => $this->setActionContent(__('Delete Reservation'), __('Delete this reservation? This action cannot be undone.')),
-            default => $this->setActionContent(__('Confirm Action'), __('Are you sure you want to perform this action?')),
+            'confirm' => $this->setActionContent(__('Confirm Reservation'), __('Are you sure you want to confirm this reservation?'), ['member' => $reservation?->member?->name, 'amount' => $reservation?->price]),
+            'cancel' => $this->setActionContent(__('Cancel Reservation'), __('Are you sure you want to cancel this reservation? This action cannot be undone.'), ['member' => $reservation?->member?->name, 'amount' => $reservation?->price]),
+            'delete' => $this->setActionContent(__('Delete Reservation'), __('Delete this reservation? This action cannot be undone.'), ['member' => $reservation?->member?->name, 'amount' => $reservation?->price]),
+            default => $this->setActionContent(__('Confirm Action'), __('Are you sure you want to perform this action?'), ['member' => $reservation?->member?->name, 'amount' => $reservation?->price]),
         };
     }
 

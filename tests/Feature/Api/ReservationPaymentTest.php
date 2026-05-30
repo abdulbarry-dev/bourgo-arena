@@ -1,11 +1,12 @@
 <?php
 
+use App\Http\Middleware\EnsureAccountIsVerified;
+use App\Http\Middleware\EnsureOnboardingIsCompleted;
+use App\Models\ActivitySlot;
 use App\Models\ApiReservation;
 use App\Models\Member;
 use App\Models\Payment;
-use App\Models\ActivitySlot;
-use App\Http\Middleware\EnsureAccountIsVerified;
-use App\Http\Middleware\EnsureOnboardingIsCompleted;
+use App\Services\PaymentService;
 use Illuminate\Support\Str;
 
 uses()->group('api', 'reservations');
@@ -41,9 +42,10 @@ it('creates a reservation and initiates payment', function () {
 it('initiates a payment for an existing reservation', function () {
     $reservation = ApiReservation::factory()->create(['member_id' => $this->member->id]);
 
-    $response = $this->postJson('/api/v1/reservations/'.$reservation->id.'/payment/initiate', ['gateway' => 'konnect']);
+    $deposit = round($reservation->price * 0.10, 3);
+    $response = $this->postJson('/api/v1/reservations/'.$reservation->id.'/payment/initiate', ['gateway' => 'konnect', 'amount' => $deposit]);
 
-    // In CI/env without gateway credentials this may fail; assert we receive an error
+    // In CI/env without gateway credentials this may fail; assert we receive an error or success depending on env
     $response->assertStatus(500)->assertJsonFragment(['message' => 'Payment initiation failed']);
 });
 
@@ -58,7 +60,8 @@ it('verifies a payment and marks reservation as paid', function () {
     ]);
 
     // Replace PaymentService with a fake that returns paid to avoid external gateway calls
-    $this->instance(\App\Services\PaymentService::class, new class($payment) extends \App\Services\PaymentService {
+    $this->instance(PaymentService::class, new class($payment) extends PaymentService
+    {
         public function __construct($payment)
         {
             // minimal constructor: no parent dependencies

@@ -60,6 +60,12 @@ class ReservationController extends Controller
             provider: $gateway,
         );
 
+        // Ensure deposit amount equals 10% of reservation price
+        $expectedDeposit = round($reservation->price * 0.10, 3);
+        if (abs($dto->amount - $expectedDeposit) > 0.001) {
+            return $this->error('Deposit amount must be 10% of reservation price', 422);
+        }
+
         $payment = $this->paymentService->createPayment($dto);
 
         try {

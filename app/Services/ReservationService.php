@@ -9,6 +9,7 @@ use App\Models\ActivityTimeSlot;
 use App\Models\ApiReservation;
 use App\Models\Member;
 use App\Models\Reservation;
+use App\Models\ReservationStateLog;
 use App\Models\User;
 use App\Repositories\ReservationRepository;
 use App\Services\Payment\PaymentManager;
@@ -24,6 +25,25 @@ class ReservationService
         protected PaymentManager $paymentManager,
         protected PaymentAuditService $paymentAuditService
     ) {}
+
+    /**
+     * Log reservation state transitions in a polymorphic state log.
+     */
+    protected function logStateChange($reservation, ?string $from, string $to, ?string $reason = null): void
+    {
+        try {
+            ReservationStateLog::create([
+                'reservationable_type' => $reservation::class,
+                'reservationable_id' => $reservation->id,
+                'from_status' => $from,
+                'to_status' => $to,
+                'reason' => $reason,
+                'changed_by' => auth()->id() ?? null,
+            ]);
+        } catch (\Throwable $e) {
+            // best effort: do not break main flow on logging failure
+        }
+    }
 
     /**
      * Create a reservation while holding a row lock on the selected time slot.
@@ -84,6 +104,9 @@ class ReservationService
                 'refund_status' => 'not_requested',
             ]);
 
+            // Log creation transition
+            $this->logStateChange($reservation, null, $reservation->reservation_status, 'created');
+
             $reservedCount = $slot->reserved_count + 1;
 
             $slot->update([
@@ -117,10 +140,14 @@ class ReservationService
                 ->lockForUpdate()
                 ->findOrFail($reservation->activity_time_slot_id);
 
+            $oldStatus = $reservation->reservation_status;
+
             $reservation->update([
                 'reservation_status' => 'cancelled',
                 'cancellation_reason' => $cancellationReason,
             ]);
+
+            $this->logStateChange($reservation, $oldStatus, 'cancelled', $cancellationReason);
 
             $reservedCount = max(0, $slot->reserved_count - 1);
 
@@ -129,7 +156,7 @@ class ReservationService
                 'is_available' => $reservedCount < $slot->max_capacity,
             ]);
 
-            if ($reservation->payment_status === 'completed') {
+            if (in_array($reservation->payment_status, ['paid', 'completed'], true)) {
                 $this->initiateRefund($reservation, null, $cancellationReason);
             }
 
