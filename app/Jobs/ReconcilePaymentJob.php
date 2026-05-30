@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Events\PaymentReconciled;
 use App\Events\PaymentReconcileFailed;
 use App\Models\Payment;
+use App\Models\PaymentReconciliation;
 use App\Services\LoyaltyCalculatorService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -67,6 +68,8 @@ class ReconcilePaymentJob implements ShouldQueue
                 'gateway_transaction_id' => $data['payment_id'] ?? $data['paymentRef'] ?? $payment->gateway_transaction_id,
                 'metadata' => $data,
                 'verified_at' => now(),
+                'reconciled_at' => $payment->reconciled_at ?? now(),
+                'reconciled_by' => $payment->reconciled_by ?? null,
             ]);
 
             if ($payment->reservation_id) {
@@ -100,6 +103,19 @@ class ReconcilePaymentJob implements ShouldQueue
                 Log::warning('ReconcilePaymentJob: emitting PaymentReconciled failed', ['error' => $e->getMessage()]);
             }
 
+            // create reconciliation history row
+            try {
+                PaymentReconciliation::create([
+                    'payment_id' => $payment->id,
+                    'admin_id' => null,
+                    'type' => 'reconciled',
+                    'amount' => null,
+                    'metadata' => $data,
+                ]);
+            } catch (Throwable $e) {
+                Log::warning('ReconcilePaymentJob: creating PaymentReconciliation failed', ['error' => $e->getMessage()]);
+            }
+
             return;
         }
 
@@ -110,6 +126,19 @@ class ReconcilePaymentJob implements ShouldQueue
                 'status' => 'refunded',
                 'metadata' => array_merge($payment->metadata ?? [], $data),
             ]);
+
+            // create refund reconciliation row
+            try {
+                PaymentReconciliation::create([
+                    'payment_id' => $payment->id,
+                    'admin_id' => null,
+                    'type' => 'refunded',
+                    'amount' => $refundAmount !== null ? (float) $refundAmount : null,
+                    'metadata' => $data,
+                ]);
+            } catch (Throwable $e) {
+                Log::warning('ReconcilePaymentJob: creating refund PaymentReconciliation failed', ['error' => $e->getMessage()]);
+            }
 
             try {
                 event(new PaymentReconciled($payment, $data));
