@@ -1,6 +1,6 @@
 <flux:modal name="create-course-session" variant="flyout" class="max-w-5xl w-full shrink-0 [&_[data-flux-modal-close]]:mt-8 [&_[data-flux-modal-close]]:me-8">
     <div class="px-6 py-8 md:px-8 md:py-10">
-        <div class="space-y-6 rounded-2xl border border-zinc-200 bg-white/90 p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/80 md:p-8">
+        <x-ui.dashboard.panel class="space-y-6">
             <div class="border-b border-zinc-200 pb-5 dark:border-zinc-700">
                 <flux:heading size="lg">{{ __('Add New Course Session') }}</flux:heading>
                 <flux:subheading>{{ __('Create a recurring class template.') }}</flux:subheading>
@@ -41,5 +41,5 @@
         </div>
     </form>
         </div>
-    </div>
+    </x-ui.dashboard.panel>
 </flux:modal>

@@ -4,7 +4,7 @@
         @include('partials.head')
     </head>
     @php
-        $isLockedDashboardPage = request()->routeIs('dashboard', 'admin.members', 'admin.subscriptions', 'admin.events.index');
+        $isLockedDashboardPage = request()->routeIs('dashboard', 'admin.reservations.index', 'admin.activities.index', 'admin.reconciliations.index', 'admin.events.index');
     @endphp
 
     <body @class([
@@ -25,6 +25,24 @@
                     @if(auth()->user()?->can('access-dashboard-module', 'members'))
                     <flux:sidebar.item icon="user-group" :href="route('admin.members')" :current="request()->routeIs('admin.members*')" wire:navigate>
                         {{ __('Members') }}
+                    </flux:sidebar.item>
+                    @endif
+
+                    @if(auth()->user()?->can('access-dashboard-module', 'reservations'))
+                    <flux:sidebar.item icon="calendar-date-range" :href="route('admin.reservations.index')" :current="request()->routeIs('admin.reservations.*')" wire:navigate>
+                        {{ __('Reservations') }}
+                    </flux:sidebar.item>
+                    @endif
+
+                    @if(auth()->user()?->can('access-dashboard-module', 'activities'))
+                    <flux:sidebar.item icon="calendar-date-range" :href="route('admin.activities.index')" :current="request()->routeIs('admin.activities.*')" wire:navigate>
+                        {{ __('Activities & Courts') }}
+                    </flux:sidebar.item>
+                    @endif
+
+                    @if(auth()->user()?->isAdmin())
+                    <flux:sidebar.item icon="receipt-percent" :href="route('admin.reconciliations.index')" :current="request()->routeIs('admin.reconciliations.*')" wire:navigate>
+                        {{ __('Reconciliations') }}
                     </flux:sidebar.item>
                     @endif
 

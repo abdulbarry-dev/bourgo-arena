@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<x-ui.dashboard.page-wrapper>
     <x-ui.dashboard.page-header
         :title="__('Analytics')"
         :subtitle="__('Track revenue, subscriptions, occupancy, and the operational signals that matter to the desk team.')"
@@ -11,4 +11,4 @@
     </div>
 
     <x-ui.dashboard.placeholder-panel class="min-h-[400px] flex-1" />
-</div>
+</x-ui.dashboard.page-wrapper>

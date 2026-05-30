@@ -9,7 +9,7 @@
     <form wire:submit="save" class="mt-6 flex flex-col gap-6 w-full pb-8">
         <div class="space-y-6">
             @forelse ($children as $index => $child)
-                <x-ui.dashboard.panel class="relative space-y-4 p-4 @if(isset($child['id'])) bg-zinc-50/50 dark:bg-zinc-900/20 @endif">
+                <x-ui.dashboard.panel class="relative space-y-4 @if(isset($child['id'])) bg-zinc-50/50 dark:bg-zinc-900/20 @endif">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <flux:heading size="xs">{{ __('Child #:index', ['index' => $index + 1]) }}</flux:heading>
@@ -33,7 +33,7 @@
                     </div>
                 </x-ui.dashboard.panel>
             @empty
-                <x-ui.dashboard.panel class="flex flex-col items-center justify-center gap-2 border-dashed border-zinc-300 py-8 dark:border-zinc-700">
+                <x-ui.dashboard.panel class="flex flex-col items-center justify-center gap-2 border-dashed border-zinc-300 dark:border-zinc-700">
                     <flux:icon name="users" class="text-zinc-400" />
                     <flux:text variant="subtle" size="sm">{{ __('No children linked to this family.') }}</flux:text>
                     <flux:button type="button" variant="subtle" size="sm" icon="plus" wire:click="addChild">{{ __('Add First Child') }}</flux:button>

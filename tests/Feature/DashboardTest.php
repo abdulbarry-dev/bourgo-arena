@@ -17,6 +17,7 @@ test('verified admins can visit the dashboard', function () {
         ->assertSee('Members')
         ->assertSee('Subscriptions')
         ->assertSee('Schedule')
+        ->assertSee('Reconciliations')
         ->assertSee('Courses')
         ->assertSee('Events & Tournaments')
         ->assertSee('Plans')

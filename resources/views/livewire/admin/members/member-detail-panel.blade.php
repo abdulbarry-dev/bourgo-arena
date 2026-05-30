@@ -6,12 +6,12 @@
     >
         <section class="w-full space-y-8 px-6 py-8 md:px-8 md:py-10">
             @if ($member === null)
-                <x-ui.dashboard.panel class="border-dashed border-zinc-300 bg-zinc-50 p-8 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
+                <x-ui.dashboard.panel class="border-dashed border-zinc-300 bg-zinc-50 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
                     <flux:heading size="sm">{{ __('No member selected') }}</flux:heading>
                     <flux:text variant="subtle">{{ __('Choose a member from the table to inspect profile and subscription.') }}</flux:text>
                 </x-ui.dashboard.panel>
             @else
-                <x-ui.dashboard.panel class="space-y-6 border border-zinc-200 bg-white/90 p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/80 md:p-8">
+                <x-ui.dashboard.panel class="space-y-6 border border-zinc-200 bg-white/90 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/80">
                     <div class="flex flex-col gap-5 border-b border-zinc-200 pb-5 dark:border-zinc-700 sm:flex-row sm:items-start sm:justify-between">
                         <div class="space-y-1.5">
                             <flux:heading size="sm">{{ $member->name }}</flux:heading>
@@ -59,6 +59,21 @@
                     @endif
 
                     <div class="flex flex-wrap items-center gap-2 pt-1">
+                        <flux:button
+                            variant="subtle"
+                            :class="$activeTab === 'profile' ? 'bg-zinc-100 dark:bg-zinc-800' : ''"
+                            wire:click="$set('activeTab', 'profile')"
+                        >
+                            {{ __('Profile') }}
+                        </flux:button>
+                        <flux:button
+                            variant="subtle"
+                            :class="$activeTab === 'loyalty' ? 'bg-zinc-100 dark:bg-zinc-800' : ''"
+                            wire:click="$set('activeTab', 'loyalty')"
+                        >
+                            {{ __('Loyalty') }}
+                        </flux:button>
+
                         @can('update', $member)
                             <flux:button variant="subtle" icon="pencil-square" wire:click="$dispatch('open-edit-member-flyout', { memberId: {{ $member->id }} })">
                                 {{ __('Edit Profile') }}
@@ -74,15 +89,50 @@
                         @endif
                     </div>
 
-                    {{-- Member Core Information (Profile & Subscription) --}}
-                    @include('livewire.admin.members.partials.member-info-cards')
+                    @if ($activeTab === 'loyalty')
+                        <x-ui.dashboard.panel class="space-y-4 border border-zinc-200 bg-zinc-50/80 dark:border-zinc-700 dark:bg-zinc-900/50">
+                            <div class="space-y-1">
+                                <flux:heading size="xs">{{ __('Loyalty History') }}</flux:heading>
+                                <flux:text variant="subtle">{{ __('Recent loyalty points and reward activity.') }}</flux:text>
+                            </div>
 
-                    <div class="grid gap-6">
-                        {{-- Family Table --}}
-                        @if ($member->parent || $member->children->isNotEmpty())
-                            @include('livewire.admin.members.partials.family-details-table')
-                        @endif
-                    </div>
+                            <div class="grid gap-4 md:grid-cols-3">
+                                <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900/70">
+                                    <div class="text-xs uppercase tracking-wide text-zinc-500">{{ __('Current Points') }}</div>
+                                    <div class="mt-2 text-2xl font-semibold text-zinc-900 dark:text-zinc-100">{{ $loyaltyPoints }}</div>
+                                </div>
+
+                                <div class="md:col-span-2 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900/70">
+                                    <div class="text-xs uppercase tracking-wide text-zinc-500 mb-3">{{ __('Recent Transactions') }}</div>
+                                    @if ($loyaltyTransactions === null || $loyaltyTransactions->isEmpty())
+                                        <div class="text-sm text-zinc-500">{{ __('No loyalty transactions yet.') }}</div>
+                                    @else
+                                        <div class="space-y-2">
+                                            @foreach ($loyaltyTransactions as $transaction)
+                                                <div class="flex items-center justify-between rounded-lg border border-zinc-200 px-3 py-2 text-sm dark:border-zinc-700">
+                                                    <div>
+                                                        <div class="font-medium text-zinc-900 dark:text-zinc-100">{{ \Illuminate\Support\Str::headline($transaction->transaction_type) }}</div>
+                                                        <div class="text-xs text-zinc-500">{{ $transaction->created_at?->format('M d, Y H:i') }}</div>
+                                                    </div>
+                                                    <div class="font-semibold text-emerald-600 dark:text-emerald-400">+{{ $transaction->points }}</div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </x-ui.dashboard.panel>
+                    @else
+                        {{-- Member Core Information (Profile & Subscription) --}}
+                        @include('livewire.admin.members.partials.member-info-cards')
+
+                        <div class="grid gap-6">
+                            {{-- Family Table --}}
+                            @if ($member->parent || $member->children->isNotEmpty())
+                                @include('livewire.admin.members.partials.family-details-table')
+                            @endif
+                        </div>
+                    @endif
                 </x-ui.dashboard.panel>
             @endif
 

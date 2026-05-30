@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<x-ui.dashboard.page-wrapper>
     <x-ui.dashboard.page-header
         :title="__('Managers')"
         :subtitle="__('A list of all the managers in your account including their name, email and role.')"
@@ -25,4 +25,4 @@
     @include('livewire.admin.managers.partials.view-flyout')
     @include('livewire.admin.managers.partials.delete-modal')
     @include('livewire.admin.managers.partials.ban-modal')
-</div>
+</x-ui.dashboard.page-wrapper>

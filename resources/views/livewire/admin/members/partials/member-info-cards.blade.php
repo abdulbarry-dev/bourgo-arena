@@ -1,6 +1,6 @@
 <div class="grid gap-4 xl:grid-cols-2">
     {{-- Profil --}}
-    <x-ui.dashboard.panel class="space-y-4 p-4">
+    <x-ui.dashboard.panel class="space-y-4">
         <div class="flex items-center justify-between">
             <flux:heading size="sm">{{ __('Profile') }}</flux:heading>
             <flux:badge size="sm" variant="subtle" class="capitalize">{{ $member->account_type_label }}</flux:badge>
@@ -37,7 +37,7 @@
     </x-ui.dashboard.panel>
 
     {{-- Subscription & Access --}}
-    <x-ui.dashboard.panel class="space-y-4 p-4">
+    <x-ui.dashboard.panel class="space-y-4">
         <flux:heading size="sm">{{ __('Subscription & Access') }}</flux:heading>
 
         <dl class="grid gap-3 text-sm">

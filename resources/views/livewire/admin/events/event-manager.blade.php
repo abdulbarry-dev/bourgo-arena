@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<x-ui.dashboard.page-wrapper>
     <x-ui.dashboard.page-header
         :title="__('Events Manager')"
         :subtitle="__('Manage championships, tournaments, and events.')"
@@ -173,4 +173,4 @@
             </div>
         </form>
     </flux:modal>
-</div>
+</x-ui.dashboard.page-wrapper>

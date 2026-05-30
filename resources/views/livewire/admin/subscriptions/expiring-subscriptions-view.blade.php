@@ -11,7 +11,7 @@
         </flux:button>
     </div>
 
-    <x-ui.dashboard.panel class="border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-900/30">
+    <x-ui.dashboard.panel class="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/30">
         <flux:text>
             {{ __(':count subscriptions are expiring in the next 7 days. Reminders queued this session: :sent.', ['count' => $expiringSubscriptions->count(), 'sent' => $touchedCount]) }}
         </flux:text>

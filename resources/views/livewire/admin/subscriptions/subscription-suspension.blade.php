@@ -7,12 +7,12 @@
     </div>
 
     @if ($this->selectedSubscription === null)
-        <x-ui.dashboard.panel class="border-dashed border-zinc-300 bg-zinc-50 p-8 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
+        <x-ui.dashboard.panel class="border-dashed border-zinc-300 bg-zinc-50 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
             <flux:heading size="sm">{{ __('No subscription selected') }}</flux:heading>
             <flux:text variant="subtle">{{ __('Pick a subscription from the table before applying lifecycle actions.') }}</flux:text>
         </x-ui.dashboard.panel>
     @else
-        <x-ui.dashboard.panel class="p-4">
+        <x-ui.dashboard.panel>
             <dl class="grid gap-2 text-sm sm:grid-cols-3">
                 <div>
                     <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Member') }}</dt>
@@ -41,7 +41,7 @@
             </dl>
         </x-ui.dashboard.panel>
 
-        <x-ui.dashboard.panel class="space-y-4 p-4">
+        <x-ui.dashboard.panel class="space-y-4">
             <flux:field>
                 <flux:label>{{ __('Action') }}</flux:label>
                 <flux:select wire:model.live="action">
@@ -61,7 +61,7 @@
 
         </x-ui.dashboard.panel>
 
-        <x-ui.dashboard.panel class="space-y-3 p-4">
+        <x-ui.dashboard.panel class="space-y-3">
             <div class="flex items-center justify-between">
                 <flux:heading size="sm">{{ __('Recent Audit Events') }}</flux:heading>
                 <flux:text variant="subtle">{{ __('Most recent 8 actions') }}</flux:text>

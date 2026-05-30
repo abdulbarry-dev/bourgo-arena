@@ -5,7 +5,7 @@
             :subtitle="__('Review subscription information, payment context, and recent lifecycle audit events.')"
         />
 
-        <x-ui.dashboard.panel class="p-5">
+        <x-ui.dashboard.panel>
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <flux:heading size="lg">{{ $subscription->member->name }}</flux:heading>
@@ -51,7 +51,7 @@
             </div>
         </x-ui.dashboard.panel>
 
-        <x-ui.dashboard.panel class="p-5">
+        <x-ui.dashboard.panel>
             <div class="mb-3 flex items-center justify-between">
                 <flux:heading size="sm">{{ __('Recent Audit Events') }}</flux:heading>
                 <flux:text variant="subtle">{{ __('Most recent 8 actions') }}</flux:text>

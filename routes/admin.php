@@ -1,9 +1,13 @@
 <?php
 
+use App\Http\Controllers\Admin\ReconciliationController;
+use App\Livewire\Admin\Activities\ActivityManager;
 use App\Livewire\Admin\Courses\CourseManager;
 use App\Livewire\Admin\CourseSessions\CourseSessionManager;
 use App\Livewire\Admin\Events\EventManager;
 use App\Livewire\Admin\Managers\Index;
+use App\Livewire\Admin\Payments\ReconciliationManager;
+use App\Livewire\Admin\Reservations\ReservationManager;
 use App\Models\Subscription;
 use Illuminate\Support\Facades\Route;
 
@@ -14,6 +18,9 @@ Route::middleware('role:admin,manager')->group(function () {
 
     Route::view('/members', 'livewire.admin.members.dashboard')
         ->name('admin.members');
+
+    Route::get('/reservations', ReservationManager::class)
+        ->name('admin.reservations.index');
 
     Route::view('/subscriptions', 'livewire.admin.subscriptions.dashboard')
         ->name('admin.subscriptions');
@@ -45,6 +52,9 @@ Route::middleware('role:admin,manager')->group(function () {
 
     Route::get('/course-sessions', CourseSessionManager::class)
         ->name('admin.course-sessions.index');
+
+    Route::get('/activities', ActivityManager::class)
+        ->name('admin.activities.index');
 });
 
 // -------------------------------------------------------------
@@ -52,6 +62,14 @@ Route::middleware('role:admin,manager')->group(function () {
 // Retains the /admin prefix. E.g. /admin/plans, /admin/courses
 // -------------------------------------------------------------
 Route::prefix('admin')->middleware('role:admin')->group(function () {
+
+    Route::get('/reconciliations', ReconciliationManager::class)
+        ->name('admin.reconciliations.index');
+
+    Route::get('/reconciliations/export/csv', [ReconciliationController::class, 'exportCsv'])
+        ->name('admin.reconciliations.export.csv');
+    Route::get('/reconciliations/export/pdf', [ReconciliationController::class, 'exportPdf'])
+        ->name('admin.reconciliations.export.pdf');
 
     Route::view('/plans', 'livewire.admin.plans.dashboard')
         ->name('admin.plans');

@@ -1,7 +1,7 @@
 @props(['title' => null])
 
 @php
-    $isLockedDashboardPage = request()->routeIs('dashboard', 'admin.members', 'admin.subscriptions', 'admin.events.index');
+    $isLockedDashboardPage = request()->routeIs('dashboard', 'admin.events.index', 'admin.reconciliations.index');
 @endphp
 
 <x-layouts::app :title="$title">

@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<x-ui.dashboard.page-wrapper>
     <x-ui.dashboard.page-header
         :title="__('Course Catalog Manager')"
         :subtitle="__('Design and manage the master templates for course sessions.')"
@@ -68,4 +68,4 @@
     @include('livewire.admin.courses.partials.modals.edit-session-modal')
 
     @include('livewire.admin.courses.partials.modals.delete-session-modal')
-</div>
+</x-ui.dashboard.page-wrapper>
