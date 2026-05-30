@@ -68,7 +68,20 @@ class KonnectProvider implements PaymentProviderInterface
 
     public function validateWebhookSignature(Request $request): bool
     {
-        return true;
+        $secret = config('payment.providers.konnect.webhook_secret');
+
+        if (empty($secret)) {
+            return false;
+        }
+
+        $data = array_merge($request->query->all(), $request->json()->all());
+        $payload = json_encode($data);
+
+        $expected = hash_hmac('sha256', $payload, (string) $secret);
+
+        $header = (string) $request->header('X-konnect-Signature', '');
+
+        return hash_equals($expected, $header);
     }
 
     public function normalizeWebhookPayload(Request $request): WebhookResultDTO

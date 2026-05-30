@@ -6,7 +6,7 @@ test('admin can view members dashboard page', function () {
     $this->actingAs(User::factory()->admin()->create())
         ->get(route('admin.members'))
         ->assertOk()
-        ->assertSee('h-dvh overflow-hidden', false)
+        ->assertSee('h-dvh overflow-y-auto', false)
         ->assertSee('Members')
         ->assertSee('Add Member')
         ->assertSee('Search, filter, and manage member records');

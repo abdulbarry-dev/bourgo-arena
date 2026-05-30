@@ -20,10 +20,17 @@ trait ConfirmsActions
     /** @var array<string,array> */
     protected array $pendingConfirmations = [];
 
-    /** Listen for the Livewire emitted confirmation event */
-    protected $listeners = [
-        'confirm:confirmed' => 'confirmedAction',
-    ];
+    /**
+     * Merge the confirm listener into Livewire listeners.
+     * Livewire supports defining `getListeners()` on components which we rely on
+     * so the trait does not declare a conflicting $listeners property.
+     */
+    public function getListeners(): array
+    {
+        $base = isset($this->listeners) && is_array($this->listeners) ? $this->listeners : [];
+
+        return array_merge($base, ['confirm:confirmed' => 'confirmedAction']);
+    }
 
     /**
      * Request a confirmation modal to be shown to the user.
