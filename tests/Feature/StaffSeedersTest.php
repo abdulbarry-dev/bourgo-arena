@@ -1,9 +1,20 @@
 <?php
 
+use App\Models\Activity;
+use App\Models\ApiReservation;
+use App\Models\Booking;
+use App\Models\Course;
 use App\Models\Event;
+use App\Models\EventMatch;
 use App\Models\EventParticipant;
 use App\Models\LoyaltyPoint;
 use App\Models\Member;
+use App\Models\MemberDeviceToken;
+use App\Models\MemberNotification;
+use App\Models\Payment;
+use App\Models\Plan;
+use App\Models\RevenueSnapshot;
+use App\Models\Subscription;
 use App\Models\User;
 use App\UserRole;
 use Illuminate\Support\Facades\Hash;
@@ -28,9 +39,21 @@ test('dashboard seeders create members and events data', function () {
     $this->seed();
 
     expect(Member::count())->toBe(12);
+    expect(Member::where('email', 'lina.chafik@example.com')->value('parent_id'))->not->toBeNull();
     expect(Event::count())->toBe(2);
     expect(EventParticipant::count())->toBe(8);
     expect(LoyaltyPoint::count())->toBe(12);
+    expect(Plan::count())->toBe(5);
+    expect(Course::count())->toBe(4);
+    expect(Subscription::count())->toBe(8);
+    expect(Activity::count())->toBe(4);
+    expect(ApiReservation::count())->toBe(6);
+    expect(Booking::count())->toBe(6);
+    expect(Payment::count())->toBe(6);
+    expect(EventMatch::count())->toBe(3);
+    expect(MemberNotification::count())->toBe(6);
+    expect(MemberDeviceToken::count())->toBe(4);
+    expect(RevenueSnapshot::count())->toBe(3);
 
     expect(Member::where('email', 'amira.elmansouri@example.com')->value('loyalty_points'))->toBe(120);
     expect(Member::where('email', 'bilal.hajar@example.com')->value('loyalty_points'))->toBe(1670);
