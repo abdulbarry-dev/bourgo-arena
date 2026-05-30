@@ -10,3 +10,5 @@
         {{ $slot }}
     </flux:main>
 </x-layouts::app.sidebar>
+
+@include('components.ui.confirm-modal')

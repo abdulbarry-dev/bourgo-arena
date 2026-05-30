@@ -510,7 +510,7 @@ class ReservationManager extends Component
     #[Computed]
     public function reservations(): LengthAwarePaginator
     {
-        return $this->baseQuery()->paginate(10);
+        return $this->baseQuery()->paginate(15);
     }
 
     #[Computed]
