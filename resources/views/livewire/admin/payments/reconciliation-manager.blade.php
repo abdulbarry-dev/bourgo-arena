@@ -1,4 +1,4 @@
-<x-ui.dashboard.page-wrapper>
+<div class="space-y-6">
     <x-ui.dashboard.page-header
         :title="__('Reconciliations')"
         :subtitle="__('Review payment verification and refund audit rows.')"
@@ -118,87 +118,17 @@
         </x-slot>
     </x-ui.dashboard.table-shell>
 
-    <flux:modal
-        wire:model="showExportConfirmModal"
-        class="max-w-lg"
-        x-data="{
-            abortController: null,
-            async startExport(event) {
-                const url = event.currentTarget.dataset.exportUrl;
+    <x-ui.confirm-modal
+        wire:model.self="showExportConfirmModal"
+        :title="__('Confirm export')"
+        :description="$exportFormat === 'pdf'
+            ? __('This will generate a PDF report of the current reconciliation filters.')
+            : __('This will generate a CSV report of the current reconciliation filters.')"
+        cancel-action="closeExportConfirmModal"
+        confirm-action="confirmExport"
+        :confirm-text="__('Start export')"
+        confirm-icon="arrow-down-tray"
+        loading-target="confirmExport"
+    />
 
-                this.abortController = new AbortController();
-
-                try {
-                    const response = await fetch(url, {
-                        signal: this.abortController.signal,
-                        credentials: 'same-origin',
-                    });
-
-                    if (! response.ok) {
-                        throw new Error('Export request failed.');
-                    }
-
-                    const blob = await response.blob();
-                    const filename = event.currentTarget.dataset.exportFilename ?? 'payment_reconciliations';
-                    const objectUrl = window.URL.createObjectURL(blob);
-                    const anchor = document.createElement('a');
-
-                    anchor.href = objectUrl;
-                    anchor.download = filename;
-                    anchor.click();
-                    window.URL.revokeObjectURL(objectUrl);
-
-                    this.$wire.closeExportConfirmModal();
-                } catch (error) {
-                    if (error.name !== 'AbortError') {
-                        console.error(error);
-                    }
-                } finally {
-                    this.abortController = null;
-                }
-            },
-            cancelExport() {
-                if (this.abortController) {
-                    this.abortController.abort();
-                }
-
-                this.abortController = null;
-                this.$wire.closeExportConfirmModal();
-            },
-        }"
-        x-on:hidden="cancelExport()"
-    >
-        <div class="space-y-6 p-2">
-            <div class="space-y-2">
-                <flux:heading size="lg">{{ __('Confirm export') }}</flux:heading>
-                <flux:text variant="subtle">
-                    @if ($exportFormat === 'pdf')
-                        {{ __('This will generate a PDF report of the current reconciliation filters.') }}
-                    @else
-                        {{ __('This will generate a CSV report of the current reconciliation filters.') }}
-                    @endif
-                </flux:text>
-            </div>
-
-            <div class="flex flex-wrap items-center justify-end gap-3">
-                <flux:button variant="ghost" type="button" x-on:click="cancelExport()">
-                    {{ __('Cancel') }}
-                </flux:button>
-
-                <flux:button
-                    variant="primary"
-                    type="button"
-                    icon="arrow-down-tray"
-                    x-on:click.prevent="startExport($event)"
-                    :data-export-url="$exportFormat === 'pdf'
-                        ? route('admin.reconciliations.export.pdf', array_filter(['search' => $search, 'type' => $type], fn ($value) => filled($value)))
-                        : route('admin.reconciliations.export.csv', array_filter(['search' => $search, 'type' => $type], fn ($value) => filled($value)))"
-                    :data-export-filename="$exportFormat === 'pdf' ? 'payment_reconciliations.pdf' : 'payment_reconciliations.csv'"
-                >
-                    {{ __('Start export') }}
-                </flux:button>
-            </div>
-        </div>
-    </flux:modal>
-
-</x-ui.dashboard.page-wrapper>
+</div>

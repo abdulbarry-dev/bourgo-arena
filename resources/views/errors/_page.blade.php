@@ -40,6 +40,5 @@
             </section>
         </main>
 
-        @fluxScripts
     </body>
 </html>

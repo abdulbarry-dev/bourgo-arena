@@ -138,6 +138,5 @@
 
         <livewire:shared.notifications.toast-manager />
 
-        @fluxScripts
     </body>
 </html>

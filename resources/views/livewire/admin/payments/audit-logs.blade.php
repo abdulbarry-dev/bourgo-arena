@@ -18,7 +18,7 @@
         </select>
 
         <div class="ml-auto">
-            <button wire:click="exportAll" class="btn btn-secondary">Export CSV</button>
+            <button wire:click="openExportConfirmModal" class="btn btn-secondary">Export CSV</button>
         </div>
     </div>
 
@@ -72,4 +72,15 @@
 
         <div class="mt-4">{{ $logs->links() }}</div>
     @endif
+
+    <x-ui.confirm-modal
+        wire:model.self="showExportConfirmModal"
+        :title="__('Confirm export')"
+        :description="__('This will generate a CSV export of the current payment audit rows.')"
+        cancel-action="closeExportConfirmModal"
+        confirm-action="confirmExport"
+        :confirm-text="__('Start export')"
+        confirm-icon="arrow-down-tray"
+        loading-target="confirmExport"
+    />
 </div>

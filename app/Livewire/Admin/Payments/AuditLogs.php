@@ -3,14 +3,12 @@
 namespace App\Livewire\Admin\Payments;
 
 use App\Models\PaymentTransaction;
-use App\Traits\ConfirmsActions;
-use Illuminate\Http\Response;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AuditLogs extends Component
 {
-    use ConfirmsActions;
     use WithPagination;
 
     public string $search = '';
@@ -20,6 +18,8 @@ class AuditLogs extends Component
     public string $status = '';
 
     public int $perPage = 20;
+
+    public bool $showExportConfirmModal = false;
 
     public function updatedSearch(): void
     {
@@ -36,26 +36,25 @@ class AuditLogs extends Component
         $this->resetPage();
     }
 
-    public function exportAll(): void
+    public function openExportConfirmModal(): void
     {
-        // Ask for confirmation using ConfirmsActions trait
-        $this->requireConfirmation('export-logs');
+        $this->showExportConfirmModal = true;
     }
 
-    // This will be invoked by ConfirmsActions when the frontend confirms
-    public function handleExportLogs(array $payload = []): ?Response
+    public function closeExportConfirmModal(): void
     {
-        // Generate CSV content for all logs (could apply filters if needed)
+        $this->showExportConfirmModal = false;
+    }
+
+    public function confirmExport(): StreamedResponse
+    {
         $filename = 'payment-audit-'.now()->format('YmdHis').'.csv';
 
         $rows = PaymentTransaction::query()->with('user')->orderByDesc('id')->get();
 
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
-        ];
+        $this->closeExportConfirmModal();
 
-        $callback = function () use ($rows) {
+        return response()->streamDownload(function () use ($rows): void {
             $out = fopen('php://output', 'w');
             fputcsv($out, ['transaction_id', 'user_email', 'amount', 'currency', 'gateway', 'status', 'created_at', 'ip_address', 'user_agent']);
 
@@ -74,15 +73,7 @@ class AuditLogs extends Component
             }
 
             fclose($out);
-        };
-
-        return response()->stream($callback, 200, $headers);
-    }
-
-    public function downloadExport(): void
-    {
-        // helper if needed — kept for compatibility
-        $this->exportAll();
+        }, $filename, ['Content-Type' => 'text/csv']);
     }
 
     public function render()
