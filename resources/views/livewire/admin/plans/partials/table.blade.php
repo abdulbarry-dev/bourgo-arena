@@ -44,23 +44,26 @@
                     <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ $plan->subscriptions_count }}</td>
                     <td class="px-4 py-3 text-right">
                         <x-ui.dashboard.row-actions>
-                            <flux:button
-                                variant="subtle"
-                                size="sm"
-                                icon="eye"
-                                wire:click="openDetailFlyout({{ $plan->id }})"
-                                aria-label="{{ __('View plan :name', ['name' => __($plan->name)]) }}"
-                            />
-
-                            @can('update', $plan)
+                            <flux:dropdown position="bottom" align="end">
                                 <flux:button
-                                    variant="subtle"
+                                    variant="ghost"
                                     size="sm"
-                                    wire:click="openEditFlyout({{ $plan->id }})"
-                                >
-                                    {{ __('Edit') }}
-                                </flux:button>
-                            @endcan
+                                    icon="ellipsis-horizontal"
+                                    class="!px-2"
+                                    aria-label="{{ __('Open actions for :name', ['name' => __($plan->name)]) }}"
+                                />
+                                <flux:menu>
+                                    <flux:menu.item icon="eye" wire:click="openDetailFlyout({{ $plan->id }})">
+                                        {{ __('View Details') }}
+                                    </flux:menu.item>
+
+                                    @can('update', $plan)
+                                        <flux:menu.item icon="pencil-square" wire:click="openEditFlyout({{ $plan->id }})">
+                                            {{ __('Edit Plan') }}
+                                        </flux:menu.item>
+                                    @endcan
+                                </flux:menu>
+                            </flux:dropdown>
                         </x-ui.dashboard.row-actions>
                     </td>
                 </tr>

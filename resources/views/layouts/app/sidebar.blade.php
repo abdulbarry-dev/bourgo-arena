@@ -44,6 +44,9 @@
                     <flux:sidebar.item icon="receipt-percent" :href="route('admin.reconciliations.index')" :current="request()->routeIs('admin.reconciliations.*')" wire:navigate>
                         {{ __('Reconciliations') }}
                     </flux:sidebar.item>
+                        <flux:sidebar.item icon="magnifying-glass" :href="route('admin.payments.audit')" :current="request()->routeIs('admin.payments.audit*')" wire:navigate>
+                            {{ __('Payments Audit') }}
+                        </flux:sidebar.item>
                     @endif
 
                     @if(auth()->user()?->can('access-dashboard-module', 'subscriptions'))

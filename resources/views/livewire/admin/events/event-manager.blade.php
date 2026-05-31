@@ -105,7 +105,20 @@
                         </td>
                         <td class="px-4 py-4 align-top text-right">
                             <x-ui.dashboard.row-actions>
-                                <flux:button wire:click="edit({{ $event->id }})" size="sm" variant="subtle" icon="pencil-square" aria-label="{{ __('Edit :name', ['name' => $event->name]) }}" />
+                                <flux:dropdown position="bottom" align="end">
+                                    <flux:button
+                                        variant="ghost"
+                                        size="sm"
+                                        icon="ellipsis-horizontal"
+                                        class="!px-2"
+                                        aria-label="{{ __('Open actions for :name', ['name' => $event->name]) }}"
+                                    />
+                                    <flux:menu>
+                                        <flux:menu.item icon="pencil-square" wire:click="edit({{ $event->id }})">
+                                            {{ __('Edit Event') }}
+                                        </flux:menu.item>
+                                    </flux:menu>
+                                </flux:dropdown>
                             </x-ui.dashboard.row-actions>
                         </td>
                     </tr>

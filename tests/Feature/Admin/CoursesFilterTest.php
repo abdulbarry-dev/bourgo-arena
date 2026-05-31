@@ -56,3 +56,31 @@ it('filters courses by search, category, instructor, and session presence', func
         ->assertSee('Weights 101')
         ->assertDontSee('Yoga Basics');
 });
+
+it('renders course view modal without close panel and shows placeholder when no image', function () {
+    $course = Course::factory()->create([
+        'name' => 'Pilates Flow',
+        'instructor' => 'Jane Doe',
+        'image_url' => null,
+    ]);
+
+    Livewire::test(CourseManager::class)
+        ->call('openViewModal', $course->id)
+        ->assertSet('viewingCourseId', $course->id)
+        ->assertSee('Pilates Flow')
+        ->assertSee('Jane Doe')
+        ->assertSee('No cover image')
+        ->assertDontSee('Close Panel');
+});
+
+it('renders course cover image in view modal when image is set', function () {
+    $course = Course::factory()->create([
+        'image_url' => 'https://example.test/courses/pilates.jpg',
+    ]);
+
+    Livewire::test(CourseManager::class)
+        ->call('openViewModal', $course->id)
+        ->assertSee('courses/pilates.jpg')
+        ->assertDontSee('No cover image')
+        ->assertDontSee('Close Panel');
+});

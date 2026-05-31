@@ -50,13 +50,30 @@ test('plan table hides create action for manager and shows it for admin', functi
 
     Livewire::test(PlanTable::class)
         ->assertDontSee('Create Plan')
-        ->assertDontSee('Edit');
+        ->assertDontSee('Edit Plan');
 
     $this->actingAs(User::factory()->admin()->create());
 
     Livewire::test(PlanTable::class)
         ->assertSee('Create Plan')
-        ->assertSee('Edit');
+        ->assertSee('View Details')
+        ->assertSee('Edit Plan');
+});
+
+test('plan detail flyout shows placeholder when no image and no close panel', function () {
+    $this->actingAs(User::factory()->manager()->create());
+
+    $plan = Plan::factory()->create([
+        'name' => 'Starter Pack',
+        'image_url' => null,
+    ]);
+
+    Livewire::test(PlanTable::class)
+        ->call('openDetailFlyout', $plan->id)
+        ->assertSet('detailPlanId', $plan->id)
+        ->assertSee('Starter Pack')
+        ->assertSee('No cover image')
+        ->assertDontSee('Close Panel');
 });
 
 test('plan can be saved with specific courses', function () {

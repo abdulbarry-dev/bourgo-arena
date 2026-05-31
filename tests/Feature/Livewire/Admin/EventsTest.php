@@ -46,6 +46,17 @@ it('shows the empty state for the event list', function () {
         ->assertSee('No events found');
 });
 
+it('shows row actions in a dropdown menu', function () {
+    $admin = User::factory()->create(['role' => UserRole::Admin]);
+    $event = Event::factory()->create(['name' => 'Winter Cup']);
+
+    $this->actingAs($admin);
+
+    Livewire::test(EventManager::class)
+        ->assertSee('Edit Event')
+        ->assertSee(__('Open actions for :name', ['name' => 'Winter Cup']), false);
+});
+
 it('can create a new event', function () {
     $admin = User::factory()->create(['role' => UserRole::Admin]);
 

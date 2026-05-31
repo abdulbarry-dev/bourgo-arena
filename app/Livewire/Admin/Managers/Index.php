@@ -73,6 +73,11 @@ class Index extends Component
         $this->showFlyout = true;
     }
 
+    public function selectManager(User $manager)
+    {
+        $this->selectedManager = $manager;
+    }
+
     public function createManager()
     {
         $this->validate([

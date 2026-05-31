@@ -15,6 +15,36 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
+it('paginates reservations five per page', function () {
+    $admin = User::factory()->create(['role' => UserRole::Admin]);
+
+    ApiReservation::factory()->count(6)->create();
+
+    $this->actingAs($admin);
+
+    $component = Livewire::test(ReservationManager::class);
+
+    expect($component->instance()->reservations->perPage())->toBe(5)
+        ->and($component->instance()->reservations->count())->toBe(5)
+        ->and($component->instance()->reservations->total())->toBe(6);
+});
+
+it('displays member avatar in the reservations table', function () {
+    $admin = User::factory()->create(['role' => UserRole::Admin]);
+    $member = Member::factory()->create([
+        'name' => 'Avatar Member',
+        'avatar' => 'members/avatars/table.jpg',
+    ]);
+
+    ApiReservation::factory()->for($member, 'member')->create();
+
+    $this->actingAs($admin);
+
+    Livewire::test(ReservationManager::class)
+        ->assertSee('Avatar Member')
+        ->assertSee(asset('storage/members/avatars/table.jpg'), false);
+});
+
 it('renders the reservations manager page', function () {
     $admin = User::factory()->create(['role' => UserRole::Admin]);
 

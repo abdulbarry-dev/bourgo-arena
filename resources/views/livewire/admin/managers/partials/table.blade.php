@@ -38,13 +38,31 @@
                     </td>
                     <td class="px-4 py-3 text-right">
                         <x-ui.dashboard.row-actions justify="right">
-                            <flux:button
-                                wire:click="openViewFlyout({{ $manager->id }})"
-                                variant="ghost"
-                                size="sm"
-                                icon="eye"
-                                aria-label="{{ __('View manager details for :name', ['name' => $manager->name]) }}"
-                            />
+                            <flux:dropdown>
+                                <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" class="!px-2" />
+                                <flux:menu>
+                                    <flux:menu.item icon="eye" wire:click="openViewFlyout({{ $manager->id }})">
+                                        {{ __('View Details') }}
+                                    </flux:menu.item>
+                                    
+                                    @if ($manager->id !== auth()->id())
+                                        <flux:menu.item 
+                                            icon="{{ $manager->isBanned() ? 'check-circle' : 'no-symbol' }}" 
+                                            wire:click="selectManager({{ $manager->id }}); toggleBan()"
+                                        >
+                                            {{ $manager->isBanned() ? __('Unban Manager') : __('Ban Manager') }}
+                                        </flux:menu.item>
+                                        
+                                        <flux:menu.item 
+                                            icon="trash" 
+                                            variant="danger" 
+                                            x-on:click="$wire.selectManager({{ $manager->id }}).then(() => { Flux.modal('confirm-delete').show() })"
+                                        >
+                                            {{ __('Delete Manager') }}
+                                        </flux:menu.item>
+                                    @endif
+                                </flux:menu>
+                            </flux:dropdown>
                         </x-ui.dashboard.row-actions>
                     </td>
                 </tr>

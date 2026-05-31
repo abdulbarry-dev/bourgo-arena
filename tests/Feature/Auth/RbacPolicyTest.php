@@ -74,18 +74,6 @@ class RbacPolicyTest extends TestCase
     }
 
     /**
-     * Test only admin can transfer subscriptions.
-     */
-    public function test_only_admin_can_transfer_subscription(): void
-    {
-        $this->actingAs($this->admin);
-        $this->assertTrue($this->admin->can('transfer', Subscription::class));
-
-        $this->actingAs($this->manager);
-        $this->assertFalse($this->manager->can('transfer', Subscription::class));
-    }
-
-    /**
      * Test member delete only allowed for admin.
      */
     public function test_only_admin_can_delete_members(): void

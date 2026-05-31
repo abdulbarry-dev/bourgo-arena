@@ -56,10 +56,14 @@ Route::prefix('v1')->group(function () {
     Route::middleware(['auth:sanctum', 'verified.account', 'onboarding.completed'])->group(function () {
         Route::get('member/profile', [MemberController::class, 'profile'])->name('api.v1.member.profile');
         Route::put('member/profile', [MemberController::class, 'updateProfile'])->name('api.v1.member.update-profile');
+        Route::post('member/profile/avatar', [MemberController::class, 'uploadAvatar'])->name('api.v1.member.upload-avatar');
+        Route::delete('member/profile/avatar', [MemberController::class, 'deleteAvatar'])->name('api.v1.member.delete-avatar');
 
         Route::prefix('user')->group(function () {
             Route::get('profile', [MemberController::class, 'profile'])->name('api.v1.user.profile');
             Route::put('profile', [MemberController::class, 'updateProfile'])->name('api.v1.user.update-profile');
+            Route::post('profile/avatar', [MemberController::class, 'uploadAvatar'])->name('api.v1.user.upload-avatar');
+            Route::delete('profile/avatar', [MemberController::class, 'deleteAvatar'])->name('api.v1.user.delete-avatar');
             Route::put('password', [AuthController::class, 'updatePassword'])->middleware('throttle:api.password')->name('api.v1.user.update-password');
         });
 

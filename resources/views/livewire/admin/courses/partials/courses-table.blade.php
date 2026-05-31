@@ -46,7 +46,27 @@
 
                         <td class="px-4 py-3 text-right">
                             <x-ui.dashboard.row-actions>
-                                <flux:button wire:click="openViewModal({{ $course->id }})" variant="subtle" size="sm" icon="eye" />
+                                <flux:dropdown>
+                                    <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" class="!px-2" />
+                                    <flux:menu>
+                                        <flux:menu.item icon="eye" wire:click="openViewModal({{ $course->id }})">
+                                            {{ __('View Details') }}
+                                        </flux:menu.item>
+                                        <flux:menu.item icon="pencil" wire:click="openEditModal({{ $course->id }})">
+                                            {{ __('Edit Course') }}
+                                        </flux:menu.item>
+                                        
+                                        @if ($course->sessions_count > 0 || $course->sessions()->count() > 0)
+                                            <flux:menu.item icon="trash" disabled>
+                                                {{ __('Delete (Has Sessions)') }}
+                                            </flux:menu.item>
+                                        @else
+                                            <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete({{ $course->id }})">
+                                                {{ __('Delete Course') }}
+                                            </flux:menu.item>
+                                        @endif
+                                    </flux:menu>
+                                </flux:dropdown>
                             </x-ui.dashboard.row-actions>
                         </td>
                     </tr>
