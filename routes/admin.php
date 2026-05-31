@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\PaymentAuditController;
 use App\Http\Controllers\Admin\ReconciliationController;
 use App\Livewire\Admin\Activities\ActivityManager;
+use App\Livewire\Admin\Activities\ActivitySlotsManager;
 use App\Livewire\Admin\Courses\CourseManager;
 use App\Livewire\Admin\CourseSessions\CourseSessionManager;
 use App\Livewire\Admin\Events\EventManager;
@@ -44,19 +45,14 @@ Route::middleware('role:admin,manager')->group(function () {
         ]);
     })->name('admin.subscriptions.show');
 
-    Route::get('/subscriptions/{subscription}/actions', function (Subscription $subscription) {
-        $subscription->load(['member', 'plan']);
-
-        return view('livewire.admin.subscriptions.actions', [
-            'subscription' => $subscription,
-        ]);
-    })->name('admin.subscriptions.actions');
-
     Route::get('/course-sessions', CourseSessionManager::class)
         ->name('admin.course-sessions.index');
 
     Route::get('/activities', ActivityManager::class)
         ->name('admin.activities.index');
+
+    Route::get('/activities/{activity}/slots', ActivitySlotsManager::class)
+        ->name('admin.activities.slots');
 });
 
 // -------------------------------------------------------------
