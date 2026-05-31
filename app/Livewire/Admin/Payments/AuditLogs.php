@@ -21,19 +21,24 @@ class AuditLogs extends Component
 
     public bool $showExportConfirmModal = false;
 
+    public array $showRaw = [];
+
     public function updatedSearch(): void
     {
         $this->resetPage();
+        $this->showRaw = [];
     }
 
     public function updatedGateway(): void
     {
         $this->resetPage();
+        $this->showRaw = [];
     }
 
     public function updatedStatus(): void
     {
         $this->resetPage();
+        $this->showRaw = [];
     }
 
     public function openExportConfirmModal(): void
@@ -44,6 +49,17 @@ class AuditLogs extends Component
     public function closeExportConfirmModal(): void
     {
         $this->showExportConfirmModal = false;
+    }
+
+    public function toggleRaw(int $id): void
+    {
+        if (! empty($this->showRaw[$id])) {
+            unset($this->showRaw[$id]);
+
+            return;
+        }
+
+        $this->showRaw[$id] = true;
     }
 
     public function confirmExport(): StreamedResponse

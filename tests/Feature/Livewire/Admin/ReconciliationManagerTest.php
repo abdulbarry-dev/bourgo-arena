@@ -34,6 +34,98 @@ it('renders reconciliation manager and lists items', function () {
         ->assertDontSee('Recent Exports');
 });
 
+it('can view archive and delete reconciliation records following business rules', function () {
+    $admin = User::factory()->create(['role' => UserRole::Admin]);
+
+    $member = Member::factory()->create();
+    $payment = Payment::factory()->create([
+        'member_id' => $member->id,
+        'payment_reference' => 'PAY-REF-001',
+        'status' => 'paid',
+    ]);
+
+    $reconciliation = PaymentReconciliation::query()->create([
+        'payment_id' => $payment->id,
+        'admin_id' => $admin->id,
+        'type' => 'reconciled',
+        'amount' => 25.500,
+        'metadata' => ['provider' => 'konnect', 'status' => 'completed'],
+    ]);
+
+    $this->actingAs($admin);
+
+    Livewire::test(ReconciliationManager::class)
+        ->call('openDetailModal', $reconciliation->id)
+        ->assertSet('selectedReconciliationId', $reconciliation->id)
+        ->assertSee('PAY-REF-001')
+        ->assertSee('konnect')
+        ->call('confirmArchive', $reconciliation->id)
+        ->call('archiveReconciliation')
+        ->assertSet('showArchiveConfirmModal', false);
+
+    $reconciliation->refresh();
+
+    expect($reconciliation->archived_at)->not->toBeNull();
+
+    Livewire::test(ReconciliationManager::class)
+        ->set('archiveFilter', 'active')
+        ->assertDontSee('PAY-REF-001');
+
+    Livewire::test(ReconciliationManager::class)
+        ->set('archiveFilter', 'archived')
+        ->assertSee('PAY-REF-001')
+        ->call('confirmDelete', $reconciliation->id)
+        ->call('deleteReconciliation')
+        ->assertSet('showDeleteConfirmModal', false);
+
+    $this->assertDatabaseMissing('payment_reconciliations', ['id' => $reconciliation->id]);
+});
+
+it('prevents deleting active reconciliation records', function () {
+    $admin = User::factory()->create(['role' => UserRole::Admin]);
+    $payment = Payment::factory()->create(['member_id' => Member::factory()->create()->id]);
+
+    $reconciliation = PaymentReconciliation::query()->create([
+        'payment_id' => $payment->id,
+        'admin_id' => $admin->id,
+        'type' => 'refunded',
+        'metadata' => ['provider' => 'test'],
+    ]);
+
+    $this->actingAs($admin);
+
+    Livewire::test(ReconciliationManager::class)
+        ->call('confirmDelete', $reconciliation->id)
+        ->assertDispatched('toast')
+        ->assertSet('showDeleteConfirmModal', false)
+        ->assertSet('deletingReconciliationId', null);
+
+    $this->assertDatabaseHas('payment_reconciliations', ['id' => $reconciliation->id]);
+});
+
+it('can restore an archived reconciliation record', function () {
+    $admin = User::factory()->create(['role' => UserRole::Admin]);
+    $payment = Payment::factory()->create(['member_id' => Member::factory()->create()->id]);
+
+    $reconciliation = PaymentReconciliation::query()->create([
+        'payment_id' => $payment->id,
+        'admin_id' => $admin->id,
+        'type' => 'reconciled',
+        'archived_at' => now(),
+        'metadata' => ['provider' => 'test'],
+    ]);
+
+    $this->actingAs($admin);
+
+    Livewire::test(ReconciliationManager::class)
+        ->set('archiveFilter', 'archived')
+        ->call('restoreReconciliation', $reconciliation->id);
+
+    $reconciliation->refresh();
+
+    expect($reconciliation->archived_at)->toBeNull();
+});
+
 it('downloads reconciliation csv and pdf exports', function () {
     $admin = User::factory()->create(['role' => UserRole::Admin]);
 
