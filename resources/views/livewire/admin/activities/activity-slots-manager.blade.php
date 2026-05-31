@@ -59,7 +59,6 @@
         <table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-700">
             <thead class="bg-zinc-50 dark:bg-zinc-900/80">
                 <tr>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Date') }}</th>
                     <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Time') }}</th>
                     <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Capacity') }}</th>
                     <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Reservations') }}</th>
@@ -70,7 +69,6 @@
             <tbody class="divide-y divide-zinc-100 bg-white dark:divide-zinc-800 dark:bg-zinc-900/40">
                 @foreach ($this->paginatedSlots as $slot)
                     <tr wire:key="activity-slot-{{ $slot->id }}" class="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/70">
-                        <td class="px-4 py-4 text-zinc-700 dark:text-zinc-300">{{ $slot->date->format('M d, Y') }}</td>
                         <td class="px-4 py-4 text-zinc-700 dark:text-zinc-300">{{ substr($slot->starts_at, 0, 5) }} - {{ substr($slot->ends_at, 0, 5) }}</td>
                         <td class="px-4 py-4 text-zinc-700 dark:text-zinc-300">{{ $slot->booked_count }} / {{ $slot->capacity }}</td>
                         <td class="px-4 py-4 text-zinc-700 dark:text-zinc-300">{{ $slot->reservations_count }}</td>
@@ -115,7 +113,7 @@
     </x-ui.dashboard.table-shell>
 
     <flux:modal wire:model="showSlotModal" variant="flyout" class="w-full max-w-lg" x-on:hidden="$wire.closeSlotModal()">
-        <form wire:submit.prevent="saveSlot" class="p-6 space-y-6">
+                <form wire:submit.prevent="saveSlot" class="p-6 space-y-6">
             <div>
                 <flux:heading size="lg">{{ $editingSlotId === null ? __('Add Slot') : __('Edit Slot') }}</flux:heading>
                 <flux:text variant="subtle">
@@ -126,7 +124,6 @@
             </div>
 
             <div class="grid gap-4 sm:grid-cols-2">
-                <flux:input wire:model="slotDate" type="date" :label="__('Date')" required />
                 <flux:input wire:model="slotCapacity" type="number" min="1" :label="__('Capacity')" required />
                 <flux:input wire:model="slotStartsAt" type="time" :label="__('Starts At')" required />
                 <flux:input wire:model="slotEndsAt" type="time" :label="__('Ends At')" required />

@@ -18,7 +18,6 @@ class ActivitySlot extends Model
 
     protected $fillable = [
         'activity_id',
-        'date',
         'starts_at',
         'ends_at',
         'capacity',
@@ -27,9 +26,25 @@ class ActivitySlot extends Model
     ];
 
     protected $casts = [
-        'date' => 'date',
         'is_available' => 'boolean',
     ];
+
+    /**
+     * Check whether a given time range overlaps any existing slot for the activity.
+     */
+    public static function overlaps(int $activityId, string $startsAt, string $endsAt, ?int $ignoreId = null): bool
+    {
+        $query = self::query()
+            ->where('activity_id', $activityId)
+            ->where('starts_at', '<', $endsAt)
+            ->where('ends_at', '>', $startsAt);
+
+        if ($ignoreId !== null) {
+            $query->where('id', '<>', $ignoreId);
+        }
+
+        return $query->exists();
+    }
 
     public function activity(): BelongsTo
     {

@@ -18,8 +18,6 @@ class ActivitySlotsManager extends Component
 
     public Activity $activity;
 
-    public string $slotDate = '';
-
     public string $slotStartsAt = '10:00';
 
     public string $slotEndsAt = '11:00';
@@ -52,7 +50,6 @@ class ActivitySlotsManager extends Component
             ->findOrFail($slotId);
 
         $this->editingSlotId = $slot->id;
-        $this->slotDate = $slot->date->toDateString();
         $this->slotStartsAt = substr($slot->starts_at, 0, 5);
         $this->slotEndsAt = substr($slot->ends_at, 0, 5);
         $this->slotCapacity = $slot->capacity;
@@ -72,10 +69,18 @@ class ActivitySlotsManager extends Component
         $validated = $this->validate($this->slotRules());
 
         if ($this->editingSlotId === null) {
+            // prevent overlapping time ranges for same activity
+            $starts = $validated['slotStartsAt'].':00';
+            $ends = $validated['slotEndsAt'].':00';
+            if (ActivitySlot::overlaps($this->activity->id, $starts, $ends)) {
+                $this->addError('slotStartsAt', __('Slot time overlaps an existing slot for this activity.'));
+                $this->addError('slotEndsAt', __('Slot time overlaps an existing slot for this activity.'));
+                return;
+            }
+
             $this->activity->slots()->create([
-                'date' => $validated['slotDate'],
-                'starts_at' => $validated['slotStartsAt'].':00',
-                'ends_at' => $validated['slotEndsAt'].':00',
+                'starts_at' => $starts,
+                'ends_at' => $ends,
                 'capacity' => $validated['slotCapacity'],
                 'booked_count' => 0,
                 'is_available' => $validated['slotIsAvailable'],
@@ -91,10 +96,18 @@ class ActivitySlotsManager extends Component
             ->where('activity_id', $this->activity->id)
             ->findOrFail($this->editingSlotId);
 
+        $starts = $validated['slotStartsAt'].':00';
+        $ends = $validated['slotEndsAt'].':00';
+
+        if (ActivitySlot::overlaps($this->activity->id, $starts, $ends, $this->editingSlotId)) {
+            $this->addError('slotStartsAt', __('Slot time overlaps an existing slot for this activity.'));
+            $this->addError('slotEndsAt', __('Slot time overlaps an existing slot for this activity.'));
+            return;
+        }
+
         $slot->update([
-            'date' => $validated['slotDate'],
-            'starts_at' => $validated['slotStartsAt'].':00',
-            'ends_at' => $validated['slotEndsAt'].':00',
+            'starts_at' => $starts,
+            'ends_at' => $ends,
             'capacity' => $validated['slotCapacity'],
             'is_available' => $validated['slotIsAvailable'],
         ]);
@@ -130,7 +143,6 @@ class ActivitySlotsManager extends Component
     {
         return $this->activity->slots()
             ->withCount('reservations')
-            ->orderBy('date')
             ->orderBy('starts_at')
             ->paginate(10);
     }
@@ -144,7 +156,7 @@ class ActivitySlotsManager extends Component
 
     private function resetSlotForm(): void
     {
-        $this->reset(['slotDate', 'slotStartsAt', 'slotEndsAt', 'slotCapacity', 'slotIsAvailable']);
+        $this->reset(['slotStartsAt', 'slotEndsAt', 'slotCapacity', 'slotIsAvailable']);
         $this->slotStartsAt = '10:00';
         $this->slotEndsAt = '11:00';
         $this->slotCapacity = 10;
@@ -157,7 +169,6 @@ class ActivitySlotsManager extends Component
     private function slotRules(): array
     {
         return [
-            'slotDate' => ['required', 'date'],
             'slotStartsAt' => ['required', 'date_format:H:i'],
             'slotEndsAt' => ['required', 'date_format:H:i', 'after:slotStartsAt'],
             'slotCapacity' => ['required', 'integer', 'min:1'],

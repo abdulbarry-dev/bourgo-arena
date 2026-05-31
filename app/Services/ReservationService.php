@@ -308,13 +308,26 @@ class ReservationService
                 ]);
             }
 
+            // Enforce single-member reservations per slot
+            $alreadyReservedByOther = ApiReservation::query()
+                ->where('activity_slot_id', $slot->id)
+                ->where('status', '!=', 'cancelled')
+                ->exists();
+
+            if ($alreadyReservedByOther) {
+                throw ValidationException::withMessages([
+                    'activity_slot_id' => ['This slot has already been reserved.'],
+                ]);
+            }
+
             $price = $this->calculateReservationPrice($member, $activity);
 
             $reservation = $this->reservationRepository->createReservation([
                 'member_id' => $member->id,
                 'activity_id' => $dto->activityId,
                 'activity_slot_id' => $dto->activitySlotId,
-                'date' => $slot->date,
+                // The reservation date is provided by the caller (DTO)
+                'date' => $dto->date,
                 'starts_at' => $slot->starts_at,
                 'ends_at' => $slot->ends_at,
                 'price' => $price,
@@ -343,7 +356,7 @@ class ReservationService
         // Since we don't need a lock here, we can just find it normally
         $slot = ActivitySlot::query()->findOrFail($activitySlotId);
 
-        $exists = $this->reservationRepository->hasActiveReservationForSlot($member, $activitySlotId, $slot->date);
+        $exists = $this->reservationRepository->hasActiveReservationForSlot($member, $activitySlotId);
 
         if ($exists) {
             throw ValidationException::withMessages([
