@@ -2,7 +2,7 @@
     <x-ui.dashboard.page-wrapper>
         <x-ui.dashboard.page-header
             :title="__('Subscriptions')"
-            :subtitle="__('Browse subscriptions and open dedicated pages to enroll members, manage lifecycle actions, and monitor upcoming expirations.')"
+            :subtitle="__('Browse subscriptions, enroll members, and monitor upcoming expirations.')"
         >
             <x-slot name="actions">
                 <flux:button variant="subtle" icon="clipboard-document-list" :href="route('admin.plans')" wire:navigate>

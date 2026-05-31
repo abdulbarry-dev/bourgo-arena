@@ -2,7 +2,6 @@
 
 namespace Database\Seeders\Dashboard\Catalog;
 
-use App\Models\Member;
 use App\Models\Subscription;
 use App\Models\SubscriptionAuditLog;
 use App\Models\User;
@@ -20,7 +19,6 @@ class SubscriptionAuditLogSeeder extends Seeder
         }
 
         $suspendedSubscription = Subscription::query()->where('payment_reference', 'SUB-2026-0003')->first();
-        $transferredSubscription = Subscription::query()->where('payment_reference', 'SUB-2026-0005')->first();
         $activeSubscription = Subscription::query()->where('payment_reference', 'SUB-2026-0001')->first();
 
         if ($suspendedSubscription !== null) {
@@ -32,22 +30,6 @@ class SubscriptionAuditLogSeeder extends Seeder
                     'to_member_id' => null,
                     'performed_by' => $manager->id,
                     'performed_at' => now()->subDays(5),
-                    'metadata' => ['source' => 'seed'],
-                ],
-            );
-        }
-
-        if ($transferredSubscription !== null) {
-            $targetMember = Member::query()->where('email', 'sara.berrada@example.com')->first();
-
-            SubscriptionAuditLog::query()->updateOrCreate(
-                ['subscription_id' => $transferredSubscription->id, 'action' => 'transfer'],
-                [
-                    'reason' => 'family_transfer',
-                    'from_member_id' => $transferredSubscription->member_id,
-                    'to_member_id' => $targetMember?->id,
-                    'performed_by' => $manager->id,
-                    'performed_at' => now()->subDays(2),
                     'metadata' => ['source' => 'seed'],
                 ],
             );

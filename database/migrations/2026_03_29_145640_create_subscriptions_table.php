@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('member_id')->constrained('members')->onDelete('cascade');
             $table->foreignId('plan_id')->constrained('plans')->onDelete('restrict');
-            $table->enum('status', ['active', 'suspended', 'expired', 'transferred'])->default('active');
+            $table->enum('status', ['active', 'suspended', 'expired'])->default('active');
             $table->date('starts_at');
             $table->date('ends_at');
             $table->timestamp('suspended_at')->nullable();

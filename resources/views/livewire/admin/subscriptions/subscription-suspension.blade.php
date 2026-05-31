@@ -2,7 +2,7 @@
     <div>
         <flux:heading size="lg">{{ __('Subscription Lifecycle Actions') }}</flux:heading>
         <flux:text variant="subtle">
-            {{ __('Suspend, resume, or transfer the selected subscription with audit logging and queued notifications.') }}
+            {{ __('Suspend or resume the selected subscription with audit logging and queued notifications.') }}
         </flux:text>
     </div>
 
@@ -48,7 +48,6 @@
                     <option value="">{{ __('Select an action') }}</option>
                     <option value="suspend">{{ __('Suspend') }}</option>
                     <option value="resume">{{ __('Resume') }}</option>
-                    <option value="transfer">{{ __('Transfer') }}</option>
                 </flux:select>
             </flux:field>
 
@@ -56,8 +55,6 @@
 
             @include('livewire.admin.subscriptions.partials.actions.suspend-form')
             @include('livewire.admin.subscriptions.partials.actions.resume-form')
-            @include('livewire.admin.subscriptions.partials.actions.transfer-form')
-
 
         </x-ui.dashboard.panel>
 

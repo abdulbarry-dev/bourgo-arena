@@ -40,7 +40,6 @@ class SubscriptionNotificationMail extends Mailable implements ShouldQueue
             'enrolled' => __('Subscription Activated'),
             'suspended' => __('Subscription Suspended'),
             'resumed' => __('Subscription Resumed'),
-            'transferred-from', 'transferred-to' => __('Subscription Transferred'),
             'expiry-reminder' => __('Subscription Expiry Reminder'),
             default => __('Subscription Update'),
         };

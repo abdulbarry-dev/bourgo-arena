@@ -26,6 +26,13 @@
             </x-ui.dashboard.panel>
         @else
             <x-ui.dashboard.panel>
+                <div class="mb-4 flex items-center gap-4 border-b border-zinc-200 pb-4 dark:border-zinc-700">
+                    <x-ui.dashboard.member-avatar :member="$this->selectedMember" size="lg" rounded="xl" />
+                    <div>
+                        <div class="font-semibold text-zinc-900 dark:text-zinc-100">{{ $this->selectedMember->name }}</div>
+                        <div class="text-sm text-zinc-500 dark:text-zinc-400">{{ $this->selectedMember->email }}</div>
+                    </div>
+                </div>
                 <dl class="grid gap-2 text-sm sm:grid-cols-3">
                     <div>
                         <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Member') }}</dt>

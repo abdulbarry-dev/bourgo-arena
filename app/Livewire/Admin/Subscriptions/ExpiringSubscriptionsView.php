@@ -3,11 +3,14 @@
 namespace App\Livewire\Admin\Subscriptions;
 
 use App\Jobs\SendSubscriptionNotification;
+use App\Models\Plan;
 use App\Models\Subscription;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\View\View;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Session;
 use Livewire\Component;
 
 class ExpiringSubscriptionsView extends Component
@@ -19,11 +22,34 @@ class ExpiringSubscriptionsView extends Component
      */
     public Collection $expiringSubscriptions;
 
+    public Collection $plans;
+
+    #[Session]
+    public string $search = '';
+
+    #[Session]
+    public string $planId = '';
+
+    #[Session]
+    public string $daysWindow = '7';
+
     public int $touchedCount = 0;
+
+    /**
+     * @var array<string, string>
+     */
+    public array $expiryWindows = [
+        '3' => '3 days',
+        '7' => '7 days',
+        '14' => '14 days',
+        '30' => '30 days',
+    ];
 
     public function mount(): void
     {
         $this->authorize('viewAny', Subscription::class);
+
+        $this->plans = Plan::query()->orderBy('name')->get();
 
         $this->loadExpiringSubscriptions();
     }
@@ -33,19 +59,32 @@ class ExpiringSubscriptionsView extends Component
     {
         $this->authorize('viewAny', Subscription::class);
 
-        $this->expiringSubscriptions = Subscription::query()
-            ->expiring()
+        $this->expiringSubscriptions = $this->filteredQuery()
             ->with(['member', 'plan'])
             ->orderBy('ends_at')
             ->get();
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->loadExpiringSubscriptions();
+    }
+
+    public function updatedPlanId(): void
+    {
+        $this->loadExpiringSubscriptions();
+    }
+
+    public function updatedDaysWindow(): void
+    {
+        $this->loadExpiringSubscriptions();
     }
 
     public function sendReminder(int $subscriptionId): void
     {
         $this->authorize('viewAny', Subscription::class);
 
-        $subscription = Subscription::query()
-            ->expiring()
+        $subscription = $this->filteredQuery()
             ->with(['member', 'plan'])
             ->find($subscriptionId);
 
@@ -76,8 +115,7 @@ class ExpiringSubscriptionsView extends Component
     {
         $this->authorize('viewAny', Subscription::class);
 
-        $subscriptions = Subscription::query()
-            ->expiring()
+        $subscriptions = $this->filteredQuery()
             ->with(['member', 'plan'])
             ->orderBy('ends_at')
             ->get();
@@ -110,6 +148,31 @@ class ExpiringSubscriptionsView extends Component
 
         $this->dispatch('reminders-sent', count: $count);
         $this->dispatch('toast', message: __('Queued :count reminder notifications', ['count' => $count]), type: 'success');
+    }
+
+    private function filteredQuery(): Builder
+    {
+        $query = Subscription::query()->active();
+
+        $query->whereDate('ends_at', '<=', now()->addDays($this->daysWindow === 'all' ? 30 : max(1, (int) $this->daysWindow)));
+
+        if ($this->search !== '') {
+            $term = '%'.$this->search.'%';
+
+            $query->where(function (Builder $builder) use ($term): void {
+                $builder->whereHas('member', function (Builder $memberQuery) use ($term): void {
+                    $memberQuery->where('name', 'like', $term)->orWhere('email', 'like', $term);
+                })->orWhereHas('plan', function (Builder $planQuery) use ($term): void {
+                    $planQuery->where('name', 'like', $term);
+                });
+            });
+        }
+
+        if ($this->planId !== '') {
+            $query->where('plan_id', (int) $this->planId);
+        }
+
+        return $query;
     }
 
     public function render(): View
