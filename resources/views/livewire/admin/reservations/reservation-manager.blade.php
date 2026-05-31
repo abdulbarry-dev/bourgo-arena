@@ -81,18 +81,30 @@
                     @php($canRefundReservation = $reservation->isRefundable() && $reservation->payments->contains(fn ($payment) => $payment->status === 'paid'))
                     <tr wire:key="reservation-row-{{ $reservation->id }}" class="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/70">
                         <td class="px-4 py-4 align-top">
-                            <div class="space-y-1">
-                                <a
-                                    href="{{ route('admin.members', ['member' => $reservation->member_id]) }}"
-                                    class="font-medium text-zinc-900 hover:underline dark:text-zinc-100"
-                                    wire:navigate
-                                >
-                                    {{ $reservation->member?->name ?? __('Unknown member') }}
-                                </a>
-                                <div class="text-xs text-zinc-500 dark:text-zinc-400">
-                                    {{ $reservation->member?->email ?? __('No email') }}
+                            @if ($reservation->member)
+                                <div class="flex items-center gap-3">
+                                    <x-ui.dashboard.member-avatar :member="$reservation->member" size="sm" />
+                                    <div class="min-w-0 space-y-1">
+                                        <a
+                                            href="{{ route('admin.members', ['member' => $reservation->member_id]) }}"
+                                            class="block truncate font-medium text-zinc-900 hover:underline dark:text-zinc-100"
+                                            wire:navigate
+                                        >
+                                            {{ $reservation->member->name }}
+                                        </a>
+                                        <div class="truncate text-xs text-zinc-500 dark:text-zinc-400">
+                                            {{ $reservation->member->email ?? __('No email') }}
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                            @else
+                                <div class="flex items-center gap-3">
+                                    <div class="flex size-8 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 text-zinc-500 dark:border-zinc-600 dark:bg-zinc-900">
+                                        <flux:icon name="user" class="size-4" />
+                                    </div>
+                                    <span class="font-medium text-zinc-500 dark:text-zinc-400">{{ __('Unknown member') }}</span>
+                                </div>
+                            @endif
                         </td>
                         <td class="px-4 py-4 align-top text-zinc-600 dark:text-zinc-300">
                             <div class="flex flex-col">
@@ -164,23 +176,13 @@
                                             </flux:menu.item>
                                         @endif
 
-                                        @if ($reservation->status !== 'confirmed')
-                                            <flux:menu.item icon="check" wire:click="openActionModal('confirm', {{ $reservation->id }})">
-                                                {{ __('Confirm') }}
-                                            </flux:menu.item>
-                                        @else
-                                            <flux:menu.item icon="check" class="opacity-50 pointer-events-none" aria-disabled="true">
-                                                {{ __('Confirmed') }}
-                                            </flux:menu.item>
-                                        @endif
-
-                                        @if ($reservation->status !== 'cancelled')
+                                        @if ($reservation->status === 'confirmed')
                                             <flux:menu.item icon="x-mark" wire:click="openActionModal('cancel', {{ $reservation->id }})">
                                                 {{ __('Cancel') }}
                                             </flux:menu.item>
                                         @else
-                                            <flux:menu.item icon="x-mark" class="opacity-50 pointer-events-none" aria-disabled="true">
-                                                {{ __('Cancelled') }}
+                                            <flux:menu.item icon="check" wire:click="openActionModal('confirm', {{ $reservation->id }})">
+                                                {{ __('Confirm') }}
                                             </flux:menu.item>
                                         @endif
 
@@ -356,92 +358,156 @@
         x-on:hidden="$wire.closeReservationDetail()"
     >
         <section class="w-full space-y-8 px-6 py-8 md:px-8 md:py-10">
-            @if ($this->selectedReservation === null)
-                <x-ui.dashboard.panel class="border-dashed border-zinc-300 bg-zinc-50 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
-                    <flux:heading size="sm">{{ __('No reservation selected') }}</flux:heading>
-                    <flux:text variant="subtle">{{ __('Choose a reservation from the table to inspect the member, activity, and payment history.') }}</flux:text>
-                </x-ui.dashboard.panel>
+               @if (! $this->selectedReservation)
+                <div class="flex min-h-[400px] flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-300 bg-zinc-50/50 p-12 text-center dark:border-zinc-700 dark:bg-zinc-900/20">
+                    <div class="flex size-14 items-center justify-center rounded-full bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                        <flux:icon name="calendar" class="size-6" />
+                    </div>
+                    <flux:heading size="lg" class="mt-4">{{ __('No reservation selected') }}</flux:heading>
+                    <flux:text variant="subtle" class="mt-1 max-w-sm">{{ __('Choose a reservation from the table to inspect the member, activity, and payment history.') }}</flux:text>
+                </div>
             @else
-                <x-ui.dashboard.panel class="space-y-6 border border-zinc-200 bg-white/90 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/80">
-                    <div class="flex flex-col gap-5 border-b border-zinc-200 pb-5 dark:border-zinc-700 sm:flex-row sm:items-start sm:justify-between">
-                        <div class="space-y-1.5">
-                            <flux:heading size="sm">{{ $this->selectedReservation->activity?->title ?? __('Reservation #:id', ['id' => $this->selectedReservation->id]) }}</flux:heading>
-                            <flux:text variant="subtle">{{ __('Reservation details, member profile, and payment history') }}</flux:text>
-                        </div>
+                <div class="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900/50">
+                    {{-- Header Section --}}
+                    <div class="p-6 sm:p-8 bg-zinc-50/50 dark:bg-zinc-800/20">
+                        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5">
+                            <div class="flex items-center gap-5">
+                                @if ($this->selectedReservation->member)
+                                    <x-ui.dashboard.member-avatar :member="$this->selectedReservation->member" size="lg" rounded="xl" class="shadow-sm" />
+                                @else
+                                    <div class="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-zinc-900 text-white shadow-sm dark:bg-white dark:text-zinc-900">
+                                        <flux:icon name="user" class="size-8" />
+                                    </div>
+                                @endif
+                                <div class="space-y-1.5">
+                                    <div class="flex items-center gap-3">
+                                        <h2 class="text-xl font-semibold tracking-tight text-zinc-900 dark:text-white">{{ $this->selectedReservation->activity?->title ?? __('Reservation #:id', ['id' => $this->selectedReservation->id]) }}</h2>
+                                    </div>
+                                    <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+                                        <div class="flex items-center gap-1.5">
+                                            <flux:icon name="calendar" variant="mini" class="size-4" />
+                                            <span>{{ $this->selectedReservation->date->format('M d, Y') }}</span>
+                                        </div>
+                                        <div class="flex items-center gap-1.5">
+                                            <flux:icon name="clock" variant="mini" class="size-4" />
+                                            <span>{{ $this->selectedReservation->starts_at }} - {{ $this->selectedReservation->ends_at }}</span>
+                                        </div>
+                                        <div class="flex items-center gap-1.5">
+                                            <flux:icon name="user" variant="mini" class="size-4" />
+                                            <span>{{ $this->selectedReservation->member?->name ?? __('Unknown') }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex flex-wrap items-center gap-2 shrink-0">
+                                <x-ui.dashboard.status-badge
+                                    :status="$this->selectedReservation->status"
+                                    :label="ucfirst($this->selectedReservation->status)"
+                                    :color="match ($this->selectedReservation->status) {
+                                        'confirmed' => 'green',
+                                        'cancelled' => 'red',
+                                        default => 'zinc',
+                                    }"
+                                />
 
-                        <div class="flex flex-wrap items-center gap-2 sm:justify-end sm:pt-1">
-                            <x-ui.dashboard.status-badge
-                                :status="$this->selectedReservation->status"
-                                :label="ucfirst($this->selectedReservation->status)"
-                                :color="match ($this->selectedReservation->status) {
-                                    'confirmed' => 'green',
-                                    'cancelled' => 'red',
-                                    default => 'zinc',
-                                }"
-                            />
-
-                            <x-ui.dashboard.status-badge
-                                :status="$this->selectedReservation->payment_status"
-                                :label="ucfirst($this->selectedReservation->payment_status)"
-                                :color="match ($this->selectedReservation->payment_status) {
-                                    'paid' => 'green',
-                                    'pending' => 'amber',
-                                    'refunded' => 'blue',
-                                    'failed' => 'red',
-                                    default => 'zinc',
-                                }"
-                            />
+                                <x-ui.dashboard.status-badge
+                                    :status="$this->selectedReservation->payment_status"
+                                    :label="ucfirst($this->selectedReservation->payment_status)"
+                                    :color="match ($this->selectedReservation->payment_status) {
+                                        'paid' => 'green',
+                                        'pending' => 'amber',
+                                        'refunded' => 'blue',
+                                        'failed' => 'red',
+                                        default => 'zinc',
+                                    }"
+                                />
+                            </div>
                         </div>
                     </div>
 
-                    <div class="grid gap-6 lg:grid-cols-2">
-                        <x-ui.dashboard.panel class="space-y-4 border border-zinc-200 bg-zinc-50/80 dark:border-zinc-700 dark:bg-zinc-900/50">
-                            <div class="space-y-1">
-                                <flux:heading size="xs">{{ __('Member Profile') }}</flux:heading>
-                                <flux:text variant="subtle">{{ __('Open the member record or inspect their details inline.') }}</flux:text>
+                    <div class="p-6 sm:p-8 space-y-8">
+                        {{-- Grids --}}
+                        <div class="grid gap-6 lg:grid-cols-2">
+                            {{-- Member Profile --}}
+                            <div class="rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900/50">
+                                <div class="border-b border-zinc-200 px-5 py-4 dark:border-zinc-700">
+                                    <h3 class="font-medium text-zinc-900 dark:text-zinc-100">{{ __('Member Profile') }}</h3>
+                                </div>
+                                <div class="p-5">
+                                    @if ($this->selectedReservation->member)
+                                        <div class="mb-5 flex items-center gap-4 border-b border-zinc-200 pb-5 dark:border-zinc-700">
+                                            <x-ui.dashboard.member-avatar :member="$this->selectedReservation->member" size="lg" rounded="xl" />
+                                            <div class="min-w-0">
+                                                <div class="font-semibold text-zinc-900 dark:text-zinc-100">{{ $this->selectedReservation->member->name }}</div>
+                                                <div class="truncate text-sm text-zinc-500 dark:text-zinc-400">{{ $this->selectedReservation->member->email ?? __('No email') }}</div>
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    <dl class="grid grid-cols-1 gap-y-4 gap-x-4 text-sm">
+                                        <div>
+                                            <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Name') }}</dt>
+                                            <dd class="mt-1 font-medium text-zinc-900 dark:text-zinc-100">{{ $this->selectedReservation->member?->name ?? __('Unknown') }}</dd>
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Email') }}</dt>
+                                                <dd class="mt-1 font-medium text-zinc-900 dark:text-zinc-100">{{ $this->selectedReservation->member?->email ?? __('Not available') }}</dd>
+                                            </div>
+                                            <div>
+                                                <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Phone') }}</dt>
+                                                <dd class="mt-1 font-medium text-zinc-900 dark:text-zinc-100">{{ $this->selectedReservation->member?->phone ?? __('Not available') }}</dd>
+                                            </div>
+                                        </div>
+                                    </dl>
+
+                                    <div class="mt-6 flex flex-wrap gap-2">
+                                        <flux:button
+                                            variant="subtle"
+                                            size="sm"
+                                            icon="user-circle"
+                                            :href="route('admin.members', ['member' => $this->selectedReservation->member_id])"
+                                            wire:navigate
+                                        >
+                                            {{ __('Open Profile') }}
+                                        </flux:button>
+                                        <flux:button
+                                            variant="subtle"
+                                            size="sm"
+                                            icon="sparkles"
+                                            :href="route('admin.members', ['member' => $this->selectedReservation->member_id, 'tab' => 'loyalty'])"
+                                            wire:navigate
+                                        >
+                                            {{ __('Loyalty') }}
+                                        </flux:button>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="space-y-2 text-sm text-zinc-600 dark:text-zinc-300">
-                                <div><span class="font-medium text-zinc-900 dark:text-zinc-100">{{ __('Name') }}:</span> {{ $this->selectedReservation->member?->name }}</div>
-                                <div><span class="font-medium text-zinc-900 dark:text-zinc-100">{{ __('Email') }}:</span> {{ $this->selectedReservation->member?->email ?? __('Not available') }}</div>
-                                <div><span class="font-medium text-zinc-900 dark:text-zinc-100">{{ __('Phone') }}:</span> {{ $this->selectedReservation->member?->phone ?? __('Not available') }}</div>
-                                <div><span class="font-medium text-zinc-900 dark:text-zinc-100">{{ __('Member ID') }}:</span> {{ $this->selectedReservation->member_id }}</div>
+                            {{-- Court & Slot --}}
+                            <div class="rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900/50">
+                                <div class="border-b border-zinc-200 px-5 py-4 dark:border-zinc-700">
+                                    <h3 class="font-medium text-zinc-900 dark:text-zinc-100">{{ __('Court & Slot') }}</h3>
+                                </div>
+                                <div class="p-5">
+                                    <dl class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-2 text-sm">
+                                        <div class="sm:col-span-2">
+                                            <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Activity') }}</dt>
+                                            <dd class="mt-1 font-medium text-zinc-900 dark:text-zinc-100">{{ $this->selectedReservation->activity?->title ?? __('Unavailable') }}</dd>
+                                        </div>
+                                        <div>
+                                            <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Date & Time') }}</dt>
+                                            <dd class="mt-1 font-medium text-zinc-900 dark:text-zinc-100">{{ $this->selectedReservation->date->format('M d, Y') }} • {{ $this->selectedReservation->starts_at }} - {{ $this->selectedReservation->ends_at }}</dd>
+                                        </div>
+                                        <div>
+                                            <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Slot Capacity') }}</dt>
+                                            <dd class="mt-1 font-medium text-zinc-900 dark:text-zinc-100">{{ $this->selectedReservation->slot?->booked_count ?? 0 }} / {{ $this->selectedReservation->slot?->capacity ?? 0 }}</dd>
+                                        </div>
+                                    </dl>
+                                </div>
                             </div>
-
-                            <div class="flex flex-wrap gap-2">
-                                <flux:button
-                                    variant="subtle"
-                                    icon="user-circle"
-                                    :href="route('admin.members', ['member' => $this->selectedReservation->member_id])"
-                                    wire:navigate
-                                >
-                                    {{ __('Open Member Profile') }}
-                                </flux:button>
-                                <flux:button
-                                    variant="subtle"
-                                    icon="sparkles"
-                                    :href="route('admin.members', ['member' => $this->selectedReservation->member_id, 'tab' => 'loyalty'])"
-                                    wire:navigate
-                                >
-                                    {{ __('View Loyalty History') }}
-                                </flux:button>
-                            </div>
-                        </x-ui.dashboard.panel>
-
-                        <x-ui.dashboard.panel class="space-y-4 border border-zinc-200 bg-zinc-50/80 dark:border-zinc-700 dark:bg-zinc-900/50">
-                            <div class="space-y-1">
-                                <flux:heading size="xs">{{ __('Court & Slot') }}</flux:heading>
-                                <flux:text variant="subtle">{{ __('Reservation and availability details for the selected court.') }}</flux:text>
-                            </div>
-
-                            <div class="space-y-2 text-sm text-zinc-600 dark:text-zinc-300">
-                                <div><span class="font-medium text-zinc-900 dark:text-zinc-100">{{ __('Activity') }}:</span> {{ $this->selectedReservation->activity?->title ?? __('Unavailable') }}</div>
-                                <div><span class="font-medium text-zinc-900 dark:text-zinc-100">{{ __('Date') }}:</span> {{ $this->selectedReservation->date->format('M d, Y') }}</div>
-                                <div><span class="font-medium text-zinc-900 dark:text-zinc-100">{{ __('Time') }}:</span> {{ $this->selectedReservation->starts_at }} - {{ $this->selectedReservation->ends_at }}</div>
-                                <div><span class="font-medium text-zinc-900 dark:text-zinc-100">{{ __('Slot Capacity') }}:</span> {{ $this->selectedReservation->slot?->booked_count ?? 0 }} / {{ $this->selectedReservation->slot?->capacity ?? 0 }}</div>
-                            </div>
-                        </x-ui.dashboard.panel>
-                    </div>
+                        </div>        </div>
 
                     <x-ui.dashboard.panel class="space-y-4 border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900/50">
                         <div class="space-y-1">
@@ -592,7 +658,7 @@
                             @endif
                         </section>
                     </flux:modal>
-                </x-ui.dashboard.panel>
+                </div>
             @endif
         </section>
     </flux:modal>

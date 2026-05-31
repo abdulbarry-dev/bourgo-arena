@@ -29,6 +29,8 @@ class ReservationManager extends Component
 {
     use WithPagination;
 
+    public int $perPage = 5;
+
     public string $search = '';
 
     public string $statusFilter = '';
@@ -511,7 +513,7 @@ class ReservationManager extends Component
     #[Computed]
     public function reservations(): LengthAwarePaginator
     {
-        return $this->baseQuery()->paginate(15);
+        return $this->baseQuery()->paginate($this->perPage);
     }
 
     #[Computed]
