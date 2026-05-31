@@ -23,6 +23,7 @@ class MemberDetailResource extends JsonResource
             'gender' => $this->gender,
             'emergency_contact' => $this->emergency_contact,
             'avatar' => $this->avatar,
+            'avatar_url' => $this->avatar_url,
             'status' => $this->status,
             'state' => $this->state,
             'rgpd_consented_at' => $this->rgpd_consented_at?->format('Y-m-d H:i:s'),

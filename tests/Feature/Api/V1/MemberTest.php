@@ -3,6 +3,8 @@
 /** @var TestCase $this */
 
 use App\Models\Member;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -45,6 +47,28 @@ test('authenticated returns correct field names', function () {
         ])
         ->assertJsonPath('data.birth_date', '1990-01-01')
         ->assertJsonFragment(['avatar_url' => asset('storage/avatars/test.png')]);
+
+    test('user profile avatar alias supports upload and delete', function () {
+        Storage::fake('public');
+
+        $member = Member::factory()->create([
+            'status' => 'active',
+            'state' => 'active',
+            'email_verified_at' => now(),
+            'phone_verified_at' => now(),
+            'onboarding_completed_at' => now(),
+        ]);
+
+        Sanctum::actingAs($member, ['*'], 'sanctum');
+
+        $this->post(route('api.v1.user.upload-avatar'), [
+            'avatar' => UploadedFile::fake()->image('avatar.png'),
+        ], ['Accept' => 'application/json'])->assertSuccessful();
+
+        $this->deleteJson(route('api.v1.user.delete-avatar'))
+            ->assertSuccessful()
+            ->assertJsonPath('data.avatar_url', null);
+    });
 });
 
 test('user profile alias works', function () {
