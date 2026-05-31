@@ -36,7 +36,12 @@
                         'cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/70' => $selectionEnabled,
                     ])
                 >
-                    <td class="px-4 py-3 font-medium text-zinc-900 dark:text-zinc-100">{{ $member->name }}</td>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-3">
+                            <x-ui.dashboard.member-avatar :member="$member" size="sm" />
+                            <span class="font-medium text-zinc-900 dark:text-zinc-100">{{ $member->name }}</span>
+                        </div>
+                    </td>
                     <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ $member->email }}</td>
                     <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ $member->phone }}</td>
                     <td class="px-4 py-3 capitalize text-zinc-700 dark:text-zinc-200">{{ __($member->status) }}</td>
@@ -44,14 +49,42 @@
                     
                     <td class="px-4 py-3 text-right">
                         <x-ui.dashboard.row-actions>
-                            <flux:button
-                                variant="subtle"
-                                size="sm"
-                                icon="eye"
-                                x-on:click.stop
-                                wire:click="$dispatch('open-member-detail-panel', { memberId: {{ $member->id }} })"
-                                aria-label="{{ __('View member details for :name', ['name' => $member->name]) }}"
-                            />
+                            <div x-on:click.stop>
+                                <flux:dropdown>
+                                    <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" />
+                                    <flux:menu>
+                                        <flux:menu.item icon="eye" wire:click="$dispatch('open-member-detail-panel', { memberId: {{ $member->id }} })">
+                                            {{ __('View Details') }}
+                                        </flux:menu.item>
+
+                                        @can('update', $member)
+                                            <flux:menu.item icon="pencil-square" wire:click="$dispatch('open-edit-member-flyout', { memberId: {{ $member->id }} })">
+                                                {{ __('Edit Profile') }}
+                                            </flux:menu.item>
+                                        @endcan
+
+                                        @if ($member->status !== 'suspended')
+                                            @can('suspend', $member)
+                                                <flux:menu.item icon="no-symbol" wire:click="confirmSuspend({{ $member->id }})">
+                                                    {{ __('Suspend') }}
+                                                </flux:menu.item>
+                                            @endcan
+                                        @else
+                                            @can('activate', $member)
+                                                <flux:menu.item icon="check-circle" wire:click="confirmActivate({{ $member->id }})">
+                                                    {{ __('Activate') }}
+                                                </flux:menu.item>
+                                            @endcan
+                                        @endif
+
+                                        @can('delete', $member)
+                                            <flux:menu.item variant="danger" icon="trash" wire:click="confirmDelete({{ $member->id }})">
+                                                {{ __('Delete') }}
+                                            </flux:menu.item>
+                                        @endcan
+                                    </flux:menu>
+                                </flux:dropdown>
+                            </div>
                         </x-ui.dashboard.row-actions>
                     </td>
                 </tr>

@@ -5,13 +5,13 @@
         </flux:button>
         <flux:button
             variant="outline"
-            wire:click="exportCsv"
+            wire:click="openExportConfirmModal"
             wire:loading.attr="disabled"
-            wire:target="exportCsv"
+            wire:target="openExportConfirmModal,confirmExport"
             icon="arrow-down-tray"
         >
-            <span wire:loading.remove wire:target="exportCsv">{{ __('Export CSV') }}</span>
-            <span wire:loading wire:target="exportCsv">{{ __('Exporting...') }}</span>
+            <span wire:loading.remove wire:target="openExportConfirmModal,confirmExport">{{ __('Export CSV') }}</span>
+            <span wire:loading wire:target="openExportConfirmModal,confirmExport">{{ __('Exporting...') }}</span>
         </flux:button>
     </div>
 
@@ -65,4 +65,22 @@
     </x-ui.filter-row>
 
     @include('livewire.admin.members.partials.table')
+
+    <x-ui.confirm-modal
+        wire:model.self="showExportConfirmModal"
+        :title="__('Confirm export')"
+        :description="__('This will generate a CSV export of the currently filtered member list.')"
+        cancel-action="closeExportConfirmModal"
+        confirm-action="confirmExport"
+        :confirm-text="__('Export CSV')"
+        confirm-icon="arrow-down-tray"
+        loading-target="confirmExport"
+    />
+
+    @include('livewire.admin.members.partials.modals.suspend-modal')
+    @include('livewire.admin.members.partials.modals.activate-modal')
+    @include('livewire.admin.members.partials.modals.delete-modal')
+
+    <livewire:admin.members.manage-family-flyout />
+    <livewire:admin.members.edit-member-flyout />
 </section>
