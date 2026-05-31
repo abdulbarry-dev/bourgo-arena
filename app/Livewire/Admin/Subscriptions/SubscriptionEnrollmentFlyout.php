@@ -4,14 +4,17 @@ namespace App\Livewire\Admin\Subscriptions;
 
 use App\Jobs\SendSubscriptionNotification;
 use App\Jobs\SendSubscriptionReceiptEmail;
-use App\Jobs\SyncTerminalWhitelist;
 use App\Models\Member;
+use App\Models\Payment;
 use App\Models\Plan;
 use App\Models\Subscription;
+use App\Services\LoyaltyCalculatorService;
+use App\Services\PaymentGateway\KonnectGateway;
 use App\Services\ReceiptGenerator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -137,6 +140,53 @@ class SubscriptionEnrollmentFlyout extends Component
                 return;
             }
 
+            // If payment method is a gateway, verify the provided paymentReference server-side
+            if ($validated['paymentMethod'] === 'konnect') {
+                if (empty($validated['paymentReference'])) {
+                    $this->addError('paymentReference', __('Payment reference is required for online gateway methods.'));
+
+                    return;
+                }
+
+                $existing = Payment::query()->where('payment_reference', $validated['paymentReference'])->first();
+
+                $verified = false;
+
+                if ($existing && $existing->status === 'paid') {
+                    $verified = true;
+                } else {
+                    try {
+                        $verifyResult = app(KonnectGateway::class)->verify($validated['paymentReference']);
+                        if (! empty($verifyResult['status']) && in_array(strtolower($verifyResult['status']), ['paid', 'completed'], true)) {
+                            $verified = true;
+                            $existing = $existing ?? Payment::create([
+                                'member_id' => $member->id,
+                                'subscription_id' => null,
+                                'driver' => 'konnect',
+                                'type' => 'subscription_enrollment',
+                                'amount' => $plan->price,
+                                'currency' => 'TND',
+                                'status' => 'paid',
+                                'payment_reference' => $validated['paymentReference'],
+                                'gateway_transaction_id' => $verifyResult['transaction_id'] ?? null,
+                                'metadata' => $verifyResult,
+                            ]);
+                            $existing->update(['status' => 'paid', 'metadata' => $verifyResult, 'verified_at' => now()]);
+                        }
+                    } catch (Throwable $e) {
+                        $this->addError('paymentReference', __('Payment verification failed.'));
+
+                        return;
+                    }
+                }
+
+                if (! $verified) {
+                    $this->addError('paymentReference', __('Payment has not been verified as paid.'));
+
+                    return;
+                }
+            }
+
             $subscription = DB::transaction(function () use ($validated, $member, $plan): Subscription {
                 $subscription = Subscription::query()->create([
                     'member_id' => $member->id,
@@ -151,7 +201,7 @@ class SubscriptionEnrollmentFlyout extends Component
                     'payment_reference' => $validated['paymentReference'],
                     'amount_paid' => $plan->price,
                     'receipt_path' => null,
-                    'enrolled_by' => auth()->id(),
+                    'enrolled_by' => Auth::id(),
                 ]);
 
                 $receiptPath = app(ReceiptGenerator::class)->generate([
@@ -161,7 +211,7 @@ class SubscriptionEnrollmentFlyout extends Component
                     'payment_method' => $validated['paymentMethod'],
                     'payment_reference' => $validated['paymentReference'],
                     'paid_at' => now()->toDateTimeString(),
-                    'enrolled_by' => auth()->user()?->name ?? 'System',
+                    'enrolled_by' => Auth::user()?->name ?? 'System',
                     'subscription_id' => $subscription->id,
                 ]);
 
@@ -174,6 +224,8 @@ class SubscriptionEnrollmentFlyout extends Component
                 return $subscription->fresh();
             });
 
+            app(LoyaltyCalculatorService::class)->creditFixedMonthlyRenewal($subscription);
+
             SendSubscriptionReceiptEmail::dispatch($subscription->id);
             SendSubscriptionNotification::dispatch(
                 $subscription->id,
@@ -184,11 +236,6 @@ class SubscriptionEnrollmentFlyout extends Component
                     'push_status' => 'pending-infrastructure',
                     'source' => 'subscription_enrollment',
                 ],
-            );
-            SyncTerminalWhitelist::dispatch(
-                $member->id,
-                $subscription->id,
-                ['trigger' => 'subscription_enrolled'],
             );
 
             $this->dispatch('subscription-created', memberId: $member->id, subscriptionId: $subscription->id);
@@ -274,7 +321,7 @@ class SubscriptionEnrollmentFlyout extends Component
             ],
             'paymentMethod' => [
                 'required',
-                Rule::in(['cash', 'konnect', 'paymee']),
+                Rule::in(['cash', 'konnect']),
             ],
             'paymentReference' => [
                 Rule::requiredIf($this->paymentMethod !== 'cash'),

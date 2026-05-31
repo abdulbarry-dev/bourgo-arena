@@ -25,7 +25,6 @@ class MemberResource extends JsonResource
      *     is_parent_account: bool,
      *     subscription_level: string|null,
      *     subscription_expiry: string|null,
-     *     total_check_ins: int,
      *     children: MemberResource[]
      * }
      */
@@ -47,11 +46,10 @@ class MemberResource extends JsonResource
             'birth_date' => $this->date_of_birth?->toDateString(),
             'gender' => $this->gender,
             'status' => $this->status,
-            'state' => $this->status,
+            'state' => $this->state,
             'is_parent_account' => (bool) $this->is_family_account,
             'subscription_level' => $this->activeSubscription?->plan?->name,
             'subscription_expiry' => $this->activeSubscription?->ends_at?->toDateString(),
-            'total_check_ins' => $this->check_in_events_count ?? 0,
             'children' => MemberResource::collection($this->whenLoaded('children')),
         ];
     }

@@ -15,6 +15,10 @@ test('member can update their password via user profile endpoint', function () {
     $member = Member::factory()->create([
         'password' => Hash::make('old-password'),
         'status' => 'active',
+        'state' => 'active',
+        'email_verified_at' => now(),
+        'phone_verified_at' => now(),
+        'onboarding_completed_at' => now(),
     ]);
 
     Sanctum::actingAs($member, ['*'], 'sanctum');
@@ -36,6 +40,10 @@ test('member can update their password using new_password field', function () {
     $member = Member::factory()->create([
         'password' => Hash::make('old-password'),
         'status' => 'active',
+        'state' => 'active',
+        'email_verified_at' => now(),
+        'phone_verified_at' => now(),
+        'onboarding_completed_at' => now(),
     ]);
 
     Sanctum::actingAs($member, ['*'], 'sanctum');

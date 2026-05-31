@@ -3,7 +3,6 @@
 namespace Tests\Unit;
 
 use App\Models\Member;
-use App\Models\NfcCard;
 use App\Models\Plan;
 use App\Models\Subscription;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -71,11 +70,10 @@ it('can eager load details without N+1', function () {
             'status' => 'active',
             'ends_at' => now()->addDays(30),
         ]);
-        NfcCard::factory()->create(['member_id' => $member->id]);
     });
 
-    // Without `withDetails()`, accessing activeSubscription/nfcCard would trigger N+1
-    // With `withDetails()`, the query count should be 3 (members, subscriptions, nfc_cards)
+    // Without `withDetails()`, accessing activeSubscription/ would trigger N+1
+    // With `withDetails()`, the query count should be 3 (members, subscriptions)
 
     // Using query log to check
     DB::enableQueryLog();
@@ -84,13 +82,11 @@ it('can eager load details without N+1', function () {
 
     foreach ($members as $member) {
         $sub = $member->activeSubscription;
-        $card = $member->nfcCard;
     }
 
     $queries = DB::getQueryLog();
 
     // 1. Select members
     // 2. Select subscriptions
-    // 3. Select nfc_cards
-    expect(count($queries))->toBe(3);
+    expect(count($queries))->toBe(2);
 });

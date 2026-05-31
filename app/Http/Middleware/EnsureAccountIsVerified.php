@@ -16,12 +16,21 @@ class EnsureAccountIsVerified
     {
         $user = $request->user();
 
-        if ($user instanceof Member && ! $user->isVerified()) {
-            return response()->json([
-                'message' => __('Your account is not verified.'),
-                'code' => 'EMAIL_NOT_VERIFIED',
-                'state' => 'pending_verification',
-            ], 403);
+        if ($user instanceof Member) {
+            // Check if at least one verification method is completed.
+            // Members with neither email nor phone verified are blocked.
+            $hasEmailVerified = $user->email_verified_at !== null;
+            $hasPhoneVerified = $user->phone_verified_at !== null;
+            $isVerified = $hasEmailVerified || $hasPhoneVerified;
+
+            if (! $isVerified) {
+                return response()->json([
+                    'message' => __('Your account requires verification.'),
+                    'code' => 'ADDITIONAL_VERIFICATION_REQUIRED',
+                    'state' => 'pending_additional_verification',
+                    'verification_status' => $user->getVerificationStatus(),
+                ], 403);
+            }
         }
 
         return $next($request);

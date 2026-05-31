@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
-use App\Notifications\QueuedResetPassword;
+use App\Actions\Users\SendPasswordResetNotificationAction;
 use App\UserRole;
-use Database\Factories\UserFactory;
+use Database\Factories\Shared\Identity\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -19,14 +20,13 @@ use Laravel\Sanctum\HasApiTokens;
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
-    /** @use HasFactory<UserFactory> */
+    protected static function newFactory(): Factory
+    {
+        return UserFactory::new();
+    }
+
     use HasApiTokens, HasFactory, Notifiable, TwoFactorAuthenticatable;
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -57,30 +57,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return ! is_null($this->banned_at);
     }
 
-    public function ban(string $reason): void
-    {
-        $this->update([
-            'banned_at' => now(),
-            'ban_reason' => $reason,
-        ]);
-    }
-
-    public function unban(): void
-    {
-        $this->update([
-            'banned_at' => null,
-            'ban_reason' => null,
-        ]);
-    }
-
     public function isStaff(): bool
     {
         return $this->isAdmin() || $this->isManager();
     }
 
-    /**
-     * Get the user's initials
-     */
     public function initials(): string
     {
         return Str::of($this->name)
@@ -90,13 +71,8 @@ class User extends Authenticatable implements MustVerifyEmail
             ->implode('');
     }
 
-    /**
-     * Send the password reset notification.
-     *
-     * @param  string  $token
-     */
     public function sendPasswordResetNotification($token): void
     {
-        $this->notify(new QueuedResetPassword($token));
+        app(SendPasswordResetNotificationAction::class)->execute($this, $token);
     }
 }

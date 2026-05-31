@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\Courses;
 
+use App\Livewire\Concerns\HasFilters;
 use App\Models\Course;
 use App\Models\CourseSession;
 use Carbon\Carbon;
@@ -16,6 +17,7 @@ use Livewire\WithFileUploads;
 #[Layout('layouts.app')]
 class CourseManager extends Component
 {
+    use HasFilters;
     use WithFileUploads;
 
     public $courses;
@@ -29,9 +31,6 @@ class CourseManager extends Component
     #[Validate('nullable|string|max:1000')]
     public $description = '';
 
-    #[Validate('nullable|string|max:7')]
-    public $color = '#8b5cf6';
-
     #[Validate('nullable|image|max:2048')]
     public $image;
 
@@ -42,6 +41,12 @@ class CourseManager extends Component
     public $viewingCourseId = null;
 
     public $search = '';
+
+    public $categoryFilter = '';
+
+    public $instructorFilter = '';
+
+    public $hasSessionsFilter = 'all';
 
     public $deletingCourseId = null;
 
@@ -69,21 +74,54 @@ class CourseManager extends Component
         $this->loadCourses();
     }
 
+    public function updatedCategoryFilter()
+    {
+        $this->loadCourses();
+    }
+
+    public function updatedInstructorFilter()
+    {
+        $this->loadCourses();
+    }
+
+    public function updatedHasSessionsFilter()
+    {
+        $this->loadCourses();
+    }
+
     public function loadCourses()
     {
-        $this->courses = Course::query()
-            ->when($this->search, function ($query) {
-                $query->where('name', 'like', '%'.$this->search.'%')
-                    ->orWhere('instructor', 'like', '%'.$this->search.'%');
-            })
-            ->orderBy('name')
-            ->get();
+        $query = Course::query();
+
+        $query = $this->applySearchFilter($query, $this->search, ['name', 'instructor']);
+
+        if ($this->categoryFilter) {
+            $query->where('category', $this->categoryFilter);
+        }
+
+        if ($this->instructorFilter) {
+            $query->where('instructor', $this->instructorFilter);
+        }
+
+        $query = $this->applyRelationPresenceFilter($query, 'sessions', $this->hasSessionsFilter);
+
+        $this->courses = $query->orderBy('name')->get();
     }
 
     public function openViewModal($id)
     {
         $this->viewingCourseId = $id;
         Flux::modal('view-course-modal')->show();
+    }
+
+    public function getCategoriesProperty()
+    {
+        return Course::query()->select('category')->distinct()->orderBy('category')->pluck('category')->filter()->values();
+    }
+
+    public function getInstructorsProperty()
+    {
+        return Course::query()->select('instructor')->distinct()->orderBy('instructor')->pluck('instructor')->filter()->values();
     }
 
     public function openCreateModal()
@@ -101,7 +139,7 @@ class CourseManager extends Component
         $this->name = $course->name;
         $this->instructor = $course->instructor;
         $this->description = $course->description;
-        $this->color = $course->color ?? '#9ca3af';
+
         $this->existingImageUrl = $course->image_url;
         $this->image = null;
 
@@ -127,7 +165,6 @@ class CourseManager extends Component
                 'name' => $this->name,
                 'instructor' => $this->instructor,
                 'description' => $this->description,
-                'color' => $this->color,
             ];
 
             if ($this->image) {
@@ -321,7 +358,7 @@ class CourseManager extends Component
 
     public function resetForm()
     {
-        $this->reset(['name', 'instructor', 'description', 'color', 'editingCourseId', 'viewingCourseId', 'image', 'existingImageUrl', 'editingSessionId', 'deletingSessionId']);
+        $this->reset(['name', 'instructor', 'description', 'editingCourseId', 'viewingCourseId', 'image', 'existingImageUrl', 'editingSessionId', 'deletingSessionId']);
         $this->resetValidation();
     }
 

@@ -1,7 +1,5 @@
 /**
- * Echo exposes an expressive API for subscribing to channels and listening
- * for events that are broadcast by Laravel. Echo and event broadcasting
- * allow your team to quickly build robust real-time web applications.
+ * WebSocket client disabled by default. To enable Echo/Reverb in development,
+ * explicitly set `VITE_REVERB_APP_KEY` in your environment. The client will
+ * only initialize when that key is present.
  */
-
-import './echo';

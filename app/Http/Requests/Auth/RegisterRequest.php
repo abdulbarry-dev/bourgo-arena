@@ -20,7 +20,7 @@ class RegisterRequest extends BaseFormRequest
             'phone' => ['required', 'string', 'max:20', 'unique:members,phone'],
             'password' => ['required', 'confirmed', Password::defaults()],
             'date_of_birth' => ['required', 'date', 'before:today'],
-            'gender' => ['required', 'string', 'in:male,female,other'],
+            'gender' => ['required', 'string', 'in:male,female'],
             'is_family_account' => ['sometimes', 'boolean'],
         ];
     }

@@ -82,8 +82,8 @@ class ManageFamilyFlyout extends Component
                 'children.*.date_of_birth' => ['required', 'date', 'before:today'],
                 'children.*.gender' => ['required', 'in:male,female'],
             ], [
-                'children.*.name.required' => 'Child name is required.',
-                'children.*.date_of_birth.required' => 'Child date of birth is required.',
+                'children.*.name.required' => __('Child name is required.'),
+                'children.*.date_of_birth.required' => __('Child date of birth is required.'),
             ]);
 
             DB::transaction(function () use ($validated): void {
@@ -118,12 +118,12 @@ class ManageFamilyFlyout extends Component
             });
 
             $this->dispatch('member-updated', memberId: $this->parentId);
-            $this->dispatch('toast', message: 'Family members updated successfully.', type: 'success');
+            $this->dispatch('toast', message: __('Family members updated successfully.'), type: 'success');
 
             $this->show = false;
         } catch (Throwable $exception) {
             report($exception);
-            $this->addError('save', 'Could not save family changes. Please try again.');
+            $this->addError('save', __('Could not save family changes. Please try again.'));
         } finally {
             $this->isProcessing = false;
         }

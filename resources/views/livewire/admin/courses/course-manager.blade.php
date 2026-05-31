@@ -1,21 +1,61 @@
-<div class="space-y-6">
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <flux:heading size="lg">{{ __('Course Catalog Manager') }}</flux:heading>
-            <flux:text variant="subtle">{{ __('Design and manage the master templates for course sessions.') }}</flux:text>
-        </div>
-        <flux:button wire:click="openCreateModal" variant="primary" icon="plus">{{ __('New Course Template') }}</flux:button>
-    </div>
+<x-ui.dashboard.page-wrapper>
+    <x-ui.dashboard.page-header
+        :title="__('Course Catalog Manager')"
+        :subtitle="__('Design and manage the master templates for course sessions.')"
+    >
+        <x-slot name="actions">
+            <flux:button wire:click="openCreateModal" variant="primary" icon="plus">{{ __('New Course Template') }}</flux:button>
+        </x-slot>
+    </x-ui.dashboard.page-header>
 
-    <div class="max-w-md">
-        <flux:input
-            wire:model.live.debounce.300ms="search"
-            type="search"
-            :label="__('Search')"
-            :placeholder="__('Course name or instructor')"
-            icon="magnifying-glass"
-        />
-    </div>
+    <x-ui.filter-row>
+        <x-slot name="search">
+            <flux:input
+                wire:model.live.debounce.300ms="search"
+                type="search"
+                :label="__('Search')"
+                :placeholder="__('Course name or instructor')"
+                icon="magnifying-glass"
+            />
+        </x-slot>
+
+        <x-slot name="controls">
+            <div class="w-56" style="min-width:160px">
+                <flux:field>
+                    <flux:label>{{ __('Category') }}</flux:label>
+                    <flux:select wire:model.live="categoryFilter">
+                        <option value="">{{ __('All categories') }}</option>
+                        @foreach($this->categories as $category)
+                            <option value="{{ $category }}">{{ $category }}</option>
+                        @endforeach
+                    </flux:select>
+                </flux:field>
+            </div>
+
+            <div class="w-56" style="min-width:160px">
+                <flux:field>
+                    <flux:label>{{ __('Instructor') }}</flux:label>
+                    <flux:select wire:model.live="instructorFilter">
+                        <option value="">{{ __('All instructors') }}</option>
+                        @foreach($this->instructors as $instructor)
+                            <option value="{{ $instructor }}">{{ $instructor }}</option>
+                        @endforeach
+                    </flux:select>
+                </flux:field>
+            </div>
+
+            <div class="w-56" style="min-width:160px">
+                <flux:field>
+                    <flux:label>{{ __('Sessions') }}</flux:label>
+                    <flux:select wire:model.live="hasSessionsFilter">
+                        <option value="all">{{ __('All') }}</option>
+                        <option value="with">{{ __('With sessions') }}</option>
+                        <option value="without">{{ __('Without sessions') }}</option>
+                    </flux:select>
+                </flux:field>
+            </div>
+        </x-slot>
+    </x-ui.filter-row>
 
     @include('livewire.admin.courses.partials.courses-table')
     
@@ -28,4 +68,4 @@
     @include('livewire.admin.courses.partials.modals.edit-session-modal')
 
     @include('livewire.admin.courses.partials.modals.delete-session-modal')
-</div>
+</x-ui.dashboard.page-wrapper>

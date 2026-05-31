@@ -1,10 +1,12 @@
-<flux:modal wire:model="show" variant="flyout" class="space-y-6">
-    <div>
-        <flux:heading size="lg">{{ __('Subscription Enrollment') }}</flux:heading>
-        <flux:subheading>{{ __('Enroll a selected member into a plan, record payment, and dispatch receipt notifications.') }}</flux:subheading>
-    </div>
+<flux:modal wire:model="show" variant="flyout" class="max-w-5xl w-full shrink-0 [&_[data-flux-modal-close]]:mt-8 [&_[data-flux-modal-close]]:me-8">
+    <div class="px-6 py-8 md:px-8 md:py-10">
+        <x-ui.dashboard.panel class="space-y-6">
+            <div class="border-b border-zinc-200 pb-5 dark:border-zinc-700">
+                <flux:heading size="lg">{{ __('Subscription Enrollment') }}</flux:heading>
+                <flux:subheading>{{ __('Enroll a selected member into a plan, record payment, and dispatch receipt notifications.') }}</flux:subheading>
+            </div>
 
-    <form wire:submit="enroll" class="mt-6 flex flex-col gap-6 w-full">
+    <form wire:submit="enroll" class="flex flex-col gap-6 w-full pt-1">
         <flux:field>
             <flux:label>{{ __('Member') }}</flux:label>
             <flux:select wire:model.live="memberId">
@@ -19,11 +21,11 @@
         </flux:field>
 
         @if ($this->selectedMember === null)
-            <div class="rounded-lg border border-dashed border-zinc-300 bg-zinc-50 p-4 text-sm dark:border-zinc-700 dark:bg-zinc-900/40">
+            <x-ui.dashboard.panel class="border-dashed border-zinc-300 bg-zinc-50 text-sm dark:border-zinc-700 dark:bg-zinc-900/40">
                 <flux:text variant="subtle">{{ __('Select a member before creating a subscription enrollment.') }}</flux:text>
-            </div>
+            </x-ui.dashboard.panel>
         @else
-            <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
+            <x-ui.dashboard.panel>
                 <dl class="grid gap-2 text-sm sm:grid-cols-3">
                     <div>
                         <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Member') }}</dt>
@@ -38,7 +40,7 @@
                         <dd class="text-zinc-800 dark:text-zinc-200">{{ $this->selectedMember->activeSubscription?->plan?->name ?? __('No active plan') }}</dd>
                     </div>
                 </dl>
-            </div>
+            </x-ui.dashboard.panel>
         @endif
 
         <div class="grid gap-4 md:grid-cols-2">
@@ -71,7 +73,6 @@
                 <flux:select wire:model.live="paymentMethod">
                     <option value="cash">{{ __('Cash') }}</option>
                     <option value="konnect">{{ __('Konnect') }}</option>
-                    <option value="paymee">{{ __('Paymee') }}</option>
                 </flux:select>
                 <flux:error name="paymentMethod" />
             </flux:field>
@@ -105,12 +106,6 @@
             </div>
         @endif
 
-        <div class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-800 dark:bg-amber-900/30">
-            <flux:text class="text-amber-800 dark:text-amber-200 text-sm">
-                {{ __('Terminal whitelist sync is queued as a placeholder contract until terminal sync infrastructure is implemented.') }}
-            </flux:text>
-        </div>
-
         <div class="flex items-center gap-2 pt-2">
             <flux:spacer />
             <flux:button variant="ghost" wire:click="$set('show', false)">{{ __('Cancel') }}</flux:button>
@@ -120,4 +115,6 @@
             </flux:button>
         </div>
     </form>
+        </div>
+    </x-ui.dashboard.panel>
 </flux:modal>

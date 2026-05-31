@@ -1,9 +1,12 @@
-<flux:modal name="create-course-session" variant="flyout" class="max-w-md w-full shrink-0">
-    <form wire:submit.prevent="save" class="space-y-6">
-        <div>
-            <flux:heading size="lg">{{ __('Add New Course Session') }}</flux:heading>
-            <flux:subheading>{{ __('Create a recurring class template.') }}</flux:subheading>
-        </div>
+<flux:modal name="create-course-session" variant="flyout" class="max-w-5xl w-full shrink-0 [&_[data-flux-modal-close]]:mt-8 [&_[data-flux-modal-close]]:me-8">
+    <div class="px-6 py-8 md:px-8 md:py-10">
+        <x-ui.dashboard.panel class="space-y-6">
+            <div class="border-b border-zinc-200 pb-5 dark:border-zinc-700">
+                <flux:heading size="lg">{{ __('Add New Course Session') }}</flux:heading>
+                <flux:subheading>{{ __('Create a recurring class template.') }}</flux:subheading>
+            </div>
+
+    <form wire:submit.prevent="save" class="space-y-6 pt-1">
 
         <div class="space-y-4">
             <flux:select wire:model="course_id" :label="__('Course')" :placeholder="__('Select a course...')" required>
@@ -37,4 +40,6 @@
             <flux:button type="submit" variant="primary">{{ __('Save Course') }}</flux:button>
         </div>
     </form>
+        </div>
+    </x-ui.dashboard.panel>
 </flux:modal>

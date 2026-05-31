@@ -17,7 +17,8 @@ return new class extends Migration
             $table->string('instructor');
             $table->text('description')->nullable();
             $table->string('image_url')->nullable();
-            $table->string('color')->nullable();
+            $table->string('category')->nullable();
+            $table->string('icon')->nullable();
             $table->timestamps();
         });
     }

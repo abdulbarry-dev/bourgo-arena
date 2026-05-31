@@ -133,18 +133,18 @@ class AddMemberFlyout extends Component
 
             $this->dispatch('member-created', memberId: $member->id);
             session()->flash('toast', [
-                'message' => 'Member created successfully. Welcome notifications have been queued.',
+                'message' => __('Member created successfully. Welcome notifications have been queued.'),
                 'type' => 'success',
             ]);
 
-            $this->redirectRoute('admin.members.show', ['member' => $member->id]);
+            $this->redirectRoute('admin.members', ['member' => $member->id]);
         } catch (ValidationException $exception) {
             throw $exception;
         } catch (Throwable $exception) {
             report($exception);
 
-            $this->addError('create', 'Member could not be created right now. Please try again.');
-            $this->dispatch('toast', message: 'Member creation failed. Please review the form and try again.', type: 'danger');
+            $this->addError('create', __('Member could not be created right now. Please try again.'));
+            $this->dispatch('toast', message: __('Member creation failed. Please review the form and try again.'), type: 'danger');
         } finally {
             $this->isProcessing = false;
         }
@@ -190,10 +190,10 @@ class AddMemberFlyout extends Component
     protected function messages(): array
     {
         return [
-            'phone.regex' => 'Phone number must be digits only, with optional leading +.',
-            'dateOfBirth.before_or_equal' => 'Member must be at least 16 years old.',
-            'children.*.name.required' => 'Child name is required.',
-            'children.*.date_of_birth.required' => 'Child date of birth is required.',
+            'phone.regex' => __('Phone number must be digits only, with optional leading +.'),
+            'dateOfBirth.before_or_equal' => __('Member must be at least 16 years old.'),
+            'children.*.name.required' => __('Child name is required.'),
+            'children.*.date_of_birth.required' => __('Child date of birth is required.'),
         ];
     }
 

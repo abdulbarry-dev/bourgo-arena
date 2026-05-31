@@ -5,8 +5,8 @@
     {{ filled($title ?? null) ? $title.' - '.config('app.name', 'Laravel') : config('app.name', 'Laravel') }}
 </title>
 
-<link rel="icon" href="{{ asset('assets/images/brandmark-noir.webp') }}" type="image/webp">
-<link rel="apple-touch-icon" href="{{ asset('assets/images/brandmark-noir.webp') }}">
+<link rel="icon" href="{{ asset('assets/icons/brandmark-vert.webp') }}" type="image/webp">
+<link rel="apple-touch-icon" href="{{ asset('assets/icons/brandmark-vert.webp') }}">
 
 <link rel="preconnect" href="https://fonts.bunny.net">
 <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
@@ -14,3 +14,4 @@
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 @fluxAppearance
+@fluxScripts

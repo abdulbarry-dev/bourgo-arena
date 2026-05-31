@@ -1,6 +1,6 @@
 <div class="grid gap-4 xl:grid-cols-2">
     {{-- Profil --}}
-    <div class="space-y-4 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
+    <x-ui.dashboard.panel class="space-y-4">
         <div class="flex items-center justify-between">
             <flux:heading size="sm">{{ __('Profile') }}</flux:heading>
             <flux:badge size="sm" variant="subtle" class="capitalize">{{ $member->account_type_label }}</flux:badge>
@@ -34,10 +34,10 @@
                 <dd class="text-zinc-800 dark:text-zinc-200">{{ $member->date_of_birth?->format('Y-m-d') ?? __('N/A') }}</dd>
             </div>
         </dl>
-    </div>
+    </x-ui.dashboard.panel>
 
     {{-- Subscription & Access --}}
-    <div class="space-y-4 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
+    <x-ui.dashboard.panel class="space-y-4">
         <flux:heading size="sm">{{ __('Subscription & Access') }}</flux:heading>
 
         <dl class="grid gap-3 text-sm">
@@ -50,21 +50,9 @@
                 <dd class="text-zinc-800 dark:text-zinc-200">{{ $member->activeSubscription?->ends_at?->format('Y-m-d') ?? __('N/A') }}</dd>
             </div>
             <div>
-                <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Card UID') }}</dt>
-                <dd class="text-zinc-800 dark:text-zinc-200">{{ $member->nfcCard?->uid ?? __('Not assigned') }}</dd>
-            </div>
-            <div>
-                <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Card Status') }}</dt>
-                <dd class="capitalize text-zinc-800 dark:text-zinc-200">{{ $member->nfcCard?->status ?? __('Unassigned') }}</dd>
-            </div>
-            <div>
-                <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Card Assigned') }}</dt>
-                <dd class="text-zinc-800 dark:text-zinc-200">{{ $member->nfcCard?->assigned_at?->format('Y-m-d H:i') ?? __('N/A') }}</dd>
-            </div>
-            <div>
                 <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Enrolled By') }}</dt>
                 <dd class="text-zinc-800 dark:text-zinc-200">{{ $member->activeSubscription?->enrolledBy?->name ?? __('N/A') }}</dd>
             </div>
         </dl>
-    </div>
+    </x-ui.dashboard.panel>
 </div>

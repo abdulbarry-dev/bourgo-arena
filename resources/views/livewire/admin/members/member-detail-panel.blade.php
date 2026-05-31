@@ -1,101 +1,150 @@
-<section class="w-full space-y-6">
-    @if ($member === null)
-        <div class="rounded-xl border border-dashed border-zinc-300 bg-zinc-50 p-8 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
-            <flux:heading size="sm">{{ __('No member selected') }}</flux:heading>
-            <flux:text variant="subtle">{{ __('Choose a member from the table to inspect profile, subscription, card status, and check-ins.') }}</flux:text>
-        </div>
-    @else
-        {{-- Status/Danger Alerts --}}
-        @if ($member->status === 'suspended')
-            <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-red-700 dark:border-red-900/30 dark:bg-red-900/20 dark:text-red-400">
-                <flux:icon name="exclamation-triangle" variant="mini" />
-                <span class="text-sm font-medium">{{ __('This account is currently banned/suspended.') }}</span>
-            </div>
-        @endif
+<div>
+    <flux:modal
+        wire:model="isDetailPanelOpen"
+        variant="flyout"
+        class="max-w-5xl w-full shrink-0 [&_[data-flux-modal-close]]:mt-8 [&_[data-flux-modal-close]]:me-8"
+    >
+        <section class="w-full space-y-8 px-6 py-8 md:px-8 md:py-10">
+            @if ($member === null)
+                <x-ui.dashboard.panel class="border-dashed border-zinc-300 bg-zinc-50 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
+                    <flux:heading size="sm">{{ __('No member selected') }}</flux:heading>
+                    <flux:text variant="subtle">{{ __('Choose a member from the table to inspect profile and subscription.') }}</flux:text>
+                </x-ui.dashboard.panel>
+            @else
+                <x-ui.dashboard.panel class="space-y-6 border border-zinc-200 bg-white/90 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/80">
+                    <div class="flex flex-col gap-5 border-b border-zinc-200 pb-5 dark:border-zinc-700 sm:flex-row sm:items-start sm:justify-between">
+                        <div class="space-y-1.5">
+                            <flux:heading size="sm">{{ $member->name }}</flux:heading>
+                            <flux:text variant="subtle">{{ __('Member profile actions and account controls') }}</flux:text>
+                        </div>
 
-        {{-- Action Bar --}}
-        <div class="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-zinc-200 bg-zinc-50/50 p-4 dark:border-zinc-700 dark:bg-zinc-900/20">
-            <div class="flex flex-wrap items-center gap-2">
-                {{-- Primary Identity Actions --}}
-                @can('update', $member)
-                    <flux:button variant="subtle" icon="pencil-square" wire:click="$dispatch('open-edit-member-flyout', { memberId: {{ $member->id }} })">
-                        {{ __('Edit Profile') }}
-                    </flux:button>
-                @endcan
+                        <div class="flex flex-wrap items-center gap-2 sm:justify-end sm:pt-1">
+                            @can('suspend', $member)
+                                <flux:button variant="ghost" color="danger" icon="no-symbol" wire:click="$set('showSuspendModal', true)" :disabled="$member->status === 'suspended'">
+                                    {{ __('Suspend') }}
+                                </flux:button>
+                            @endcan
 
-                {{-- Family Actions (Exclusive to Activated Family Accounts) --}}
-                @if ($member->is_family_account)
-                    @can('update', $member)
-                        <flux:button variant="subtle" icon="users" wire:click="$dispatch('open-manage-family-flyout', { memberId: {{ $member->id }} })">
-                            {{ __('Manage Family') }}
+                            @can('activate', $member)
+                                <flux:button variant="ghost" color="primary" icon="check-circle" wire:click="$set('showActivateModal', true)" :disabled="$member->status === 'active'">
+                                    {{ __('Activate') }}
+                                </flux:button>
+                            @endcan
+
+                            <flux:dropdown>
+                                <flux:button variant="ghost" icon="ellipsis-horizontal" />
+
+                                <flux:menu>
+                                    @can('resetPassword', \App\Models\Member::class)
+                                        <flux:menu.item icon="key" wire:click="$set('showResetPasswordModal', true)">
+                                            {{ __('Reset Password') }}
+                                        </flux:menu.item>
+                                    @endcan
+
+                                    @can('delete', $member)
+                                        <flux:menu.item variant="danger" icon="trash" wire:click="$set('showDeleteModal', true)">
+                                            {{ __('Delete Member') }}
+                                        </flux:menu.item>
+                                    @endcan
+                                </flux:menu>
+                            </flux:dropdown>
+                        </div>
+                    </div>
+
+                    @if ($member->status === 'suspended')
+                        <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-red-700 dark:border-red-900/30 dark:bg-red-900/20 dark:text-red-400">
+                            <flux:icon name="exclamation-triangle" variant="mini" />
+                            <span class="text-sm font-medium">{{ __('This account is currently banned/suspended.') }}</span>
+                        </div>
+                    @endif
+
+                    <div class="flex flex-wrap items-center gap-2 pt-1">
+                        <flux:button
+                            variant="subtle"
+                            :class="$activeTab === 'profile' ? 'bg-zinc-100 dark:bg-zinc-800' : ''"
+                            wire:click="$set('activeTab', 'profile')"
+                        >
+                            {{ __('Profile') }}
                         </flux:button>
-                    @endcan
-                @endif
+                        <flux:button
+                            variant="subtle"
+                            :class="$activeTab === 'loyalty' ? 'bg-zinc-100 dark:bg-zinc-800' : ''"
+                            wire:click="$set('activeTab', 'loyalty')"
+                        >
+                            {{ __('Loyalty') }}
+                        </flux:button>
 
-                {{-- Facility Access Actions --}}
-                @can('assign', \App\Models\NfcCard::class)
-                    <flux:button variant="subtle" icon="credit-card" :href="route('admin.members.assign-card', $member)" wire:navigate>
-                        {{ __('Assign Card') }}
-                    </flux:button>
-                @endcan
-            </div>
-
-            <div class="flex flex-wrap items-center gap-2">
-                {{-- Status Management Actions --}}
-                @can('suspend', $member)
-                    <flux:button variant="ghost" color="danger" icon="no-symbol" wire:click="$set('showSuspendModal', true)" :disabled="$member->status === 'suspended'">
-                        {{ __('Suspend') }}
-                    </flux:button>
-                @endcan
-
-                @can('activate', $member)
-                    <flux:button variant="ghost" color="primary" icon="check-circle" wire:click="$set('showActivateModal', true)" :disabled="$member->status === 'active'">
-                        {{ __('Activate') }}
-                    </flux:button>
-                @endcan
-
-                {{-- Sensitive Actions --}}
-                <flux:dropdown>
-                    <flux:button variant="ghost" icon="ellipsis-horizontal" />
-                    
-                    <flux:menu>
-                        @can('resetPassword', \App\Models\Member::class)
-                            <flux:menu.item icon="key" wire:click="$set('showResetPasswordModal', true)">
-                                {{ __('Reset Password') }}
-                            </flux:menu.item>
+                        @can('update', $member)
+                            <flux:button variant="subtle" icon="pencil-square" wire:click="$dispatch('open-edit-member-flyout', { memberId: {{ $member->id }} })">
+                                {{ __('Edit Profile') }}
+                            </flux:button>
                         @endcan
 
-                        @can('delete', $member)
-                            <flux:menu.item variant="danger" icon="trash" wire:click="$set('showDeleteModal', true)">
-                                {{ __('Delete Member') }}
-                            </flux:menu.item>
-                        @endcan
-                    </flux:menu>
-                </flux:dropdown>
-            </div>
-        </div>
+                        @if ($member->is_family_account)
+                            @can('update', $member)
+                                <flux:button variant="subtle" icon="users" wire:click="$dispatch('open-manage-family-flyout', { memberId: {{ $member->id }} })">
+                                    {{ __('Manage Family') }}
+                                </flux:button>
+                            @endcan
+                        @endif
+                    </div>
 
-        {{-- Hidden Flyouts --}}
-        <livewire:admin.members.manage-family-flyout />
-        <livewire:admin.members.edit-member-flyout />
+                    @if ($activeTab === 'loyalty')
+                        <x-ui.dashboard.panel class="space-y-4 border border-zinc-200 bg-zinc-50/80 dark:border-zinc-700 dark:bg-zinc-900/50">
+                            <div class="space-y-1">
+                                <flux:heading size="xs">{{ __('Loyalty History') }}</flux:heading>
+                                <flux:text variant="subtle">{{ __('Recent loyalty points and reward activity.') }}</flux:text>
+                            </div>
 
-        {{-- Member Core Information (Profile & Subscription) --}}
-        @include('livewire.admin.members.partials.member-info-cards')
+                            <div class="grid gap-4 md:grid-cols-3">
+                                <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900/70">
+                                    <div class="text-xs uppercase tracking-wide text-zinc-500">{{ __('Current Points') }}</div>
+                                    <div class="mt-2 text-2xl font-semibold text-zinc-900 dark:text-zinc-100">{{ $loyaltyPoints }}</div>
+                                </div>
 
-        <div class="grid gap-6">
-            {{-- Family Table --}}
-            @if ($member->parent || $member->children->isNotEmpty())
-                @include('livewire.admin.members.partials.family-details-table')
+                                <div class="md:col-span-2 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900/70">
+                                    <div class="text-xs uppercase tracking-wide text-zinc-500 mb-3">{{ __('Recent Transactions') }}</div>
+                                    @if ($loyaltyTransactions === null || $loyaltyTransactions->isEmpty())
+                                        <div class="text-sm text-zinc-500">{{ __('No loyalty transactions yet.') }}</div>
+                                    @else
+                                        <div class="space-y-2">
+                                            @foreach ($loyaltyTransactions as $transaction)
+                                                <div class="flex items-center justify-between rounded-lg border border-zinc-200 px-3 py-2 text-sm dark:border-zinc-700">
+                                                    <div>
+                                                        <div class="font-medium text-zinc-900 dark:text-zinc-100">{{ \Illuminate\Support\Str::headline($transaction->transaction_type) }}</div>
+                                                        <div class="text-xs text-zinc-500">{{ $transaction->created_at?->format('M d, Y H:i') }}</div>
+                                                    </div>
+                                                    <div class="font-semibold text-emerald-600 dark:text-emerald-400">+{{ $transaction->points }}</div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </x-ui.dashboard.panel>
+                    @else
+                        {{-- Member Core Information (Profile & Subscription) --}}
+                        @include('livewire.admin.members.partials.member-info-cards')
+
+                        <div class="grid gap-6">
+                            {{-- Family Table --}}
+                            @if ($member->parent || $member->children->isNotEmpty())
+                                @include('livewire.admin.members.partials.family-details-table')
+                            @endif
+                        </div>
+                    @endif
+                </x-ui.dashboard.panel>
             @endif
 
-            {{-- Activity Table --}}
-            @include('livewire.admin.members.partials.recent-check-ins-table')
-        </div>
-    @endif
+            {{-- Hidden Flyouts --}}
+            <livewire:admin.members.manage-family-flyout />
+            <livewire:admin.members.edit-member-flyout />
 
-    {{-- Modals --}}
-    @include('livewire.admin.members.partials.modals.suspend-modal')
-    @include('livewire.admin.members.partials.modals.activate-modal')
-    @include('livewire.admin.members.partials.modals.reset-password-modal')
-    @include('livewire.admin.members.partials.modals.delete-modal')
-</section>
+            {{-- Modals --}}
+            @include('livewire.admin.members.partials.modals.suspend-modal')
+            @include('livewire.admin.members.partials.modals.activate-modal')
+            @include('livewire.admin.members.partials.modals.reset-password-modal')
+            @include('livewire.admin.members.partials.modals.delete-modal')
+        </section>
+    </flux:modal>
+</div>

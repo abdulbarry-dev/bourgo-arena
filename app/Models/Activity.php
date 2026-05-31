@@ -2,20 +2,26 @@
 
 namespace App\Models;
 
-use Database\Factories\ActivityFactory;
+use Database\Factories\Shared\Activities\ActivityFactory;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Activity extends Model
 {
+    protected static function newFactory(): Factory
+    {
+        return ActivityFactory::new();
+    }
+
     protected $fillable = [
         'title',
         'category',
         'base_price',
         'currency',
         'image_url',
-        'icon',
+        'images',
         'description',
         'features',
         'rating',
@@ -25,6 +31,7 @@ class Activity extends Model
 
     protected $casts = [
         'features' => 'array',
+        'images' => 'array',
         'base_price' => 'decimal:2',
         'rating' => 'decimal:1',
         'is_active' => 'boolean',

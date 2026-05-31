@@ -12,7 +12,16 @@ test('verified admins can visit the dashboard', function () {
     $this->actingAs($user);
 
     $response = $this->get(route('dashboard'));
-    $response->assertOk();
+    $response->assertOk()
+        ->assertSee('h-dvh overflow-hidden', false)
+        ->assertSee('Members')
+        ->assertSee('Subscriptions')
+        ->assertSee('Schedule')
+        ->assertSee('Reconciliations')
+        ->assertSee('Courses')
+        ->assertSee('Events & Tournaments')
+        ->assertSee('Plans')
+        ->assertSee('Managers');
 });
 
 test('verified managers can visit the dashboard', function () {
@@ -20,7 +29,15 @@ test('verified managers can visit the dashboard', function () {
     $this->actingAs($user);
 
     $response = $this->get(route('dashboard'));
-    $response->assertOk();
+    $response->assertOk()
+        ->assertSee('h-dvh overflow-hidden', false)
+        ->assertSee('Members')
+        ->assertSee('Subscriptions')
+        ->assertSee('Schedule')
+        ->assertDontSee('Courses')
+        ->assertDontSee('Events & Tournaments')
+        ->assertDontSee('Plans')
+        ->assertDontSee('Managers');
 });
 
 test('members are forbidden from visiting the dashboard', function () {

@@ -30,8 +30,8 @@ test('full mobile auth flow strictly follows state machine', function () {
     ]);
 
     $loginResponse->assertStatus(200);
-    $loginResponse->assertJsonPath('data.code', 'EMAIL_NOT_VERIFIED');
-    $loginResponse->assertJsonPath('data.state', 'pending_verification');
+    $loginResponse->assertJsonPath('data.code', 'ADDITIONAL_VERIFICATION_REQUIRED');
+    $loginResponse->assertJsonPath('data.state', 'pending_additional_verification');
 
     // 3. OTP Verification
     // Since we're in a test, we can manually set the OTP in the DB
@@ -55,12 +55,32 @@ test('full mobile auth flow strictly follows state machine', function () {
     $member->refresh();
     expect($member->status)->toBe('pending_onboarding');
 
-    // 4. Access protected route with limited token
+    // 4. Phone Verification
+    $otp = '654321';
+    $member->update([
+        'otp_code' => $otp,
+        'otp_expires_at' => now()->addMinutes(10),
+    ]);
+
+    $verifyPhoneResponse = $this->withToken($token)->postJson(route('api.v1.auth.verify-phone'), [
+        'phone' => '12345678',
+        'otp' => $otp,
+    ]);
+
+    $verifyPhoneResponse->assertStatus(200);
+    $verifyPhoneResponse->assertJsonPath('data.state', 'pending_onboarding');
+    $verifyPhoneResponse->assertJsonStructure(['data' => ['token']]);
+
+    $token = $verifyPhoneResponse->json('data.token');
+    $member->refresh();
+    expect($member->status)->toBe('pending_onboarding');
+
+    // 5. Access protected route with limited token
     $profileResponse = $this->withToken($token)->getJson(route('api.v1.member.profile'));
     $profileResponse->assertStatus(403);
     $profileResponse->assertJsonPath('state', 'pending_onboarding');
 
-    // 5. Complete Registration (Final Onboarding)
+    // 6. Complete Registration (Final Onboarding)
     $completeResponse = $this->withToken($token)->postJson(route('api.v1.auth.complete-registration'), [
         'name' => 'State Machine User',
         'email' => 'state@example.com',
@@ -68,19 +88,17 @@ test('full mobile auth flow strictly follows state machine', function () {
         'date_of_birth' => '1990-01-01',
         'gender' => 'male',
         'is_parent_account' => true,
-        'pin' => '1234',
     ]);
 
-    $completeResponse->assertStatus(200);
+    $completeResponse->assertStatus(201);
     $completeResponse->assertJsonPath('data.state', 'active');
     $completeResponse->assertJsonStructure(['data' => ['token', 'user']]);
 
     $member->refresh();
     expect($member->status)->toBe('active');
     expect($member->isOnboardingCompleted())->toBeTrue();
-    expect($member->pin)->not->toBeNull();
 
-    // 6. Access protected route with full token
+    // 7. Access protected route with full token
     $newToken = $completeResponse->json('data.token');
     $profileResponse = $this->withToken($newToken)->getJson(route('api.v1.member.profile'));
     $profileResponse->assertStatus(200);

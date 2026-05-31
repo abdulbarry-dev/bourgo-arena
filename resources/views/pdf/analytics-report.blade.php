@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Analytics Report</title>
+    <title>{{ __('Analytics Report') }}</title>
     <style>
         body { font-family: sans-serif; font-size: 14px; }
         .header { text-align: center; margin-bottom: 30px; }
@@ -13,19 +13,19 @@
 </head>
 <body>
     <div class="header">
-        <img src="data:image/webp;base64,{{ base64_encode(file_get_contents(public_path('assets/images/brandmark-noir.webp'))) }}" alt="Bourgo Arena Logo" style="height: 48px; margin-bottom: 15px;">
-        <h2>Revenue & Subscription Analytics</h2>
-        <p>Report Interval: {{ $startDate }} to {{ $endDate }}</p>
+        <img src="data:image/webp;base64,{{ base64_encode(file_get_contents(public_path('assets/icons/brandmark-vert.webp'))) }}" alt="{{ __('Bourgo Arena Logo') }}" style="height: 48px; margin-bottom: 15px;">
+        <h2>{{ __('Revenue & Subscription Analytics') }}</h2>
+        <p>{{ __('Report Interval:') }} {{ $startDate }} {{ __('to') }} {{ $endDate }}</p>
     </div>
 
     <table>
         <thead>
             <tr>
-                <th>Date</th>
-                <th class="text-right">Total Revenue</th>
-                <th class="text-right">Active Subs</th>
-                <th class="text-right">Expired Subs</th>
-                <th class="text-right">Churn Rate (%)</th>
+                <th>{{ __('Date') }}</th>
+                <th class="text-right">{{ __('Total Revenue') }}</th>
+                <th class="text-right">{{ __('Active Subs') }}</th>
+                <th class="text-right">{{ __('Expired Subs') }}</th>
+                <th class="text-right">{{ __('Churn Rate (%)') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -41,7 +41,7 @@
         </tbody>
         <tfoot>
             <tr>
-                <th>Total</th>
+                <th>{{ __('Total') }}</th>
                 <th class="text-right">{{ number_format($snapshots->sum('total_revenue'), 2) }}</th>
                 <th class="text-right">-</th>
                 <th class="text-right">-</th>

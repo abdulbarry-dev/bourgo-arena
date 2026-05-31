@@ -1,23 +1,11 @@
 <x-layouts::app :title="__('Subscription Detail')">
     <section class="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
-        <nav aria-label="{{ __('Breadcrumb') }}" class="text-sm text-zinc-600 dark:text-zinc-300">
-            <ol class="flex flex-wrap items-center gap-2">
-                <li>
-                    <a href="{{ route('admin.subscriptions') }}" wire:navigate class="font-medium text-zinc-700 transition hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-zinc-100">
-                        {{ __('Subscriptions') }}
-                    </a>
-                </li>
-                <li aria-hidden="true" class="text-zinc-400 dark:text-zinc-500">/</li>
-                <li class="font-medium text-zinc-900 dark:text-zinc-100">{{ __('Subscription Detail') }}</li>
-            </ol>
-        </nav>
+        <x-ui.dashboard.page-header
+            :title="__('Subscription Detail')"
+            :subtitle="__('Review subscription information, payment context, and recent lifecycle audit events.')"
+        />
 
-        <div class="space-y-1">
-            <flux:heading size="xl">{{ __('Subscription Detail') }}</flux:heading>
-            <flux:text variant="subtle">{{ __('Review subscription information, payment context, and recent lifecycle audit events.') }}</flux:text>
-        </div>
-
-        <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900/40">
+        <x-ui.dashboard.panel>
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <flux:heading size="lg">{{ $subscription->member->name }}</flux:heading>
@@ -25,7 +13,7 @@
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">
-                    <flux:button variant="subtle" :href="route('admin.members.show', $subscription->member)" wire:navigate>
+                        <flux:button variant="subtle" :href="route('admin.members', ['member' => $subscription->member->id])" wire:navigate>
                         {{ __('Open Member') }}
                     </flux:button>
 
@@ -61,9 +49,9 @@
                     <div class="font-medium text-zinc-900 dark:text-zinc-100">{{ number_format((float) $subscription->amount_paid, 3) }} TND</div>
                 </div>
             </div>
-        </div>
+        </x-ui.dashboard.panel>
 
-        <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900/40">
+        <x-ui.dashboard.panel>
             <div class="mb-3 flex items-center justify-between">
                 <flux:heading size="sm">{{ __('Recent Audit Events') }}</flux:heading>
                 <flux:text variant="subtle">{{ __('Most recent 8 actions') }}</flux:text>
@@ -89,6 +77,6 @@
                     @endforeach
                 </ul>
             @endif
-        </div>
+        </x-ui.dashboard.panel>
     </section>
 </x-layouts::app>

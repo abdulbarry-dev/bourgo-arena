@@ -18,8 +18,11 @@ class EnsureOnboardingIsCompleted
 
         if ($user instanceof Member && ! $user->isOnboardingCompleted()) {
             return response()->json([
-                'message' => __('Please complete your onboarding first.'),
+                'message' => __('Must complete onboarding to access your account.'),
+                'code' => 'ONBOARDING_INCOMPLETE',
                 'state' => 'pending_onboarding',
+                'required_action' => 'complete_onboarding',
+                'cta' => __('Complete Setup'),
             ], 403);
         }
 

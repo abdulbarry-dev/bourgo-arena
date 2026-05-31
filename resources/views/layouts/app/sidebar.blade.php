@@ -3,8 +3,15 @@
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-screen bg-white dark:bg-zinc-800">
-        <flux:sidebar sticky collapsible class="transition-all duration-300 ease-in-out border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
+    @php
+        $isLockedDashboardPage = request()->routeIs('dashboard', 'admin.reservations.index', 'admin.activities.index', 'admin.reconciliations.index', 'admin.events.index');
+    @endphp
+
+    <body @class([
+        'min-h-screen bg-white dark:bg-zinc-800 overflow-x-hidden',
+        'h-dvh overflow-hidden' => $isLockedDashboardPage,
+    ])>
+        <flux:sidebar sticky collapsible class="transition-all duration-300 ease-in-out border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 overflow-x-hidden">
             <flux:sidebar.header>
                 <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
                 <flux:sidebar.collapse />
@@ -14,34 +21,52 @@
                 <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
+
+                    @if(auth()->user()?->can('access-dashboard-module', 'members'))
                     <flux:sidebar.item icon="user-group" :href="route('admin.members')" :current="request()->routeIs('admin.members*')" wire:navigate>
                         {{ __('Members') }}
                     </flux:sidebar.item>
+                    @endif
+
+                    @if(auth()->user()?->can('access-dashboard-module', 'reservations'))
+                    <flux:sidebar.item icon="calendar-date-range" :href="route('admin.reservations.index')" :current="request()->routeIs('admin.reservations.*')" wire:navigate>
+                        {{ __('Reservations') }}
+                    </flux:sidebar.item>
+                    @endif
+
+                    @if(auth()->user()?->can('access-dashboard-module', 'activities'))
+                    <flux:sidebar.item icon="calendar-date-range" :href="route('admin.activities.index')" :current="request()->routeIs('admin.activities.*')" wire:navigate>
+                        {{ __('Activities & Courts') }}
+                    </flux:sidebar.item>
+                    @endif
+
+                    @if(auth()->user()?->isAdmin())
+                    <flux:sidebar.item icon="receipt-percent" :href="route('admin.reconciliations.index')" :current="request()->routeIs('admin.reconciliations.*')" wire:navigate>
+                        {{ __('Reconciliations') }}
+                    </flux:sidebar.item>
+                    @endif
+
+                    @if(auth()->user()?->can('access-dashboard-module', 'subscriptions'))
                     <flux:sidebar.item icon="credit-card" :href="route('admin.subscriptions')" :current="request()->routeIs('admin.subscriptions*')" wire:navigate>
                         {{ __('Subscriptions') }}
                     </flux:sidebar.item>
+                    @endif
+
+                    @if(auth()->user()?->can('access-dashboard-module', 'schedule'))
                     <flux:sidebar.item icon="calendar-date-range" :href="route('admin.course-sessions.index')" :current="request()->routeIs('admin.course-sessions.*')" wire:navigate>
                         {{ __('Schedule') }}
                     </flux:sidebar.item>
+                    @endif
 
-                    @if(auth()->check() && auth()->user()->isAdmin())
+                    @if(auth()->user()?->can('access-dashboard-module', 'courses'))
                         <flux:sidebar.item icon="book-open" :href="route('admin.courses.index')" :current="request()->routeIs('admin.courses.*')" wire:navigate>
                             {{ __('Courses') }}
                         </flux:sidebar.item>
+                        <flux:sidebar.item icon="trophy" :href="route('admin.events.index')" :current="request()->routeIs('admin.events.*')" wire:navigate>
+                            {{ __('Events & Tournaments') }}
+                        </flux:sidebar.item>
                         <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.plans')" :current="request()->routeIs('admin.plans*')" wire:navigate>
                             {{ __('Plans') }}
-                        </flux:sidebar.item>
-                        <flux:sidebar.item 
-                            icon="shield-check" 
-                            :href="route('admin.access-control.dashboard')" 
-                            :current="request()->routeIs('admin.access-control.*')" 
-                            :badge="\App\Models\CheckInEvent::where('is_suspicious', true)->where('result', 'denied')->count() ?: null" 
-                            wire:navigate
-                        >
-                            {{ __('Access Control') }}
-                        </flux:sidebar.item>
-                        <flux:sidebar.item icon="device-tablet" :href="route('admin.terminals.index')" :current="request()->routeIs('admin.terminals.*')" wire:navigate>
-                            {{ __('Terminals') }}
                         </flux:sidebar.item>
                         <flux:sidebar.item icon="user-circle" :href="route('admin.managers.index')" :current="request()->routeIs('admin.managers.*')" wire:navigate>
                             {{ __('Managers') }}
@@ -113,6 +138,5 @@
 
         <livewire:shared.notifications.toast-manager />
 
-        @fluxScripts
     </body>
 </html>

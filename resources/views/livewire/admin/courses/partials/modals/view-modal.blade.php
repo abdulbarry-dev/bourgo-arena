@@ -11,7 +11,7 @@
                     </div>
                 @endif
                 
-                <div class="px-6 py-4 flex items-center gap-3 border-b border-zinc-200 dark:border-zinc-700" @style(['border-top: 4px solid ' . ($viewingCourse->color ?? '#9ca3af')])>
+                <div class="px-6 py-4 flex items-center gap-3 border-b border-zinc-200 dark:border-zinc-700">
                     <div class="flex-1">
                         <flux:heading size="xl">{{ __($viewingCourse->name) }}</flux:heading>
                         <flux:subheading class="flex items-center gap-1.5">
@@ -19,7 +19,7 @@
                             {{ __($viewingCourse->instructor) }}
                         </flux:subheading>
                     </div>
-                    <div class="size-4 rounded-full" @style(['background-color: ' . ($viewingCourse->color ?? '#9ca3af')]) title="{{ __('Theme Color') }}"></div>
+                    <!-- Theme Color display removed -->
                 </div>
             </div>
 

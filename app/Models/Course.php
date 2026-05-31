@@ -2,7 +2,8 @@
 
 namespace App\Models;
 
-use Database\Factories\CourseFactory;
+use Database\Factories\Dashboard\Catalog\CourseFactory;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -10,6 +11,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Course extends Model
 {
+    protected static function newFactory(): Factory
+    {
+        return CourseFactory::new();
+    }
+
     /** @use HasFactory<CourseFactory> */
     use HasFactory;
 
@@ -17,7 +23,6 @@ class Course extends Model
         'name',
         'instructor',
         'description',
-        'color',
         'category',
         'icon',
         'image_url',

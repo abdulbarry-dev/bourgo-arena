@@ -18,7 +18,7 @@ return new class extends Migration
             $table->decimal('base_price', 8, 2)->default(0);
             $table->string('currency', 10)->default('TND');
             $table->string('image_url')->nullable();
-            $table->string('icon')->nullable();
+            $table->json('images')->nullable();
             $table->text('description')->nullable();
             $table->json('features')->nullable();
             $table->decimal('rating', 3, 1)->default(0);

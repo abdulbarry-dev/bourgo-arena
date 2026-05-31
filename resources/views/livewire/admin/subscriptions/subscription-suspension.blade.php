@@ -7,12 +7,12 @@
     </div>
 
     @if ($this->selectedSubscription === null)
-        <div class="rounded-xl border border-dashed border-zinc-300 bg-zinc-50 p-8 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
+        <x-ui.dashboard.panel class="border-dashed border-zinc-300 bg-zinc-50 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
             <flux:heading size="sm">{{ __('No subscription selected') }}</flux:heading>
             <flux:text variant="subtle">{{ __('Pick a subscription from the table before applying lifecycle actions.') }}</flux:text>
-        </div>
+        </x-ui.dashboard.panel>
     @else
-        <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
+        <x-ui.dashboard.panel>
             <dl class="grid gap-2 text-sm sm:grid-cols-3">
                 <div>
                     <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Member') }}</dt>
@@ -39,9 +39,9 @@
                     <dd class="text-zinc-800 dark:text-zinc-200">{{ $this->selectedSubscription->days_remaining ?? $this->selectedSubscription->daysRemaining() }}</dd>
                 </div>
             </dl>
-        </div>
+        </x-ui.dashboard.panel>
 
-        <div class="space-y-4 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
+        <x-ui.dashboard.panel class="space-y-4">
             <flux:field>
                 <flux:label>{{ __('Action') }}</flux:label>
                 <flux:select wire:model.live="action">
@@ -58,14 +58,10 @@
             @include('livewire.admin.subscriptions.partials.actions.resume-form')
             @include('livewire.admin.subscriptions.partials.actions.transfer-form')
 
-            <div class="rounded-lg border border-dashed border-zinc-300 px-3 py-2 dark:border-zinc-700">
-                <flux:text>
-                    {{ __('Terminal whitelist sync is queued as a placeholder contract until terminal sync infrastructure is implemented.') }}
-                </flux:text>
-            </div>
-        </div>
 
-        <div class="space-y-3 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
+        </x-ui.dashboard.panel>
+
+        <x-ui.dashboard.panel class="space-y-3">
             <div class="flex items-center justify-between">
                 <flux:heading size="sm">{{ __('Recent Audit Events') }}</flux:heading>
                 <flux:text variant="subtle">{{ __('Most recent 8 actions') }}</flux:text>
@@ -91,6 +87,6 @@
                     @endforeach
                 </ul>
             @endif
-        </div>
+        </x-ui.dashboard.panel>
     @endif
 </section>

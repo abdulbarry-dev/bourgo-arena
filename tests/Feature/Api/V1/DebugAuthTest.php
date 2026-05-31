@@ -7,7 +7,13 @@ use Laravel\Sanctum\Sanctum;
 uses(RefreshDatabase::class);
 
 test('debug authentication', function () {
-    $member = Member::factory()->create(['status' => 'active']);
+    $member = Member::factory()->create([
+        'status' => 'active',
+        'state' => 'active',
+        'email_verified_at' => now(),
+        'phone_verified_at' => now(),
+        'onboarding_completed_at' => now(),
+    ]);
 
     Sanctum::actingAs($member, ['*'], 'sanctum');
 

@@ -2,8 +2,10 @@
 
 namespace App\Livewire\Admin\Subscriptions;
 
+use App\Actions\Subscriptions\ResumeSubscriptionAction;
+use App\Actions\Subscriptions\SuspendSubscriptionAction;
+use App\Actions\Subscriptions\TransferSubscriptionAction;
 use App\Jobs\SendSubscriptionNotification;
-use App\Jobs\SyncTerminalWhitelist;
 use App\Models\Member;
 use App\Models\Subscription;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -62,7 +64,7 @@ class SubscriptionSuspension extends Component
         $this->setSubscription($subscription->id);
     }
 
-    public function suspend(): void
+    public function suspend(SuspendSubscriptionAction $suspendAction): void
     {
         $this->authorize('suspend', Subscription::class);
 
@@ -82,7 +84,7 @@ class SubscriptionSuspension extends Component
             return;
         }
 
-        $subscription->suspend($this->suspensionReason, auth()->id());
+        $suspendAction->execute($subscription, $this->suspensionReason, auth()->id());
 
         SendSubscriptionNotification::dispatch(
             $subscription->id,
@@ -94,11 +96,6 @@ class SubscriptionSuspension extends Component
                 'reason' => $this->suspensionReason,
             ],
         );
-        SyncTerminalWhitelist::dispatch(
-            $subscription->member_id,
-            $subscription->id,
-            ['trigger' => 'subscription_suspended'],
-        );
 
         $this->suspensionReason = '';
         $this->confirmSuspension = false;
@@ -108,7 +105,7 @@ class SubscriptionSuspension extends Component
         $this->dispatch('toast', message: 'Subscription suspended successfully', type: 'success');
     }
 
-    public function resume(): void
+    public function resume(ResumeSubscriptionAction $resumeAction): void
     {
         $this->authorize('resume', Subscription::class);
 
@@ -126,7 +123,7 @@ class SubscriptionSuspension extends Component
             return;
         }
 
-        $subscription->resume(auth()->id());
+        $resumeAction->execute($subscription, auth()->id());
 
         SendSubscriptionNotification::dispatch(
             $subscription->id,
@@ -137,11 +134,6 @@ class SubscriptionSuspension extends Component
                 'push_status' => 'pending-infrastructure',
             ],
         );
-        SyncTerminalWhitelist::dispatch(
-            $subscription->member_id,
-            $subscription->id,
-            ['trigger' => 'subscription_resumed'],
-        );
 
         $this->action = '';
 
@@ -149,7 +141,7 @@ class SubscriptionSuspension extends Component
         $this->dispatch('toast', message: 'Subscription resumed successfully', type: 'success');
     }
 
-    public function transfer(): void
+    public function transfer(TransferSubscriptionAction $transferAction): void
     {
         $this->authorize('transfer', Subscription::class);
 
@@ -176,7 +168,7 @@ class SubscriptionSuspension extends Component
         }
 
         $oldMemberId = $subscription->member_id;
-        $newSubscription = $subscription->transfer((int) $this->transferToMemberId, auth()->id());
+        $newSubscription = $transferAction->execute($subscription, (int) $this->transferToMemberId, auth()->id());
 
         SendSubscriptionNotification::dispatch(
             $subscription->id,
@@ -199,17 +191,6 @@ class SubscriptionSuspension extends Component
                 'from_member_id' => $oldMemberId,
                 'source_subscription_id' => $subscription->id,
             ],
-        );
-
-        SyncTerminalWhitelist::dispatch(
-            $oldMemberId,
-            $subscription->id,
-            ['trigger' => 'subscription_transferred_from'],
-        );
-        SyncTerminalWhitelist::dispatch(
-            $newSubscription->member_id,
-            $newSubscription->id,
-            ['trigger' => 'subscription_transferred_to'],
         );
 
         $this->subscriptionId = $newSubscription->id;

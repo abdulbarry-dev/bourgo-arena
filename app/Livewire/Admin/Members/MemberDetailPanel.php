@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Members;
 use App\Jobs\SendMemberPasswordResetEmail;
 use App\Models\Member;
 use App\Models\Subscription;
+use App\Services\LoyaltyService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\View\View;
 use Livewire\Attributes\On;
@@ -18,6 +19,16 @@ class MemberDetailPanel extends Component
 
     public ?Member $member = null;
 
+    public bool $isDetailPanelOpen = false;
+
+    public string $activeTab = 'profile';
+
+    public int $loyaltyLimit = 20;
+
+    public int $loyaltyPoints = 0;
+
+    public $loyaltyTransactions = null;
+
     public bool $showSuspendModal = false;
 
     public bool $showActivateModal = false;
@@ -29,6 +40,11 @@ class MemberDetailPanel extends Component
     public function mount(?int $memberId = null): void
     {
         $memberFromQuery = request()->query('member');
+        $tabFromQuery = request()->query('tab');
+
+        if (is_string($tabFromQuery) && $tabFromQuery !== '') {
+            $this->activeTab = $tabFromQuery;
+        }
 
         $resolvedMemberId = $memberId
             ?? (is_numeric($memberFromQuery) ? (int) $memberFromQuery : null)
@@ -36,7 +52,20 @@ class MemberDetailPanel extends Component
 
         if ($resolvedMemberId !== null) {
             $this->loadMember((int) $resolvedMemberId);
+            $this->isDetailPanelOpen = true;
         }
+    }
+
+    #[On('open-member-detail-panel')]
+    public function openDetailPanel(int $memberId): void
+    {
+        $this->loadMember($memberId);
+        $this->isDetailPanelOpen = true;
+    }
+
+    public function closeDetailPanel(): void
+    {
+        $this->isDetailPanelOpen = false;
     }
 
     #[On('member-selected')]
@@ -49,20 +78,34 @@ class MemberDetailPanel extends Component
         $this->member = Member::query()
             ->with([
                 'parent.activeSubscription.plan',
-                'parent.nfcCard',
                 'children.activeSubscription.plan',
-                'children.nfcCard',
                 'activeSubscription.plan',
                 'activeSubscription.enrolledBy',
-                'nfcCard.assignedBy',
-                'checkInEvents' => function ($query): void {
-                    $query
-                        ->with('terminal')
-                        ->latest('checked_in_at')
-                        ->limit(10);
-                },
             ])
             ->find($memberId);
+
+        // preload loyalty when requested
+        if ($this->activeTab === 'loyalty') {
+            $this->loadLoyalty();
+        }
+    }
+
+    public function loadLoyalty(): void
+    {
+        if ($this->member === null) {
+            return;
+        }
+
+        $result = app(LoyaltyService::class)->getBalanceAndTransactions($this->member, $this->loyaltyLimit);
+        $this->loyaltyPoints = $result['points'] ?? 0;
+        $this->loyaltyTransactions = $result['transactions'] ?? null;
+    }
+
+    public function updatedActiveTab(string $value): void
+    {
+        if ($value === 'loyalty') {
+            $this->loadLoyalty();
+        }
     }
 
     #[On('subscription-created')]

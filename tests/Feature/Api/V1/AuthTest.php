@@ -2,6 +2,7 @@
 
 use App\Models\Member;
 use App\Notifications\SendOtpCode;
+use App\Services\Auth\OtpService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
@@ -13,7 +14,7 @@ test('valid login returns token for active member', function () {
     $member = Member::factory()->create([
         'email' => 'test@example.com',
         'password' => Hash::make('password123'),
-        'status' => 'active',
+        'state' => 'active',
         'email_verified_at' => now(),
         'onboarding_completed_at' => now(),
     ]);
@@ -29,7 +30,7 @@ test('valid login returns token for active member', function () {
             'data' => [
                 'token',
                 'state',
-                'member' => [
+                'user' => [
                     'id',
                     'name',
                     'email',
@@ -43,7 +44,7 @@ test('wrong password returns 401', function () {
     $member = Member::factory()->create([
         'email' => 'test@example.com',
         'password' => Hash::make('password123'),
-        'status' => 'active',
+        'state' => 'active',
     ]);
 
     $response = $this->postJson(route('api.v1.auth.login'), [
@@ -95,13 +96,13 @@ test('member can register successfully and gets pending_verification state', fun
         ])
         ->assertJsonStructure([
             'data' => [
-                'member' => ['id', 'name', 'email'],
+                'user' => ['id', 'name', 'email'],
             ],
         ]);
 
     $this->assertDatabaseHas('members', [
         'email' => 'john@example.com',
-        'status' => 'pending_verification',
+        'state' => 'pending_verification',
     ]);
 
     $member = Member::where('email', 'john@example.com')->first();
@@ -112,9 +113,30 @@ test('member can register successfully and gets pending_verification state', fun
     );
 });
 
+test('otp generation is deduplicated during a short resend window', function () {
+    Notification::fake();
+
+    $member = Member::factory()->create([
+        'email' => 'burst@example.com',
+        'state' => 'pending_verification',
+        'email_verified_at' => null,
+        'phone_verified_at' => null,
+        'onboarding_completed_at' => null,
+    ]);
+
+    $otpService = app(OtpService::class);
+
+    $firstCode = $otpService->generate('burst@example.com');
+    $secondCode = $otpService->generate('burst@example.com');
+
+    expect($firstCode)->not->toBeEmpty();
+    expect($secondCode)->toBe($firstCode);
+    expect(Notification::sent($member, SendOtpCode::class)->count())->toBe(1);
+});
+
 test('logout revokes token', function () {
     $member = Member::factory()->create([
-        'status' => 'active',
+        'state' => 'active',
         'email_verified_at' => now(),
         'onboarding_completed_at' => now(),
     ]);
@@ -130,7 +152,7 @@ test('OTP generate and verify flow', function () {
     Notification::fake();
     $member = Member::factory()->create([
         'email' => 'otp@example.com',
-        'status' => 'pending_verification',
+        'state' => 'pending_verification',
         'email_verified_at' => null,
         'onboarding_completed_at' => null,
     ]);
@@ -169,14 +191,17 @@ test('OTP generate and verify flow', function () {
         ]);
 
     $member->refresh();
-    expect($member->status)->toBe('pending_onboarding');
+    expect($member->state)->toBe('pending_onboarding');
     expect($member->email_verified_at)->not->toBeNull();
 });
 
 test('member can complete registration through the complete-registration endpoint', function () {
-    // This endpoint seems to be a legacy or specific flow.
-    // I'll ensure it still works but maybe it should set status to active immediately?
-    // The current implementation sets it to 'active'.
+    $member = Member::factory()->create([
+        'state' => 'pending_onboarding',
+        'email_verified_at' => now(),
+        'phone_verified_at' => now(),
+    ]);
+    Sanctum::actingAs($member, ['*'], 'sanctum');
 
     $response = $this->postJson(route('api.v1.auth.complete-registration'), [
         'name' => 'Complete User',
@@ -191,8 +216,20 @@ test('member can complete registration through the complete-registration endpoin
 
     $this->assertDatabaseHas('members', [
         'email' => 'complete@example.com',
+        'state' => 'active',
+    ]);
+});
+
+test('access history endpoint is no longer exposed', function () {
+    $member = Member::factory()->create([
+        'email_verified_at' => now(),
+        'onboarding_completed_at' => now(),
         'status' => 'active',
     ]);
+
+    Sanctum::actingAs($member, ['*'], 'sanctum');
+
+    $this->getJson('/api/v1/user/access-history')->assertNotFound();
 });
 
 test('authenticated member can request family otp', function () {
@@ -200,7 +237,7 @@ test('authenticated member can request family otp', function () {
     $member = Member::factory()->create([
         'email' => 'family@example.com',
         'phone' => '11223344',
-        'status' => 'active',
+        'state' => 'active',
         'email_verified_at' => now(),
         'onboarding_completed_at' => now(),
     ]);
@@ -219,7 +256,7 @@ test('member can reset password using otp after verification', function () {
     $member = Member::factory()->create([
         'email' => 'reset@example.com',
         'password' => Hash::make('old-password'),
-        'status' => 'active',
+        'state' => 'active',
         'email_verified_at' => now(),
     ]);
 

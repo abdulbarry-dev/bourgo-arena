@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
-use Database\Factories\ApiReservationFactory;
+use Database\Factories\Api\Reservations\ApiReservationFactory;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 class ApiReservation extends Model
 {
@@ -44,6 +47,25 @@ class ApiReservation extends Model
     public function slot(): BelongsTo
     {
         return $this->belongsTo(ActivitySlot::class, 'activity_slot_id');
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class, 'reservation_id');
+    }
+
+    protected static function newFactory(): Factory
+    {
+        return ApiReservationFactory::new();
+    }
+
+    public function isRefundable(): bool
+    {
+        if (! $this->date || ! $this->starts_at) {
+            return false;
+        }
+
+        return Carbon::parse($this->date->format('Y-m-d').' '.$this->starts_at)->isFuture();
     }
 
     /** @use HasFactory<ApiReservationFactory> */

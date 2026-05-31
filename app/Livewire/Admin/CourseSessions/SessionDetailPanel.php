@@ -86,7 +86,7 @@ class SessionDetailPanel extends Component
     public function enrollMember()
     {
         if ($this->sessionData['status'] === 'validated') {
-            $this->dispatch('toast', message: 'Cannot enroll members in a completed session.', type: 'warning');
+            $this->dispatch('toast', message: __('Cannot enroll members in a completed session.'), type: 'warning');
 
             return;
         }
@@ -105,7 +105,7 @@ class SessionDetailPanel extends Component
             $member = Member::with('activeSubscription.plan.courses')->findOrFail($this->memberIdToEnroll);
 
             if (! $member->activeSubscription) {
-                $this->dispatch('toast', message: 'Member does not have an active subscription.', type: 'warning');
+                $this->dispatch('toast', message: __('Member does not have an active subscription.'), type: 'warning');
 
                 return;
             }
@@ -113,7 +113,7 @@ class SessionDetailPanel extends Component
             $plan = $member->activeSubscription->plan;
 
             if (! $plan->has_all_courses && ! $plan->courses->pluck('id')->contains($this->session->course_id)) {
-                $this->dispatch('toast', message: "Member's active plan does not include this course.", type: 'warning');
+                $this->dispatch('toast', message: __("Member's active plan does not include this course."), type: 'warning');
 
                 return;
             }
@@ -123,7 +123,7 @@ class SessionDetailPanel extends Component
                 ->count();
 
             if ($bookingsCount >= $this->session->capacity) {
-                $this->dispatch('toast', message: 'Session is at full capacity.', type: 'danger');
+                $this->dispatch('toast', message: __('Session is at full capacity.'), type: 'danger');
 
                 return;
             }
@@ -137,20 +137,20 @@ class SessionDetailPanel extends Component
             ]);
 
             $this->memberIdToEnroll = '';
-            $this->dispatch('toast', message: 'Member enrolled successfully!', type: 'success');
+            $this->dispatch('toast', message: __('Member enrolled successfully!'), type: 'success');
             $this->dispatch('course-session-updated');
         } catch (\Exception $e) {
             Log::error('Enrollment failed', [
                 'error' => $e->getMessage(),
             ]);
-            $this->dispatch('toast', message: 'Enrollment failed: '.$e->getMessage(), type: 'danger');
+            $this->dispatch('toast', message: __('Enrollment failed: ').$e->getMessage(), type: 'danger');
         }
     }
 
     public function removeBooking($bookingId)
     {
         if ($this->sessionData['status'] === 'validated') {
-            $this->dispatch('toast', message: 'Cannot modify bookings of a completed session.', type: 'warning');
+            $this->dispatch('toast', message: __('Cannot modify bookings of a completed session.'), type: 'warning');
 
             return;
         }
@@ -158,11 +158,11 @@ class SessionDetailPanel extends Component
         try {
             Log::info('Removing booking', ['booking_id' => $bookingId]);
             Booking::where('id', $bookingId)->delete();
-            $this->dispatch('toast', message: 'Booking removed.', type: 'info');
+            $this->dispatch('toast', message: __('Booking removed.'), type: 'info');
             $this->dispatch('course-session-updated');
         } catch (\Exception $e) {
             Log::error('Remove booking failed', ['error' => $e->getMessage()]);
-            $this->dispatch('toast', message: 'Failed to remove booking.', type: 'danger');
+            $this->dispatch('toast', message: __('Failed to remove booking.'), type: 'danger');
         }
     }
 
@@ -214,7 +214,7 @@ class SessionDetailPanel extends Component
                     $this->session->refresh();
                 }
 
-                $this->dispatch('toast', message: 'Master schedule updated successfully!', type: 'success');
+                $this->dispatch('toast', message: __('Master schedule updated successfully!'), type: 'success');
             }
 
             $this->editingSessionId = null;
@@ -225,7 +225,7 @@ class SessionDetailPanel extends Component
             $this->isDetailPanelOpen = true;
         } catch (\Exception $e) {
             Log::error('Master session update failed', ['error' => $e->getMessage()]);
-            $this->dispatch('toast', message: 'Failed to update master schedule.', type: 'danger');
+            $this->dispatch('toast', message: __('Failed to update master schedule.'), type: 'danger');
         }
     }
 
@@ -255,14 +255,14 @@ class SessionDetailPanel extends Component
 
             if ($session->bookings()->count() > 0) {
                 Log::warning('Delete blocked: Master schedule has bookings', ['session_id' => $session->id]);
-                $this->dispatch('toast', message: 'Cannot delete master schedule that has active or past bookings.', type: 'danger');
+                $this->dispatch('toast', message: __('Cannot delete master schedule that has active or past bookings.'), type: 'danger');
                 $this->closeDeleteMasterModal();
 
                 return;
             }
 
             $session->delete();
-            $this->dispatch('toast', message: 'Master schedule deleted successfully.', type: 'success');
+            $this->dispatch('toast', message: __('Master schedule deleted successfully.'), type: 'success');
 
             $this->deletingSessionId = null;
             Flux::modal('delete-master-session-modal')->close();
@@ -275,7 +275,7 @@ class SessionDetailPanel extends Component
             $this->dispatch('course-session-updated');
         } catch (\Exception $e) {
             Log::error('Master schedule deletion failed', ['error' => $e->getMessage()]);
-            $this->dispatch('toast', message: 'Failed to delete master schedule.', type: 'danger');
+            $this->dispatch('toast', message: __('Failed to delete master schedule.'), type: 'danger');
         }
     }
 
@@ -324,7 +324,7 @@ class SessionDetailPanel extends Component
             $this->isDetailPanelOpen = false;
         } catch (\Exception $e) {
             Log::error('Delete master session failed', ['error' => $e->getMessage()]);
-            $this->dispatch('toast', message: 'Failed to delete session.', type: 'danger');
+            $this->dispatch('toast', message: __('Failed to delete session.'), type: 'danger');
         }
     }
 
@@ -351,13 +351,13 @@ class SessionDetailPanel extends Component
 
             dispatch(new SendCourseCancelledPush($this->session->id, $this->date));
 
-            $this->dispatch('toast', message: 'Session cancelled and members notified.', type: 'success');
+            $this->dispatch('toast', message: __('Session cancelled and members notified.'), type: 'success');
             $this->dispatch('course-session-updated');
             $this->isDetailPanelOpen = false;
             Flux::modal('cancel-session-modal')->close();
         } catch (\Exception $e) {
             Log::error('Cancel instance failed', ['error' => $e->getMessage()]);
-            $this->dispatch('toast', message: 'Failed to cancel session.', type: 'danger');
+            $this->dispatch('toast', message: __('Failed to cancel session.'), type: 'danger');
         }
     }
 

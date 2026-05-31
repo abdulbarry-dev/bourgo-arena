@@ -2,12 +2,17 @@
 
 namespace App\Models;
 
-use Database\Factories\OtpCodeFactory;
+use Database\Factories\Shared\Auth\OtpCodeFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class OtpCode extends Model
 {
+    protected static function newFactory(): Factory
+    {
+        return OtpCodeFactory::new();
+    }
+
     protected $fillable = [
         'identifier',
         'code',

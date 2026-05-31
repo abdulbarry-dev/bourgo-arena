@@ -3,32 +3,25 @@
 namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\SendOtpRequest;
+use App\Http\Requests\Auth\VerifyOtpRequest;
+use App\Http\Resources\Api\V1\MemberResource;
 use App\Models\Member;
-use App\Models\User;
+use App\Services\Auth\OtpAuthService;
 use App\Services\Auth\OtpService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class OtpAuthController extends Controller
 {
-    public function __construct(protected OtpService $otpService) {}
+    public function __construct(protected OtpService $otpService, protected OtpAuthService $otpAuthService) {}
 
-    public function requestOtp(Request $request): JsonResponse
+    public function requestOtp(SendOtpRequest $request): JsonResponse
     {
-        $request->validate([
-            'phone' => ['required', 'string'],
-        ]);
-
-        $phone = $request->input('phone');
-        $user = Member::where('phone', $phone)->first()
-            ?? User::where('phone', $phone)->first();
-
-        if (! $user) {
-            return $this->error(__('User not found with this phone number.'), 404);
-        }
+        $identifier = $request->input('identifier');
 
         try {
-            $this->otpService->generate($phone);
+            $this->otpAuthService->requestOtp($identifier);
         } catch (\Exception $e) {
             return $this->error($e->getMessage(), 422);
         }
@@ -36,53 +29,20 @@ class OtpAuthController extends Controller
         return $this->success(null, __('OTP code sent successfully.'));
     }
 
-    public function login(Request $request): JsonResponse
+    public function login(VerifyOtpRequest $request): JsonResponse
     {
-        $request->validate([
-            'phone' => ['required', 'string'],
-            'otp' => ['required', 'string', 'size:6'],
-        ]);
-
-        $phone = $request->input('phone');
+        $identifier = $request->input('identifier');
         $code = $request->input('otp');
 
         try {
-            if (! $this->otpService->verify($phone, $code)) {
-                return $this->error(__('Invalid or expired OTP code.'), 422);
+            $payload = $this->otpAuthService->loginWithOtp($identifier, $code);
+            if (isset($payload['user']) && $payload['user'] instanceof Member) {
+                $payload['user'] = new MemberResource($payload['user']);
             }
-        } catch (\Exception $e) {
+        } catch (ValidationException $e) {
             return $this->error($e->getMessage(), 422);
         }
 
-        $user = Member::where('phone', $phone)->first()
-            ?? User::where('phone', $phone)->first();
-
-        if (! $user) {
-            return $this->error(__('User not found.'), 404);
-        }
-
-        $tokenAbilities = ['*'];
-        $state = 'active';
-
-        if ($user instanceof Member) {
-            if (! $user->isOnboardingCompleted()) {
-                $tokenAbilities = ['onboarding'];
-                $state = 'pending_onboarding';
-            }
-        }
-
-        $token = $user->createToken('mobile-app', $tokenAbilities)->plainTextToken;
-
-        return $this->success([
-            'token' => $token,
-            'state' => $state,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'phone' => $user->phone,
-                'role' => $user instanceof Member ? 'member' : $user->role,
-            ],
-        ], __('Logged in successfully.'));
+        return $this->success($payload, __('Logged in successfully.'));
     }
 }

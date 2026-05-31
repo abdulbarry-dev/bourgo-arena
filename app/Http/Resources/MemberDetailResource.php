@@ -24,6 +24,7 @@ class MemberDetailResource extends JsonResource
             'emergency_contact' => $this->emergency_contact,
             'avatar' => $this->avatar,
             'status' => $this->status,
+            'state' => $this->state,
             'rgpd_consented_at' => $this->rgpd_consented_at?->format('Y-m-d H:i:s'),
             'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
             'active_subscription' => $this->whenLoaded('activeSubscription', function () {
@@ -33,13 +34,6 @@ class MemberDetailResource extends JsonResource
                     'status' => $this->activeSubscription->status,
                     'starts_at' => $this->activeSubscription->starts_at?->format('Y-m-d'),
                     'ends_at' => $this->activeSubscription->ends_at?->format('Y-m-d'),
-                ] : null;
-            }),
-            'nfc_card' => $this->whenLoaded('nfcCard', function () {
-                return $this->nfcCard ? [
-                    'id' => $this->nfcCard->id,
-                    'uid' => $this->nfcCard->uid,
-                    'status' => $this->nfcCard->status,
                 ] : null;
             }),
         ];

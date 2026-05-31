@@ -6,10 +6,10 @@ test('admin can view members dashboard page', function () {
     $this->actingAs(User::factory()->admin()->create())
         ->get(route('admin.members'))
         ->assertOk()
+        ->assertSee('h-dvh overflow-y-auto', false)
         ->assertSee('Members')
         ->assertSee('Add Member')
-        ->assertSee('Search, filter, and manage member records')
-        ->assertDontSee('NFC Card Assignment');
+        ->assertSee('Search, filter, and manage member records');
 });
 
 test('manager can view members dashboard page', function () {

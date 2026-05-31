@@ -3,8 +3,9 @@
 namespace App\Models;
 
 use App\UserRole;
-use Database\Factories\MemberFactory;
+use Database\Factories\Shared\Members\MemberFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -31,18 +32,22 @@ class Member extends Authenticatable
         'emergency_contact',
         'avatar',
         'status',
+        'state',
         'rgpd_consented_at',
         'onboarding_completed_at',
         'password',
         'is_family_account',
+        'is_archived',
+        'scheduled_for_deletion_at',
         'otp_code',
         'otp_expires_at',
         'otp_attempts',
         'otp_last_sent_at',
-        'pin',
+        'loyalty_points',
     ];
 
     protected $casts = [
+
         'date_of_birth' => 'date',
         'rgpd_consented_at' => 'datetime',
         'email_verified_at' => 'datetime',
@@ -50,16 +55,21 @@ class Member extends Authenticatable
         'onboarding_completed_at' => 'datetime',
         'otp_expires_at' => 'datetime',
         'otp_last_sent_at' => 'datetime',
+        'scheduled_for_deletion_at' => 'datetime',
         'password' => 'hashed',
         'otp_code' => 'hashed',
-        'pin' => 'hashed',
         'is_family_account' => 'boolean',
+        'is_archived' => 'boolean',
     ];
+
+    protected static function newFactory(): Factory
+    {
+        return MemberFactory::new();
+    }
 
     protected $hidden = [
         'password',
         'otp_code',
-        'pin',
         'remember_token',
     ];
 
@@ -68,24 +78,54 @@ class Member extends Authenticatable
         return $this->email_verified_at !== null || $this->phone_verified_at !== null;
     }
 
+    public function isFullyVerified(): bool
+    {
+        return $this->email_verified_at !== null && $this->phone_verified_at !== null;
+    }
+
+    public function isPendingAdditionalVerification(): bool
+    {
+        return $this->state === 'pending_additional_verification';
+    }
+
+    public function getVerificationStatus(): array
+    {
+        return [
+            'email_verified' => $this->email_verified_at !== null,
+            'phone_verified' => $this->phone_verified_at !== null,
+            'onboarding_completed' => $this->isOnboardingCompleted(),
+            'is_fully_verified' => $this->isFullyVerified(),
+            'email' => $this->email,
+            'phone' => $this->phone,
+            'unverified_method' => $this->email_verified_at === null ? 'email' : ($this->phone_verified_at === null ? 'phone' : null),
+        ];
+    }
+
     public function isOnboardingCompleted(): bool
     {
-        return $this->onboarding_completed_at !== null;
+        $has_onboarded = $this->onboarding_completed_at !== null;
+
+        // Require at least one verified OTP method (email or phone) to
+        // consider onboarding complete. This ensures accounts flagged as
+        // completed also have a verified contact method.
+        $has_verified_contact = $this->email_verified_at !== null || $this->phone_verified_at !== null;
+
+        return $has_onboarded && $has_verified_contact;
     }
 
     public function isActive(): bool
     {
-        return $this->status === 'active';
+        return $this->state === 'active';
     }
 
     public function isPendingVerification(): bool
     {
-        return $this->status === 'pending_verification';
+        return $this->state === 'pending_verification';
     }
 
     public function isPendingOnboarding(): bool
     {
-        return $this->status === 'pending_onboarding';
+        return $this->state === 'pending_onboarding';
     }
 
     public function parent(): BelongsTo
@@ -98,11 +138,6 @@ class Member extends Authenticatable
         return $this->hasMany(Member::class, 'parent_id');
     }
 
-    public function nfcCard(): HasOne
-    {
-        return $this->hasOne(NfcCard::class);
-    }
-
     public function subscriptions(): HasMany
     {
         return $this->hasMany(Subscription::class);
@@ -113,11 +148,6 @@ class Member extends Authenticatable
         return $this->hasOne(Subscription::class)
             ->where('status', 'active')
             ->whereDate('ends_at', '>', now());
-    }
-
-    public function checkInEvents(): HasMany
-    {
-        return $this->hasMany(CheckInEvent::class);
     }
 
     public function onboardingTokens(): HasMany
@@ -145,6 +175,15 @@ class Member extends Authenticatable
         return $query->where('status', 'active');
     }
 
+    public function scopeByState(Builder $query, array|string $state): Builder
+    {
+        if (is_array($state)) {
+            return $query->whereIn('state', $state);
+        }
+
+        return $query->where('state', $state);
+    }
+
     public function scopeByStatus(Builder $query, array|string $status): Builder
     {
         if (is_array($status)) {
@@ -163,7 +202,7 @@ class Member extends Authenticatable
 
     public function scopeWithDetails(Builder $query): Builder
     {
-        return $query->with(['activeSubscription', 'nfcCard']);
+        return $query->with(['activeSubscription']);
     }
 
     public function scopeSearchable(Builder $query, ?string $term): Builder

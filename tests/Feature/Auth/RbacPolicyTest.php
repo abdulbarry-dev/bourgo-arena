@@ -2,9 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
-use App\Models\HikvisionTerminal;
 use App\Models\Member;
-use App\Models\NfcCard;
 use App\Models\Subscription;
 use App\Models\User;
 use App\UserRole;
@@ -88,27 +86,6 @@ class RbacPolicyTest extends TestCase
     }
 
     /**
-     * Test only admin can provision terminals.
-     */
-    public function test_only_admin_can_provision_terminals(): void
-    {
-        $this->actingAs($this->admin);
-        $this->assertTrue($this->admin->can('provision', HikvisionTerminal::class));
-
-        $this->actingAs($this->manager);
-        $this->assertFalse($this->manager->can('provision', HikvisionTerminal::class));
-    }
-
-    /**
-     * Test manager can assign NFC cards.
-     */
-    public function test_manager_can_assign_nfc_cards(): void
-    {
-        $this->actingAs($this->manager);
-        $this->assertTrue($this->manager->can('assign', NfcCard::class));
-    }
-
-    /**
      * Test member delete only allowed for admin.
      */
     public function test_only_admin_can_delete_members(): void
@@ -169,5 +146,21 @@ class RbacPolicyTest extends TestCase
         $this->assertFalse($this->manager->isAdmin());
         $this->assertTrue($this->manager->isManager());
         $this->assertTrue($this->manager->isStaff());
+    }
+
+    /**
+     * Test dashboard module access helpers.
+     */
+    public function test_user_dashboard_module_access_helpers(): void
+    {
+        $this->assertTrue($this->admin->can('access-dashboard-module', 'members'));
+        $this->assertTrue($this->admin->can('access-dashboard-module', 'courses'));
+        $this->assertTrue($this->admin->can('access-dashboard-module', 'managers'));
+
+        $this->assertTrue($this->manager->can('access-dashboard-module', 'members'));
+        $this->assertTrue($this->manager->can('access-dashboard-module', 'schedule'));
+        $this->assertFalse($this->manager->can('access-dashboard-module', 'courses'));
+        $this->assertFalse($this->manager->can('access-dashboard-module', 'plans'));
+        $this->assertFalse($this->manager->can('access-dashboard-module', 'managers'));
     }
 }

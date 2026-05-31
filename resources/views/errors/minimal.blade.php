@@ -6,8 +6,8 @@
         <title>@yield('code') - @yield('title')</title>
         
         <!-- Dashboard Meta Icon -->
-        <link rel="icon" href="{{ asset('assets/images/brandmark-noir.webp') }}" type="image/webp">
-        <link rel="apple-touch-icon" href="{{ asset('assets/images/brandmark-noir.webp') }}">
+        <link rel="icon" href="{{ asset('assets/icons/brandmark-vert.webp') }}" type="image/webp">
+        <link rel="apple-touch-icon" href="{{ asset('assets/icons/brandmark-vert.webp') }}">
         
         <!-- Application Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
