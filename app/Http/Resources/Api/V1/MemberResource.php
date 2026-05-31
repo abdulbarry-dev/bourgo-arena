@@ -41,7 +41,7 @@ class MemberResource extends JsonResource
             'last_name' => $lastName,
             'email' => $this->email,
             'phone' => $this->phone,
-            'avatar_url' => $this->avatar ? asset('storage/'.$this->avatar) : null,
+            'avatar_url' => $this->avatar_url,
             'loyalty_points' => $this->loyalty_points ?? 0,
             'birth_date' => $this->date_of_birth?->toDateString(),
             'gender' => $this->gender,

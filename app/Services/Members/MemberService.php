@@ -6,6 +6,8 @@ use App\DTOs\UpdateProfileDTO;
 use App\Models\Member;
 use App\Notifications\AccountDeletionScheduled;
 use App\Repositories\Members\MemberRepository;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 class MemberService
 {
@@ -19,6 +21,31 @@ class MemberService
     public function updateProfile(Member $member, UpdateProfileDTO $dto): Member
     {
         return $this->memberRepository->updateProfile($member, $dto->toArray());
+    }
+
+    public function uploadAvatar(Member $member, UploadedFile $file): Member
+    {
+        $this->deleteStoredAvatarFile($member);
+
+        $path = $file->store('members/avatars', 'public');
+
+        return $this->memberRepository->updateProfile($member, ['avatar' => $path]);
+    }
+
+    public function deleteAvatar(Member $member): Member
+    {
+        $this->deleteStoredAvatarFile($member);
+
+        return $this->memberRepository->updateProfile($member, ['avatar' => null]);
+    }
+
+    private function deleteStoredAvatarFile(Member $member): void
+    {
+        if (blank($member->avatar) || filter_var($member->avatar, FILTER_VALIDATE_URL)) {
+            return;
+        }
+
+        Storage::disk('public')->delete($member->avatar);
     }
 
     /**
