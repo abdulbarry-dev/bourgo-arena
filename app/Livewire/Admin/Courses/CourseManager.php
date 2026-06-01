@@ -50,18 +50,6 @@ class CourseManager extends Component
 
     public $deletingCourseId = null;
 
-    public $editingSessionId = null;
-
-    public $deletingSessionId = null;
-
-    public $sessionDayOfWeek = 0;
-
-    public $sessionStartsAt = '12:00';
-
-    public $sessionDurationMinutes = 60;
-
-    public $sessionCapacity = 10;
-
     public $isModalOpen = false;
 
     public function mount()
@@ -243,111 +231,6 @@ class CourseManager extends Component
         $this->isModalOpen = false;
         Flux::modal('course-form-modal')->close();
         $this->resetForm();
-    }
-
-    public function openEditSessionModal($sessionId)
-    {
-        $session = CourseSession::findOrFail($sessionId);
-        $this->editingSessionId = $session->id;
-        $this->sessionDayOfWeek = $session->day_of_week;
-        $this->sessionStartsAt = Carbon::parse($session->starts_at)->format('H:i');
-        $this->sessionDurationMinutes = $session->duration_minutes;
-        $this->sessionCapacity = $session->capacity;
-
-        Flux::modal('view-course-modal')->close();
-        Flux::modal('edit-session-modal')->show();
-    }
-
-    public function closeEditSessionModal()
-    {
-        $this->editingSessionId = null;
-        Flux::modal('edit-session-modal')->close();
-        if ($this->viewingCourseId) {
-            Flux::modal('view-course-modal')->show();
-        }
-    }
-
-    public function saveSession()
-    {
-        $this->validate([
-            'sessionDayOfWeek' => 'required|integer|min:0|max:6',
-            'sessionStartsAt' => ['required', 'regex:/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/'],
-            'sessionDurationMinutes' => 'required|integer|min:15',
-            'sessionCapacity' => 'required|integer|min:1',
-        ]);
-
-        try {
-            Log::info('Saving course session', [
-                'session_id' => $this->editingSessionId,
-                'day' => $this->sessionDayOfWeek,
-                'starts_at' => $this->sessionStartsAt,
-            ]);
-
-            if ($this->editingSessionId) {
-                $session = CourseSession::findOrFail($this->editingSessionId);
-                $session->update([
-                    'day_of_week' => $this->sessionDayOfWeek,
-                    'starts_at' => $this->sessionStartsAt.':00',
-                    'duration_minutes' => $this->sessionDurationMinutes,
-                    'capacity' => $this->sessionCapacity,
-                ]);
-                $this->dispatch('toast', message: 'Course schedule updated successfully!', type: 'success');
-            }
-
-            $this->closeEditSessionModal();
-        } catch (\Exception $e) {
-            Log::error('Failed to save session', [
-                'error' => $e->getMessage(),
-            ]);
-            $this->dispatch('toast', message: 'Failed to save schedule.', type: 'danger');
-        }
-    }
-
-    public function confirmDeleteSession($sessionId)
-    {
-        $this->deletingSessionId = $sessionId;
-        Flux::modal('view-course-modal')->close();
-        Flux::modal('delete-session-modal')->show();
-    }
-
-    public function closeDeleteSessionModal()
-    {
-        $this->deletingSessionId = null;
-        Flux::modal('delete-session-modal')->close();
-        if ($this->viewingCourseId) {
-            Flux::modal('view-course-modal')->show();
-        }
-    }
-
-    public function deleteSession()
-    {
-        if (! $this->deletingSessionId) {
-            return;
-        }
-
-        try {
-            $session = CourseSession::findOrFail($this->deletingSessionId);
-            Log::info('Deleting session', ['session_id' => $session->id]);
-
-            if ($session->bookings()->count() > 0) {
-                Log::warning('Delete blocked: Session has active bookings', ['session_id' => $session->id]);
-                $this->dispatch('toast', message: 'Cannot delete schedule that has active or past bookings.', type: 'danger');
-                $this->closeDeleteSessionModal();
-
-                return;
-            }
-
-            $session->delete();
-            $this->dispatch('toast', message: 'Schedule deleted successfully.', type: 'success');
-
-            $this->closeDeleteSessionModal();
-        } catch (\Exception $e) {
-            Log::error('Failed to delete session', [
-                'session_id' => $this->deletingSessionId,
-                'error' => $e->getMessage(),
-            ]);
-            $this->dispatch('toast', message: 'Failed to delete schedule.', type: 'danger');
-        }
     }
 
     public function closeViewModal()

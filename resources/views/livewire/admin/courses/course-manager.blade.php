@@ -64,8 +64,4 @@
     @include('livewire.admin.courses.partials.modals.form-modal')
 
     @include('livewire.admin.courses.partials.modals.delete-modal')
-
-    @include('livewire.admin.courses.partials.modals.edit-session-modal')
-
-    @include('livewire.admin.courses.partials.modals.delete-session-modal')
 </x-ui.dashboard.page-wrapper>

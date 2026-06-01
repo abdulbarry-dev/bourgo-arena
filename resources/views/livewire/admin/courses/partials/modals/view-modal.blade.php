@@ -66,41 +66,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Course Schedules -->
-                <div class="space-y-4">
-                    <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Course Schedules') }}</h3>
-                    
-                    @if($viewingCourse->sessions->isNotEmpty())
-                        <div class="space-y-3">
-                            @foreach($viewingCourse->sessions->sortBy('day_of_week') as $session)
-                                <div class="flex items-center justify-between p-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50" wire:key="session-{{ $session->id }}">
-                                    <div class="flex items-start gap-3">
-                                        <div class="mt-0.5 flex size-8 items-center justify-center rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 shadow-sm text-zinc-500">
-                                            <flux:icon name="calendar" variant="mini" class="size-4" />
-                                        </div>
-                                        <div>
-                                            <div class="font-medium text-sm text-zinc-900 dark:text-zinc-100">
-                                                {{ ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][$session->day_of_week] }}s {{ __('at') }} {{ \Carbon\Carbon::parse($session->starts_at)->format('g:i A') }}
-                                            </div>
-                                            <div class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                                                {{ $session->duration_minutes }} {{ __('mins') }} &middot; {{ __('Capacity: :capacity', ['capacity' => $session->capacity]) }}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-1">
-                                        <flux:button wire:click="openEditSessionModal({{ $session->id }})" variant="subtle" size="sm" icon="pencil" class="!px-2" />
-                                        <flux:button wire:click="confirmDeleteSession({{ $session->id }})" variant="subtle" size="sm" icon="trash" class="!px-2 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300" />
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="text-sm text-zinc-500 dark:text-zinc-400 p-4 border border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl text-center">
-                            {{ __('No repeating schedules have been configured for this course yet.') }}
-                        </div>
-                    @endif
-                </div>
             </div>
         </div>
     @endif
