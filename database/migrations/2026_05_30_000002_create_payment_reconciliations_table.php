@@ -15,6 +15,7 @@ return new class extends Migration
             $table->string('type'); // reconciled | refunded
             $table->decimal('amount', 10, 3)->nullable();
             $table->json('metadata')->nullable();
+            $table->timestamp('archived_at')->nullable()->index();
             $table->timestamps();
 
             $table->foreign('payment_id')->references('id')->on('payments')->onDelete('cascade');
