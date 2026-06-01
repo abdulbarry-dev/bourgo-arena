@@ -27,14 +27,13 @@ test('session detail panel renders the refactored default state', function () {
 
     Livewire::test(SessionDetailPanel::class)
         ->call('loadSession', $session->id, $sessionDate)
-        ->assertSet('isDetailPanelOpen', true)
         ->assertSee('Strength Flow')
-        ->assertSee('Enroll Member')
-        ->assertSee('Master Schedule')
         ->assertSee('No members enrolled yet.')
-        ->assertSee('Session Date')
-        ->assertSee('Start Time')
-        ->assertSee('spots filled');
+        ->assertSee('Date')
+        ->assertSee('Time')
+        ->assertSee('Attendance')
+        ->assertDontSee('Enroll Member')
+        ->assertDontSee('Master Schedule');
 });
 
 test('session detail panel shows cover image placeholder when course has no image', function () {

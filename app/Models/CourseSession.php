@@ -53,6 +53,34 @@ class CourseSession extends Model
         return $this->belongsTo(Course::class);
     }
 
+    public static function hasOverlap(int $courseId, int $dayOfWeek, string $startTime, int $durationMinutes, ?int $excludeId = null): bool
+    {
+        $newStart = Carbon::parse($startTime);
+        $newEnd = $newStart->copy()->addMinutes($durationMinutes);
+
+        $query = self::where('course_id', $courseId)
+            ->where('day_of_week', $dayOfWeek)
+            ->where('is_cancelled', false);
+
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        $existingSessions = $query->get(['id', 'starts_at', 'duration_minutes']);
+
+        foreach ($existingSessions as $session) {
+            $existingStart = Carbon::parse($session->starts_at);
+            $existingEnd = $existingStart->copy()->addMinutes($session->duration_minutes);
+
+            // Overlap condition: (StartA < EndB) AND (EndA > StartB)
+            if ($newStart->lt($existingEnd) && $newEnd->gt($existingStart)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function exceptions(): HasMany
     {
         return $this->hasMany(CourseSessionException::class);
