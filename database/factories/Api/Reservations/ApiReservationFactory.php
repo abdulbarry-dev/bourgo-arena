@@ -61,7 +61,7 @@ class ApiReservationFactory extends Factory
         return $this->state(fn (): array => [
             'activity_id' => $slot->activity_id,
             'activity_slot_id' => $slot->id,
-            'date' => $slot->date->toDateString(),
+            'date' => now()->addDay()->toDateString(),
             'starts_at' => $slot->starts_at,
             'ends_at' => $slot->ends_at,
             'price' => $slot->activity?->base_price ?? 0,

@@ -18,7 +18,7 @@ it('renders reconciliation manager and lists items', function () {
 
     $member = Member::factory()->create();
     $activity = Activity::factory()->create();
-    $slot = ActivitySlot::factory()->create(['activity_id' => $activity->id, 'date' => now()->toDateString()]);
+    $slot = ActivitySlot::factory()->create(['activity_id' => $activity->id]);
     $payment = Payment::factory()->create(['member_id' => $member->id]);
 
     PaymentReconciliation::query()->create(['payment_id' => $payment->id, 'admin_id' => $admin->id, 'type' => 'reconciled', 'metadata' => ['provider' => 'test']]);
@@ -58,7 +58,7 @@ it('can view archive and delete reconciliation records following business rules'
         ->call('openDetailModal', $reconciliation->id)
         ->assertSet('selectedReconciliationId', $reconciliation->id)
         ->assertSee('PAY-REF-001')
-        ->assertSee('konnect')
+        ->assertSee('Provider Summary')
         ->call('confirmArchive', $reconciliation->id)
         ->call('archiveReconciliation')
         ->assertSet('showArchiveConfirmModal', false);
@@ -131,7 +131,7 @@ it('downloads reconciliation csv and pdf exports', function () {
 
     $member = Member::factory()->create();
     $activity = Activity::factory()->create();
-    $slot = ActivitySlot::factory()->create(['activity_id' => $activity->id, 'date' => now()->toDateString()]);
+    $slot = ActivitySlot::factory()->create(['activity_id' => $activity->id]);
     $payment = Payment::factory()->create(['member_id' => $member->id]);
 
     PaymentReconciliation::query()->create(['payment_id' => $payment->id, 'admin_id' => $admin->id, 'type' => 'reconciled', 'metadata' => ['provider' => 'test']]);

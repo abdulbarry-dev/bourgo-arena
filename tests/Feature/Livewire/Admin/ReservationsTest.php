@@ -74,7 +74,6 @@ it('allows an admin to create a reservation for a client', function () {
     ]);
     $slot = ActivitySlot::factory()->create([
         'activity_id' => $activity->id,
-        'date' => now()->addDay()->toDateString(),
         'starts_at' => '12:00:00',
         'ends_at' => '13:00:00',
         'capacity' => 6,
@@ -90,6 +89,7 @@ it('allows an admin to create a reservation for a client', function () {
         ->set('activitySearch', 'Court Alpha')
         ->set('createMemberId', $member->id)
         ->set('createActivityId', $activity->id)
+        ->set('createDate', now()->addDay()->toDateString())
         ->set('createActivitySlotId', $slot->id)
         ->call('createReservation')
         ->assertHasNoErrors();
@@ -117,7 +117,6 @@ it('shows reservation member and payment history details', function () {
     $activity = Activity::factory()->create(['title' => 'Stade Padel 1']);
     $slot = ActivitySlot::factory()->create([
         'activity_id' => $activity->id,
-        'date' => now()->addDay()->toDateString(),
         'starts_at' => '10:00:00',
         'ends_at' => '11:00:00',
         'capacity' => 4,
@@ -129,6 +128,7 @@ it('shows reservation member and payment history details', function () {
         ->forActivity($activity)
         ->forSlot($slot)
         ->create([
+            'date' => now()->addDay()->toDateString(),
             'payment_status' => 'paid',
             'status' => 'confirmed',
         ]);
@@ -150,17 +150,17 @@ it('shows reservation member and payment history details', function () {
         ->call('openReservationDetail', $reservation->id)
         ->assertSet('selectedReservationId', $reservation->id)
         ->assertSee('PAY-RES-001')
-        ->assertSee('Open Member Profile')
-        ->assertSee('View Loyalty History');
+        ->assertSee('Open Profile')
+        ->assertSee('Loyalty');
 });
 
 it('can verify and refund payments from the detail flyout', function () {
     $admin = User::factory()->create(['role' => UserRole::Admin]);
     $member = Member::factory()->create();
     $activity = Activity::factory()->create();
-    $slot = ActivitySlot::factory()->create(['activity_id' => $activity->id, 'date' => now()->addDay()->toDateString(), 'starts_at' => '10:00:00', 'ends_at' => '11:00:00', 'capacity' => 4, 'booked_count' => 1]);
+    $slot = ActivitySlot::factory()->create(['activity_id' => $activity->id, 'starts_at' => '10:00:00', 'ends_at' => '11:00:00', 'capacity' => 4, 'booked_count' => 1]);
 
-    $reservation = ApiReservation::factory()->for($member)->forActivity($activity)->forSlot($slot)->create(['payment_status' => 'pending', 'status' => 'confirmed']);
+    $reservation = ApiReservation::factory()->for($member)->forActivity($activity)->forSlot($slot)->create(['date' => now()->addDay()->toDateString(), 'payment_status' => 'pending', 'status' => 'confirmed']);
 
     $payment = Payment::factory()->create(['member_id' => $member->id, 'reservation_id' => $reservation->id, 'status' => 'pending', 'amount' => $reservation->price, 'payment_reference' => 'PAY-VERIFY-001']);
 

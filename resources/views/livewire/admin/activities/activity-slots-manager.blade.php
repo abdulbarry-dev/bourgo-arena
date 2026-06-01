@@ -36,7 +36,7 @@
                         </div>
                     </div>
                 </div>
-                <flux:button variant="subtle" icon="pencil-square" :href="route('admin.activities.index')" wire:navigate>
+                <flux:button variant="subtle" icon="pencil-square" wire:click="openEditActivityModal">
                     {{ __('Edit Activity') }}
                 </flux:button>
             </div>
@@ -113,7 +113,7 @@
     </x-ui.dashboard.table-shell>
 
     <flux:modal wire:model="showSlotModal" variant="flyout" class="w-full max-w-lg" x-on:hidden="$wire.closeSlotModal()">
-                <form wire:submit.prevent="saveSlot" class="p-6 space-y-6">
+        <form wire:submit.prevent="saveSlot" class="p-6 space-y-6">
             <div>
                 <flux:heading size="lg">{{ $editingSlotId === null ? __('Add Slot') : __('Edit Slot') }}</flux:heading>
                 <flux:text variant="subtle">
@@ -123,10 +123,13 @@
                 </flux:text>
             </div>
 
-            <div class="grid gap-4 sm:grid-cols-2">
+            <div class="space-y-4">
                 <flux:input wire:model="slotCapacity" type="number" min="1" :label="__('Capacity')" required />
-                <flux:input wire:model="slotStartsAt" type="time" :label="__('Starts At')" required />
-                <flux:input wire:model="slotEndsAt" type="time" :label="__('Ends At')" required />
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <flux:input wire:model="slotStartsAt" type="time" :label="__('Starts At')" required />
+                    <flux:input wire:model="slotEndsAt" type="time" :label="__('Ends At')" required />
+                </div>
             </div>
 
             <flux:switch wire:model="slotIsAvailable" :label="$slotIsAvailable ? __('Available') : __('Unavailable')" />
@@ -136,6 +139,45 @@
                 <flux:button type="submit" variant="primary">
                     {{ $editingSlotId === null ? __('Save Slot') : __('Update Slot') }}
                 </flux:button>
+            </div>
+        </form>
+    </flux:modal>
+
+    <flux:modal wire:model="showActivityModal" variant="flyout" class="w-full max-w-2xl" x-on:hidden="$wire.closeActivityModal()">
+        <form wire:submit.prevent="saveActivity">
+            <div class="p-6">
+                <flux:heading size="lg">{{ __('Edit Activity') }}</flux:heading>
+                <flux:text variant="subtle">{{ __('Update the court details without leaving the slots page.') }}</flux:text>
+
+                <div class="mt-6 space-y-5">
+                    <flux:input wire:model="activityTitle" :label="__('Activity Title')" required />
+
+                    <flux:select wire:model="activityCategory" :label="__('Category')" required>
+                        <option value="padel">{{ __('Padel') }}</option>
+                        <option value="basket">{{ __('Basket') }}</option>
+                        <option value="football">{{ __('Football') }}</option>
+                        <option value="tennis">{{ __('Tennis') }}</option>
+                    </flux:select>
+
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <flux:input wire:model="activityBasePrice" type="text" inputmode="decimal" :label="__('Base Price')" required />
+                        <flux:input wire:model="activityCurrency" :label="__('Currency')" maxlength="3" required />
+                    </div>
+
+                    <flux:textarea wire:model="activityDescription" :label="__('Description')" rows="4" />
+
+                    <flux:field>
+                        <flux:label>{{ __('Features') }}</flux:label>
+                        <flux:textarea wire:model="activityFeaturesInput" rows="3" :placeholder="__('Covered court, lights, locker room')" />
+                    </flux:field>
+
+                    <flux:switch wire:model="activityIsActive" :label="$activityIsActive ? __('Active') : __('Inactive')" />
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 px-6 pb-6">
+                <flux:button type="button" variant="ghost" wire:click="closeActivityModal">{{ __('Cancel') }}</flux:button>
+                <flux:button type="submit" variant="primary">{{ __('Save Activity') }}</flux:button>
             </div>
         </form>
     </flux:modal>

@@ -30,13 +30,14 @@ test('reservation creation creates deposit payment and returns payment_url', fun
 
     $activity = Activity::factory()->create(['base_price' => 100]);
     $slot = ActivitySlot::factory()->create(['activity_id' => $activity->id]);
+    $reservationDate = now()->addDay()->toDateString();
 
     $this->actingAs($member, 'sanctum');
 
     $response = $this->postJson('/api/v1/reservations', [
         'activity_id' => $activity->id,
         'activity_slot_id' => $slot->id,
-        'date' => $slot->date->toDateString(),
+        'date' => $reservationDate,
     ]);
 
     $response->assertStatus(201);

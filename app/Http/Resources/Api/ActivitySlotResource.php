@@ -17,7 +17,6 @@ class ActivitySlotResource extends BaseJsonResource
         return [
             'id' => $this->id,
             'activity_id' => $this->activity_id,
-            'date' => $this->date->toDateString(),
             'starts_at' => $this->starts_at,
             'ends_at' => $this->ends_at,
             'capacity' => (int) $this->capacity,

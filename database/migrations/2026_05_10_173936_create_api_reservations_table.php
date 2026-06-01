@@ -25,6 +25,8 @@ return new class extends Migration
             $table->text('qr_code')->nullable();
             $table->timestamp('cancelled_at')->nullable();
             $table->timestamps();
+
+            $table->unique(['member_id', 'activity_slot_id'], 'api_reservations_member_slot_unique');
         });
     }
 

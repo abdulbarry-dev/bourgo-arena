@@ -17,7 +17,6 @@ class ActivitySlotResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'date' => $this->date->toDateString(),
             'time' => Carbon::createFromFormat('H:i:s', $this->starts_at)->format('H:i'),
             'available' => $this->is_available,
             'start_time' => $this->starts_at,

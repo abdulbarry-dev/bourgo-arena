@@ -25,9 +25,7 @@ class ActivityRepository
         $query = $activity ? $activity->slots() : ActivitySlot::query();
 
         return $query->where('is_available', true)
-            ->where('date', '>=', now()->toDateString())
             ->whereColumn('booked_count', '<', 'capacity')
-            ->orderBy('date')
             ->orderBy('starts_at')
             ->get();
     }

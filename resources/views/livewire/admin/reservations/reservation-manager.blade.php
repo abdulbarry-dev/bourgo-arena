@@ -110,7 +110,7 @@
                             <div class="flex flex-col">
                                 <span class="font-medium text-zinc-900 dark:text-zinc-100">{{ $reservation->activity?->title ?? __('Activity unavailable') }}</span>
                                 <span class="text-xs text-zinc-500">{{ $reservation->slot?->starts_at ? \Illuminate\Support\Carbon::createFromFormat('H:i:s', $reservation->slot->starts_at)->format('H:i') : $reservation->starts_at }}</span>
-                                <span class="text-xs text-zinc-500">{{ $reservation->slot?->date?->format('M d, Y') ?? $reservation->date->format('M d, Y') }}</span>
+                                <span class="text-xs text-zinc-500">{{ $reservation->date->format('M d, Y') }}</span>
                             </div>
                         </td>
                         <td class="px-4 py-4 align-top text-zinc-600 dark:text-zinc-300">
@@ -153,9 +153,9 @@
                             />
                         </td>
                         <td class="px-4 py-4 align-top text-right">
-                            <x-ui.dashboard.row-actions>
+                            <x-ui.dashboard.row-actions wire:key="reservation-actions-{{ $reservation->id }}">
                                 <flux:dropdown position="bottom" align="end">
-                                    <flux:button variant="ghost" icon="ellipsis-horizontal" />
+                                    <flux:button type="button" variant="ghost" icon="ellipsis-horizontal" />
 
                                     <flux:menu>
                                         <flux:menu.item icon="eye" wire:click="openReservationDetail({{ $reservation->id }})">
@@ -235,6 +235,11 @@
                     </div>
 
                     <div class="space-y-3 w-full">
+                        <flux:label>{{ __('Reservation Date') }}</flux:label>
+                        <flux:input type="date" class="w-full text-base h-12" wire:model.live="createDate" required />
+                    </div>
+
+                    <div class="space-y-3 w-full">
                         <flux:label>{{ __('Available Slot') }}</flux:label>
                         <flux:select class="w-full text-base h-12"
                             wire:model.live="createActivitySlotId"
@@ -244,7 +249,7 @@
                             <option value="">{{ __('Select an available slot') }}</option>
                             @foreach ($this->availableSlots as $slot)
                                 <option value="{{ $slot->id }}">
-                                    {{ $slot->date->format('M d, Y') }} — {{ substr($slot->starts_at, 0, 5) }} - {{ substr($slot->ends_at, 0, 5) }}
+                                        {{ substr($slot->starts_at, 0, 5) }} - {{ substr($slot->ends_at, 0, 5) }}
                                     ({{ $slot->booked_count }}/{{ $slot->capacity }})
                                 </option>
                             @endforeach
@@ -253,7 +258,7 @@
                         @if ($this->selectedCreateSlot !== null)
                             <x-ui.dashboard.panel class="bg-zinc-50 text-base text-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-300">
                                 <div class="font-medium text-zinc-900 dark:text-zinc-100 mb-1">{{ __('Selected slot') }}</div>
-                                <div class="mb-1">{{ $this->selectedCreateSlot->date->format('M d, Y') }} · {{ substr($this->selectedCreateSlot->starts_at, 0, 5) }} - {{ substr($this->selectedCreateSlot->ends_at, 0, 5) }}</div>
+                                <div class="mb-1">{{ substr($this->selectedCreateSlot->starts_at, 0, 5) }} - {{ substr($this->selectedCreateSlot->ends_at, 0, 5) }}</div>
                                 <div class="text-sm text-zinc-600">{{ __('Capacity') }}: {{ $this->selectedCreateSlot->booked_count }} / {{ $this->selectedCreateSlot->capacity }}</div>
                             </x-ui.dashboard.panel>
                         @endif
@@ -302,6 +307,11 @@
                     </div>
 
                     <div class="space-y-3 w-full">
+                        <flux:label>{{ __('Reservation Date') }}</flux:label>
+                        <flux:input type="date" class="w-full text-base h-12" wire:model.live="editDate" required />
+                    </div>
+
+                    <div class="space-y-3 w-full">
                         <flux:label>{{ __('Available Slot') }}</flux:label>
                         <flux:select class="w-full text-base h-12"
                             wire:model.live="editActivitySlotId"
@@ -311,7 +321,7 @@
                             <option value="">{{ __('Select an available slot') }}</option>
                             @foreach ($this->editAvailableSlots as $slot)
                                 <option value="{{ $slot->id }}">
-                                    {{ $slot->date->format('M d, Y') }} — {{ substr($slot->starts_at, 0, 5) }} - {{ substr($slot->ends_at, 0, 5) }}
+                                        {{ substr($slot->starts_at, 0, 5) }} - {{ substr($slot->ends_at, 0, 5) }}
                                     ({{ $slot->booked_count }}/{{ $slot->capacity }})
                                 </option>
                             @endforeach
@@ -320,7 +330,7 @@
                         @if ($this->selectedEditSlot !== null)
                             <x-ui.dashboard.panel class="bg-zinc-50 text-base text-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-300">
                                 <div class="font-medium text-zinc-900 dark:text-zinc-100 mb-1">{{ __('Selected slot') }}</div>
-                                <div class="mb-1">{{ $this->selectedEditSlot->date->format('M d, Y') }} · {{ substr($this->selectedEditSlot->starts_at, 0, 5) }} - {{ substr($this->selectedEditSlot->ends_at, 0, 5) }}</div>
+                                <div class="mb-1">{{ substr($this->selectedEditSlot->starts_at, 0, 5) }} - {{ substr($this->selectedEditSlot->ends_at, 0, 5) }}</div>
                                 <div class="text-sm text-zinc-600">{{ __('Capacity') }}: {{ $this->selectedEditSlot->booked_count }} / {{ $this->selectedEditSlot->capacity }}</div>
                             </x-ui.dashboard.panel>
                         @endif

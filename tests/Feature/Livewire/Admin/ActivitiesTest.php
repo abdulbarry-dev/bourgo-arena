@@ -52,6 +52,41 @@ it('renders the dedicated slots management page for an activity', function () {
         ->assertSee('Add Slot');
 });
 
+it('opens the activity edit modal from the slots page', function () {
+    $admin = User::factory()->create(['role' => UserRole::Admin]);
+    $activity = Activity::factory()->create([
+        'title' => 'Court Gamma',
+        'base_price' => 60,
+        'currency' => 'TND',
+        'description' => 'Initial description',
+        'features' => ['lights', 'covered'],
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($admin);
+
+    Livewire::test(ActivitySlotsManager::class, ['activity' => $activity])
+        ->call('openEditActivityModal')
+        ->assertSet('showActivityModal', true)
+        ->assertSee('Edit Activity')
+        ->assertSee('Court Gamma');
+
+    Livewire::test(ActivitySlotsManager::class, ['activity' => $activity])
+        ->call('openEditActivityModal')
+        ->set('activityTitle', 'Court Gamma Updated')
+        ->set('activityBasePrice', '72.50')
+        ->set('activityDescription', 'Updated description')
+        ->call('saveActivity')
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseHas('activities', [
+        'id' => $activity->id,
+        'title' => 'Court Gamma Updated',
+        'base_price' => 72.5,
+        'description' => 'Updated description',
+    ]);
+});
+
 it('can create an activity and manage slots on the slots page', function () {
     $admin = User::factory()->create(['role' => UserRole::Admin]);
 
@@ -72,7 +107,6 @@ it('can create an activity and manage slots on the slots page', function () {
 
     Livewire::test(ActivitySlotsManager::class, ['activity' => $activity])
         ->call('openCreateSlotModal')
-        ->set('slotDate', now()->addDay()->toDateString())
         ->set('slotStartsAt', '10:00')
         ->set('slotEndsAt', '11:00')
         ->set('slotCapacity', 4)
@@ -109,7 +143,6 @@ it('can create an activity and manage slots on the slots page', function () {
 
     Livewire::test(ActivitySlotsManager::class, ['activity' => $activity])
         ->call('openCreateSlotModal')
-        ->set('slotDate', now()->addDays(2)->toDateString())
         ->set('slotStartsAt', '12:00')
         ->set('slotEndsAt', '13:00')
         ->set('slotCapacity', 2)
@@ -147,7 +180,6 @@ it('allows managers to access the activities manager and slots page', function (
 
     Livewire::test(ActivitySlotsManager::class, ['activity' => $activity])
         ->call('openCreateSlotModal')
-        ->set('slotDate', now()->addDay()->toDateString())
         ->set('slotStartsAt', '12:00')
         ->set('slotEndsAt', '13:00')
         ->set('slotCapacity', 6)

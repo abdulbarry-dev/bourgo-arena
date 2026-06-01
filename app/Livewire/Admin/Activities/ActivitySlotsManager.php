@@ -18,6 +18,24 @@ class ActivitySlotsManager extends Component
 
     public Activity $activity;
 
+    public bool $showActivityModal = false;
+
+    public ?int $editingActivityId = null;
+
+    public string $activityTitle = '';
+
+    public string $activityCategory = 'padel';
+
+    public string $activityBasePrice = '';
+
+    public string $activityCurrency = 'TND';
+
+    public ?string $activityDescription = null;
+
+    public string $activityFeaturesInput = '';
+
+    public bool $activityIsActive = true;
+
     public string $slotStartsAt = '10:00';
 
     public string $slotEndsAt = '11:00';
@@ -34,6 +52,29 @@ class ActivitySlotsManager extends Component
     {
         $this->activity = $activity;
         $this->resetSlotForm();
+    }
+
+    public function openEditActivityModal(): void
+    {
+        $this->resetValidation();
+        $this->activity->refresh();
+
+        $this->editingActivityId = $this->activity->id;
+        $this->activityTitle = $this->activity->title;
+        $this->activityCategory = $this->activity->category;
+        $this->activityBasePrice = number_format((float) $this->activity->base_price, 2, '.', '');
+        $this->activityCurrency = $this->activity->currency;
+        $this->activityDescription = $this->activity->description;
+        $this->activityFeaturesInput = implode(', ', $this->activity->features ?? []);
+        $this->activityIsActive = $this->activity->is_active;
+        $this->showActivityModal = true;
+    }
+
+    public function closeActivityModal(): void
+    {
+        $this->showActivityModal = false;
+        $this->editingActivityId = null;
+        $this->resetActivityForm();
     }
 
     public function openCreateSlotModal(): void
@@ -75,6 +116,7 @@ class ActivitySlotsManager extends Component
             if (ActivitySlot::overlaps($this->activity->id, $starts, $ends)) {
                 $this->addError('slotStartsAt', __('Slot time overlaps an existing slot for this activity.'));
                 $this->addError('slotEndsAt', __('Slot time overlaps an existing slot for this activity.'));
+
                 return;
             }
 
@@ -102,6 +144,7 @@ class ActivitySlotsManager extends Component
         if (ActivitySlot::overlaps($this->activity->id, $starts, $ends, $this->editingSlotId)) {
             $this->addError('slotStartsAt', __('Slot time overlaps an existing slot for this activity.'));
             $this->addError('slotEndsAt', __('Slot time overlaps an existing slot for this activity.'));
+
             return;
         }
 
@@ -138,6 +181,25 @@ class ActivitySlotsManager extends Component
         $this->dispatch('toast', message: __('Slot deleted.'), type: 'success');
     }
 
+    public function saveActivity(): void
+    {
+        $validated = $this->validate($this->activityRules());
+
+        $this->activity->update([
+            'title' => $validated['activityTitle'],
+            'category' => $validated['activityCategory'],
+            'base_price' => $validated['activityBasePrice'],
+            'currency' => $validated['activityCurrency'],
+            'description' => $validated['activityDescription'] ?: null,
+            'features' => $this->normalizeFeatures($validated['activityFeaturesInput']),
+            'is_active' => $validated['activityIsActive'],
+        ]);
+
+        $this->activity->refresh();
+        $this->closeActivityModal();
+        $this->dispatch('toast', message: __('Activity updated successfully.'), type: 'success');
+    }
+
     #[Computed]
     public function paginatedSlots(): LengthAwarePaginator
     {
@@ -163,6 +225,24 @@ class ActivitySlotsManager extends Component
         $this->slotIsAvailable = true;
     }
 
+    private function resetActivityForm(): void
+    {
+        $this->reset([
+            'editingActivityId',
+            'activityTitle',
+            'activityCategory',
+            'activityBasePrice',
+            'activityCurrency',
+            'activityDescription',
+            'activityFeaturesInput',
+            'activityIsActive',
+        ]);
+
+        $this->activityCategory = 'padel';
+        $this->activityCurrency = 'TND';
+        $this->activityIsActive = true;
+    }
+
     /**
      * @return array<string, list<string>>
      */
@@ -174,5 +254,30 @@ class ActivitySlotsManager extends Component
             'slotCapacity' => ['required', 'integer', 'min:1'],
             'slotIsAvailable' => ['boolean'],
         ];
+    }
+
+    /**
+     * @return array<string, list<string>>
+     */
+    private function activityRules(): array
+    {
+        return [
+            'activityTitle' => ['required', 'string', 'max:255'],
+            'activityCategory' => ['required', 'string', 'max:100'],
+            'activityBasePrice' => ['required', 'numeric', 'min:0'],
+            'activityCurrency' => ['required', 'string', 'size:3'],
+            'activityDescription' => ['nullable', 'string'],
+            'activityFeaturesInput' => ['nullable', 'string'],
+            'activityIsActive' => ['boolean'],
+        ];
+    }
+
+    private function normalizeFeatures(?string $featuresInput): array
+    {
+        return collect(explode(',', (string) $featuresInput))
+            ->map(fn (string $feature): string => trim($feature))
+            ->filter()
+            ->values()
+            ->all();
     }
 }

@@ -308,18 +308,6 @@ class ReservationService
                 ]);
             }
 
-            // Enforce single-member reservations per slot
-            $alreadyReservedByOther = ApiReservation::query()
-                ->where('activity_slot_id', $slot->id)
-                ->where('status', '!=', 'cancelled')
-                ->exists();
-
-            if ($alreadyReservedByOther) {
-                throw ValidationException::withMessages([
-                    'activity_slot_id' => ['This slot has already been reserved.'],
-                ]);
-            }
-
             $price = $this->calculateReservationPrice($member, $activity);
 
             $reservation = $this->reservationRepository->createReservation([

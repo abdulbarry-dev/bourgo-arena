@@ -55,6 +55,8 @@ class ReservationManager extends Component
 
     public ?int $createActivitySlotId = null;
 
+    public string $createDate = '';
+
     public ?int $editReservationId = null;
 
     public ?int $editMemberId = null;
@@ -62,6 +64,8 @@ class ReservationManager extends Component
     public ?int $editActivityId = null;
 
     public ?int $editActivitySlotId = null;
+
+    public string $editDate = '';
 
     public function updatedSearch(): void
     {
@@ -94,6 +98,7 @@ class ReservationManager extends Component
         $this->ensureStaff();
         $this->resetValidation();
         $this->resetCreateForm();
+        $this->createDate = today()->toDateString();
         $this->showCreateModal = true;
     }
 
@@ -111,6 +116,7 @@ class ReservationManager extends Component
         $this->editMemberId = $reservation->member_id;
         $this->editActivityId = $reservation->activity_id;
         $this->editActivitySlotId = $reservation->activity_slot_id;
+        $this->editDate = $reservation->date?->toDateString() ?? today()->toDateString();
         $this->showEditModal = true;
     }
 
@@ -298,7 +304,7 @@ class ReservationManager extends Component
             new StoreReservationDTO(
                 activityId: $slot->activity_id,
                 activitySlotId: $slot->id,
-                date: $slot->date->toDateString(),
+                date: $validated['createDate'],
             )
         );
 
@@ -337,7 +343,7 @@ class ReservationManager extends Component
                 'member_id' => (int) $validated['editMemberId'],
                 'activity_id' => (int) $validated['editActivityId'],
                 'activity_slot_id' => (int) $validated['editActivitySlotId'],
-                'date' => $newSlot->date,
+                'date' => $validated['editDate'],
                 'starts_at' => $newSlot->starts_at,
                 'ends_at' => $newSlot->ends_at,
             ]);
@@ -547,8 +553,6 @@ class ReservationManager extends Component
         return ActivitySlot::query()
             ->where('activity_id', $this->createActivityId)
             ->where('is_available', true)
-            ->whereDate('date', '>=', today())
-            ->orderBy('date')
             ->orderBy('starts_at')
             ->get()
             ->filter(fn (ActivitySlot $slot): bool => ! $slot->isFullyBooked())
@@ -565,8 +569,6 @@ class ReservationManager extends Component
         return ActivitySlot::query()
             ->where('activity_id', $this->editActivityId)
             ->where('is_available', true)
-            ->whereDate('date', '>=', today())
-            ->orderBy('date')
             ->orderBy('starts_at')
             ->get()
             ->filter(fn (ActivitySlot $slot): bool => ! $slot->isFullyBooked() || $slot->id === $this->editActivitySlotId)
@@ -628,12 +630,12 @@ class ReservationManager extends Component
         return [
             'createMemberId' => ['required', 'exists:members,id'],
             'createActivityId' => ['required', 'exists:activities,id'],
+            'createDate' => ['required', 'date', 'after_or_equal:today'],
             'createActivitySlotId' => [
                 'required',
                 Rule::exists('activity_slots', 'id')->where(fn ($query) => $query
                     ->where('activity_id', $this->createActivityId)
-                    ->where('is_available', true)
-                    ->whereDate('date', '>=', today())),
+                    ->where('is_available', true)),
             ],
         ];
     }
@@ -643,12 +645,12 @@ class ReservationManager extends Component
         return [
             'editMemberId' => ['required', 'exists:members,id'],
             'editActivityId' => ['required', 'exists:activities,id'],
+            'editDate' => ['required', 'date', 'after_or_equal:today'],
             'editActivitySlotId' => [
                 'required',
                 Rule::exists('activity_slots', 'id')->where(fn ($query) => $query
                     ->where('activity_id', $this->editActivityId)
-                    ->where('is_available', true)
-                    ->whereDate('date', '>=', today())),
+                    ->where('is_available', true)),
             ],
         ];
     }
@@ -661,7 +663,10 @@ class ReservationManager extends Component
             'createMemberId',
             'createActivityId',
             'createActivitySlotId',
+            'createDate',
         ]);
+
+        $this->createDate = today()->toDateString();
     }
 
     private function resetEditForm(): void
@@ -671,6 +676,7 @@ class ReservationManager extends Component
             'editMemberId',
             'editActivityId',
             'editActivitySlotId',
+            'editDate',
         ]);
     }
 
@@ -699,7 +705,9 @@ class ReservationManager extends Component
                             $activityQuery->where('title', 'like', $term);
                         })
                         ->orWhereHas('slot', function (Builder $slotQuery) use ($term): void {
-                            $slotQuery->where('date', 'like', $term);
+                            $slotQuery
+                                ->where('starts_at', 'like', $term)
+                                ->orWhere('ends_at', 'like', $term);
                         });
                 });
             })
