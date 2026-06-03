@@ -11,6 +11,7 @@ use App\Livewire\Admin\Managers\Index;
 use App\Livewire\Admin\Payments\AuditLogs;
 use App\Livewire\Admin\Payments\ReconciliationManager;
 use App\Livewire\Admin\Reservations\ReservationManager;
+use App\Livewire\Admin\Services\ServiceManager;
 use App\Models\Subscription;
 use Illuminate\Support\Facades\Route;
 
@@ -87,4 +88,6 @@ Route::prefix('admin')->middleware('role:admin')->group(function () {
     Route::get('/events', EventManager::class)
         ->name('admin.events.index');
 
+    Route::get('/services', ServiceManager::class)
+        ->name('admin.services.index');
 });
