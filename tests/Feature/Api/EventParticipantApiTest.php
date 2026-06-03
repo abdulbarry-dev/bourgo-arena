@@ -11,7 +11,8 @@ uses(RefreshDatabase::class);
 it('allows an authenticated user to register for an event', function () {
     $user = User::factory()->create();
     $event = Event::factory()->create([
-        'status' => 'open',
+        'registration_deadline' => now()->subDay(),
+        'start_date' => now()->addDay(),
         'max_participants' => 16,
     ]);
 
@@ -32,7 +33,8 @@ it('allows an authenticated user to register for an event', function () {
 it('waitlists user if event is full', function () {
     $user = User::factory()->create();
     $event = Event::factory()->create([
-        'status' => 'open',
+        'registration_deadline' => now()->subDay(),
+        'start_date' => now()->addDay(),
         'max_participants' => 2,
     ]);
 
@@ -53,7 +55,10 @@ it('allows an authenticated user to withdraw and auto-promotes waitlist', functi
     $user = User::factory()->create();
     $waitlistedUser = User::factory()->create();
 
-    $event = Event::factory()->create(['status' => 'open']);
+    $event = Event::factory()->create([
+        'registration_deadline' => now()->subDay(),
+        'start_date' => now()->addDay(),
+    ]);
 
     $participant = EventParticipant::factory()->create([
         'event_id' => $event->id,

@@ -150,8 +150,8 @@ it('shows reservation member and payment history details', function () {
         ->call('openReservationDetail', $reservation->id)
         ->assertSet('selectedReservationId', $reservation->id)
         ->assertSee('PAY-RES-001')
-        ->assertSee('Open Profile')
-        ->assertSee('Loyalty');
+        ->assertSee('Full Profile')
+        ->assertSee('Loyalty Points');
 });
 
 it('can verify and refund payments from the detail flyout', function () {
@@ -190,7 +190,7 @@ it('can verify and refund payments from the detail flyout', function () {
 
     // UI should show admin name in the reservation detail flyout after verification
     Livewire::test(ReservationManager::class)
-        ->call('openReservationDetail', $reservation->id)
+        ->call('openHistoryModal', $payment->id)
         ->assertSee($admin->name);
 
     // Now test refund flow

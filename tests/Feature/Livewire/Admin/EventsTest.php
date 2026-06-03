@@ -62,17 +62,20 @@ it('can create a new event', function () {
 
     $this->actingAs($admin);
 
+    $service = \App\Models\Service::factory()->create();
+
     Livewire::test(EventManager::class)
         ->set('name', 'Padel Championship')
-        ->set('sport_type', 'padel')
+        ->set('serviceId', $service->id)
         ->set('format', '1v1')
         ->set('max_participants', 16)
-        ->set('status', 'open')
+        ->set('registration_deadline', now()->subDay()->format('Y-m-d\TH:i'))
+        ->set('start_date', now()->addDay()->format('Y-m-d\TH:i'))
         ->call('save')
         ->assertHasNoErrors();
 
     $this->assertDatabaseHas('events', [
         'name' => 'Padel Championship',
-        'status' => 'open',
+        'service_id' => $service->id,
     ]);
 });

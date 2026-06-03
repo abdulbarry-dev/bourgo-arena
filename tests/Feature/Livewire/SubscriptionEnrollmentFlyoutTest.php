@@ -68,7 +68,7 @@ test('gateway payment method requires payment reference', function () {
         ->set('memberId', $member->id)
         ->set('planId', $plan->id)
         ->set('startsAt', '2026-04-01')
-        ->set('paymentMethod', 'konnect')
+        ->set('paymentMethod', 'tpe')
         ->set('paymentReference', null)
         ->call('enroll')
         ->assertHasErrors(['paymentReference']);
@@ -114,6 +114,7 @@ test('cannot enroll member who already has active subscription', function () {
         'member_id' => $member->id,
         'status' => 'active',
         'ends_at' => now()->addDays(20)->toDateString(),
+        'plan_id' => $plan->id,
     ]);
 
     Livewire::test(SubscriptionEnrollmentFlyout::class)
@@ -122,5 +123,5 @@ test('cannot enroll member who already has active subscription', function () {
         ->set('startsAt', '2026-04-01')
         ->set('paymentMethod', 'cash')
         ->call('enroll')
-        ->assertHasErrors(['memberId']);
+        ->assertHasErrors(['planId']);
 });

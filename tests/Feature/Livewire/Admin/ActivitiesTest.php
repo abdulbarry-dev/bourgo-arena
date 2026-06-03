@@ -4,6 +4,7 @@ use App\Livewire\Admin\Activities\ActivityManager;
 use App\Livewire\Admin\Activities\ActivitySlotsManager;
 use App\Models\Activity;
 use App\Models\ActivitySlot;
+use App\Models\Service;
 use App\Models\User;
 use App\UserRole;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -89,14 +90,15 @@ it('opens the activity edit modal from the slots page', function () {
 
 it('can create an activity and manage slots on the slots page', function () {
     $admin = User::factory()->create(['role' => UserRole::Admin]);
+    $service = Service::factory()->create();
 
     $this->actingAs($admin);
 
     Livewire::test(ActivityManager::class)
+        ->set('serviceId', $service->id)
         ->set('title', 'Stade Padel 1')
         ->set('category', 'padel')
         ->set('basePrice', '75.000')
-        ->set('currency', 'TND')
         ->set('featuresInput', 'covered court, lights')
         ->set('description', 'Main padel court')
         ->set('isActive', true)

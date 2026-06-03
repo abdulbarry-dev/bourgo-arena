@@ -58,6 +58,22 @@ class SubscriptionTable extends Component
         $this->resetPage();
     }
 
+    public function sort(string $column): void
+    {
+        if (! in_array($column, ['member', 'plan', 'status', 'starts_at', 'ends_at'], true)) {
+            return;
+        }
+
+        if ($this->sortBy === $column) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $column;
+            $this->sortDirection = 'asc';
+        }
+
+        $this->resetPage();
+    }
+
     #[Computed]
     #[On('subscription-created')]
     public function subscriptions(): LengthAwarePaginator

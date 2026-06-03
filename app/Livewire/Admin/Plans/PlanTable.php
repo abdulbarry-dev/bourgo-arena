@@ -206,12 +206,7 @@ class PlanTable extends Component
         }
 
         try {
-            $rules = $this->rules();
-            if (! $this->hasAllCourses) {
-                $rules['selectedCourses'] = ['nullable', 'array'];
-                $rules['selectedCourses.*'] = ['exists:courses,id'];
-            }
-            $validated = $this->validate($rules);
+            $validated = $this->validate($this->rules());
 
             $payload = [
                 'service_id' => $validated['serviceId'],
@@ -447,7 +442,9 @@ class PlanTable extends Component
             'selectedCourses' => [
                 Rule::requiredIf(fn () => ! $this->hasAllCourses && ! $this->isFacilityOnly),
                 'array',
-                'min:1',
+            ],
+            'selectedCourses.*' => [
+                'exists:courses,id',
             ],
         ];
     }

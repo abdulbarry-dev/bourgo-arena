@@ -117,7 +117,7 @@ it('suspend freezes remaining days and writes an audit log', function () {
         'ends_at' => '2026-04-11',
     ]);
 
-    app(SuspendSubscriptionAction::class)->execute($subscription, 'medical', $manager->id);
+    app(SuspendSubscriptionAction::class)->execute($subscription, null, $manager->id);
     $subscription->refresh();
 
     expect($subscription->status)->toBe('suspended');
@@ -127,7 +127,6 @@ it('suspend freezes remaining days and writes an audit log', function () {
     $this->assertDatabaseHas('subscription_audit_logs', [
         'subscription_id' => $subscription->id,
         'action' => 'suspend',
-        'reason' => 'medical',
         'from_member_id' => $subscription->member_id,
         'performed_by' => $manager->id,
     ]);

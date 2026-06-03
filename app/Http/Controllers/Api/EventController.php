@@ -13,6 +13,7 @@ class EventController extends Controller
     public function index(Request $request)
     {
         $events = Event::query()
+            ->published()
             ->withCount('participants')
             ->latest()
             ->paginate(15);
@@ -22,6 +23,8 @@ class EventController extends Controller
 
     public function show(Event $event)
     {
+        abort_if($event->status === 'draft', 404);
+
         $event->loadCount('participants');
 
         return new EventResource($event);

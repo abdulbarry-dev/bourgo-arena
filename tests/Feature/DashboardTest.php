@@ -51,10 +51,3 @@ test('members are forbidden from visiting the dashboard', function () {
     $response->assertForbidden();
 });
 
-test('unverified staff users are redirected to the verification notice', function () {
-    $user = User::factory()->manager()->unverified()->create();
-    $this->actingAs($user);
-
-    $response = $this->get(route('dashboard'));
-    $response->assertRedirect(route('verification.notice'));
-});

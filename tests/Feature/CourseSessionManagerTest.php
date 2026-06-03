@@ -17,7 +17,6 @@ it('renders a modern weekly schedule dashboard for course sessions', function ()
     $admin = User::factory()->create(['role' => UserRole::Admin]);
     $course = Course::factory()->create([
         'name' => 'Strength Flow',
-        'instructor' => 'Coach Mira',
     ]);
 
     $sessionDate = now()->toDateString();
@@ -45,7 +44,6 @@ it('renders a modern weekly schedule dashboard for course sessions', function ()
         ->assertSee('Tap a class for details')
         ->assertSee('Add Session')
         ->assertSee('Strength Flow')
-        ->assertSee('Coach Mira')
         ->assertSee('Today');
 
     Carbon::setTestNow();

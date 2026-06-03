@@ -69,7 +69,6 @@ it('opens the reconciliation export modal with entangled state', function () {
     $activity = Activity::factory()->create();
     $slot = ActivitySlot::factory()->create([
         'activity_id' => $activity->id,
-        'date' => now()->toDateString(),
     ]);
     $payment = Payment::factory()->create(['member_id' => $member->id]);
 

@@ -34,4 +34,40 @@ class EventFactory extends Factory
             'requires_check_in' => true,
         ]);
     }
+
+    public function draft(): static
+    {
+        return $this->state(fn (): array => [
+            'registration_deadline' => now()->addDays(5),
+            'start_date' => now()->addDays(7),
+            'end_date' => now()->addDays(10),
+        ]);
+    }
+
+    public function open(): static
+    {
+        return $this->state(fn (): array => [
+            'registration_deadline' => now()->subDays(1),
+            'start_date' => now()->addDays(1),
+            'end_date' => now()->addDays(3),
+        ]);
+    }
+
+    public function inProgress(): static
+    {
+        return $this->state(fn (): array => [
+            'registration_deadline' => now()->subDays(5),
+            'start_date' => now()->subDays(1),
+            'end_date' => now()->addDays(1),
+        ]);
+    }
+
+    public function completed(): static
+    {
+        return $this->state(fn (): array => [
+            'registration_deadline' => now()->subDays(10),
+            'start_date' => now()->subDays(5),
+            'end_date' => now()->subDays(1),
+        ]);
+    }
 }

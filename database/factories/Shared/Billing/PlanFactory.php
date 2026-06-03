@@ -20,7 +20,6 @@ class PlanFactory extends Factory
             'name' => fake()->randomElement(['Basic', 'Standard', 'Premium']),
             'price' => fake()->randomFloat(3, 30, 250),
             'duration_days' => fake()->randomElement([30, 60, 90, 365]),
-            'included_services' => ['gym', 'classes'],
             'has_all_courses' => false,
             'is_archived' => false,
         ];

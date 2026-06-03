@@ -51,6 +51,21 @@ class Event extends Model
         return 'draft';
     }
 
+    public function scopePublished($query)
+    {
+        return $query->whereNotNull('registration_deadline')
+            ->where('registration_deadline', '<=', now());
+    }
+
+    public function scopeOpen($query)
+    {
+        return $query->published()
+            ->where(function ($q) {
+                $q->whereNull('start_date')
+                    ->orWhere('start_date', '>', now());
+            });
+    }
+
     public function service(): BelongsTo
     {
         return $this->belongsTo(Service::class);

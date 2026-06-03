@@ -20,7 +20,7 @@ it('can archive a service', function () {
 
     Livewire::test(ServiceManager::class)
         ->call('archive', $service->id)
-        ->assertDispatched('toast', message: __('Service archived successfully.'));
+        ->assertDispatched('toast', message: __('Service and associated content archived successfully.'));
 
     expect($service->fresh()->status)->toBe('archived')
         ->and($service->fresh()->archived_at)->not->toBeNull();
@@ -52,7 +52,7 @@ it('can restore an archived service', function () {
 
     Livewire::test(ServiceManager::class)
         ->call('restore', $service->id)
-        ->assertDispatched('toast', message: __('Service restored to active status.'));
+        ->assertDispatched('toast', message: __('Service restored to active status, associated content updated.'));
 
     expect($service->fresh()->status)->toBe('active')
         ->and($service->fresh()->archived_at)->toBeNull();

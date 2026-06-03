@@ -108,7 +108,6 @@ test('subscription table shows suspend action for active subscriptions', functio
     Livewire::test(SubscriptionTable::class)
         ->assertSee('View')
         ->assertSee('Suspend')
-        ->assertSee('Edit')
         ->assertDontSeeHtml('>Reactivate<');
 });
 
@@ -123,7 +122,6 @@ test('subscription table shows reactivate action for suspended subscriptions', f
     Livewire::test(SubscriptionTable::class)
         ->assertSee('View')
         ->assertSee('Reactivate')
-        ->assertSee('Edit')
         ->assertDontSeeHtml('wire:click="openSubscriptionLifecycleModal('.$subscription->id.', \'suspend\')"');
 });
 

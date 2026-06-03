@@ -57,28 +57,31 @@ test('slots filtered to available only', function () {
     // Available slot
     ActivitySlot::factory()->create([
         'activity_id' => $activity->id,
+        'starts_at' => '10:00:00',
+        'ends_at' => '11:00:00',
         'capacity' => 10,
         'booked_count' => 0,
         'is_available' => true,
-        'date' => now()->addDay()->toDateString(),
     ]);
 
     // Full slot
     ActivitySlot::factory()->create([
         'activity_id' => $activity->id,
+        'starts_at' => '11:00:00',
+        'ends_at' => '12:00:00',
         'capacity' => 5,
         'booked_count' => 5,
         'is_available' => true,
-        'date' => now()->addDay()->toDateString(),
     ]);
 
     // Unavailable manually
     ActivitySlot::factory()->create([
         'activity_id' => $activity->id,
+        'starts_at' => '12:00:00',
+        'ends_at' => '13:00:00',
         'capacity' => 10,
         'booked_count' => 0,
         'is_available' => false,
-        'date' => now()->addDay()->toDateString(),
     ]);
 
     $response = $this->getJson(route('api.v1.activities.slots', $activity));

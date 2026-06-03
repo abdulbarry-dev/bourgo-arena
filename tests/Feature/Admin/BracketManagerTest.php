@@ -10,7 +10,6 @@ beforeEach(function () {
 it('returns not found for the removed bracket page', function () {
     $event = Event::factory()->create([
         'name' => 'Autumn Tennis Ladder',
-        'sport_type' => 'tennis',
         'format' => '1v1',
     ]);
 

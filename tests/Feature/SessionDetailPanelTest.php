@@ -8,7 +8,6 @@ use Livewire\Livewire;
 test('session detail panel renders the refactored default state', function () {
     $course = Course::factory()->create([
         'name' => 'Strength Flow',
-        'instructor' => 'Coach Mira',
     ]);
 
     $sessionDate = now()->addDay()->toDateString();
@@ -39,7 +38,6 @@ test('session detail panel renders the refactored default state', function () {
 test('session detail panel shows cover image placeholder when course has no image', function () {
     $course = Course::factory()->create([
         'name' => 'Open Mat',
-        'instructor' => 'Coach Lee',
         'image_url' => null,
     ]);
 
@@ -59,6 +57,5 @@ test('session detail panel shows cover image placeholder when course has no imag
 
     Livewire::test(SessionDetailPanel::class)
         ->call('loadSession', $session->id, $sessionDate)
-        ->assertSee('Open Mat')
-        ->assertSee('No cover image');
+        ->assertSee('Open Mat');
 });

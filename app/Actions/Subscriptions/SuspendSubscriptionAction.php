@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 final class SuspendSubscriptionAction
 {
-    public function execute(Subscription $subscription, ?int $performedBy = null): void
+    public function execute(Subscription $subscription, ?string $reason = null, ?int $performedBy = null): void
     {
         $remainingDays = $subscription->daysRemaining();
 
@@ -22,7 +22,7 @@ final class SuspendSubscriptionAction
 
         $subscription->auditLogs()->create([
             'action' => 'suspend',
-            'reason' => null,
+            'reason' => $reason,
             'from_member_id' => $subscription->member_id,
             'to_member_id' => null,
             'performed_by' => $performedBy ?? Auth::id(),
