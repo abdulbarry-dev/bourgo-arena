@@ -28,8 +28,6 @@ class ActivitySlotsManager extends Component
 
     public string $activityBasePrice = '';
 
-    public string $activityCurrency = 'TND';
-
     public ?string $activityDescription = null;
 
     public string $activityFeaturesInput = '';
@@ -63,7 +61,6 @@ class ActivitySlotsManager extends Component
         $this->activityTitle = $this->activity->title;
         $this->activityCategory = $this->activity->category;
         $this->activityBasePrice = number_format((float) $this->activity->base_price, 2, '.', '');
-        $this->activityCurrency = $this->activity->currency;
         $this->activityDescription = $this->activity->description;
         $this->activityFeaturesInput = implode(', ', $this->activity->features ?? []);
         $this->activityIsActive = $this->activity->is_active;
@@ -189,7 +186,7 @@ class ActivitySlotsManager extends Component
             'title' => $validated['activityTitle'],
             'category' => $validated['activityCategory'],
             'base_price' => $validated['activityBasePrice'],
-            'currency' => $validated['activityCurrency'],
+            'currency' => 'TND',
             'description' => $validated['activityDescription'] ?: null,
             'features' => $this->normalizeFeatures($validated['activityFeaturesInput']),
             'is_active' => $validated['activityIsActive'],
@@ -232,14 +229,12 @@ class ActivitySlotsManager extends Component
             'activityTitle',
             'activityCategory',
             'activityBasePrice',
-            'activityCurrency',
             'activityDescription',
             'activityFeaturesInput',
             'activityIsActive',
         ]);
 
         $this->activityCategory = 'padel';
-        $this->activityCurrency = 'TND';
         $this->activityIsActive = true;
     }
 
@@ -265,7 +260,6 @@ class ActivitySlotsManager extends Component
             'activityTitle' => ['required', 'string', 'max:255'],
             'activityCategory' => ['required', 'string', 'max:100'],
             'activityBasePrice' => ['required', 'numeric', 'min:0'],
-            'activityCurrency' => ['required', 'string', 'size:3'],
             'activityDescription' => ['nullable', 'string'],
             'activityFeaturesInput' => ['nullable', 'string'],
             'activityIsActive' => ['boolean'],

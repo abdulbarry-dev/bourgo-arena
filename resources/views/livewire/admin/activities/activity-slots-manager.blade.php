@@ -47,13 +47,12 @@
         <x-slot name="empty">
             <x-ui.dashboard.empty-state
                 table
+                icon="calendar-days"
                 :title="__('No slots created')"
                 :subtitle="__('Add the first availability window for this court.')"
-            >
-                <flux:button variant="primary" icon="plus" wire:click="openCreateSlotModal">
-                    {{ __('Add Slot') }}
-                </flux:button>
-            </x-ui.dashboard.empty-state>
+                :button-label="__('Add Slot')"
+                button-wire-click="openCreateSlotModal"
+            />
         </x-slot>
 
         <table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-700">
@@ -124,11 +123,23 @@
             </div>
 
             <div class="space-y-4">
-                <flux:input wire:model="slotCapacity" type="number" min="1" :label="__('Capacity')" required />
+                <flux:field>
+                    <flux:label>{{ __('Capacity') }}</flux:label>
+                    <flux:input wire:model="slotCapacity" type="number" min="1" required />
+                    <flux:error name="slotCapacity" />
+                </flux:field>
 
                 <div class="grid gap-4 sm:grid-cols-2">
-                    <flux:input wire:model="slotStartsAt" type="time" :label="__('Starts At')" required />
-                    <flux:input wire:model="slotEndsAt" type="time" :label="__('Ends At')" required />
+                    <flux:field>
+                        <flux:label>{{ __('Starts At') }}</flux:label>
+                        <flux:input wire:model="slotStartsAt" type="time" required />
+                        <flux:error name="slotStartsAt" />
+                    </flux:field>
+                    <flux:field>
+                        <flux:label>{{ __('Ends At') }}</flux:label>
+                        <flux:input wire:model="slotEndsAt" type="time" required />
+                        <flux:error name="slotEndsAt" />
+                    </flux:field>
                 </div>
             </div>
 
@@ -150,21 +161,34 @@
                 <flux:text variant="subtle">{{ __('Update the court details without leaving the slots page.') }}</flux:text>
 
                 <div class="mt-6 space-y-5">
-                    <flux:input wire:model="activityTitle" :label="__('Activity Title')" required />
+                    <flux:field>
+                        <flux:label>{{ __('Activity Title') }}</flux:label>
+                        <flux:input wire:model="activityTitle" required />
+                        <flux:error name="activityTitle" />
+                    </flux:field>
 
-                    <flux:select wire:model="activityCategory" :label="__('Category')" required>
-                        <option value="padel">{{ __('Padel') }}</option>
-                        <option value="basket">{{ __('Basket') }}</option>
-                        <option value="football">{{ __('Football') }}</option>
-                        <option value="tennis">{{ __('Tennis') }}</option>
-                    </flux:select>
+                    <flux:field>
+                        <flux:label>{{ __('Category') }}</flux:label>
+                        <flux:select wire:model="activityCategory" required>
+                            <option value="padel">{{ __('Padel') }}</option>
+                            <option value="basket">{{ __('Basket') }}</option>
+                            <option value="football">{{ __('Football') }}</option>
+                            <option value="tennis">{{ __('Tennis') }}</option>
+                        </flux:select>
+                        <flux:error name="activityCategory" />
+                    </flux:field>
 
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <flux:input wire:model="activityBasePrice" type="text" inputmode="decimal" :label="__('Base Price')" required />
-                        <flux:input wire:model="activityCurrency" :label="__('Currency')" maxlength="3" required />
-                    </div>
+                    <flux:field>
+                        <flux:label>{{ __('Base Price') }}</flux:label>
+                        <flux:input wire:model="activityBasePrice" type="text" inputmode="decimal" placeholder="{{ __('50.000') }}" required suffix="TND" />
+                        <flux:error name="activityBasePrice" />
+                    </flux:field>
 
-                    <flux:textarea wire:model="activityDescription" :label="__('Description')" rows="4" />
+                    <flux:field>
+                        <flux:label>{{ __('Description') }}</flux:label>
+                        <flux:textarea wire:model="activityDescription" rows="3" />
+                        <flux:error name="activityDescription" />
+                    </flux:field>
 
                     <flux:field>
                         <flux:label>{{ __('Features') }}</flux:label>

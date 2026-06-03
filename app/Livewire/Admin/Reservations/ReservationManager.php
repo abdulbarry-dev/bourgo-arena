@@ -684,7 +684,7 @@ class ReservationManager extends Component
     {
         return ApiReservation::query()
             ->with([
-                'member.activeSubscription.plan',
+                'member.validSubscriptions.plan',
                 'activity',
                 'slot',
                 'payments' => fn ($query) => $query->orderByDesc('id'),
