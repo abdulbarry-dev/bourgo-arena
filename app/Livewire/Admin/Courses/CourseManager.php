@@ -4,29 +4,29 @@ namespace App\Livewire\Admin\Courses;
 
 use App\Livewire\Concerns\HasFilters;
 use App\Models\Course;
-use App\Models\CourseSession;
-use Carbon\Carbon;
+use App\Models\Service;
 use Flux\Flux;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Livewire\WithPagination;
 
 #[Layout('layouts.app')]
 class CourseManager extends Component
 {
     use HasFilters;
     use WithFileUploads;
+    use WithPagination;
 
-    public $courses;
+    #[Validate('required|integer|exists:services,id')]
+    public $serviceId = null;
 
     #[Validate('required|string|max:255')]
     public $name = '';
-
-    #[Validate('required|string|max:255')]
-    public $instructor = '';
 
     #[Validate('nullable|string|max:1000')]
     public $description = '';
@@ -38,13 +38,13 @@ class CourseManager extends Component
 
     public $editingCourseId = null;
 
-    public $viewingCourseId = null;
+    public ?Course $viewingCourse = null;
 
     public $search = '';
 
-    public $categoryFilter = '';
+    public $statusFilter = '';
 
-    public $instructorFilter = '';
+    public $categoryFilter = '';
 
     public $hasSessionsFilter = 'all';
 
@@ -52,69 +52,100 @@ class CourseManager extends Component
 
     public $isModalOpen = false;
 
-    public function mount()
-    {
-        $this->loadCourses();
-    }
+    public $showViewFlyout = false;
+
+    public $status = 'active';
 
     public function updatedSearch()
     {
-        $this->loadCourses();
+        $this->resetPage();
+    }
+
+    public function updatedStatusFilter()
+    {
+        $this->resetPage();
     }
 
     public function updatedCategoryFilter()
     {
-        $this->loadCourses();
-    }
-
-    public function updatedInstructorFilter()
-    {
-        $this->loadCourses();
+        $this->resetPage();
     }
 
     public function updatedHasSessionsFilter()
     {
-        $this->loadCourses();
+        $this->resetPage();
     }
 
-    public function loadCourses()
+    public function openViewFlyout($id)
+    {
+        $this->viewingCourse = Course::with(['service', 'sessions'])->findOrFail($id);
+        $this->showViewFlyout = true;
+    }
+
+    public function archive($id)
+    {
+        $course = Course::findOrFail($id);
+        $course->update([
+            'status' => 'archived',
+            'archived_at' => now(),
+        ]);
+
+        $this->dispatch('toast', message: __('Course archived successfully.'), type: 'success');
+    }
+
+    public function restore($id)
+    {
+        $course = Course::findOrFail($id);
+        $course->update([
+            'status' => 'active',
+            'archived_at' => null,
+        ]);
+
+        $this->dispatch('toast', message: __('Course restored to active status.'), type: 'success');
+    }
+
+    #[Computed]
+    public function courses()
     {
         $query = Course::query();
 
-        $query = $this->applySearchFilter($query, $this->search, ['name', 'instructor']);
+        $query = $this->applySearchFilter($query, $this->search, ['name']);
 
         if ($this->categoryFilter) {
             $query->where('category', $this->categoryFilter);
         }
 
-        if ($this->instructorFilter) {
-            $query->where('instructor', $this->instructorFilter);
+        if ($this->statusFilter) {
+            $query->where('status', $this->statusFilter);
         }
 
         $query = $this->applyRelationPresenceFilter($query, 'sessions', $this->hasSessionsFilter);
 
-        $this->courses = $query->orderBy('name')->get();
+        return $query->withCount('sessions')->orderBy('name')->paginate(10);
     }
 
-    public function openViewModal($id)
-    {
-        $this->viewingCourseId = $id;
-        Flux::modal('view-course-modal')->show();
-    }
-
-    public function getCategoriesProperty()
+    #[Computed]
+    public function categories()
     {
         return Course::query()->select('category')->distinct()->orderBy('category')->pluck('category')->filter()->values();
     }
 
-    public function getInstructorsProperty()
+    public function updatedServiceId($value)
     {
-        return Course::query()->select('instructor')->distinct()->orderBy('instructor')->pluck('instructor')->filter()->values();
+        $this->serviceId = (int) $value;
     }
 
     public function openCreateModal()
     {
         $this->resetForm();
+        $this->status = 'active';
+
+        // Pre-select the first available active service if any exist
+        $firstAvailableService = $this->availableServices->first();
+        if ($firstAvailableService) {
+            $this->serviceId = $firstAvailableService->id;
+        }
+
         $this->isModalOpen = true;
         Flux::modal('course-form-modal')->show();
     }
@@ -124,17 +155,16 @@ class CourseManager extends Component
         $this->resetForm();
         $course = Course::findOrFail($id);
         $this->editingCourseId = $course->id;
+        $this->serviceId = $course->service_id;
         $this->name = $course->name;
-        $this->instructor = $course->instructor;
         $this->description = $course->description;
+        $this->status = $course->status;
 
         $this->existingImageUrl = $course->image_url;
         $this->image = null;
 
         $this->isModalOpen = true;
-
-        // Close view modal if it was open
-        Flux::modal('view-course-modal')->close();
+        $this->showViewFlyout = false;
         Flux::modal('course-form-modal')->show();
     }
 
@@ -143,16 +173,12 @@ class CourseManager extends Component
         $this->validate();
 
         try {
-            Log::info('Saving course', [
-                'course_id' => $this->editingCourseId,
-                'name' => $this->name,
-                'instructor' => $this->instructor,
-            ]);
-
             $payload = [
+                'service_id' => $this->serviceId,
                 'name' => $this->name,
-                'instructor' => $this->instructor,
                 'description' => $this->description,
+                'status' => $this->status,
+                'archived_at' => $this->status === 'archived' ? now() : null,
             ];
 
             if ($this->image) {
@@ -163,28 +189,23 @@ class CourseManager extends Component
             if ($this->editingCourseId) {
                 $course = Course::findOrFail($this->editingCourseId);
                 $course->update($payload);
-                $this->dispatch('toast', message: 'Course updated successfully!', type: 'success');
+                $this->dispatch('toast', message: __('Course updated successfully!'), type: 'success');
             } else {
                 Course::create($payload);
-                $this->dispatch('toast', message: 'Course created successfully!', type: 'success');
+                $this->dispatch('toast', message: __('Course created successfully!'), type: 'success');
             }
 
             $this->closeModal();
-            $this->loadCourses();
         } catch (\Exception $e) {
-            Log::error('Failed to save course', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-            $this->dispatch('toast', message: 'Failed to save course: '.$e->getMessage(), type: 'danger');
+            Log::error('Failed to save course', ['error' => $e->getMessage()]);
+            $this->dispatch('toast', message: __('Failed to save course.'), type: 'danger');
         }
     }
 
     public function confirmDelete($id)
     {
         $this->deletingCourseId = $id;
-        // Close view modal if it was open
-        Flux::modal('view-course-modal')->close();
+        $this->showViewFlyout = false;
         Flux::modal('delete-course-modal')->show();
     }
 
@@ -196,27 +217,21 @@ class CourseManager extends Component
 
         try {
             $course = Course::findOrFail($this->deletingCourseId);
-            Log::info('Deleting course', ['course_id' => $course->id, 'name' => $course->name]);
 
             if ($course->sessions()->count() > 0) {
-                Log::warning('Delete blocked: Course has active sessions', ['course_id' => $course->id]);
-                $this->dispatch('toast', message: 'Cannot delete course with active sessions.', type: 'danger');
+                $this->dispatch('toast', message: __('Cannot delete course with active sessions.'), type: 'danger');
                 $this->closeDeleteModal();
 
                 return;
             }
 
             $course->delete();
-            $this->dispatch('toast', message: 'Course deleted successfully.', type: 'success');
+            $this->dispatch('toast', message: __('Course deleted successfully.'), type: 'success');
 
             $this->closeDeleteModal();
-            $this->loadCourses();
         } catch (\Exception $e) {
-            Log::error('Failed to delete course', [
-                'course_id' => $this->deletingCourseId,
-                'error' => $e->getMessage(),
-            ]);
-            $this->dispatch('toast', message: 'Failed to delete course.', type: 'danger');
+            Log::error('Failed to delete course', ['error' => $e->getMessage()]);
+            $this->dispatch('toast', message: __('Failed to delete course.'), type: 'danger');
         }
     }
 
@@ -233,22 +248,21 @@ class CourseManager extends Component
         $this->resetForm();
     }
 
-    public function closeViewModal()
-    {
-        $this->viewingCourseId = null;
-        Flux::modal('view-course-modal')->close();
-    }
-
     public function resetForm()
     {
-        $this->reset(['name', 'instructor', 'description', 'editingCourseId', 'viewingCourseId', 'image', 'existingImageUrl', 'editingSessionId', 'deletingSessionId']);
+        $this->reset(['serviceId', 'name', 'description', 'editingCourseId', 'image', 'existingImageUrl', 'status']);
         $this->resetValidation();
+        $this->status = 'active';
+    }
+
+    #[Computed]
+    public function availableServices()
+    {
+        return Service::query()->active()->orderBy('name')->get();
     }
 
     public function render()
     {
-        return view('livewire.admin.courses.course-manager', [
-            'viewingCourse' => $this->viewingCourseId ? Course::with('sessions')->find($this->viewingCourseId) : null,
-        ]);
+        return view('livewire.admin.courses.course-manager');
     }
 }

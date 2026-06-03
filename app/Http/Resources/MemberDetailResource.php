@@ -28,14 +28,17 @@ class MemberDetailResource extends JsonResource
             'state' => $this->state,
             'rgpd_consented_at' => $this->rgpd_consented_at?->format('Y-m-d H:i:s'),
             'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
-            'active_subscription' => $this->whenLoaded('activeSubscription', function () {
-                return $this->activeSubscription ? [
-                    'id' => $this->activeSubscription->id,
-                    'plan_id' => $this->activeSubscription->plan_id,
-                    'status' => $this->activeSubscription->status,
-                    'starts_at' => $this->activeSubscription->starts_at?->format('Y-m-d'),
-                    'ends_at' => $this->activeSubscription->ends_at?->format('Y-m-d'),
-                ] : null;
+            'valid_subscriptions' => $this->whenLoaded('validSubscriptions', function () {
+                return $this->validSubscriptions->map(function ($subscription) {
+                    return [
+                        'id' => $subscription->id,
+                        'plan_id' => $subscription->plan_id,
+                        'status' => $subscription->status,
+                        'starts_at' => $subscription->starts_at?->format('Y-m-d'),
+                        'ends_at' => $subscription->ends_at?->format('Y-m-d'),
+                        'plan_name' => $subscription->plan?->name, // Assuming plan is loaded
+                    ];
+                });
             }),
         ];
     }

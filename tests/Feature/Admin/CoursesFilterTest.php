@@ -11,9 +11,9 @@ beforeEach(function () {
     $this->actingAs($user);
 });
 
-it('filters courses by search, category, instructor, and session presence', function () {
-    $courseWith = Course::factory()->create(['name' => 'Yoga Basics', 'category' => 'Yoga', 'instructor' => 'Alice']);
-    $courseWithout = Course::factory()->create(['name' => 'Weights 101', 'category' => 'Weights', 'instructor' => 'Bob']);
+it('filters courses by search, category, and session presence', function () {
+    $courseWith = Course::factory()->create(['name' => 'Yoga Basics', 'category' => 'Yoga']);
+    $courseWithout = Course::factory()->create(['name' => 'Weights 101', 'category' => 'Weights']);
 
     // Create a session for courseWith
     CourseSession::create([
@@ -39,12 +39,6 @@ it('filters courses by search, category, instructor, and session presence', func
         ->assertSee('Weights 101')
         ->assertDontSee('Yoga Basics');
 
-    // Instructor
-    Livewire::test(CourseManager::class)
-        ->set('instructorFilter', 'Alice')
-        ->assertSee('Yoga Basics')
-        ->assertDontSee('Weights 101');
-
     // Has sessions
     Livewire::test(CourseManager::class)
         ->set('hasSessionsFilter', 'with')
@@ -60,7 +54,6 @@ it('filters courses by search, category, instructor, and session presence', func
 it('renders course view modal without close panel and shows placeholder when no image', function () {
     $course = Course::factory()->create([
         'name' => 'Pilates Flow',
-        'instructor' => 'Jane Doe',
         'image_url' => null,
     ]);
 
@@ -68,7 +61,6 @@ it('renders course view modal without close panel and shows placeholder when no 
         ->call('openViewModal', $course->id)
         ->assertSet('viewingCourseId', $course->id)
         ->assertSee('Pilates Flow')
-        ->assertSee('Jane Doe')
         ->assertSee('No cover image')
         ->assertDontSee('Close Panel');
 });

@@ -3,6 +3,7 @@
 namespace Database\Seeders\Dashboard\Events;
 
 use App\Models\Event;
+use App\Models\Service;
 use Illuminate\Database\Seeder;
 
 class EventSeeder extends Seeder
@@ -12,30 +13,43 @@ class EventSeeder extends Seeder
      */
     public function run(): void
     {
+        $padelService = Service::where('slug', 'padel-courts')->first();
+        $tennisService = Service::where('slug', 'tennis-academy')->first();
+        $fitnessService = Service::where('slug', 'fitness-gym')->first();
+
         $events = [
             [
                 'name' => 'Summer Padel Cup',
                 'description' => 'A compact doubles bracket for the summer competitive block.',
-                'sport_type' => 'padel',
                 'format' => '2v2',
                 'max_participants' => 8,
                 'registration_deadline' => now()->addDays(10),
                 'start_date' => now()->addDays(14),
                 'end_date' => now()->addDays(15),
                 'requires_check_in' => true,
-                'status' => 'open',
+                'service_id' => $padelService?->id,
             ],
             [
                 'name' => 'Autumn Tennis Ladder',
                 'description' => 'A progressive tennis ladder with seeded rounds and weekly updates.',
-                'sport_type' => 'tennis',
                 'format' => '1v1',
                 'max_participants' => 12,
                 'registration_deadline' => now()->addDays(18),
                 'start_date' => now()->addDays(21),
                 'end_date' => now()->addDays(28),
                 'requires_check_in' => false,
-                'status' => 'draft',
+                'service_id' => $tennisService?->id,
+            ],
+            [
+                'name' => 'Community Fun Run',
+                'description' => 'A non-competitive 5k run for all members.',
+                'format' => 'group',
+                'max_participants' => 100,
+                'registration_deadline' => now()->addDays(5),
+                'start_date' => now()->addDays(7),
+                'end_date' => now()->addDays(7),
+                'requires_check_in' => false,
+                'service_id' => $fitnessService?->id,
             ],
         ];
 

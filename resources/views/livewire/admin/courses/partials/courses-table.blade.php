@@ -3,8 +3,11 @@
         <x-slot name="empty">
             <x-ui.dashboard.empty-state
                 table
+                icon="book-open"
                 :title="__('No courses found')"
-                :subtitle="__('Try adding a new course template.')"
+                :subtitle="__('Courses you create will appear here. Start by adding your first course.')"
+                :buttonLabel="__('Add Course')"
+                buttonWireClick="openCreateModal"
             />
         </x-slot>
 
@@ -13,7 +16,8 @@
                 <tr>
                     <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Image') }}</th>
                     <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Course Name') }}</th>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Instructor') }}</th>
+                    <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Service') }}</th>
+                    <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Status') }}</th>
                     <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Sessions') }}</th>
                     <th class="px-4 py-3 text-right font-medium text-zinc-700 dark:text-zinc-200">{{ __('Actions') }}</th>
                 </tr>
@@ -38,38 +42,93 @@
                             </div>
                         </td>
 
-                        <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ __($course->instructor) }}</td>
+                        <td class="px-4 py-3">
+                            @if($course->service)
+                                <flux:badge size="sm" color="blue" inset="top bottom">{{ $course->service->name }}</flux:badge>
+                            @else
+                                <span class="text-zinc-400 italic text-xs">{{ __('N/A') }}</span>
+                            @endif
+                        </td>
+
+                        <td class="px-4 py-3">
+                            <x-ui.dashboard.status-badge
+                                :status="$course->status"
+                                :label="match($course->status) {
+                                    'active' => __('Active'),
+                                    'inactive' => __('Inactive'),
+                                    'archived' => __('Archived'),
+                                    default => ucfirst($course->status),
+                                }"
+                                :color="match($course->status) {
+                                    'active' => 'green',
+                                    'inactive' => 'gray',
+                                    'archived' => 'orange',
+                                    default => 'zinc',
+                                }"
+                            />
+                        </td>
 
                         <td class="px-4 py-3">
                             <x-ui.dashboard.status-badge status="course-sessions" color="zinc" :label="$course->sessions_count ?? $course->sessions()->count()" />
                         </td>
 
                         <td class="px-4 py-3 text-right">
-                            <x-ui.dashboard.row-actions>
-                                <flux:dropdown>
-                                    <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" class="!px-2" />
-                                    <flux:menu>
-                                        <flux:menu.item icon="eye" wire:click="openViewModal({{ $course->id }})">
-                                            {{ __('View Details') }}
+                            <flux:dropdown align="end">
+                                <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" class="!px-2" />
+                                <flux:menu>
+                                    <flux:menu.item icon="eye" wire:click="openViewFlyout({{ $course->id }})">
+                                        {{ __('View Details') }}
+                                    </flux:menu.item>
+                                    <flux:menu.item icon="pencil-square" wire:click="openEditModal({{ $course->id }})">
+                                        {{ __('Edit') }}
+                                    </flux:menu.item>
+                                    
+                                    <flux:menu.separator />
+                                    
+                                    @if ($course->status !== 'archived')
+                                        <flux:menu.item 
+                                            icon="archive-box" 
+                                            x-on:click="Flux.modal('confirm-archive-{{ $course->id }}').show()"
+                                        >
+                                            {{ __('Archive') }}
                                         </flux:menu.item>
-                                        <flux:menu.item icon="pencil" wire:click="openEditModal({{ $course->id }})">
-                                            {{ __('Edit Course') }}
+                                    @else
+                                        <flux:menu.item icon="arrow-path" wire:click="restore({{ $course->id }})">
+                                            {{ __('Restore to Active') }}
                                         </flux:menu.item>
-                                        
-                                        @if ($course->sessions_count > 0 || $course->sessions()->count() > 0)
-                                            <flux:menu.item icon="trash" disabled>
-                                                {{ __('Delete (Has Sessions)') }}
-                                            </flux:menu.item>
-                                        @else
-                                            <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete({{ $course->id }})">
-                                                {{ __('Delete Course') }}
-                                            </flux:menu.item>
-                                        @endif
-                                    </flux:menu>
-                                </flux:dropdown>
-                            </x-ui.dashboard.row-actions>
+                                    @endif
+
+                                    <flux:menu.item 
+                                        icon="trash" 
+                                        variant="danger" 
+                                        x-on:click="Flux.modal('confirm-delete-{{ $course->id }}').show()"
+                                    >
+                                        {{ __('Delete') }}
+                                    </flux:menu.item>
+                                </flux:menu>
+                            </flux:dropdown>
                         </td>
                     </tr>
+
+                    {{-- Confirmation Modals --}}
+                    @if ($course->status !== 'archived')
+                        <flux:modal name="confirm-archive-{{ $course->id }}" class="w-full max-w-sm">
+                            <flux:heading>{{ __('Archive Course') }}</flux:heading>
+                            <flux:text>{{ __('Are you sure you want to archive this course template? This will hide it from active selections.') }}</flux:text>
+                            <div class="flex justify-end gap-2 mt-6">
+                                <flux:modal.close><flux:button variant="ghost">{{ __('Cancel') }}</flux:button></flux:modal.close>
+                                <flux:button variant="primary" wire:click="archive({{ $course->id }})" x-on:click="Flux.modal('confirm-archive-{{ $course->id }}').close()">{{ __('Archive') }}</flux:button>
+                            </div>
+                        </flux:modal>
+                    @endif
+                    <flux:modal name="confirm-delete-{{ $course->id }}" class="w-full max-w-sm">
+                        <flux:heading>{{ __('Delete Course') }}</flux:heading>
+                        <flux:text variant="danger">{{ __('Are you sure you want to permanently delete this course template? This action cannot be undone.') }}</flux:text>
+                        <div class="flex justify-end gap-2 mt-6">
+                            <flux:modal.close><flux:button variant="ghost">{{ __('Cancel') }}</flux:button></flux:modal.close>
+                            <flux:button variant="danger" wire:click="confirmDelete({{ $course->id }})" x-on:click="Flux.modal('confirm-delete-{{ $course->id }}').close()">{{ __('Delete') }}</flux:button>
+                        </div>
+                    </flux:modal>
                 @endforeach
             </tbody>
         </table>

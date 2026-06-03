@@ -4,15 +4,26 @@
         :subtitle="__('Review payment transactions, inspect encrypted payloads, and export the current audit trail.')"
     >
         <x-slot name="actions">
-            <flux:button
-                variant="primary"
-                icon="arrow-down-tray"
-                wire:click="openExportConfirmModal"
-                wire:loading.attr="disabled"
-                wire:target="openExportConfirmModal,confirmExport"
-            >
-                {{ __('Export CSV') }}
-            </flux:button>
+            <div class="flex items-center gap-2">
+                <flux:button
+                    variant="ghost"
+                    icon="arrow-down-tray"
+                    wire:click="openExportConfirmModal('csv')"
+                    wire:loading.attr="disabled"
+                    wire:target="openExportConfirmModal,confirmExport"
+                >
+                    {{ __('Export CSV') }}
+                </flux:button>
+                <flux:button
+                    variant="primary"
+                    icon="arrow-down-tray"
+                    wire:click="openExportConfirmModal('pdf')"
+                    wire:loading.attr="disabled"
+                    wire:target="openExportConfirmModal,confirmExport"
+                >
+                    {{ __('Export PDF') }}
+                </flux:button>
+            </div>
         </x-slot>
     </x-ui.dashboard.page-header>
 
@@ -65,6 +76,7 @@
         <x-slot name="empty">
             <x-ui.dashboard.empty-state
                 table
+                icon="receipt-percent"
                 :title="__('No payment transactions found')"
                 :subtitle="__('Try adjusting the search, gateway, or status filters.')"
             />
@@ -193,18 +205,20 @@
                 @endforeach
             </tbody>
         </table>
-
+        @if ($logs->hasPages())
         <x-slot name="pagination">
-            @if ($logs->hasPages())
                 {{ $logs->links() }}
-            @endif
         </x-slot>
+        @endif
+
     </x-ui.dashboard.table-shell>
 
     <x-ui.confirm-modal
         wire:model.self="showExportConfirmModal"
         :title="__('Confirm export')"
-        :description="__('This will generate a CSV export of the current payment audit rows.')"
+        :description="$exportFormat === 'pdf'
+            ? __('This will generate a PDF report of the current audit trail.')
+            : __('This will generate a CSV report of the current audit trail.')"
         cancel-action="closeExportConfirmModal"
         confirm-action="confirmExport"
         :confirm-text="__('Start export')"

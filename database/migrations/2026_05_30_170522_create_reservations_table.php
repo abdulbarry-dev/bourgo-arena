@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('activity_id')->nullable()->constrained('activities')->nullOnDelete();
-            $table->foreignId('activity_time_slot_id')->nullable();
+            $table->foreignId('activity_time_slot_id')->nullable()->constrained('activity_time_slots')->nullOnDelete();
             $table->enum('reservation_status', ['pending_payment', 'confirmed', 'cancelled'])->default('pending_payment');
             $table->enum('payment_status', ['not_initiated', 'pending', 'completed', 'refunded'])->default('not_initiated');
             $table->decimal('deposit_amount', 10, 3)->default(0);

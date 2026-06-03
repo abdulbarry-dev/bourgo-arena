@@ -48,9 +48,20 @@ class MemberResource extends JsonResource
             'status' => $this->status,
             'state' => $this->state,
             'is_parent_account' => (bool) $this->is_family_account,
-            'subscription_level' => $this->activeSubscription?->plan?->name,
-            'subscription_expiry' => $this->activeSubscription?->ends_at?->toDateString(),
+
             'children' => MemberResource::collection($this->whenLoaded('children')),
+            'valid_subscriptions' => $this->whenLoaded('validSubscriptions', function () {
+                return $this->validSubscriptions->map(function ($subscription) {
+                    return [
+                        'id' => $subscription->id,
+                        'plan_id' => $subscription->plan_id,
+                        'status' => $subscription->status,
+                        'starts_at' => $subscription->starts_at?->toDateString(),
+                        'ends_at' => $subscription->ends_at?->toDateString(),
+                        'plan_name' => $subscription->plan?->name,
+                    ];
+                });
+            }),
         ];
     }
 }

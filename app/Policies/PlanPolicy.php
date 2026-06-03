@@ -48,6 +48,22 @@ class PlanPolicy
     }
 
     /**
+     * Determine whether the user can archive the model.
+     */
+    public function archive(User $user, Plan $plan): bool
+    {
+        return $user->isAdmin();
+    }
+
+    /**
+     * Determine whether the user can reactivate the model.
+     */
+    public function reactivate(User $user, Plan $plan): bool
+    {
+        return $user->isAdmin();
+    }
+
+    /**
      * Determine whether the user can restore the model.
      */
     public function restore(User $user, Plan $plan): bool

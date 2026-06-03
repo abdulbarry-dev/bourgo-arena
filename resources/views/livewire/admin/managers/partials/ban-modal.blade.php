@@ -1,5 +1,5 @@
 <flux:modal name="ban-manager-modal" class="min-w-[24rem]">
-    <form wire:submit="confirmBanManager" class="space-y-6">
+    <form wire:submit="confirmBanManager" class="space-y-6 pt-4">
         <div>
             <flux:heading size="lg">{{ __('Ban Manager') }}</flux:heading>
             <flux:subheading>

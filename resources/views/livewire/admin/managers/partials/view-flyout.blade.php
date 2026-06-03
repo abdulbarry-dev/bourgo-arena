@@ -1,5 +1,5 @@
-<flux:modal wire:model="showFlyout" variant="flyout" class="max-w-md w-full">
-    @if ($flyoutMode === 'view' && $selectedManager)
+<flux:modal wire:model="showViewFlyout" variant="flyout" class="max-w-md w-full">
+    @if ($selectedManager)
         <div class="-mx-6 -mt-6">
             <div class="relative w-full">
                 <div class="w-full h-32 bg-zinc-900 border-b border-zinc-200 dark:bg-zinc-800 dark:border-zinc-700 flex items-center justify-center">
@@ -54,9 +54,12 @@
                 </div>
 
                 <!-- Footer Actions -->
-                <div class="pt-4 border-t border-zinc-200 dark:border-zinc-700">
-                    <flux:button variant="ghost" class="w-full" wire:click="$set('showFlyout', false)">
+                <div class="flex gap-2 pt-4 border-t border-zinc-200 dark:border-zinc-700">
+                    <flux:button variant="ghost" class="flex-1" wire:click="$set('showViewFlyout', false)">
                         {{ __('Close Panel') }}
+                    </flux:button>
+                    <flux:button variant="primary" class="flex-1" wire:click="openEditFlyout({{ $selectedManager->id }})">
+                        {{ __('Edit Information') }}
                     </flux:button>
                 </div>
             </div>

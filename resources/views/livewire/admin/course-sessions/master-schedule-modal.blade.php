@@ -1,5 +1,5 @@
 <div>
-    <flux:modal name="edit-master-session-modal" variant="flyout" class="max-w-md w-full" x-on:hidden="$wire.closeEditMasterModal()">
+    <flux:modal name="edit-master-session-modal" variant="flyout" class="max-w-lg w-full" x-on:hidden="$wire.closeEditMasterModal()">
         <div wire:ignore.self>
             @include('livewire.admin.course-sessions.partials.edit-master-modal-content')
         </div>
@@ -11,3 +11,4 @@
         </div>
     </flux:modal>
 </div>
+

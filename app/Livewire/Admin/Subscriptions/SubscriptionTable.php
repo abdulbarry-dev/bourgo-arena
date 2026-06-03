@@ -12,7 +12,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -43,27 +42,11 @@ class SubscriptionTable extends Component
 
     public string $sortDirection = 'asc';
 
-    public bool $showSubscriptionEditModal = false;
-
     public bool $showSubscriptionLifecycleModal = false;
 
     public bool $showDeleteSubscriptionModal = false;
 
     public string $subscriptionLifecycleAction = 'suspend';
-
-    public string $suspensionReason = 'medical';
-
-    public ?int $editPlanId = null;
-
-    public string $editStartsAt = '';
-
-    public string $editEndsAt = '';
-
-    public string $editPaymentMethod = 'cash';
-
-    public ?string $editPaymentReference = null;
-
-    public string $editAmountPaid = '';
 
     public function updatedSearch(): void
     {
@@ -75,28 +58,8 @@ class SubscriptionTable extends Component
         $this->resetPage();
     }
 
-    public function updatedPlanFilter(): void
-    {
-        $this->resetPage();
-    }
-
-    public function sort(string $column): void
-    {
-        if (! in_array($column, ['member', 'plan', 'status', 'starts_at', 'ends_at'], true)) {
-            return;
-        }
-
-        if ($this->sortBy === $column) {
-            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
-            $this->sortBy = $column;
-            $this->sortDirection = 'asc';
-        }
-
-        $this->resetPage();
-    }
-
     #[Computed]
+    #[On('subscription-created')]
     public function subscriptions(): LengthAwarePaginator
     {
         $this->authorize('viewAny', Subscription::class);
@@ -105,13 +68,18 @@ class SubscriptionTable extends Component
             ->paginate($this->perPage);
     }
 
+    public function updatedPlanFilter(): void
+    {
+        $this->resetPage();
+    }
+
     #[Computed]
     public function plans(): Collection
     {
         return Plan::query()
             ->where('is_archived', false)
             ->orderBy('name')
-            ->get(['id', 'name']);
+            ->get(['id', 'name', 'is_archived']);
     }
 
     public function exportCsv()
@@ -193,68 +161,6 @@ class SubscriptionTable extends Component
         $this->resetSubscriptionActionState();
     }
 
-    public function openSubscriptionEditModal(int $subscriptionId): void
-    {
-        $this->authorize('update', Subscription::class);
-
-        $subscription = $this->subscriptionForAction($subscriptionId);
-
-        if ($subscription === null) {
-            $this->addError('previewSubscriptionId', __('The selected subscription was not found.'));
-
-            return;
-        }
-
-        $this->previewSubscriptionId = $subscription->id;
-        $this->editPlanId = $subscription->plan_id;
-        $this->editStartsAt = $subscription->starts_at?->toDateString() ?? now()->toDateString();
-        $this->editEndsAt = $subscription->ends_at?->toDateString() ?? now()->toDateString();
-        $this->editPaymentMethod = $subscription->payment_method;
-        $this->editPaymentReference = $subscription->payment_reference;
-        $this->editAmountPaid = (string) $subscription->amount_paid;
-        $this->showSubscriptionPreviewModal = false;
-        $this->showSubscriptionEditModal = true;
-        $this->showSubscriptionLifecycleModal = false;
-        $this->showDeleteSubscriptionModal = false;
-    }
-
-    public function closeSubscriptionEditModal(): void
-    {
-        $this->resetSubscriptionActionState();
-    }
-
-    public function saveSubscriptionEdit(): void
-    {
-        $this->authorize('update', Subscription::class);
-
-        $subscription = $this->previewSubscription;
-
-        if ($subscription === null) {
-            $this->addError('previewSubscriptionId', __('The selected subscription was not found.'));
-
-            return;
-        }
-
-        $validated = $this->validate($this->editRules());
-
-        $paymentReference = $validated['editPaymentMethod'] === 'konnect'
-            ? $validated['editPaymentReference']
-            : null;
-
-        $subscription->update([
-            'plan_id' => $validated['editPlanId'],
-            'starts_at' => $validated['editStartsAt'],
-            'ends_at' => $validated['editEndsAt'],
-            'payment_method' => $validated['editPaymentMethod'],
-            'payment_reference' => $paymentReference,
-            'amount_paid' => $validated['editAmountPaid'],
-        ]);
-
-        $this->dispatch('subscription-updated', subscriptionId: $subscription->id);
-        $this->dispatch('toast', message: __('Subscription updated successfully'), type: 'success');
-        $this->resetSubscriptionActionState();
-    }
-
     public function openSubscriptionLifecycleModal(int $subscriptionId, string $action): void
     {
         if (! in_array($action, ['suspend', 'resume'], true)) {
@@ -271,9 +177,7 @@ class SubscriptionTable extends Component
 
         $this->previewSubscriptionId = $subscription->id;
         $this->subscriptionLifecycleAction = $action;
-        $this->suspensionReason = 'medical';
         $this->showSubscriptionPreviewModal = false;
-        $this->showSubscriptionEditModal = false;
         $this->showSubscriptionLifecycleModal = true;
         $this->showDeleteSubscriptionModal = false;
     }
@@ -298,11 +202,7 @@ class SubscriptionTable extends Component
         if ($this->subscriptionLifecycleAction === 'suspend') {
             $this->authorize('suspend', Subscription::class);
 
-            $this->validate([
-                'suspensionReason' => ['required', Rule::in(['medical', 'travel', 'other'])],
-            ]);
-
-            $suspendAction->execute($subscription, $this->suspensionReason, auth()->id());
+            $suspendAction->execute($subscription, auth()->id());
 
             $this->dispatch('toast', message: __('Subscription suspended successfully'), type: 'success');
         } else {
@@ -401,29 +301,9 @@ class SubscriptionTable extends Component
     {
         $this->previewSubscriptionId = null;
         $this->showSubscriptionPreviewModal = false;
-        $this->showSubscriptionEditModal = false;
         $this->showSubscriptionLifecycleModal = false;
         $this->showDeleteSubscriptionModal = false;
-        $this->editPlanId = null;
-        $this->editStartsAt = '';
-        $this->editEndsAt = '';
-        $this->editPaymentMethod = 'cash';
-        $this->editPaymentReference = null;
-        $this->editAmountPaid = '';
         $this->subscriptionLifecycleAction = 'suspend';
-        $this->suspensionReason = 'medical';
-    }
-
-    private function editRules(): array
-    {
-        return [
-            'editPlanId' => ['required', 'integer', Rule::exists('plans', 'id')->where('is_archived', false)],
-            'editStartsAt' => ['required', 'date'],
-            'editEndsAt' => ['required', 'date', 'after_or_equal:editStartsAt'],
-            'editPaymentMethod' => ['required', Rule::in(['cash', 'konnect'])],
-            'editPaymentReference' => [Rule::requiredIf($this->editPaymentMethod === 'konnect'), 'nullable', 'string', 'max:255'],
-            'editAmountPaid' => ['required', 'numeric', 'min:0'],
-        ];
     }
 
     private function filteredSubscriptionsQuery(): Builder
@@ -460,6 +340,11 @@ class SubscriptionTable extends Component
             ]);
 
         return $this->applySorting($query);
+    }
+
+    public function openCreateSubscriptionFlyout(): void
+    {
+        $this->dispatch('open-subscription-enrollment-flyout');
     }
 
     private function applySorting(Builder $query): Builder

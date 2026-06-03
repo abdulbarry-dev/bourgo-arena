@@ -82,6 +82,7 @@
         <x-slot name="empty">
             <x-ui.dashboard.empty-state
                 table
+                icon="bell-alert"
                 :title="__('No expiring subscriptions')"
                 :subtitle="__('Try a broader expiry window or adjust the current filters.')"
             />

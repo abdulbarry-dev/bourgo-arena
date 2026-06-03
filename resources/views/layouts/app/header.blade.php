@@ -63,6 +63,9 @@
                     <flux:navbar.item icon="clipboard-document-list" :href="route('admin.plans')" :current="request()->routeIs('admin.plans*')" wire:navigate>
                         {{ __('Plans') }}
                     </flux:navbar.item>
+                    <flux:navbar.item icon="puzzle-piece" :href="route('admin.services.index')" :current="request()->routeIs('admin.services.*')" wire:navigate>
+                        {{ __('Services') }}
+                    </flux:navbar.item>
                     <flux:navbar.item icon="user-circle" :href="route('admin.managers.index')" :current="request()->routeIs('admin.managers.*')" wire:navigate>
                         {{ __('Managers') }}
                     </flux:navbar.item>
@@ -160,6 +163,9 @@
                         </flux:sidebar.item>
                         <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.plans')" :current="request()->routeIs('admin.plans*')" wire:navigate>
                             {{ __('Plans') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="puzzle-piece" :href="route('admin.services.index')" :current="request()->routeIs('admin.services.*')" wire:navigate>
+                            {{ __('Services') }}
                         </flux:sidebar.item>
                         <flux:sidebar.item icon="user-circle" :href="route('admin.managers.index')" :current="request()->routeIs('admin.managers.*')" wire:navigate>
                             {{ __('Managers') }}

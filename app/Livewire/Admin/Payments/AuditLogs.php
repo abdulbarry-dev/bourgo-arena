@@ -21,6 +21,8 @@ class AuditLogs extends Component
 
     public bool $showExportConfirmModal = false;
 
+    public string $exportFormat = 'csv';
+
     public array $showRaw = [];
 
     public function updatedSearch(): void
@@ -41,8 +43,9 @@ class AuditLogs extends Component
         $this->showRaw = [];
     }
 
-    public function openExportConfirmModal(): void
+    public function openExportConfirmModal(string $format = 'csv'): void
     {
+        $this->exportFormat = $format;
         $this->showExportConfirmModal = true;
     }
 
@@ -62,7 +65,20 @@ class AuditLogs extends Component
         $this->showRaw[$id] = true;
     }
 
-    public function confirmExport(): StreamedResponse
+    public function confirmExport()
+    {
+        if ($this->exportFormat === 'pdf') {
+            // TODO: Implement PDF export
+            $this->dispatch('toast', message: __('PDF export is not implemented yet.'), type: 'info');
+            $this->closeExportConfirmModal();
+
+            return;
+        }
+
+        return $this->exportCsv();
+    }
+
+    private function exportCsv(): StreamedResponse
     {
         $filename = 'payment-audit-'.now()->format('YmdHis').'.csv';
 

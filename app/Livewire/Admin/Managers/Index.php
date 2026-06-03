@@ -34,7 +34,12 @@ class Index extends Component
     #[Url(history: true)]
     public $sortDirection = 'desc';
 
+    #[Url(history: true)]
+    public string $statusFilter = '';
+
     public bool $showFlyout = false;
+
+    public bool $showViewFlyout = false;
 
     public string $flyoutMode = 'view'; // 'view' or 'create'
 
@@ -70,12 +75,41 @@ class Index extends Component
     {
         $this->selectedManager = $manager;
         $this->flyoutMode = 'view';
+        $this->showViewFlyout = true;
+    }
+
+    public function openEditFlyout(int $managerId)
+    {
+        $manager = User::findOrFail($managerId);
+        $this->selectedManager = $manager;
+        $this->name = $manager->name;
+        $this->email = $manager->email;
+        $this->phone = $manager->phone;
+        $this->flyoutMode = 'edit';
         $this->showFlyout = true;
     }
 
     public function selectManager(User $manager)
     {
         $this->selectedManager = $manager;
+    }
+
+    public function updateManager()
+    {
+        $this->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,'.$this->selectedManager->id,
+            'phone' => 'nullable|string|max:20|unique:users,phone,'.$this->selectedManager->id,
+        ]);
+
+        $this->selectedManager->update([
+            'name' => $this->name,
+            'email' => $this->email,
+            'phone' => $this->phone,
+        ]);
+
+        $this->showFlyout = false;
+        $this->dispatch('toast', message: __('Manager updated successfully.'), type: 'success');
     }
 
     public function createManager()
@@ -94,6 +128,7 @@ class Index extends Component
             'phone' => $this->phone,
             'password' => Hash::make($randomPassword),
             'role' => UserRole::Manager,
+            'email_verified_at' => now(),
         ]);
 
         /** @var PasswordBroker $broker */
@@ -167,6 +202,13 @@ class Index extends Component
                 $q->where('name', 'like', '%'.$this->search.'%')
                     ->orWhere('email', 'like', '%'.$this->search.'%');
             });
+        }
+
+        // Apply status filter
+        if ($this->statusFilter === 'banned') {
+            $query->whereNotNull('banned_at');
+        } elseif ($this->statusFilter === 'not_banned') {
+            $query->whereNull('banned_at');
         }
 
         $query->orderBy($this->sortBy, $this->sortDirection);

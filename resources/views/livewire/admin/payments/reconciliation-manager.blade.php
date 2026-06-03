@@ -71,6 +71,7 @@
         <x-slot name="empty">
             <x-ui.dashboard.empty-state
                 table
+                icon="arrows-right-left"
                 :title="__('No reconciliations found')"
                 :subtitle="__('Try a different search or filter to narrow the audit trail.')"
             />
@@ -157,149 +158,187 @@
                 @endforeach
             </tbody>
         </table>
-
+        @if ($items->hasPages())
         <x-slot name="pagination">
-            @if ($items->hasPages())
                 {{ $items->links() }}
-            @endif
         </x-slot>
+        @endif
     </x-ui.dashboard.table-shell>
 
     <flux:modal wire:model="showDetailModal" variant="flyout" class="w-full max-w-2xl" x-on:hidden="$wire.closeDetailModal()">
         @if ($this->selectedReconciliation)
             @php($reconciliation = $this->selectedReconciliation)
-            <section class="space-y-6 p-6 md:p-8">
-                <div>
-                    <flux:heading size="lg">{{ __('Reconciliation Details') }}</flux:heading>
-                    <flux:text variant="subtle">{{ __('Immutable audit event for payment verification or refund activity.') }}</flux:text>
-                </div>
+            <div class="px-4 py-6 md:px-8 md:py-10">
+                <div class="space-y-8">
+                    <!-- Header -->
+                    <div class="flex items-start justify-between border-b border-zinc-200 pb-6 dark:border-zinc-700">
+                        <div>
+                            <flux:heading size="xl" class="mb-1">{{ __('Reconciliation Details') }}</flux:heading>
+                            <flux:subheading>{{ __('Immutable audit event for payment activity.') }}</flux:subheading>
+                        </div>
+                        <x-ui.dashboard.status-badge
+                            :status="$reconciliation->type"
+                            :label="$reconciliation->typeLabel()"
+                            :color="$reconciliation->type === 'reconciled' ? 'green' : 'blue'"
+                            size="lg"
+                        />
+                    </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="rounded-xl border border-zinc-200 bg-zinc-50/50 p-4 dark:border-zinc-700 dark:bg-zinc-800/30">
-                        <div class="text-xs font-medium text-zinc-500 dark:text-zinc-400">{{ __('Type') }}</div>
-                        <div class="mt-1">
-                            <x-ui.dashboard.status-badge
-                                :status="$reconciliation->type"
-                                :label="$reconciliation->typeLabel()"
-                                :color="$reconciliation->type === 'reconciled' ? 'green' : 'blue'"
-                            />
+                    <!-- Core Info Grid -->
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div class="rounded-2xl border border-zinc-200 bg-zinc-50/50 p-4 dark:border-zinc-800/50 dark:bg-zinc-900/30">
+                            <div class="mb-2 flex items-center gap-2 text-xs font-medium text-zinc-500 uppercase tracking-wider dark:text-zinc-400">
+                                <flux:icon icon="calendar" variant="mini" />
+                                {{ __('Recorded At') }}
+                            </div>
+                            <div class="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                                {{ $reconciliation->created_at->format('M d, Y') }}
+                                <span class="ml-1 text-sm font-normal text-zinc-500">{{ $reconciliation->created_at->format('H:i') }}</span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="rounded-xl border border-zinc-200 bg-zinc-50/50 p-4 dark:border-zinc-700 dark:bg-zinc-800/30">
-                        <div class="text-xs font-medium text-zinc-500 dark:text-zinc-400">{{ __('Recorded At') }}</div>
-                        <div class="mt-1 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                            {{ $reconciliation->created_at->format('M d, Y H:i') }}
-                        </div>
-                    </div>
-                    <div class="rounded-xl border border-zinc-200 bg-zinc-50/50 p-4 dark:border-zinc-700 dark:bg-zinc-800/30">
-                        <div class="text-xs font-medium text-zinc-500 dark:text-zinc-400">{{ __('Performed By') }}</div>
-                        <div class="mt-1 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                            {{ $reconciliation->admin?->name ?? __('System') }}
-                        </div>
-                    </div>
-                    <div class="rounded-xl border border-zinc-200 bg-zinc-50/50 p-4 dark:border-zinc-700 dark:bg-zinc-800/30">
-                        <div class="text-xs font-medium text-zinc-500 dark:text-zinc-400">{{ __('Amount') }}</div>
-                        <div class="mt-1 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                            @if ($reconciliation->amount)
-                                {{ number_format((float) $reconciliation->amount, 3) }}
-                            @else
-                                —
-                            @endif
-                        </div>
-                    </div>
-                </div>
 
-                @if ($reconciliation->payment)
-                    <x-ui.dashboard.panel class="space-y-4">
-                        <flux:heading size="sm">{{ __('Linked Payment') }}</flux:heading>
-                        <dl class="grid gap-3 text-sm sm:grid-cols-2">
-                            <div>
-                                <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Payment ID') }}</dt>
-                                <dd class="mt-1 font-medium text-zinc-900 dark:text-zinc-100">#{{ $reconciliation->payment->id }}</dd>
+                        <div class="rounded-2xl border border-zinc-200 bg-zinc-50/50 p-4 dark:border-zinc-800/50 dark:bg-zinc-900/30">
+                            <div class="mb-2 flex items-center gap-2 text-xs font-medium text-zinc-500 uppercase tracking-wider dark:text-zinc-400">
+                                <flux:icon icon="user" variant="mini" />
+                                {{ __('Performed By') }}
                             </div>
-                            <div>
-                                <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Reference') }}</dt>
-                                <dd class="mt-1 font-medium text-zinc-900 dark:text-zinc-100">{{ $reconciliation->payment->payment_reference ?? '—' }}</dd>
+                            <div class="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                                {{ $reconciliation->admin?->name ?? __('System') }}
                             </div>
-                            <div>
-                                <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Status') }}</dt>
-                                <dd class="mt-1 font-medium capitalize text-zinc-900 dark:text-zinc-100">{{ $reconciliation->payment->status }}</dd>
-                            </div>
-                            <div>
-                                <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Member') }}</dt>
-                                <dd class="mt-1 font-medium text-zinc-900 dark:text-zinc-100">{{ $reconciliation->payment->member?->name ?? '—' }}</dd>
-                            </div>
-                        </dl>
+                        </div>
 
-                        @if ($reconciliation->payment->reservation_id)
-                            <flux:button
-                                variant="subtle"
-                                size="sm"
-                                icon="calendar"
-                                :href="route('admin.reservations.index')"
-                                wire:navigate
-                            >
-                                {{ __('Open Reservations') }}
+                        <div class="rounded-2xl border border-zinc-200 bg-zinc-50/50 p-4 dark:border-zinc-800/50 dark:bg-zinc-900/30 sm:col-span-2">
+                            <div class="mb-2 flex items-center gap-2 text-xs font-medium text-zinc-500 uppercase tracking-wider dark:text-zinc-400">
+                                <flux:icon icon="banknotes" variant="mini" />
+                                {{ __('Reconciliation Amount') }}
+                            </div>
+                            <div class="flex items-baseline gap-1.5">
+                                <span class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                                    {{ $reconciliation->amount ? number_format((float) $reconciliation->amount, 3) : '—' }}
+                                </span>
+                                @if($reconciliation->amount)
+                                    <span class="text-sm font-medium text-zinc-500">{{ __('TND') }}</span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Linked Payment Section -->
+                    @if ($reconciliation->payment)
+                        <div class="space-y-4">
+                            <flux:heading size="sm" class="flex items-center gap-2">
+                                <flux:icon icon="link" variant="mini" />
+                                {{ __('Linked Payment') }}
+                            </flux:heading>
+
+                            <div class="rounded-2xl border border-zinc-200 p-5 dark:border-zinc-700">
+                                <div class="grid gap-6 sm:grid-cols-2">
+                                    <div class="space-y-1">
+                                        <div class="text-xs font-medium text-zinc-500 dark:text-zinc-400">{{ __('Payment ID') }}</div>
+                                        <div class="font-semibold text-zinc-900 dark:text-zinc-100">#{{ $reconciliation->payment->id }}</div>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <div class="text-xs font-medium text-zinc-500 dark:text-zinc-400">{{ __('Reference') }}</div>
+                                        <div class="font-semibold text-zinc-900 dark:text-zinc-100">{{ $reconciliation->payment->payment_reference ?? '—' }}</div>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <div class="text-xs font-medium text-zinc-500 dark:text-zinc-400">{{ __('Status') }}</div>
+                                        <div class="flex items-center gap-2 font-semibold capitalize text-zinc-900 dark:text-zinc-100">
+                                            <div class="h-2 w-2 rounded-full {{ $reconciliation->payment->status === 'paid' ? 'bg-green-500' : 'bg-amber-500' }}"></div>
+                                            {{ $reconciliation->payment->status }}
+                                        </div>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <div class="text-xs font-medium text-zinc-500 dark:text-zinc-400">{{ __('Member') }}</div>
+                                        <div class="font-semibold text-zinc-900 dark:text-zinc-100">{{ $reconciliation->payment->member?->name ?? '—' }}</div>
+                                    </div>
+                                </div>
+
+                                @if ($reconciliation->payment->reservation_id)
+                                    <div class="mt-6 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+                                        <flux:button
+                                            variant="subtle"
+                                            size="sm"
+                                            icon="calendar"
+                                            :href="route('admin.reservations.index')"
+                                            wire:navigate
+                                        >
+                                            {{ __('View Reservations') }}
+                                        </flux:button>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- Provider Summary -->
+                    @if (! empty($reconciliation->metadata))
+                        <div class="space-y-4">
+                            <flux:heading size="sm" class="flex items-center gap-2">
+                                <flux:icon icon="cpu-chip" variant="mini" />
+                                {{ __('Provider Summary') }}
+                            </flux:heading>
+
+                            <div class="rounded-2xl border border-zinc-200 bg-zinc-50/30 p-5 dark:border-zinc-700 dark:bg-zinc-900/20">
+                                <dl class="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+                                    <div>
+                                        <dt class="text-xs font-medium text-zinc-500 dark:text-zinc-400">{{ __('Provider Transaction ID') }}</dt>
+                                        <dd class="mt-1 font-mono text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $reconciliation->metadata['payment_id'] ?? $reconciliation->metadata['paymentRef'] ?? $reconciliation->metadata['transaction_id'] ?? $reconciliation->metadata['transaction_reference'] ?? '—' }}</dd>
+                                    </div>
+
+                                    <div>
+                                        <dt class="text-xs font-medium text-zinc-500 dark:text-zinc-400">{{ __('Provider Status') }}</dt>
+                                        <dd class="mt-1 font-medium text-zinc-900 dark:text-zinc-100">{{ $reconciliation->metadata['status'] ?? $reconciliation->metadata['transaction_status'] ?? '—' }}</dd>
+                                    </div>
+
+                                    <div>
+                                        <dt class="text-xs font-medium text-zinc-500 dark:text-zinc-400">{{ __('Provider Amount') }}</dt>
+                                        <dd class="mt-1 font-medium text-zinc-900 dark:text-zinc-100">
+                                            @php($providerAmount = $reconciliation->metadata['amount'] ?? $reconciliation->metadata['payment_amount'] ?? null)
+                                            {{ $providerAmount ? number_format((float) $providerAmount, 3) . ' TND' : '—' }}
+                                        </dd>
+                                    </div>
+
+                                    <div>
+                                        <dt class="text-xs font-medium text-zinc-500 dark:text-zinc-400">{{ __('Received At') }}</dt>
+                                        <dd class="mt-1 font-medium text-zinc-900 dark:text-zinc-100">{{ $reconciliation->metadata['timestamp'] ?? $reconciliation->metadata['created_at'] ?? '—' }}</dd>
+                                    </div>
+                                </dl>
+
+                                <div class="mt-4 flex items-start gap-2 text-xs text-zinc-400">
+                                    <flux:icon icon="information-circle" variant="mini" class="shrink-0" />
+                                    {{ __('Raw provider payload has been hidden for security. Contact technical support for full logs.') }}
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if ($reconciliation->isArchived())
+                        <div class="flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50/50 p-4 text-sm text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-300">
+                            <flux:icon icon="archive-box" variant="mini" class="shrink-0" />
+                            <span>{{ __('Archived on :date. Records are immutable.', ['date' => $reconciliation->archived_at->format('M d, Y H:i')]) }}</span>
+                        </div>
+                    @endif
+
+                    <!-- Actions -->
+                    <div class="flex flex-wrap justify-end gap-3 border-t border-zinc-200 pt-6 dark:border-zinc-700">
+                        <flux:button variant="ghost" wire:click="closeDetailModal">{{ __('Close') }}</flux:button>
+
+                        @if (! $reconciliation->isArchived())
+                            <flux:button variant="subtle" icon="archive-box" wire:click="confirmArchive({{ $reconciliation->id }})">
+                                {{ __('Archive') }}
+                            </flux:button>
+                        @else
+                            <flux:button variant="subtle" icon="arrow-uturn-left" wire:click="restoreReconciliation({{ $reconciliation->id }})">
+                                {{ __('Restore') }}
+                            </flux:button>
+                            <flux:button variant="danger" icon="trash" wire:click="confirmDelete({{ $reconciliation->id }})">
+                                {{ __('Delete Permanently') }}
                             </flux:button>
                         @endif
-                    </x-ui.dashboard.panel>
-                @endif
-
-                @if (! empty($reconciliation->metadata))
-                    <x-ui.dashboard.panel class="space-y-3">
-                        <div class="flex items-center justify-between gap-3">
-                            <flux:heading size="sm">{{ __('Provider Summary') }}</flux:heading>
-                        </div>
-
-                        <dl class="grid grid-cols-1 gap-3 sm:grid-cols-2 text-sm">
-                            <div>
-                                <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Provider Transaction ID') }}</dt>
-                                <dd class="mt-1 font-medium text-zinc-900 dark:text-zinc-100">{{ $reconciliation->metadata['payment_id'] ?? $reconciliation->metadata['paymentRef'] ?? $reconciliation->metadata['transaction_id'] ?? $reconciliation->metadata['transaction_reference'] ?? '—' }}</dd>
-                            </div>
-
-                            <div>
-                                <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Provider Status') }}</dt>
-                                <dd class="mt-1 font-medium text-zinc-900 dark:text-zinc-100">{{ $reconciliation->metadata['status'] ?? $reconciliation->metadata['transaction_status'] ?? '—' }}</dd>
-                            </div>
-
-                            <div>
-                                <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Provider Amount') }}</dt>
-                                <dd class="mt-1 font-medium text-zinc-900 dark:text-zinc-100">{{ isset($reconciliation->metadata['amount']) ? number_format((float) $reconciliation->metadata['amount'], 3) : (isset($reconciliation->metadata['payment_amount']) ? number_format((float) $reconciliation->metadata['payment_amount'], 3) : '—') }}</dd>
-                            </div>
-
-                            <div>
-                                <dt class="text-zinc-500 dark:text-zinc-400">{{ __('Received At') }}</dt>
-                                <dd class="mt-1 font-medium text-zinc-900 dark:text-zinc-100">{{ $reconciliation->metadata['timestamp'] ?? $reconciliation->metadata['created_at'] ?? '—' }}</dd>
-                            </div>
-                        </dl>
-
-                        <div class="text-xs text-zinc-500">{{ __('Raw provider payload has been hidden for clarity. Contact support to view full payload when necessary.') }}</div>
-                    </x-ui.dashboard.panel>
-                @endif
-
-                @if ($reconciliation->isArchived())
-                    <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-300">
-                        {{ __('Archived on :date. Restore to return it to the active list, or delete permanently.', ['date' => $reconciliation->archived_at->format('M d, Y H:i')]) }}
                     </div>
-                @endif
-
-                <div class="flex flex-wrap justify-end gap-2 border-t border-zinc-200 pt-4 dark:border-zinc-700">
-                    <flux:button variant="ghost" wire:click="closeDetailModal">{{ __('Close') }}</flux:button>
-
-                    @if (! $reconciliation->isArchived())
-                        <flux:button variant="subtle" icon="archive-box" wire:click="confirmArchive({{ $reconciliation->id }})">
-                            {{ __('Archive') }}
-                        </flux:button>
-                    @else
-                        <flux:button variant="subtle" icon="arrow-uturn-left" wire:click="restoreReconciliation({{ $reconciliation->id }})">
-                            {{ __('Restore') }}
-                        </flux:button>
-                        <flux:button variant="danger" icon="trash" wire:click="confirmDelete({{ $reconciliation->id }})">
-                            {{ __('Delete Permanently') }}
-                        </flux:button>
-                    @endif
                 </div>
-            </section>
+            </div>
         @endif
     </flux:modal>
 

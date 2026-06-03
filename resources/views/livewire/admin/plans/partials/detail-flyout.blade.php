@@ -1,46 +1,19 @@
-<!-- Detail Flyout -->
 <flux:modal wire:model="showDetailFlyout" variant="flyout" class="max-w-md w-full">
     @if ($this->detailPlan)
-        <div class="-mx-6 -mt-6">
-            <div class="relative w-full">
-                @if ($this->detailPlan->image_url)
-                    <div class="relative h-52 w-full overflow-hidden border-b border-zinc-200 dark:border-zinc-700">
-                        <img
-                            src="{{ $this->detailPlan->image_url }}"
-                            alt="{{ $this->detailPlan->name }}"
-                            class="h-full w-full object-cover object-center"
-                        >
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/10"></div>
-                    </div>
-                @else
-                    <div class="relative h-52 w-full overflow-hidden border-b border-zinc-200 bg-gradient-to-br from-zinc-800 via-zinc-900 to-zinc-950 dark:border-zinc-700">
-                        <div class="absolute inset-0 opacity-40" aria-hidden="true">
-                            <div class="absolute -right-10 -top-10 size-44 rounded-full bg-white/10 blur-2xl"></div>
-                            <div class="absolute -bottom-14 left-1/3 size-52 rounded-full bg-white/5 blur-3xl"></div>
-                        </div>
-                        <div class="relative flex h-full flex-col items-center justify-center gap-3 px-6">
-                            <div class="flex size-16 items-center justify-center rounded-2xl border border-white/10 bg-white/10 shadow-lg backdrop-blur-sm">
-                                <flux:icon name="tag" class="size-8 text-white/80" />
-                            </div>
-                            <span class="text-xs font-medium uppercase tracking-wider text-white/50">{{ __('No cover image') }}</span>
-                        </div>
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                    </div>
-                @endif
-
-                <div class="absolute bottom-4 left-6 pr-4">
-                    <h2 class="text-xl font-bold tracking-tight text-white drop-shadow-sm">{{ __($this->detailPlan->name) }}</h2>
-                </div>
-                <div class="absolute top-4 right-10">
+        <div class="space-y-8 p-2">
+            <div>
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">{{ __($this->detailPlan->name) }}</h2>
                     <x-ui.dashboard.status-badge
                         :status="$this->detailPlan->is_archived ? 'archived' : 'active'"
                         :label="$this->detailPlan->is_archived ? __('Archived') : __('Active')"
                         :color="$this->detailPlan->is_archived ? 'zinc' : 'green'"
                     />
                 </div>
+                <flux:subheading class="mt-1">{{ __('Detailed overview of the subscription plan.') }}</flux:subheading>
             </div>
 
-            <div class="p-6 space-y-8">
+            <div class="space-y-8">
                 {{-- Pricing & Duration --}}
                 <div class="flex items-center justify-between border-b border-zinc-200 pb-5 dark:border-zinc-700">
                     <div class="space-y-1">

@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -173,9 +172,9 @@ class Member extends Authenticatable
         return $this->hasMany(Subscription::class);
     }
 
-    public function activeSubscription(): HasOne
+    public function validSubscriptions(): HasMany
     {
-        return $this->hasOne(Subscription::class)
+        return $this->hasMany(Subscription::class)
             ->where('status', 'active')
             ->whereDate('ends_at', '>', now());
     }
@@ -225,14 +224,14 @@ class Member extends Authenticatable
 
     public function scopeByPlan(Builder $query, int $planId): Builder
     {
-        return $query->whereHas('activeSubscription', function (Builder $query) use ($planId): void {
+        return $query->whereHas('validSubscriptions', function (Builder $query) use ($planId): void {
             $query->where('plan_id', $planId);
         });
     }
 
     public function scopeWithDetails(Builder $query): Builder
     {
-        return $query->with(['activeSubscription']);
+        return $query->with(['validSubscriptions']);
     }
 
     public function scopeSearchable(Builder $query, ?string $term): Builder

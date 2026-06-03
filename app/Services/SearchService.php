@@ -35,7 +35,7 @@ class SearchService
                     'id' => $course->id,
                     'type' => 'course',
                     'title' => $course->name,
-                    'subtitle' => $course->instructor ?? null,
+                    'subtitle' => $course->category,
                     'icon' => $course->icon ?? null,
                 ];
             });

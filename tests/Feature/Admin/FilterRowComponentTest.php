@@ -9,8 +9,7 @@ it('renders the shared filter row component in courses filters', function () {
     $this->actingAs($user);
 
     Livewire::test(CourseManager::class)
-        ->assertSee('Course name or instructor')
+        ->assertSee('Course name')
         ->assertSee('Category')
-        ->assertSee('Instructor')
         ->assertSee('Sessions');
 });

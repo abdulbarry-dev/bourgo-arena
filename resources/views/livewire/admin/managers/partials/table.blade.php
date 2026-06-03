@@ -1,4 +1,4 @@
-<x-ui.dashboard.table-shell loading-targets="search" :has-rows="$managers->count() > 0">
+<x-ui.dashboard.table-shell loading-targets="search,statusFilter" :has-rows="$managers->count() > 0">
     <x-slot name="loading">
         <flux:skeleton class="h-12 w-full" />
         <flux:skeleton class="h-12 w-full" />
@@ -8,8 +8,11 @@
     <x-slot name="empty">
         <x-ui.dashboard.empty-state
             table
+            icon="users"
             :title="__('No managers found')"
             :subtitle="__('Try adjusting your search.')"
+            :button-label="__('Add Manager')"
+            button-wire-click="openCreateFlyout"
         />
     </x-slot>
 
@@ -44,18 +47,22 @@
                                     <flux:menu.item icon="eye" wire:click="openViewFlyout({{ $manager->id }})">
                                         {{ __('View Details') }}
                                     </flux:menu.item>
-                                    
+
+                                    <flux:menu.item icon="pencil-square" wire:click="openEditFlyout({{ $manager->id }})">
+                                        {{ __('Edit Information') }}
+                                    </flux:menu.item>
+
                                     @if ($manager->id !== auth()->id())
-                                        <flux:menu.item 
-                                            icon="{{ $manager->isBanned() ? 'check-circle' : 'no-symbol' }}" 
+                                        <flux:menu.item
+                                            icon="{{ $manager->isBanned() ? 'check-circle' : 'no-symbol' }}"
                                             wire:click="selectManager({{ $manager->id }}); toggleBan()"
                                         >
                                             {{ $manager->isBanned() ? __('Unban Manager') : __('Ban Manager') }}
                                         </flux:menu.item>
-                                        
-                                        <flux:menu.item 
-                                            icon="trash" 
-                                            variant="danger" 
+
+                                        <flux:menu.item
+                                            icon="trash"
+                                            variant="danger"
                                             x-on:click="$wire.selectManager({{ $manager->id }}).then(() => { Flux.modal('confirm-delete').show() })"
                                         >
                                             {{ __('Delete Manager') }}
@@ -70,9 +77,10 @@
         </tbody>
     </table>
 
+    @if ($managers->hasPages())
     <x-slot name="pagination">
-        @if ($managers->hasPages())
             {{ $managers->links() }}
-        @endif
     </x-slot>
+    @endif
+
 </x-ui.dashboard.table-shell>

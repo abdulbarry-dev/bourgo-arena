@@ -14,7 +14,6 @@ class CourseResource extends JsonResource
      * @return array{
      *     id: string,
      *     title: string,
-     *     instructor: string|null,
      *     start_time: string,
      *     end_time: string,
      *     day_of_week: int,
@@ -32,7 +31,6 @@ class CourseResource extends JsonResource
         return [
             'id' => (string) $this->id,
             'title' => $this->course->name,
-            'instructor' => $this->course->instructor,
             'start_time' => $startsAt->format('H:i'),
             'end_time' => $endTime,
             'day_of_week' => $this->day_of_week,

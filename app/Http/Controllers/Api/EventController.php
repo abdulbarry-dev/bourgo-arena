@@ -13,10 +13,7 @@ class EventController extends Controller
     public function index(Request $request)
     {
         $events = Event::query()
-            ->when($request->status, fn ($q, $status) => $q->where('status', $status))
-            ->when($request->sport_type, fn ($q, $sportType) => $q->where('sport_type', $sportType))
             ->withCount('participants')
-            ->where('status', '!=', 'draft')
             ->latest()
             ->paginate(15);
 
@@ -25,10 +22,6 @@ class EventController extends Controller
 
     public function show(Event $event)
     {
-        if ($event->status === 'draft') {
-            abort(404);
-        }
-
         $event->loadCount('participants');
 
         return new EventResource($event);

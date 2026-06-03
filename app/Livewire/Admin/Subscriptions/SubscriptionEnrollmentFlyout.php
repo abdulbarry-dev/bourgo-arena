@@ -5,12 +5,11 @@ namespace App\Livewire\Admin\Subscriptions;
 use App\Jobs\SendSubscriptionNotification;
 use App\Jobs\SendSubscriptionReceiptEmail;
 use App\Models\Member;
-use App\Models\Payment;
 use App\Models\Plan;
 use App\Models\Subscription;
 use App\Services\LoyaltyCalculatorService;
-use App\Services\PaymentGateway\KonnectGateway;
 use App\Services\ReceiptGenerator;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Collection;
@@ -40,6 +39,23 @@ class SubscriptionEnrollmentFlyout extends Component
         $this->memberId = $memberId;
         $this->paymentMethod = 'cash';
         $this->startsAt = now()->toDateString();
+
+        // Pre-select the first eligible member if memberId is null
+        if ($this->memberId === null) {
+            $firstEligibleMember = $this->eligibleMembers->first();
+            if ($firstEligibleMember) {
+                $this->memberId = $firstEligibleMember->id;
+            }
+        }
+
+        // Pre-select the first available plan if planId is null
+        if ($this->planId === null) {
+            $firstAvailablePlan = $this->plans->first();
+            if ($firstAvailablePlan) {
+                $this->planId = $firstAvailablePlan->id;
+            }
+        }
+
         $this->show = true;
     }
 
@@ -75,7 +91,7 @@ class SubscriptionEnrollmentFlyout extends Component
     public function setMember(int $memberId): void
     {
         $this->memberId = $memberId;
-        session(['members.selected_member_id' => $memberId]);
+        session(['members.selected_member_id' => $this->memberId]);
     }
 
     public function updatedMemberId(mixed $value): void
@@ -134,59 +150,45 @@ class SubscriptionEnrollmentFlyout extends Component
                 return;
             }
 
-            if (Subscription::query()->where('member_id', $member->id)->active()->exists()) {
-                $this->addError('memberId', __('This member already has an active subscription.'));
+            // Business Rule 1: Check for existing active subscriptions in the same service
+            $existingActiveSubscriptionInSameService = Subscription::query()
+                ->active()
+                ->where('member_id', $member->id)
+                ->whereHas('plan', fn (Builder $query) => $query->where('service_id', $plan->service_id))
+                ->first();
 
-                return;
-            }
+            if ($existingActiveSubscriptionInSameService) {
+                // If it's an upgrade (new plan has higher duration)
+                if ($plan->duration_days > $existingActiveSubscriptionInSameService->plan->duration_days) {
+                    // Upgrade mechanism: extend duration
+                    $newEndDate = CarbonImmutable::parse($existingActiveSubscriptionInSameService->ends_at)
+                        ->addDays($plan->duration_days)
+                        ->toDateString();
 
-            // If payment method is a gateway, verify the provided paymentReference server-side
-            if ($validated['paymentMethod'] === 'konnect') {
-                if (empty($validated['paymentReference'])) {
-                    $this->addError('paymentReference', __('Payment reference is required for online gateway methods.'));
+                    $existingActiveSubscriptionInSameService->update([
+                        'plan_id' => $plan->id, // Update to the new plan
+                        'ends_at' => $newEndDate,
+                        // Recalculate days_remaining based on the new end date
+                        'days_remaining' => CarbonImmutable::now()->diffInDays($newEndDate, false),
+                    ]);
+
+                    $this->dispatch('subscription-upgraded', memberId: $member->id, subscriptionId: $existingActiveSubscriptionInSameService->id);
+                    $this->dispatch('toast', message: __('Subscription upgraded successfully, duration extended.'), type: 'success');
+                    $this->isProcessing = false;
+                    $this->show = false; // Close the flyout after successful upgrade
 
                     return;
-                }
 
-                $existing = Payment::query()->where('payment_reference', $validated['paymentReference'])->first();
-
-                $verified = false;
-
-                if ($existing && $existing->status === 'paid') {
-                    $verified = true;
                 } else {
-                    try {
-                        $verifyResult = app(KonnectGateway::class)->verify($validated['paymentReference']);
-                        if (! empty($verifyResult['status']) && in_array(strtolower($verifyResult['status']), ['paid', 'completed'], true)) {
-                            $verified = true;
-                            $existing = $existing ?? Payment::create([
-                                'member_id' => $member->id,
-                                'subscription_id' => null,
-                                'driver' => 'konnect',
-                                'type' => 'subscription_enrollment',
-                                'amount' => $plan->price,
-                                'currency' => 'TND',
-                                'status' => 'paid',
-                                'payment_reference' => $validated['paymentReference'],
-                                'gateway_transaction_id' => $verifyResult['transaction_id'] ?? null,
-                                'metadata' => $verifyResult,
-                            ]);
-                            $existing->update(['status' => 'paid', 'metadata' => $verifyResult, 'verified_at' => now()]);
-                        }
-                    } catch (Throwable $e) {
-                        $this->addError('paymentReference', __('Payment verification failed.'));
-
-                        return;
-                    }
-                }
-
-                if (! $verified) {
-                    $this->addError('paymentReference', __('Payment has not been verified as paid.'));
+                    // Block enrollment: member cannot hold multiple active subscriptions in same service
+                    $this->addError('planId', __('This member already has an active subscription in this service. Please wait for it to expire or upgrade to a higher duration plan.'));
+                    $this->isProcessing = false;
 
                     return;
                 }
             }
 
+            // Process enrollment
             $subscription = DB::transaction(function () use ($validated, $member, $plan): Subscription {
                 $subscription = Subscription::query()->create([
                     'member_id' => $member->id,
@@ -238,6 +240,8 @@ class SubscriptionEnrollmentFlyout extends Component
                 ],
             );
 
+            $this->show = false; // Close the flyout before dispatching events for better perceived responsiveness
+
             $this->dispatch('subscription-created', memberId: $member->id, subscriptionId: $subscription->id);
             $this->dispatch('toast', message: 'Subscription enrolled successfully', type: 'success');
         } catch (ValidationException $exception) {
@@ -248,6 +252,8 @@ class SubscriptionEnrollmentFlyout extends Component
             $this->addError('enroll', __('Enrollment could not be completed right now. Please try again.'));
         } finally {
             $this->isProcessing = false;
+            // No need to set $this->show = false here anymore, it's done before dispatches for success.
+            // If there are errors, we want the flyout to remain open.
         }
     }
 
@@ -260,7 +266,7 @@ class SubscriptionEnrollmentFlyout extends Component
 
         return Member::query()
             ->whereNull('deleted_at')
-            ->with('activeSubscription.plan')
+            ->with('validSubscriptions.plan')
             ->find($this->memberId);
     }
 
@@ -269,12 +275,8 @@ class SubscriptionEnrollmentFlyout extends Component
     {
         return Member::query()
             ->whereNull('deleted_at')
-            ->where(function (Builder $query): void {
-                $query->whereDoesntHave('activeSubscription');
-
-                if ($this->memberId !== null) {
-                    $query->orWhere('id', $this->memberId);
-                }
+            ->when($this->memberId !== null, function (Builder $query) {
+                $query->where('id', $this->memberId);
             })
             ->orderBy('name')
             ->get(['id', 'name', 'email', 'status']);
@@ -286,7 +288,7 @@ class SubscriptionEnrollmentFlyout extends Component
         return Plan::query()
             ->where('is_archived', false)
             ->orderBy('price')
-            ->get(['id', 'name', 'price', 'duration_days', 'included_services']);
+            ->get(['id', 'name', 'price', 'duration_days']);
     }
 
     #[Computed]
@@ -321,10 +323,10 @@ class SubscriptionEnrollmentFlyout extends Component
             ],
             'paymentMethod' => [
                 'required',
-                Rule::in(['cash', 'konnect']),
+                Rule::in(['cash', 'tpe']),
             ],
             'paymentReference' => [
-                Rule::requiredIf($this->paymentMethod !== 'cash'),
+                Rule::requiredIf($this->paymentMethod === 'tpe'),
                 'nullable',
                 'string',
                 'max:255',

@@ -14,28 +14,53 @@
                 wire:model.live.debounce.300ms="search"
                 type="search"
                 :label="__('Search')"
-                :placeholder="__('Title, category, or icon')"
+                :placeholder="__('Title or description')"
                 icon="magnifying-glass"
             />
         </x-slot>
 
         <x-slot name="controls">
-            <div class="min-w-[180px]">
+            {{-- Service Filter --}}
+            <div class="w-56" style="min-width:160px">
+                <flux:field>
+                    <flux:label>{{ __('Service') }}</flux:label>
+                    <flux:select wire:model.live="serviceFilter" placeholder="{{ __('All Services') }}">
+                        <flux:select.option value="">{{ __('All Services') }}</flux:select.option>
+                        @foreach($this->availableServices as $service)
+                            <flux:select.option value="{{ $service->id }}">{{ $service->name }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                </flux:field>
+            </div>
+
+            {{-- Status Filter --}}
+            <div class="w-56" style="min-width:160px">
+                <flux:field>
+                    <flux:label>{{ __('Status') }}</flux:label>
+                    <flux:select wire:model.live="statusFilter" placeholder="{{ __('All Statuses') }}">
+                        <flux:select.option value="">{{ __('All Statuses') }}</flux:select.option>
+                        <flux:select.option value="active">{{ __('Active') }}</flux:select.option>
+                        <flux:select.option value="inactive">{{ __('Inactive') }}</flux:select.option>
+                    </flux:select>
+                </flux:field>
+            </div>
+
+            {{-- Category Filter --}}
+            <div class="w-56" style="min-width:160px">
                 <flux:field>
                     <flux:label>{{ __('Category') }}</flux:label>
-                    <flux:select wire:model.live="categoryFilter">
-                        <option value="">{{ __('All categories') }}</option>
-                        <option value="padel">{{ __('Padel') }}</option>
-                        <option value="basket">{{ __('Basket') }}</option>
-                        <option value="football">{{ __('Football') }}</option>
-                        <option value="tennis">{{ __('Tennis') }}</option>
+                    <flux:select wire:model.live="categoryFilter" placeholder="{{ __('All Categories') }}">
+                        <flux:select.option value="">{{ __('All Categories') }}</flux:select.option>
+                        @foreach($this->categories as $category)
+                            <flux:select.option value="{{ $category }}">{{ ucfirst($category) }}</flux:select.option>
+                        @endforeach
                     </flux:select>
                 </flux:field>
             </div>
         </x-slot>
     </x-ui.filter-row>
 
-    <x-ui.dashboard.table-shell loading-targets="search,categoryFilter" :has-rows="$this->activities->count() > 0">
+    <x-ui.dashboard.table-shell loading-targets="search,serviceFilter,statusFilter" :has-rows="$this->activities->count() > 0">
         <x-slot name="loading">
             <flux:skeleton class="h-12 w-full" />
             <flux:skeleton class="h-12 w-full" />
@@ -45,8 +70,11 @@
         <x-slot name="empty">
             <x-ui.dashboard.empty-state
                 table
+                icon="plus-circle"
                 :title="__('No activities found')"
-                :subtitle="__('Create the courts and activities that members can reserve.')"
+                :subtitle="__('All your activities will appear here. Get started by creating your first activity.')"
+                :button-label="__('New Activity')"
+                button-wire-click="openCreateFlyout"
             />
         </x-slot>
 
@@ -54,7 +82,7 @@
             <thead class="bg-zinc-50 dark:bg-zinc-900/80">
                 <tr>
                     <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Title') }}</th>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Category') }}</th>
+                    <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Service') }}</th>
                     <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Price') }}</th>
                     <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Slots') }}</th>
                     <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Status') }}</th>
@@ -67,7 +95,13 @@
                         <td class="px-4 py-4 align-top">
                             <span class="font-medium text-zinc-900 dark:text-zinc-100">{{ $activity->title }}</span>
                         </td>
-                        <td class="px-4 py-4 align-top text-zinc-600 dark:text-zinc-300">{{ ucfirst($activity->category) }}</td>
+                        <td class="px-4 py-4 align-top">
+                            @if($activity->service)
+                                <flux:badge size="sm" color="blue" inset="top bottom">{{ $activity->service->name }}</flux:badge>
+                            @else
+                                <span class="text-zinc-400 italic text-xs">{{ __('N/A') }}</span>
+                            @endif
+                        </td>
                         <td class="px-4 py-4 align-top text-zinc-600 dark:text-zinc-300">{{ number_format((float) $activity->base_price, 2) }} {{ $activity->currency }}</td>
                         <td class="px-4 py-4 align-top text-zinc-600 dark:text-zinc-300">{{ $activity->slots_count }}</td>
                         <td class="px-4 py-4 align-top">
@@ -105,12 +139,11 @@
                 @endforeach
             </tbody>
         </table>
-
+        @if ($this->activities->hasPages())
         <x-slot name="pagination">
-            @if ($this->activities->hasPages())
                 {{ $this->activities->links() }}
-            @endif
         </x-slot>
+         @endif
     </x-ui.dashboard.table-shell>
 
     <flux:modal wire:model="showActivityFlyout" variant="flyout" class="w-full max-w-2xl" x-on:hidden="$wire.closeActivityFlyout()">
@@ -120,21 +153,50 @@
                 <flux:text variant="subtle">{{ __('Court details only. Manage availability slots from the Manage Slots page.') }}</flux:text>
 
                 <div class="mt-6 space-y-5">
-                    <flux:input wire:model="title" :label="__('Activity Title')" placeholder="{{ __('Stade Padel 1') }}" required />
+                    <flux:field>
+                        <flux:label>{{ __('Activity Title') }}</flux:label>
+                        <flux:input wire:model="title" placeholder="{{ __('Stade Padel 1') }}" required />
+                        <flux:error name="title" />
+                    </flux:field>
 
-                    <flux:select wire:model="category" :label="__('Category')" required>
-                        <option value="padel">{{ __('Padel') }}</option>
-                        <option value="basket">{{ __('Basket') }}</option>
-                        <option value="football">{{ __('Football') }}</option>
-                        <option value="tennis">{{ __('Tennis') }}</option>
-                    </flux:select>
+                    <flux:field>
+                        <flux:label>{{ __('Category') }}</flux:label>
+                        <flux:select wire:model="category" searchable placeholder="{{ __('Select a category...') }}" required>
+                             @foreach($this->categories as $category)
+                                <flux:select.option value="{{ $category }}">{{ ucfirst($category) }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                        <flux:error name="category" />
+                    </flux:field>
 
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <flux:input wire:model="basePrice" type="text" inputmode="decimal" :label="__('Base Price')" placeholder="{{ __('50.000') }}" required />
-                        <flux:input wire:model="currency" :label="__('Currency')" maxlength="3" required />
-                    </div>
+                    <flux:field>
+                        <flux:label>{{ __('Parent Service') }}</flux:label>
+                        @if($this->availableServices->isNotEmpty())
+                            <flux:select wire:model.live="serviceId" searchable placeholder="{{ __('Select a service...') }}" required>
+                                <flux:select.option value="" disabled>{{ __('Select a service...') }}</flux:select.option>
+                                @foreach($this->availableServices as $service)
+                                    <flux:select.option value="{{ $service->id }}">{{ $service->name }}</flux:select.option>
+                                @endforeach
+                            </flux:select>
+                        @else
+                            <div class="p-4 rounded-lg border border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800">
+                                <flux:text variant="subtle">{{ __('No services available. Please create a service first.') }}</flux:text>
+                            </div>
+                        @endif
+                        <flux:error name="serviceId" />
+                    </flux:field>
 
-                    <flux:textarea wire:model="description" :label="__('Description')" rows="4" />
+                    <flux:field>
+                        <flux:label>{{ __('Base Price') }}</flux:label>
+                        <flux:input wire:model="basePrice" type="text" inputmode="decimal" placeholder="{{ __('50.000') }}" required suffix="TND" />
+                        <flux:error name="basePrice" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>{{ __('Description') }}</flux:label>
+                        <flux:textarea wire:model="description" rows="4" />
+                        <flux:error name="description" />
+                    </flux:field>
 
                     <flux:field>
                         <flux:label>{{ __('Features') }}</flux:label>
@@ -174,7 +236,6 @@
                     <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                     <div class="absolute bottom-4 left-6 pr-16">
                         <h2 class="text-xl font-bold tracking-tight text-white drop-shadow-sm">{{ $this->selectedActivity->title }}</h2>
-                        <p class="mt-1 text-sm font-medium text-zinc-200">{{ ucfirst($this->selectedActivity->category) }}</p>
                     </div>
                     <div class="absolute top-4 right-10">
                         <x-ui.dashboard.status-badge

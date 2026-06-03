@@ -9,7 +9,6 @@ uses(RefreshDatabase::class);
 it('can list active course sessions', function () {
     $course = Course::factory()->create([
         'name' => 'Test Course',
-        'instructor' => 'Test Instructor',
     ]);
 
     CourseSession::create([

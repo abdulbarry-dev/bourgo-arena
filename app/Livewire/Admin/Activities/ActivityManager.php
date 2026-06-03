@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\Activities;
 
 use App\Models\Activity;
+use App\Models\Service;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\View\View;
@@ -17,7 +18,11 @@ class ActivityManager extends Component
 
     public string $search = '';
 
-    public string $categoryFilter = '';
+    public ?int $serviceFilter = null; // New property for service filter
+
+    public string $statusFilter = ''; // New property for status filter
+
+    public string $categoryFilter = ''; // New property for category filter
 
     public bool $showActivityFlyout = false;
 
@@ -25,15 +30,15 @@ class ActivityManager extends Component
 
     public ?int $activityId = null;
 
+    public ?int $serviceId = null;
+
     public ?int $detailActivityId = null;
 
     public string $title = '';
 
-    public string $category = 'padel';
+    public string $category = '';
 
     public string $basePrice = '';
-
-    public string $currency = 'TND';
 
     public ?string $description = null;
 
@@ -48,15 +53,37 @@ class ActivityManager extends Component
         $this->resetPage();
     }
 
-    public function updatedCategoryFilter(): void
+    public function updatedServiceFilter(): void // New method for service filter update
     {
         $this->resetPage();
+    }
+
+    public function updatedStatusFilter(): void // New method for status filter update
+    {
+        $this->resetPage();
+    }
+
+    public function updatedCategoryFilter(): void // New method for category filter update
+    {
+        $this->resetPage();
+    }
+
+    public function updatedServiceId($value)
+    {
+        $this->serviceId = (int) $value;
     }
 
     public function openCreateFlyout(): void
     {
         $this->resetValidation();
         $this->resetActivityForm();
+
+        // Pre-select the first available active service if any exist
+        $firstAvailableService = $this->availableServices->first();
+        if ($firstAvailableService) {
+            $this->serviceId = $firstAvailableService->id;
+        }
+
         $this->showActivityFlyout = true;
     }
 
@@ -66,10 +93,10 @@ class ActivityManager extends Component
 
         $this->resetValidation();
         $this->activityId = $activity->id;
+        $this->serviceId = $activity->service_id;
         $this->title = $activity->title;
         $this->category = $activity->category;
         $this->basePrice = number_format((float) $activity->base_price, 2, '.', '');
-        $this->currency = $activity->currency;
         $this->description = $activity->description;
         $this->featuresInput = implode(', ', $activity->features ?? []);
         $this->isActive = $activity->is_active;
@@ -99,10 +126,11 @@ class ActivityManager extends Component
         $validated = $this->validate($this->rules());
 
         $payload = [
+            'service_id' => $validated['serviceId'],
             'title' => $validated['title'],
             'category' => $validated['category'],
             'base_price' => $validated['basePrice'],
-            'currency' => $validated['currency'],
+            'currency' => 'TND',
             'description' => $validated['description'] ?: null,
             'features' => $this->normalizeFeatures($validated['featuresInput']),
             'is_active' => $validated['isActive'],
@@ -133,9 +161,21 @@ class ActivityManager extends Component
     }
 
     #[Computed]
+    public function availableServices()
+    {
+        return Service::query()->active()->orderBy('name')->get();
+    }
+
+    #[Computed]
+    public function categories()
+    {
+        return Activity::query()->select('category')->distinct()->orderBy('category')->pluck('category')->filter()->values();
+    }
+
+    #[Computed]
     public function activities(): LengthAwarePaginator
     {
-        return Activity::query()
+        $activities = Activity::query()
             ->withCount('slots')
             ->when($this->search !== '', function (Builder $query): void {
                 $term = '%'.$this->search.'%';
@@ -143,12 +183,23 @@ class ActivityManager extends Component
                 $query->where(function (Builder $builder) use ($term): void {
                     $builder
                         ->where('title', 'like', $term)
-                        ->orWhere('category', 'like', $term);
+                        ->orWhere('description', 'like', $term) // Search description
+                        ->orWhereJsonContains('features', $term); // Search features (assuming features is JSON)
                 });
             })
-            ->when($this->categoryFilter !== '', fn (Builder $query) => $query->where('category', $this->categoryFilter))
+            ->when($this->serviceFilter, function (Builder $query) { // Apply service filter
+                $query->where('service_id', $this->serviceFilter);
+            })
+            ->when($this->categoryFilter !== '', function (Builder $query) { // Apply category filter
+                $query->where('category', $this->categoryFilter);
+            })
+            ->when($this->statusFilter !== '', function (Builder $query) { // Apply status filter
+                $query->where('is_active', $this->statusFilter === 'active');
+            })
             ->orderBy('title')
             ->paginate(10);
+
+        return $activities;
     }
 
     #[Computed]
@@ -172,28 +223,26 @@ class ActivityManager extends Component
     {
         $this->reset([
             'activityId',
+            'serviceId',
             'title',
             'category',
             'basePrice',
-            'currency',
             'description',
             'featuresInput',
             'images',
             'isActive',
         ]);
 
-        $this->category = 'padel';
-        $this->currency = 'TND';
         $this->isActive = true;
     }
 
     private function rules(): array
     {
         return [
+            'serviceId' => ['required', 'integer', 'exists:services,id'],
             'title' => ['required', 'string', 'max:255'],
             'category' => ['required', 'string', 'max:100'],
             'basePrice' => ['required', 'numeric', 'min:0'],
-            'currency' => ['required', 'string', 'size:3'],
             'description' => ['nullable', 'string'],
             'featuresInput' => ['nullable', 'string'],
             'images' => ['nullable', 'array', 'max:3'],
