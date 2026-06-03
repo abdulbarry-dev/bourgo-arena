@@ -57,7 +57,7 @@ class AssignParticipantsModal extends Component
         $enrolledIds = $bookings->pluck('member_id')->toArray();
         $availableMembers = Member::active()
             ->whereNotIn('id', $enrolledIds)
-            ->whereHas('activeSubscription.plan', function ($query) {
+            ->whereHas('validSubscriptions.plan', function ($query) {
                 $query->where('has_all_courses', true)
                     ->orWhereHas('courses', function ($q) {
                         $q->where('courses.id', $this->session->course_id);
@@ -87,15 +87,25 @@ class AssignParticipantsModal extends Component
                 'date' => $this->date,
             ]);
 
-            $member = Member::with('activeSubscription.plan.courses')->findOrFail($this->memberIdToEnroll);
-
-            if (! $member->activeSubscription) {
+            $member = Member::with('validSubscriptions.plan.courses')->findOrFail($this->memberIdToEnroll);
+            if ($member->validSubscriptions->isEmpty()) { // Check if no valid subscriptions
                 $this->dispatch('toast', message: __('Member does not have an active subscription.'), type: 'warning');
 
                 return;
             }
 
-            $plan = $member->activeSubscription->plan;
+            $subscriptionToUse = $member->validSubscriptions->first(function ($subscription) {
+                return $subscription->plan->courses->contains($this->session->course_id);
+            });
+
+            if (! $subscriptionToUse) {
+                $this->dispatch('toast', message: __('Member does not have a valid subscription for this course.'), type: 'error');
+                $this->assignParticipantsModal = false;
+
+                return;
+            }
+
+            $plan = $subscriptionToUse->plan;
 
             if (! $plan->has_all_courses && ! $plan->courses->pluck('id')->contains($this->session->course_id)) {
                 $this->dispatch('toast', message: __("Member's active plan does not include this course."), type: 'warning');

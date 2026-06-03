@@ -6,7 +6,6 @@ use App\Jobs\SendCourseCancelledPush;
 use App\Models\Booking;
 use App\Models\CourseSession;
 use App\Models\CourseSessionException;
-use Carbon\Carbon;
 use Flux\Flux;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\On;
@@ -60,7 +59,7 @@ class CancelSessionModal extends Component
 
             $this->dispatch('toast', message: __('Session cancelled and members notified.'), type: 'success');
             $this->dispatch('course-session-updated');
-            
+
             Flux::modal('cancel-session-modal')->close();
         } catch (\Exception $e) {
             Log::error('Cancel instance failed', ['error' => $e->getMessage()]);
@@ -82,7 +81,7 @@ class CancelSessionModal extends Component
             $this->session->delete();
 
             $this->dispatch('course-session-updated');
-            
+
             Flux::modal('delete-cancelled-session-modal')->close();
         } catch (\Exception $e) {
             Log::error('Delete master session failed', ['error' => $e->getMessage()]);

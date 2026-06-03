@@ -1,50 +1,50 @@
 <div class="space-y-8">
     <section class="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900/40">
-        <div class="grid gap-8 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-800 p-6 text-white sm:p-8 xl:grid-cols-[minmax(0,1.5fr),minmax(18rem,1fr)]">
+        <div class="grid gap-8 bg-zinc-50 p-6 text-zinc-900 dark:bg-gradient-to-br dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-800 sm:p-8 dark:text-white xl:grid-cols-[minmax(0,1.5fr),minmax(18rem,1fr)]">
             <div class="space-y-6">
-                <div class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-[0.25em] text-white/70">
+                <div class="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-100 px-3 py-1 text-xs font-medium uppercase tracking-[0.25em] text-zinc-500 dark:border-white/10 dark:bg-white/5 dark:text-white/70">
                     <span class="size-2 rounded-full bg-emerald-400"></span>
                     {{ __('Course Sessions') }}
                 </div>
 
                 <div class="space-y-3">
-                    <flux:heading size="xl" level="1" class="text-white">{{ __('Weekly Class Schedule') }}</flux:heading>
-                    <p class="max-w-2xl text-sm leading-6 text-zinc-300 sm:text-base">
+                    <flux:heading size="xl" level="1" class="text-zinc-900 dark:text-white">{{ __('Weekly Class Schedule') }}</flux:heading>
+                    <p class="max-w-2xl text-sm leading-6 text-zinc-600 dark:text-zinc-300 sm:text-base">
                         {{ __('Plan recurring classes, inspect the week at a glance, and jump into session details or creation without losing context.') }}
                     </p>
                 </div>
 
                 <div class="flex flex-wrap gap-3">
-                    <flux:button wire:click="previousWeek" icon="chevron-left" variant="subtle" class="bg-white/10 text-white hover:bg-white/15" />
-                    <flux:button wire:click="currentWeek" variant="subtle" class="bg-white/10 text-white hover:bg-white/15">{{ __('Today') }}</flux:button>
-                    <flux:button wire:click="nextWeek" icon="chevron-right" variant="subtle" class="bg-white/10 text-white hover:bg-white/15" />
+                    <flux:button wire:click="previousWeek" icon="chevron-left" variant="subtle" class="border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 dark:border-none dark:bg-white/10 dark:text-white dark:hover:bg-white/15" />
+                    <flux:button wire:click="currentWeek" variant="subtle" class="border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 dark:border-none dark:bg-white/10 dark:text-white dark:hover:bg-white/15">{{ __('Today') }}</flux:button>
+                    <flux:button wire:click="nextWeek" icon="chevron-right" variant="subtle" class="border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 dark:border-none dark:bg-white/10 dark:text-white dark:hover:bg-white/15" />
                     <flux:button wire:click="openCreateModal" variant="primary" icon="plus">{{ __('New Class') }}</flux:button>
                 </div>
             </div>
 
             <div class="grid gap-3 sm:grid-cols-2">
-                <x-ui.dashboard.panel class="border-white/10 bg-white/10 p-4 text-white backdrop-blur-sm">
-                    <div class="text-xs font-medium uppercase tracking-[0.2em] text-white/50">{{ __('Recurring sessions') }}</div>
+                <x-ui.dashboard.panel class="border-zinc-200 bg-white p-4 text-zinc-900 dark:border-white/10 dark:bg-white/10 dark:text-white dark:backdrop-blur-sm">
+                    <div class="text-xs font-medium uppercase tracking-[0.2em] text-zinc-500 dark:text-white/50">{{ __('Recurring sessions') }}</div>
                     <div class="mt-2 text-3xl font-semibold tracking-tight">{{ $this->weekSummary['sessions'] }}</div>
-                    <div class="mt-1 text-sm text-white/70">{{ __('Template classes visible this week') }}</div>
+                    <div class="mt-1 text-sm text-zinc-600 dark:text-white/70">{{ __('Template classes visible this week') }}</div>
                 </x-ui.dashboard.panel>
 
-                <x-ui.dashboard.panel class="border-white/10 bg-white/10 p-4 text-white backdrop-blur-sm">
-                    <div class="text-xs font-medium uppercase tracking-[0.2em] text-white/50">{{ __('Active days') }}</div>
+                <x-ui.dashboard.panel class="border-zinc-200 bg-white p-4 text-zinc-900 dark:border-white/10 dark:bg-white/10 dark:text-white dark:backdrop-blur-sm">
+                    <div class="text-xs font-medium uppercase tracking-[0.2em] text-zinc-500 dark:text-white/50">{{ __('Active days') }}</div>
                     <div class="mt-2 text-3xl font-semibold tracking-tight">{{ $this->weekSummary['activeDays'] }}</div>
-                    <div class="mt-1 text-sm text-white/70">{{ __('Days with at least one class') }}</div>
+                    <div class="mt-1 text-sm text-zinc-600 dark:text-white/70">{{ __('Days with at least one class') }}</div>
                 </x-ui.dashboard.panel>
 
-                <x-ui.dashboard.panel class="border-white/10 bg-white/10 p-4 text-white backdrop-blur-sm">
-                    <div class="text-xs font-medium uppercase tracking-[0.2em] text-white/50">{{ __('Today') }}</div>
+                <x-ui.dashboard.panel class="border-zinc-200 bg-white p-4 text-zinc-900 dark:border-white/10 dark:bg-white/10 dark:text-white dark:backdrop-blur-sm">
+                    <div class="text-xs font-medium uppercase tracking-[0.2em] text-zinc-500 dark:text-white/50">{{ __('Today') }}</div>
                     <div class="mt-2 text-3xl font-semibold tracking-tight">{{ $this->weekSummary['todaySessions'] }}</div>
-                    <div class="mt-1 text-sm text-white/70">{{ __('Classes scheduled for the current day') }}</div>
+                    <div class="mt-1 text-sm text-zinc-600 dark:text-white/70">{{ __('Classes scheduled for the current day') }}</div>
                 </x-ui.dashboard.panel>
 
-                <x-ui.dashboard.panel class="border-white/10 bg-white/10 p-4 text-white backdrop-blur-sm">
-                    <div class="text-xs font-medium uppercase tracking-[0.2em] text-white/50">{{ __('Capacity') }}</div>
+                <x-ui.dashboard.panel class="border-zinc-200 bg-white p-4 text-zinc-900 dark:border-white/10 dark:bg-white/10 dark:text-white dark:backdrop-blur-sm">
+                    <div class="text-xs font-medium uppercase tracking-[0.2em] text-zinc-500 dark:text-white/50">{{ __('Capacity') }}</div>
                     <div class="mt-2 text-3xl font-semibold tracking-tight">{{ $this->weekSummary['totalCapacity'] }}</div>
-                    <div class="mt-1 text-sm text-white/70">{{ __('Total seats across all recurring classes') }}</div>
+                    <div class="mt-1 text-sm text-zinc-600 dark:text-white/70">{{ __('Total seats across all recurring classes') }}</div>
                 </x-ui.dashboard.panel>
             </div>
         </div>
@@ -168,10 +168,6 @@
                                             <span class="truncate text-sm font-bold leading-tight {{ $statusConfig['text'] }}">
                                                 {{ __($session->course->name) }}
                                             </span>
-                                        </div>
-                                        <div class="flex items-center gap-1 text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
-                                            <flux:icon name="user" variant="mini" class="size-3 opacity-70" />
-                                            <span class="truncate">{{ __($session->course->instructor) }}</span>
                                         </div>
                                     </div>
 
