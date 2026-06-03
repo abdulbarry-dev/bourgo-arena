@@ -21,11 +21,13 @@
                 {{ $tableContent }}
             </div>
         @else
-            <div class="px-4 py-10">
+            <div class="h-full w-full">
                 @isset($empty)
                     {{ $empty }}
                 @else
-                    {{ $tableContent }}
+                    <div class="px-4 py-10">
+                        {{ $tableContent }}
+                    </div>
                 @endisset
             </div>
         @endif
