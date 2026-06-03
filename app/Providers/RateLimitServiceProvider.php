@@ -4,7 +4,6 @@ namespace App\Providers;
 
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -33,13 +32,11 @@ class RateLimitServiceProvider extends ServiceProvider
     {
         // TODO: Enable rate limiting on production
         // Temporarily disabled for development
-        Log::info('Rate limiting disabled for development');
         RateLimiter::for('api.auth', fn () => Limit::none());
         RateLimiter::for('api.otp', fn () => Limit::none());
         RateLimiter::for('api.password', fn () => Limit::none());
 
         if (app()->isProduction()) {
-            Log::info('Rate limiting enabled for production');
             $this->configureProductionRateLimiting();
         }
     }
