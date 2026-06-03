@@ -72,7 +72,7 @@ it('can eager load details without N+1', function () {
         ]);
     });
 
-    // Without `withDetails()`, accessing activeSubscription/ would trigger N+1
+    // Without `withDetails()`, accessing validSubscriptions would trigger N+1
     // With `withDetails()`, the query count should be 3 (members, subscriptions)
 
     // Using query log to check
@@ -81,7 +81,7 @@ it('can eager load details without N+1', function () {
     $members = Member::withDetails()->get();
 
     foreach ($members as $member) {
-        $sub = $member->activeSubscription;
+        $sub = $member->validSubscriptions;
     }
 
     $queries = DB::getQueryLog();
