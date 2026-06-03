@@ -1,5 +1,5 @@
 <flux:modal wire:model="showSuspendModal" class="max-w-md">
-    <div class="space-y-4">
+    <div class="space-y-4 pt-4">
         <flux:heading size="lg">{{ __('Suspend member?') }}</flux:heading>
         <flux:text>{{ __('This will set the member status to suspended and prevent normal access workflows.') }}</flux:text>
 

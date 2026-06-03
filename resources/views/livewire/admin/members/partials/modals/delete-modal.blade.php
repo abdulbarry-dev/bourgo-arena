@@ -1,5 +1,5 @@
 <flux:modal wire:model="showDeleteModal" class="max-w-md">
-    <div class="space-y-4">
+    <div class="space-y-4 pt-4">
         <flux:heading size="lg">{{ __('Delete member?') }}</flux:heading>
         <flux:text>{{ __('This action cannot be undone.') }}</flux:text>
 

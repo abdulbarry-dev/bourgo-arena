@@ -67,10 +67,10 @@ class MemberDetailPanel extends Component
 
         $this->member = Member::query()
             ->with([
-                'parent.activeSubscription.plan',
-                'children.activeSubscription.plan',
-                'activeSubscription.plan',
-                'activeSubscription.enrolledBy',
+                'parent.validSubscriptions.plan',
+                'children.validSubscriptions.plan',
+                'validSubscriptions.plan',
+                'validSubscriptions.enrolledBy',
             ])
             ->find($memberId);
 
