@@ -6,6 +6,7 @@ use Database\Factories\Shared\Activities\ActivityFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Activity extends Model
@@ -16,6 +17,7 @@ class Activity extends Model
     }
 
     protected $fillable = [
+        'service_id',
         'title',
         'category',
         'base_price',
@@ -36,6 +38,11 @@ class Activity extends Model
         'rating' => 'decimal:1',
         'is_active' => 'boolean',
     ];
+
+    public function service(): BelongsTo
+    {
+        return $this->belongsTo(Service::class);
+    }
 
     public function slots(): HasMany
     {

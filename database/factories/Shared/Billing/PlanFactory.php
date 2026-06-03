@@ -3,6 +3,7 @@
 namespace Database\Factories\Shared\Billing;
 
 use App\Models\Plan;
+use App\Models\Service;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -15,6 +16,7 @@ class PlanFactory extends Factory
     public function definition(): array
     {
         return [
+            'service_id' => Service::factory(),
             'name' => fake()->randomElement(['Basic', 'Standard', 'Premium']),
             'price' => fake()->randomFloat(3, 30, 250),
             'duration_days' => fake()->randomElement([30, 60, 90, 365]),

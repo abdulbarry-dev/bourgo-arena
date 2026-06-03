@@ -3,6 +3,7 @@
 namespace Database\Seeders\Dashboard\Catalog;
 
 use App\Models\Plan;
+use App\Models\Service;
 use Illuminate\Database\Seeder;
 
 class PlanCatalogSeeder extends Seeder
@@ -12,6 +13,10 @@ class PlanCatalogSeeder extends Seeder
      */
     public function run(): void
     {
+        $fitnessService = Service::where('slug', 'fitness-gym')->first();
+        $tennisService = Service::where('slug', 'tennis-academy')->first();
+        $padelService = Service::where('slug', 'padel-courts')->first();
+
         $plans = [
             [
                 'name' => 'Starter Monthly',
@@ -20,6 +25,7 @@ class PlanCatalogSeeder extends Seeder
                 'included_services' => ['gym'],
                 'has_all_courses' => false,
                 'is_archived' => false,
+                'service_id' => $fitnessService?->id,
             ],
             [
                 'name' => 'Performance Monthly',
@@ -28,6 +34,7 @@ class PlanCatalogSeeder extends Seeder
                 'included_services' => ['gym', 'classes'],
                 'has_all_courses' => false,
                 'is_archived' => false,
+                'service_id' => $fitnessService?->id,
             ],
             [
                 'name' => 'Quarterly Plus',
@@ -36,6 +43,7 @@ class PlanCatalogSeeder extends Seeder
                 'included_services' => ['gym', 'classes', 'tennis'],
                 'has_all_courses' => false,
                 'is_archived' => false,
+                'service_id' => $tennisService?->id,
             ],
             [
                 'name' => 'Annual Elite',
@@ -44,6 +52,7 @@ class PlanCatalogSeeder extends Seeder
                 'included_services' => ['gym', 'classes', 'tennis', 'squash'],
                 'has_all_courses' => true,
                 'is_archived' => false,
+                'service_id' => $padelService?->id,
             ],
             [
                 'name' => 'Legacy Promo',
@@ -52,6 +61,7 @@ class PlanCatalogSeeder extends Seeder
                 'included_services' => ['gym'],
                 'has_all_courses' => false,
                 'is_archived' => true,
+                'service_id' => $fitnessService?->id,
             ],
         ];
 
