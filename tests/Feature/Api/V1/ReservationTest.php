@@ -30,13 +30,14 @@ test('member can create an activity reservation', function () {
         'capacity' => 10,
         'booked_count' => 0,
         'is_available' => true,
-        'date' => now()->addDay()->toDateString(),
     ]);
+
+    $reservationDate = now()->addDay()->toDateString();
 
     $response = $this->postJson(route('api.v1.reservations.store'), [
         'activity_id' => $activity->id,
         'activity_slot_id' => $slot->id,
-        'date' => $slot->date,
+        'date' => $reservationDate,
         'price' => 0.01,
     ]);
 
@@ -60,13 +61,14 @@ test('member cannot book a slot that does not belong to the given activity', fun
 
     $slot = ActivitySlot::factory()->create([
         'activity_id' => $otherActivity->id,
-        'date' => now()->addDay()->toDateString(),
     ]);
+
+    $reservationDate = now()->addDay()->toDateString();
 
     $response = $this->postJson(route('api.v1.reservations.store'), [
         'activity_id' => $activity->id,
         'activity_slot_id' => $slot->id,
-        'date' => $slot->date,
+        'date' => $reservationDate,
     ]);
 
     $response->assertStatus(422);
@@ -85,13 +87,14 @@ test('reservation price is recalculated server-side (price shield) regardless of
         'capacity' => 10,
         'booked_count' => 0,
         'is_available' => true,
-        'date' => now()->addDay()->toDateString(),
     ]);
+
+    $reservationDate = now()->addDay()->toDateString();
 
     $response = $this->postJson(route('api.v1.reservations.store'), [
         'activity_id' => $activity->id,
         'activity_slot_id' => $slot->id,
-        'date' => $slot->date,
+        'date' => $reservationDate,
         'price' => 0.01,
     ]);
 

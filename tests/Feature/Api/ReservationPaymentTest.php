@@ -28,10 +28,12 @@ beforeEach(function () {
 
 it('creates a reservation and initiates payment', function () {
     // Use an activity and slot via factories if available; fall back to creating minimal reservation
+    $reservationDate = now()->addDay()->toDateString();
+
     $payload = [
         'activity_id' => $this->slot->activity_id,
         'activity_slot_id' => $this->slot->id,
-        'date' => $this->slot->date->format('Y-m-d'),
+        'date' => $reservationDate,
     ];
 
     $response = $this->postJson('/api/v1/reservations', $payload);

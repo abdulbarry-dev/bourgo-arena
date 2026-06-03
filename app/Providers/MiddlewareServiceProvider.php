@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Http\Middleware\EnsureAccountIsVerified;
+use App\Http\Middleware\EnsureEmailVerifiedOrIsStaff;
 use App\Http\Middleware\EnsureOnboardingIsCompleted;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\EnsureUserIsNotBanned;
@@ -59,6 +60,7 @@ class MiddlewareServiceProvider extends ServiceProvider
     {
         $middleware->alias([
             'role' => EnsureUserHasRole::class,
+            'verified' => EnsureEmailVerifiedOrIsStaff::class,
             'verified.account' => EnsureAccountIsVerified::class,
             'onboarding.completed' => EnsureOnboardingIsCompleted::class,
         ]);

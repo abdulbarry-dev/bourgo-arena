@@ -2,149 +2,117 @@
     <flux:modal
         wire:model="isDetailPanelOpen"
         variant="flyout"
-        class="max-w-5xl w-full shrink-0 [&_[data-flux-modal-close]]:mt-8 [&_[data-flux-modal-close]]:me-8"
+        class="max-w-3xl w-full"
     >
-        <section class="w-full space-y-8 px-6 py-8 md:px-8 md:py-10">
+        <section class="w-full space-y-4 px-4 py-4 md:px-6 md:py-6">
             @if ($member === null)
-                <x-ui.dashboard.panel class="border-dashed border-zinc-300 bg-zinc-50 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
-                    <flux:heading size="sm">{{ __('No member selected') }}</flux:heading>
-                    <flux:text variant="subtle">{{ __('Choose a member from the table to inspect profile and subscription.') }}</flux:text>
-                </x-ui.dashboard.panel>
+                <div class="flex min-h-[300px] flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-300 bg-zinc-50/50 p-8 text-center dark:border-zinc-700 dark:bg-zinc-900/20">
+                    <flux:icon name="user" class="size-8 text-zinc-400 dark:text-zinc-500" />
+                    <flux:heading size="md" class="mt-4">{{ __('No member selected') }}</flux:heading>
+                </div>
             @else
-                <x-ui.dashboard.panel class="space-y-6 border border-zinc-200 bg-white/90 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/80">
-                    <div class="flex flex-col gap-5 border-b border-zinc-200 pb-5 dark:border-zinc-700 sm:flex-row sm:items-start sm:justify-between">
-                        <div class="space-y-1.5">
-                            <flux:heading size="sm">{{ $member->name }}</flux:heading>
-                            <flux:text variant="subtle">{{ __('Member profile actions and account controls') }}</flux:text>
-                        </div>
-
-                        <div class="flex flex-wrap items-center gap-2 sm:justify-end sm:pt-1">
-                            @can('suspend', $member)
-                                <flux:button variant="ghost" color="danger" icon="no-symbol" wire:click="$set('showSuspendModal', true)" :disabled="$member->status === 'suspended'">
-                                    {{ __('Suspend') }}
-                                </flux:button>
-                            @endcan
-
-                            @can('activate', $member)
-                                <flux:button variant="ghost" color="primary" icon="check-circle" wire:click="$set('showActivateModal', true)" :disabled="$member->status === 'active'">
-                                    {{ __('Activate') }}
-                                </flux:button>
-                            @endcan
-
-                            <flux:dropdown>
-                                <flux:button variant="ghost" icon="ellipsis-horizontal" />
-
-                                <flux:menu>
-                                    @can('resetPassword', \App\Models\Member::class)
-                                        <flux:menu.item icon="key" wire:click="$set('showResetPasswordModal', true)">
-                                            {{ __('Reset Password') }}
-                                        </flux:menu.item>
-                                    @endcan
-
-                                    @can('delete', $member)
-                                        <flux:menu.item variant="danger" icon="trash" wire:click="$set('showDeleteModal', true)">
-                                            {{ __('Delete Member') }}
-                                        </flux:menu.item>
-                                    @endcan
-                                </flux:menu>
-                            </flux:dropdown>
+                {{-- Header Section --}}
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="flex items-center gap-4">
+                        <x-ui.dashboard.member-avatar :member="$member" size="lg" rounded="xl" />
+                        <div class="space-y-0.5">
+                            <flux:heading size="lg">{{ $member->name }}</flux:heading>
+                            <div class="flex items-center gap-2">
+                                <flux:badge variant="subtle" size="xs" class="capitalize">{{ $member->account_type_label }}</flux:badge>
+                                <x-ui.dashboard.status-badge
+                                    :status="$member->status"
+                                    :label="ucfirst($member->status)"
+                                    :color="match ($member->status) {
+                                        'active' => 'green',
+                                        'suspended' => 'red',
+                                        'pending' => 'amber',
+                                        default => 'zinc',
+                                    }"
+                                />
+                            </div>
                         </div>
                     </div>
 
-                    @if ($member->status === 'suspended')
-                        <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-red-700 dark:border-red-900/30 dark:bg-red-900/20 dark:text-red-400">
-                            <flux:icon name="exclamation-triangle" variant="mini" />
-                            <span class="text-sm font-medium">{{ __('This account is currently banned/suspended.') }}</span>
-                        </div>
-                    @endif
-
-                    <div class="flex flex-wrap items-center gap-2 pt-1">
-                        <flux:button
-                            variant="subtle"
-                            :class="$activeTab === 'profile' ? 'bg-zinc-100 dark:bg-zinc-800' : ''"
-                            wire:click="$set('activeTab', 'profile')"
-                        >
-                            {{ __('Profile') }}
-                        </flux:button>
-                        <flux:button
-                            variant="subtle"
-                            :class="$activeTab === 'loyalty' ? 'bg-zinc-100 dark:bg-zinc-800' : ''"
-                            wire:click="$set('activeTab', 'loyalty')"
-                        >
-                            {{ __('Loyalty') }}
-                        </flux:button>
-
-                        @can('update', $member)
-                            <flux:button variant="subtle" icon="pencil-square" wire:click="$dispatch('open-edit-member-flyout', { memberId: {{ $member->id }} })">
-                                {{ __('Edit Profile') }}
-                            </flux:button>
-                        @endcan
-
+                    <div class="flex items-center gap-2">
                         @if ($member->is_family_account)
                             @can('update', $member)
-                                <flux:button variant="subtle" icon="users" wire:click="$dispatch('open-manage-family-flyout', { memberId: {{ $member->id }} })">
-                                    {{ __('Manage Family') }}
+                                <flux:button variant="ghost" icon="users" size="sm" wire:click="$dispatch('open-manage-family-flyout', { memberId: {{ $member->id }} })">
+                                    {{ __('Family') }}
                                 </flux:button>
                             @endcan
                         @endif
                     </div>
+                </div>
 
+                {{-- Tabs Navigation --}}
+                <flux:navbar class="border-b border-zinc-200 dark:border-zinc-800">
+                    <flux:navbar.item 
+                        icon="user" 
+                        wire:click="$set('activeTab', 'profile')" 
+                        :current="$activeTab === 'profile'"
+                        class="cursor-pointer"
+                    >
+                        {{ __('Overview') }}
+                    </flux:navbar.item>
+                    <flux:navbar.item 
+                        icon="gift" 
+                        wire:click="$set('activeTab', 'loyalty')" 
+                        :current="$activeTab === 'loyalty'"
+                        class="cursor-pointer"
+                    >
+                        {{ __('Loyalty & Rewards') }}
+                    </flux:navbar.item>
+                </flux:navbar>
+
+                {{-- Tab Content Section --}}
+                <div class="min-h-[250px]">
                     @if ($activeTab === 'loyalty')
-                        <x-ui.dashboard.panel class="space-y-4 border border-zinc-200 bg-zinc-50/80 dark:border-zinc-700 dark:bg-zinc-900/50">
-                            <div class="space-y-1">
-                                <flux:heading size="xs">{{ __('Loyalty History') }}</flux:heading>
-                                <flux:text variant="subtle">{{ __('Recent loyalty points and reward activity.') }}</flux:text>
+                        <div class="space-y-4">
+                            {{-- Loyalty Points Hero --}}
+                            <div class="rounded-xl border border-emerald-100 bg-emerald-50/40 p-4 text-center dark:border-emerald-900/20 dark:bg-emerald-950/10">
+                                <flux:text variant="subtle" class="font-bold uppercase tracking-widest text-emerald-600/80 dark:text-emerald-500/80 text-xs">{{ __('Current Points') }}</flux:text>
+                                <div class="mt-1 text-3xl font-black text-emerald-700 dark:text-emerald-400">{{ number_format($loyaltyPoints) }}</div>
                             </div>
 
-                            <div class="grid gap-4 md:grid-cols-3">
-                                <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900/70">
-                                    <div class="text-xs uppercase tracking-wide text-zinc-500">{{ __('Current Points') }}</div>
-                                    <div class="mt-2 text-2xl font-semibold text-zinc-900 dark:text-zinc-100">{{ $loyaltyPoints }}</div>
-                                </div>
-
-                                <div class="md:col-span-2 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900/70">
-                                    <div class="text-xs uppercase tracking-wide text-zinc-500 mb-3">{{ __('Recent Transactions') }}</div>
-                                    @if ($loyaltyTransactions === null || $loyaltyTransactions->isEmpty())
-                                        <div class="text-sm text-zinc-500">{{ __('No loyalty transactions yet.') }}</div>
-                                    @else
-                                        <div class="space-y-2">
-                                            @foreach ($loyaltyTransactions as $transaction)
-                                                <div class="flex items-center justify-between rounded-lg border border-zinc-200 px-3 py-2 text-sm dark:border-zinc-700">
-                                                    <div>
-                                                        <div class="font-medium text-zinc-900 dark:text-zinc-100">{{ \Illuminate\Support\Str::headline($transaction->transaction_type) }}</div>
-                                                        <div class="text-xs text-zinc-500">{{ $transaction->created_at?->format('M d, Y H:i') }}</div>
-                                                    </div>
-                                                    <div class="font-semibold text-emerald-600 dark:text-emerald-400">+{{ $transaction->points }}</div>
-                                                </div>
-                                            @endforeach
+                            <div class="space-y-2">
+                                <flux:heading size="xs" class="uppercase tracking-widest text-zinc-500">{{ __('Loyalty History') }}</flux:heading>
+                                @forelse ($loyaltyTransactions ?? [] as $transaction)
+                                    <div class="flex items-center justify-between rounded-lg border border-zinc-100 bg-white p-3 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50">
+                                        <div class="flex items-center gap-3">
+                                            <flux:icon name="arrow-path" class="size-4 text-zinc-400" />
+                                            <div>
+                                                <div class="text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ \Illuminate\Support\Str::headline($transaction->transaction_type) }}</div>
+                                                <div class="text-xs text-zinc-500">{{ $transaction->created_at?->format('M d, Y') }}</div>
+                                            </div>
                                         </div>
-                                    @endif
-                                </div>
+                                        <div class="text-sm font-bold text-emerald-600 dark:text-emerald-400">+{{ $transaction->points }}</div>
+                                    </div>
+                                @empty
+                                    <flux:text variant="subtle" size="sm">{{ __('No transactions.') }}</flux:text>
+                                @endforelse
                             </div>
-                        </x-ui.dashboard.panel>
+                        </div>
                     @else
-                        {{-- Member Core Information (Profile & Subscription) --}}
-                        @include('livewire.admin.members.partials.member-info-cards')
+                        <div class="space-y-4">
+                            @include('livewire.admin.members.partials.member-info-cards')
 
-                        <div class="grid gap-6">
-                            {{-- Family Table --}}
                             @if ($member->parent || $member->children->isNotEmpty())
-                                @include('livewire.admin.members.partials.family-details-table')
+                                <div class="space-y-2">
+                                    <flux:heading size="xs" class="uppercase tracking-widest text-zinc-500">{{ __('Family Members') }}</flux:heading>
+                                    @include('livewire.admin.members.partials.family-details-table')
+                                </div>
                             @endif
                         </div>
                     @endif
-                </x-ui.dashboard.panel>
+                </div>
+
+                <div class="flex justify-end pt-3 border-t border-zinc-100 dark:border-zinc-800">
+                    <flux:modal.close>
+                        <flux:button variant="ghost" size="sm">{{ __('Close') }}</flux:button>
+                    </flux:modal.close>
+                </div>
             @endif
-
-            {{-- Hidden Flyouts --}}
-            <livewire:admin.members.manage-family-flyout />
-            <livewire:admin.members.edit-member-flyout />
-
-            {{-- Modals --}}
-            @include('livewire.admin.members.partials.modals.suspend-modal')
-            @include('livewire.admin.members.partials.modals.activate-modal')
-            @include('livewire.admin.members.partials.modals.reset-password-modal')
-            @include('livewire.admin.members.partials.modals.delete-modal')
         </section>
     </flux:modal>
 </div>
+

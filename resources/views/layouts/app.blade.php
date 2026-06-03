@@ -4,8 +4,8 @@
     @endphp
 
     <flux:main @class([
-        'h-full overflow-hidden' => $isLockedDashboardPage,
-        'h-dvh overflow-y-auto overflow-x-hidden overscroll-contain scroll-smooth' => ! $isLockedDashboardPage,
+        'h-full overflow-hidden soft-scrollbar' => $isLockedDashboardPage,
+        'h-dvh overflow-y-auto overflow-x-hidden overscroll-contain scroll-smooth soft-scrollbar' => ! $isLockedDashboardPage,
     ])>
         {{ $slot }}
     </flux:main>

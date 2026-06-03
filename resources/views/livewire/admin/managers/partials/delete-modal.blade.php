@@ -1,5 +1,5 @@
 <flux:modal name="confirm-delete" class="min-w-[22rem]">
-    <form wire:submit="deleteManager" class="space-y-6">
+    <form wire:submit="deleteManager" class="space-y-6 pt-4">
         <div>
             <flux:heading size="lg">{{ __('Delete Manager') }}</flux:heading>
             <flux:subheading>

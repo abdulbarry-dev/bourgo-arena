@@ -62,6 +62,56 @@ test('expiring subscriptions view only lists active subscriptions ending within 
     Carbon::setTestNow();
 });
 
+test('expiring subscriptions view filters by member, plan, and expiry window', function () {
+    Carbon::setTestNow('2026-04-01 08:00:00');
+
+    $manager = User::factory()->manager()->create();
+    $basicPlan = Plan::factory()->create(['name' => 'Basic Plan']);
+    $premiumPlan = Plan::factory()->create(['name' => 'Premium Plan']);
+
+    $aliceBasic = Member::factory()->create(['name' => 'Alice Basic', 'status' => 'active']);
+    $alicePremium = Member::factory()->create(['name' => 'Alice Premium', 'status' => 'active']);
+    $bobPremium = Member::factory()->create(['name' => 'Bob Premium', 'status' => 'active']);
+
+    Subscription::factory()->create([
+        'member_id' => $aliceBasic->id,
+        'plan_id' => $basicPlan->id,
+        'status' => 'active',
+        'ends_at' => now()->addDays(2)->toDateString(),
+    ]);
+
+    Subscription::factory()->create([
+        'member_id' => $alicePremium->id,
+        'plan_id' => $premiumPlan->id,
+        'status' => 'active',
+        'ends_at' => now()->addDays(4)->toDateString(),
+    ]);
+
+    Subscription::factory()->create([
+        'member_id' => $bobPremium->id,
+        'plan_id' => $premiumPlan->id,
+        'status' => 'active',
+        'ends_at' => now()->addDays(12)->toDateString(),
+    ]);
+
+    $this->actingAs($manager);
+
+    Livewire::test(ExpiringSubscriptionsView::class)
+        ->set('search', 'Alice')
+        ->set('planId', (string) $premiumPlan->id)
+        ->assertSee('Alice Premium')
+        ->assertDontSee('Alice Basic')
+        ->assertDontSee('Bob Premium')
+        ->set('search', '')
+        ->set('planId', '')
+        ->set('daysWindow', '3')
+        ->assertSee('Alice Basic')
+        ->assertDontSee('Alice Premium')
+        ->assertDontSee('Bob Premium');
+
+    Carbon::setTestNow();
+});
+
 test('manager can send single expiry reminder for eligible subscription', function () {
     Carbon::setTestNow('2026-04-01 09:00:00');
     Queue::fake();
@@ -126,6 +176,53 @@ test('bulk reminder action queues reminders for all expiring subscriptions only'
     Queue::assertNotPushed(
         SendSubscriptionNotification::class,
         fn (SendSubscriptionNotification $job): bool => $job->subscriptionId === $nonExpiring->id,
+    );
+
+    Carbon::setTestNow();
+});
+
+test('bulk reminder action respects current filters', function () {
+    Carbon::setTestNow('2026-04-01 10:00:00');
+    Queue::fake();
+
+    $manager = User::factory()->manager()->create();
+    $basicPlan = Plan::factory()->create(['name' => 'Basic Plan']);
+    $premiumPlan = Plan::factory()->create(['name' => 'Premium Plan']);
+
+    $first = Subscription::factory()->create([
+        'plan_id' => $premiumPlan->id,
+        'status' => 'active',
+        'ends_at' => now()->addDays(2)->toDateString(),
+    ]);
+    $second = Subscription::factory()->create([
+        'plan_id' => $premiumPlan->id,
+        'status' => 'active',
+        'ends_at' => now()->addDays(6)->toDateString(),
+    ]);
+    $nonMatching = Subscription::factory()->create([
+        'plan_id' => $basicPlan->id,
+        'status' => 'active',
+        'ends_at' => now()->addDays(3)->toDateString(),
+    ]);
+
+    $this->actingAs($manager);
+
+    Livewire::test(ExpiringSubscriptionsView::class)
+        ->set('planId', (string) $premiumPlan->id)
+        ->call('sendReminderToAll')
+        ->assertHasNoErrors()
+        ->assertSet('touchedCount', 2)
+        ->assertDispatched('reminders-sent', count: 2);
+
+    Queue::assertPushed(SendSubscriptionNotification::class, 2);
+    Queue::assertPushed(
+        SendSubscriptionNotification::class,
+        fn (SendSubscriptionNotification $job): bool => in_array($job->subscriptionId, [$first->id, $second->id], true)
+            && $job->notificationType === 'expiry-reminder',
+    );
+    Queue::assertNotPushed(
+        SendSubscriptionNotification::class,
+        fn (SendSubscriptionNotification $job): bool => $job->subscriptionId === $nonMatching->id,
     );
 
     Carbon::setTestNow();

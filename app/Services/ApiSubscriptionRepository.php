@@ -10,7 +10,7 @@ class ApiSubscriptionRepository
     /**
      * Get the count of active subscriptions for a member.
      */
-    public function getActiveSubscriptionCount(Member $member): int
+    public function getValidSubscriptionCount(Member $member): int
     {
         return $member->subscriptions()
             ->where('status', 'active')
@@ -23,7 +23,7 @@ class ApiSubscriptionRepository
      *
      * @param  array<int, int>  $memberIds
      */
-    public function getActiveSubscriptionCountForMemberIds(array $memberIds): int
+    public function getValidSubscriptionCountForMemberIds(array $memberIds): int
     {
         if ($memberIds === []) {
             return 0;

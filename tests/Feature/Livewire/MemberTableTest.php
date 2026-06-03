@@ -135,3 +135,16 @@ test('member table exports a csv file', function () {
         ->call('exportCsv')
         ->assertFileDownloaded('members.csv');
 });
+
+test('member table requires confirmation before exporting a csv file', function () {
+    $this->actingAs(User::factory()->manager()->create());
+
+    Member::factory()->count(3)->create();
+
+    Livewire::test(MemberTable::class)
+        ->call('openExportConfirmModal')
+        ->assertSet('showExportConfirmModal', true)
+        ->call('confirmExport')
+        ->assertSet('showExportConfirmModal', false)
+        ->assertFileDownloaded('members.csv');
+});

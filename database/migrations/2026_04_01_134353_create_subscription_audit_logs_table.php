@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('subscription_audit_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('subscription_id')->nullable()->constrained('subscriptions')->nullOnDelete();
-            $table->enum('action', ['suspend', 'resume', 'transfer']);
+            $table->enum('action', ['suspend', 'resume']);
             $table->string('reason')->nullable();
             $table->foreignId('from_member_id')->nullable()->constrained('members')->nullOnDelete();
             $table->foreignId('to_member_id')->nullable()->constrained('members')->nullOnDelete();

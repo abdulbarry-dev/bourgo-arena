@@ -11,7 +11,7 @@
 
     $resolvedColor = $color ?? match ($normalizedStatus) {
         'active', 'authorized', 'online', 'all-inclusive' => 'green',
-        'pending', 'transferred', 'warning' => 'amber',
+        'pending', 'warning' => 'amber',
         'suspended', 'denied', 'offline', 'lost', 'archived' => 'red',
         default => 'zinc',
     };

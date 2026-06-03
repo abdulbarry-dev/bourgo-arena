@@ -46,22 +46,36 @@ it('shows the empty state for the event list', function () {
         ->assertSee('No events found');
 });
 
+it('shows row actions in a dropdown menu', function () {
+    $admin = User::factory()->create(['role' => UserRole::Admin]);
+    $event = Event::factory()->create(['name' => 'Winter Cup']);
+
+    $this->actingAs($admin);
+
+    Livewire::test(EventManager::class)
+        ->assertSee('Edit Event')
+        ->assertSee(__('Open actions for :name', ['name' => 'Winter Cup']), false);
+});
+
 it('can create a new event', function () {
     $admin = User::factory()->create(['role' => UserRole::Admin]);
 
     $this->actingAs($admin);
 
+    $service = \App\Models\Service::factory()->create();
+
     Livewire::test(EventManager::class)
         ->set('name', 'Padel Championship')
-        ->set('sport_type', 'padel')
+        ->set('serviceId', $service->id)
         ->set('format', '1v1')
         ->set('max_participants', 16)
-        ->set('status', 'open')
+        ->set('registration_deadline', now()->subDay()->format('Y-m-d\TH:i'))
+        ->set('start_date', now()->addDay()->format('Y-m-d\TH:i'))
         ->call('save')
         ->assertHasNoErrors();
 
     $this->assertDatabaseHas('events', [
         'name' => 'Padel Championship',
-        'status' => 'open',
+        'service_id' => $service->id,
     ]);
 });

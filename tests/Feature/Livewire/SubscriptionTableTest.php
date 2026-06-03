@@ -85,14 +85,55 @@ test('subscription table can filter by plan', function () {
         ->assertDontSee('Plan B Subscription Member');
 });
 
-test('subscription table renders detail and lifecycle actions links', function () {
+test('subscription table opens subscription preview flyout from the view button', function () {
     $this->actingAs(User::factory()->manager()->create());
 
     $subscription = Subscription::factory()->create();
 
     Livewire::test(SubscriptionTable::class)
-        ->assertSee(route('admin.subscriptions.show', $subscription))
-        ->assertSee(route('admin.subscriptions.actions', $subscription));
+        ->call('openSubscriptionPreview', $subscription->id)
+        ->assertSet('showSubscriptionPreviewModal', true)
+        ->assertSet('previewSubscriptionId', $subscription->id)
+        ->assertSee('Subscription Detail')
+        ->assertSee($subscription->member->name);
+});
+
+test('subscription table shows suspend action for active subscriptions', function () {
+    $this->actingAs(User::factory()->manager()->create());
+
+    Subscription::factory()->create([
+        'status' => 'active',
+    ]);
+
+    Livewire::test(SubscriptionTable::class)
+        ->assertSee('View')
+        ->assertSee('Suspend')
+        ->assertDontSeeHtml('>Reactivate<');
+});
+
+test('subscription table shows reactivate action for suspended subscriptions', function () {
+    $this->actingAs(User::factory()->manager()->create());
+
+    $subscription = Subscription::factory()->create([
+        'status' => 'suspended',
+        'days_remaining' => 8,
+    ]);
+
+    Livewire::test(SubscriptionTable::class)
+        ->assertSee('View')
+        ->assertSee('Reactivate')
+        ->assertDontSeeHtml('wire:click="openSubscriptionLifecycleModal('.$subscription->id.', \'suspend\')"');
+});
+
+test('admin can see delete action in the subscription dropdown', function () {
+    $this->actingAs(User::factory()->admin()->create());
+
+    Subscription::factory()->create([
+        'status' => 'active',
+    ]);
+
+    Livewire::test(SubscriptionTable::class)
+        ->assertSee('Delete');
 });
 
 test('subscription table toggles sorting direction on repeated column sort', function () {
@@ -106,4 +147,24 @@ test('subscription table toggles sorting direction on repeated column sort', fun
         ->call('sort', 'member')
         ->assertSet('sortBy', 'member')
         ->assertSet('sortDirection', 'asc');
+});
+
+test('subscription table requires confirmation before exporting csv and pdf files', function () {
+    $this->actingAs(User::factory()->manager()->create());
+
+    Livewire::test(SubscriptionTable::class)
+        ->call('openExportConfirmModal', 'csv')
+        ->assertSet('showExportConfirmModal', true)
+        ->assertSet('exportFormat', 'csv')
+        ->call('confirmExport')
+        ->assertSet('showExportConfirmModal', false)
+        ->assertFileDownloaded('subscriptions.csv');
+
+    Livewire::test(SubscriptionTable::class)
+        ->call('openExportConfirmModal', 'pdf')
+        ->assertSet('showExportConfirmModal', true)
+        ->assertSet('exportFormat', 'pdf')
+        ->call('confirmExport')
+        ->assertSet('showExportConfirmModal', false)
+        ->assertFileDownloaded('subscriptions.pdf');
 });

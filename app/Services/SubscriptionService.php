@@ -2,10 +2,13 @@
 
 namespace App\Services;
 
+use App\Models\Subscription;
+use App\Models\User;
+
 class SubscriptionService
 {
-    public function getActiveForUser($user)
+    public function getActiveForUser(User $user): ?Subscription
     {
-        return $user->activeSubscription()->with('plan')->first();
+        return $user->validSubscriptions()->with('plan')->orderByDesc('ends_at')->first();
     }
 }

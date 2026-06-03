@@ -4,17 +4,47 @@ namespace Database\Seeders\Dashboard\Catalog;
 
 use App\Models\Course;
 use App\Models\Plan;
+use App\Models\Service;
 use Illuminate\Database\Seeder;
 
 class CourseSeeder extends Seeder
 {
     public function run(): void
     {
+        $fitnessService = Service::where('slug', 'fitness-gym')->first();
+        $padelService = Service::where('slug', 'padel-courts')->first();
+        $tennisService = Service::where('slug', 'tennis-academy')->first();
+        $wellnessService = Service::where('slug', 'wellness-center')->first();
+
         $courses = [
-            ['name' => 'Functional Strength', 'instructor' => 'Sarah El Idrissi', 'description' => 'Foundational strength and conditioning for active members.', 'category' => 'fitness', 'icon' => 'fitness_center'],
-            ['name' => 'Padel Match Play', 'instructor' => 'Youssef Benali', 'description' => 'Competitive padel drills and live match rotations.', 'category' => 'padel', 'icon' => 'sports_tennis'],
-            ['name' => 'Tennis Technique', 'instructor' => 'Meriem Azzouzi', 'description' => 'Technique, footwork, and shot selection for tennis players.', 'category' => 'tennis', 'icon' => 'sports_tennis'],
-            ['name' => 'Recovery Flow', 'instructor' => 'Noura Belkacem', 'description' => 'Mobility, breathwork, and recovery sessions for all levels.', 'category' => 'wellness', 'icon' => 'self_improvement'],
+            [
+                'name' => 'Functional Strength',
+                'description' => 'Foundational strength and conditioning for active members.',
+                'category' => 'fitness',
+                'service_id' => $fitnessService?->id,
+                'image_url' => 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80&w=1000',
+            ],
+            [
+                'name' => 'Padel Match Play',
+                'description' => 'Competitive padel drills and live match rotations.',
+                'category' => 'padel',
+                'service_id' => $padelService?->id,
+                'image_url' => 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&q=80&w=1000',
+            ],
+            [
+                'name' => 'Tennis Technique',
+                'description' => 'Technique, footwork, and shot selection for tennis players.',
+                'category' => 'tennis',
+                'service_id' => $tennisService?->id,
+                'image_url' => 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?auto=format&fit=crop&q=80&w=1000',
+            ],
+            [
+                'name' => 'Recovery Flow',
+                'description' => 'Mobility, breathwork, and recovery sessions for all levels.',
+                'category' => 'wellness',
+                'service_id' => $wellnessService?->id,
+                'image_url' => 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&q=80&w=1000',
+            ],
         ];
 
         $seededCourses = [];

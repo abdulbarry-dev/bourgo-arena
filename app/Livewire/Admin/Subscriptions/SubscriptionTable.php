@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Admin\Subscriptions;
 
+use App\Actions\Subscriptions\ResumeSubscriptionAction;
+use App\Actions\Subscriptions\SuspendSubscriptionAction;
 use App\Models\Member;
 use App\Models\Plan;
 use App\Models\Subscription;
@@ -12,7 +14,6 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
-use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -27,11 +28,25 @@ class SubscriptionTable extends Component
 
     public ?int $planFilter = null;
 
+    public bool $showExportConfirmModal = false;
+
+    public bool $showSubscriptionPreviewModal = false;
+
+    public string $exportFormat = 'csv';
+
+    public ?int $previewSubscriptionId = null;
+
     public int $perPage = 10;
 
     public string $sortBy = 'ends_at';
 
     public string $sortDirection = 'asc';
+
+    public bool $showSubscriptionLifecycleModal = false;
+
+    public bool $showDeleteSubscriptionModal = false;
+
+    public string $subscriptionLifecycleAction = 'suspend';
 
     public function updatedSearch(): void
     {
@@ -39,11 +54,6 @@ class SubscriptionTable extends Component
     }
 
     public function updatedStatusFilter(): void
-    {
-        $this->resetPage();
-    }
-
-    public function updatedPlanFilter(): void
     {
         $this->resetPage();
     }
@@ -64,14 +74,8 @@ class SubscriptionTable extends Component
         $this->resetPage();
     }
 
-    #[On('subscription-created')]
-    #[On('subscription-updated')]
-    public function refreshTable(): void
-    {
-        // Trigger a refresh when sibling components mutate subscription data.
-    }
-
     #[Computed]
+    #[On('subscription-created')]
     public function subscriptions(): LengthAwarePaginator
     {
         $this->authorize('viewAny', Subscription::class);
@@ -80,13 +84,18 @@ class SubscriptionTable extends Component
             ->paginate($this->perPage);
     }
 
+    public function updatedPlanFilter(): void
+    {
+        $this->resetPage();
+    }
+
     #[Computed]
     public function plans(): Collection
     {
         return Plan::query()
             ->where('is_archived', false)
             ->orderBy('name')
-            ->get(['id', 'name']);
+            ->get(['id', 'name', 'is_archived']);
     }
 
     public function exportCsv()
@@ -128,9 +137,189 @@ class SubscriptionTable extends Component
         }, 'subscriptions.pdf');
     }
 
+    public function openExportConfirmModal(string $format): void
+    {
+        if (! in_array($format, ['csv', 'pdf'], true)) {
+            return;
+        }
+
+        $this->exportFormat = $format;
+        $this->showExportConfirmModal = true;
+    }
+
+    public function closeExportConfirmModal(): void
+    {
+        $this->showExportConfirmModal = false;
+    }
+
+    public function confirmExport()
+    {
+        $this->showExportConfirmModal = false;
+
+        if ($this->exportFormat === 'pdf') {
+            return $this->exportPdf();
+        }
+
+        return $this->exportCsv();
+    }
+
+    public function openSubscriptionPreview(int $subscriptionId): void
+    {
+        $this->previewSubscriptionId = $subscriptionId;
+        $this->showSubscriptionPreviewModal = true;
+        $this->showSubscriptionEditModal = false;
+        $this->showSubscriptionLifecycleModal = false;
+        $this->showDeleteSubscriptionModal = false;
+    }
+
+    public function closeSubscriptionPreviewModal(): void
+    {
+        $this->resetSubscriptionActionState();
+    }
+
+    public function openSubscriptionLifecycleModal(int $subscriptionId, string $action): void
+    {
+        if (! in_array($action, ['suspend', 'resume'], true)) {
+            return;
+        }
+
+        $subscription = $this->subscriptionForAction($subscriptionId);
+
+        if ($subscription === null) {
+            $this->addError('previewSubscriptionId', __('The selected subscription was not found.'));
+
+            return;
+        }
+
+        $this->previewSubscriptionId = $subscription->id;
+        $this->subscriptionLifecycleAction = $action;
+        $this->showSubscriptionPreviewModal = false;
+        $this->showSubscriptionLifecycleModal = true;
+        $this->showDeleteSubscriptionModal = false;
+    }
+
+    public function closeSubscriptionLifecycleModal(): void
+    {
+        $this->resetSubscriptionActionState();
+    }
+
+    public function confirmSubscriptionLifecycleAction(
+        SuspendSubscriptionAction $suspendAction,
+        ResumeSubscriptionAction $resumeAction,
+    ): void {
+        $subscription = $this->previewSubscription;
+
+        if ($subscription === null) {
+            $this->addError('previewSubscriptionId', __('The selected subscription was not found.'));
+
+            return;
+        }
+
+        if ($this->subscriptionLifecycleAction === 'suspend') {
+            $this->authorize('suspend', Subscription::class);
+
+            $suspendAction->execute($subscription, auth()->id());
+
+            $this->dispatch('toast', message: __('Subscription suspended successfully'), type: 'success');
+        } else {
+            $this->authorize('resume', Subscription::class);
+
+            $resumeAction->execute($subscription, auth()->id());
+
+            $this->dispatch('toast', message: __('Subscription reactivated successfully'), type: 'success');
+        }
+
+        $this->dispatch('subscription-updated', subscriptionId: $subscription->id);
+        $this->resetSubscriptionActionState();
+    }
+
+    public function openDeleteSubscriptionModal(int $subscriptionId): void
+    {
+        $this->authorize('delete', Subscription::class);
+
+        $subscription = $this->subscriptionForAction($subscriptionId);
+
+        if ($subscription === null) {
+            $this->addError('previewSubscriptionId', __('The selected subscription was not found.'));
+
+            return;
+        }
+
+        $this->previewSubscriptionId = $subscription->id;
+        $this->showSubscriptionPreviewModal = false;
+        $this->showSubscriptionEditModal = false;
+        $this->showSubscriptionLifecycleModal = false;
+        $this->showDeleteSubscriptionModal = true;
+    }
+
+    public function closeDeleteSubscriptionModal(): void
+    {
+        $this->resetSubscriptionActionState();
+    }
+
+    public function deleteSubscription(): void
+    {
+        $this->authorize('delete', Subscription::class);
+
+        $subscription = $this->previewSubscription;
+
+        if ($subscription === null) {
+            $this->addError('previewSubscriptionId', __('The selected subscription was not found.'));
+
+            return;
+        }
+
+        $subscriptionId = $subscription->id;
+        $subscription->delete();
+
+        $this->dispatch('subscription-updated', subscriptionId: $subscriptionId);
+        $this->dispatch('toast', message: __('Subscription deleted successfully'), type: 'success');
+        $this->resetSubscriptionActionState();
+    }
+
     public function render(): View
     {
         return view('livewire.admin.subscriptions.subscription-table');
+    }
+
+    #[Computed]
+    public function previewSubscription(): ?Subscription
+    {
+        if ($this->previewSubscriptionId === null) {
+            return null;
+        }
+
+        return Subscription::query()
+            ->with([
+                'member',
+                'plan',
+                'auditLogs' => function ($query): void {
+                    $query->with('performedBy')->limit(5);
+                },
+            ])
+            ->find($this->previewSubscriptionId);
+    }
+
+    private function subscriptionForAction(int $subscriptionId): ?Subscription
+    {
+        return Subscription::query()
+            ->with([
+                'member',
+                'plan',
+                'auditLogs' => function ($query): void {
+                    $query->with('performedBy')->limit(5);
+                },
+            ])
+            ->find($subscriptionId);
+    }
+
+    private function resetSubscriptionActionState(): void
+    {
+        $this->previewSubscriptionId = null;
+        $this->showSubscriptionPreviewModal = false;
+        $this->showSubscriptionLifecycleModal = false;
+        $this->showDeleteSubscriptionModal = false;
+        $this->subscriptionLifecycleAction = 'suspend';
     }
 
     private function filteredSubscriptionsQuery(): Builder
@@ -167,6 +356,11 @@ class SubscriptionTable extends Component
             ]);
 
         return $this->applySorting($query);
+    }
+
+    public function openCreateSubscriptionFlyout(): void
+    {
+        $this->dispatch('open-subscription-enrollment-flyout');
     }
 
     private function applySorting(Builder $query): Builder

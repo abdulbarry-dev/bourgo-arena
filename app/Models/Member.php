@@ -5,14 +5,15 @@ namespace App\Models;
 use App\UserRole;
 use Database\Factories\Shared\Members\MemberFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 
 class Member extends Authenticatable
@@ -72,6 +73,34 @@ class Member extends Authenticatable
         'otp_code',
         'remember_token',
     ];
+
+    /**
+     * @return Attribute<string|null, never>
+     */
+    protected function avatarUrl(): Attribute
+    {
+        return Attribute::get(function (): ?string {
+            if (blank($this->avatar)) {
+                return null;
+            }
+
+            if (filter_var($this->avatar, FILTER_VALIDATE_URL)) {
+                return $this->avatar;
+            }
+
+            return asset('storage/'.$this->avatar);
+        });
+    }
+
+    public function initials(): string
+    {
+        return Str::of($this->name)
+            ->explode(' ')
+            ->filter()
+            ->take(2)
+            ->map(fn (string $word): string => Str::substr($word, 0, 1))
+            ->implode('');
+    }
 
     public function isVerified(): bool
     {
@@ -143,9 +172,9 @@ class Member extends Authenticatable
         return $this->hasMany(Subscription::class);
     }
 
-    public function activeSubscription(): HasOne
+    public function validSubscriptions(): HasMany
     {
-        return $this->hasOne(Subscription::class)
+        return $this->hasMany(Subscription::class)
             ->where('status', 'active')
             ->whereDate('ends_at', '>', now());
     }
@@ -195,14 +224,14 @@ class Member extends Authenticatable
 
     public function scopeByPlan(Builder $query, int $planId): Builder
     {
-        return $query->whereHas('activeSubscription', function (Builder $query) use ($planId): void {
+        return $query->whereHas('validSubscriptions', function (Builder $query) use ($planId): void {
             $query->where('plan_id', $planId);
         });
     }
 
     public function scopeWithDetails(Builder $query): Builder
     {
-        return $query->with(['activeSubscription']);
+        return $query->with(['validSubscriptions']);
     }
 
     public function scopeSearchable(Builder $query, ?string $term): Builder

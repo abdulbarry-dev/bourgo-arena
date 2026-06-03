@@ -2,26 +2,28 @@
 
 namespace App\Livewire\Admin\Plans;
 
+use App\Models\Booking;
 use App\Models\Course;
 use App\Models\Plan;
+use App\Models\Reservation;
+use App\Models\Scopes\ActivePlanScope;
+use App\Models\Service;
+use App\Models\Subscription;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
-use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 use Throwable;
 
 class PlanTable extends Component
 {
     use AuthorizesRequests;
-    use WithFileUploads;
     use WithPagination;
 
     public string $search = '';
@@ -43,6 +45,8 @@ class PlanTable extends Component
 
     public ?int $planId = null;
 
+    public ?int $serviceId = null;
+
     public string $name = '';
 
     public bool $hasAllCourses = false;
@@ -57,13 +61,8 @@ class PlanTable extends Component
 
     public int|string $durationDays = '';
 
-    public string $includedServicesInput = '';
-
-    public bool $isArchived = false;
-
-    public $image;
-
-    public ?string $existingImageUrl = null;
+    // isArchived is now managed by actions, not directly in the form
+    // public bool $isArchived = false; // Removed from direct form control
 
     public function updatedSearch(): void
     {
@@ -109,20 +108,26 @@ class PlanTable extends Component
 
     public function removeCourse(string $courseId): void
     {
-        $this->selectedCourses = array_values(array_filter(
-            $this->selectedCourses,
-            fn ($id) => $id !== $courseId
-        ));
+        $this->selectedCourses = array_values(
+            array_filter($this->selectedCourses, fn ($id) => $id !== $courseId),
+        );
     }
 
     public function sort(string $column): void
     {
-        if (! in_array($column, ['name', 'price', 'duration_days', 'is_archived', 'created_at'], true)) {
+        if (
+            ! in_array(
+                $column,
+                ['name', 'price', 'duration_days', 'created_at'], // Removed 'is_archived'
+                true,
+            )
+        ) {
             return;
         }
 
         if ($this->sortBy === $column) {
-            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+            $this->sortDirection =
+                $this->sortDirection === 'asc' ? 'desc' : 'asc';
         } else {
             $this->sortBy = $column;
             $this->sortDirection = 'asc';
@@ -136,7 +141,24 @@ class PlanTable extends Component
         $this->authorize('create', Plan::class);
 
         $this->resetValidation();
-        $this->reset(['planId', 'price', 'durationDays', 'includedServicesInput', 'isArchived', 'name', 'isFacilityOnly', 'hasAllCourses', 'selectedCourses', 'courseToAdd', 'image', 'existingImageUrl']);
+        $this->reset([
+            'planId',
+            'serviceId',
+            'price',
+            'durationDays',
+            // 'isArchived', // Removed
+            'name',
+            'isFacilityOnly',
+            'hasAllCourses',
+            'selectedCourses',
+            'courseToAdd',
+        ]);
+
+        // Pre-select the first available active service if any exist
+        $firstAvailableService = $this->availableServices->first();
+        if ($firstAvailableService) {
+            $this->serviceId = $firstAvailableService->id;
+        }
 
         $this->showFlyout = true;
     }
@@ -149,17 +171,19 @@ class PlanTable extends Component
 
         $this->resetValidation();
         $this->planId = $plan->id;
+        $this->serviceId = $plan->service_id;
         $this->name = $plan->name ?: '';
         $this->price = number_format((float) $plan->price, 3, '.', '');
         $this->durationDays = $plan->duration_days;
-        $this->includedServicesInput = implode(', ', $plan->included_services ?? []);
-        $this->isArchived = $plan->is_archived;
-        $this->existingImageUrl = $plan->image_url;
-        $this->image = null;
+        // $this->isArchived = $plan->is_archived; // Removed from direct form control
 
         $this->hasAllCourses = $plan->has_all_courses;
-        $this->selectedCourses = $plan->courses->pluck('id')->map(fn ($id) => (string) $id)->toArray();
-        $this->isFacilityOnly = ! $plan->has_all_courses && empty($this->selectedCourses);
+        $this->selectedCourses = $plan->courses
+            ->pluck('id')
+            ->map(fn ($id) => (string) $id)
+            ->toArray();
+        $this->isFacilityOnly =
+            ! $plan->has_all_courses && empty($this->selectedCourses);
 
         $this->showFlyout = true;
     }
@@ -182,38 +206,31 @@ class PlanTable extends Component
         }
 
         try {
-            $rules = $this->rules();
-            if (! $this->hasAllCourses) {
-                $rules['selectedCourses'] = ['nullable', 'array'];
-                $rules['selectedCourses.*'] = ['exists:courses,id'];
-            }
-            $validated = $this->validate($rules);
+            $validated = $this->validate($this->rules());
 
             $payload = [
+                'service_id' => $validated['serviceId'],
                 'name' => $validated['name'],
                 'price' => $validated['price'],
                 'duration_days' => (int) $validated['durationDays'],
-                'included_services' => $this->normalizedServices($validated['includedServicesInput']),
                 'has_all_courses' => (bool) $validated['hasAllCourses'],
-                'is_archived' => (bool) $validated['isArchived'],
             ];
-
-            if ($this->image) {
-                $path = $this->image->store('plans', 'public');
-                $payload['image_url'] = Storage::url($path);
-            }
 
             if ($this->planId === null) {
                 $this->authorize('create', Plan::class);
 
-                $plan = Plan::query()->create($payload);
+                $plan = Plan::query()->create($payload + ['is_archived' => false]);
 
                 if (! $plan->has_all_courses && ! empty($this->selectedCourses)) {
                     $plan->courses()->sync($this->selectedCourses);
                 }
 
                 $this->showFlyout = false;
-                $this->dispatch('toast', message: __('Plan created successfully.'), type: 'success');
+                $this->dispatch(
+                    'toast',
+                    message: __('Plan created successfully.'),
+                    type: 'success',
+                );
 
                 return;
             }
@@ -222,7 +239,7 @@ class PlanTable extends Component
 
             $this->authorize('update', $plan);
 
-            $plan->fill($payload);
+            $plan->fill($payload); // isArchived is no longer in payload, so it won't be filled here.
 
             $dirty = $plan->isDirty();
 
@@ -248,29 +265,166 @@ class PlanTable extends Component
 
             if (! $dirty && ! $syncDirty) {
                 $this->showFlyout = false;
-                $this->dispatch('toast', message: __('No changes detected for this plan.'), type: 'info');
+                $this->dispatch(
+                    'toast',
+                    message: __('No changes detected for this plan.'),
+                    type: 'info',
+                );
 
                 return;
             }
 
             $this->showFlyout = false;
-            $this->dispatch('toast', message: __('Plan updated successfully.'), type: 'success');
-
+            $this->dispatch(
+                'toast',
+                message: __('Plan updated successfully.'),
+                type: 'success',
+            );
         } catch (Throwable $exception) {
             report($exception);
 
             if (! $exception instanceof ValidationException) {
-                $this->addError('save', __('Plan could not be saved right now. Please try again.'));
-                $this->dispatch('toast', message: __('Plan save failed. Please review the form and try again.'), type: 'danger');
+                $this->addError(
+                    'save',
+                    __('Plan could not be saved right now. Please try again.'),
+                );
+                $this->dispatch(
+                    'toast',
+                    message: __(
+                        'Plan save failed. Please review the form and try again.',
+                    ),
+                    type: 'danger',
+                );
             } else {
                 throw $exception;
             }
         }
     }
 
+    public function archivePlan(int $planId): void
+    {
+        $plan = Plan::query()->findOrFail($planId);
+        $this->authorize('archive', $plan);
+
+        if ($this->hasActiveReferences($plan)) {
+            $this->dispatch(
+                'toast',
+                message: __('Cannot archive plan: it has active subscriptions, bookings, or reservations.'),
+                type: 'danger',
+            );
+
+            return;
+        }
+
+        $plan->is_archived = true;
+        $plan->save();
+
+        $this->dispatch('toast', message: __('Plan archived successfully.'), type: 'success');
+    }
+
+    public function reactivatePlan(int $planId): void
+    {
+        $plan = Plan::query()->findOrFail($planId);
+        $this->authorize('reactivate', $plan);
+
+        $plan->is_archived = false;
+        $plan->save();
+
+        $this->dispatch('toast', message: __('Plan reactivated successfully.'), type: 'success');
+    }
+
+    public function deletePlan(int $planId): void
+    {
+        $plan = Plan::query()->findOrFail($planId);
+        $this->authorize('delete', $plan);
+
+        if ($this->hasAnyReferences($plan)) {
+            $this->dispatch(
+                'toast',
+                message: __('Cannot delete plan: it has existing subscriptions, bookings, or reservations.'),
+                type: 'danger',
+            );
+
+            return;
+        }
+
+        $plan->delete();
+
+        $this->dispatch('toast', message: __('Plan deleted successfully.'), type: 'success');
+    }
+
+    private function hasActiveReferences(Plan $plan): bool
+    {
+        // 1. Active subscriptions referencing this plan
+        if (Subscription::where('plan_id', $plan->id)->active()->exists()) {
+            return true;
+        }
+
+        // 2. Active bookings referencing this plan's courses
+        // Check for future bookings that are not cancelled
+        if (
+            Booking::whereHas('courseSession.course.plans', function ($query) use ($plan) {
+                $query->where('plans.id', $plan->id);
+            })
+                ->where('date', '>=', now()->toDateString())
+                ->where('status', '!=', 'cancelled')
+                ->exists()
+        ) {
+            return true;
+        }
+
+        // 3. Active reservations referencing this plan's activities (via services)
+        // Check for future or ongoing reservations that are not cancelled/completed and paid
+        if (
+            Reservation::whereHas('timeSlot.activity.service', function ($query) use ($plan) {
+                $query->where('id', $plan->service_id);
+            })
+                ->where(function ($query) {
+                    $query->where('reservation_status', '!=', 'cancelled')
+                        ->where('reservation_status', '!=', 'completed');
+                })
+                ->where('payment_status', 'paid')
+                ->whereHas('timeSlot', fn ($q) => $q->where('end_time', '>=', now()->toTimeString()))
+                ->exists()
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private function hasAnyReferences(Plan $plan): bool
+    {
+        // 1. Any subscriptions referencing this plan (active or inactive)
+        if (Subscription::where('plan_id', $plan->id)->exists()) {
+            return true;
+        }
+
+        // 2. Any bookings referencing this plan's courses (active or inactive)
+        if (
+            Booking::whereHas('courseSession.course.plans', function ($query) use ($plan) {
+                $query->where('plans.id', $plan->id);
+            })->exists()
+        ) {
+            return true;
+        }
+
+        // 3. Any reservations referencing this plan's activities (via services)
+        if (
+            Reservation::whereHas('timeSlot.activity.service', function ($query) use ($plan) {
+                $query->where('id', $plan->service_id);
+            })->exists()
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
     protected function rules(): array
     {
         return [
+            'serviceId' => ['required', 'integer', 'exists:services,id'],
             'name' => [
                 'required',
                 'string',
@@ -283,48 +437,16 @@ class PlanTable extends Component
                 'min:0.001',
                 'regex:/^\d+(\.\d{1,3})?$/',
             ],
-            'durationDays' => [
-                'required',
-                'integer',
-                'min:1',
+            'durationDays' => ['required', 'integer', 'min:1'],
+            'hasAllCourses' => ['boolean'],
+            'selectedCourses' => [
+                Rule::requiredIf(fn () => ! $this->hasAllCourses && ! $this->isFacilityOnly),
+                'array',
             ],
-            'includedServicesInput' => [
-                'nullable',
-                'string',
-                'max:5000',
-            ],
-            'hasAllCourses' => [
-                'boolean',
-            ],
-            'isArchived' => [
-                'boolean',
-            ],
-            'image' => [
-                'nullable',
-                'image',
-                'max:2048',
+            'selectedCourses.*' => [
+                'exists:courses,id',
             ],
         ];
-    }
-
-    private function normalizedServices(?string $rawServices): array
-    {
-        if ($rawServices === null || trim($rawServices) === '') {
-            return [];
-        }
-
-        $services = preg_split('/[\n,]+/', $rawServices);
-
-        if ($services === false) {
-            return [];
-        }
-
-        return collect($services)
-            ->map(fn (string $service): string => strtolower(trim($service)))
-            ->filter(fn (string $service): bool => $service !== '')
-            ->unique()
-            ->values()
-            ->all();
     }
 
     #[Computed]
@@ -333,18 +455,28 @@ class PlanTable extends Component
         $this->authorize('viewAny', Plan::class);
 
         return Plan::query()
-            ->when($this->search !== '', function (Builder $query): void {
-                $query->where('name', 'like', "%{$this->search}%");
-            })
-            ->when($this->statusFilter === 'active', function (Builder $query): void {
-                $query->where('is_archived', false);
-            })
+            ->withoutGlobalScope(ActivePlanScope::class)
             ->when($this->statusFilter === 'archived', function (Builder $query): void {
                 $query->where('is_archived', true);
+            })
+            ->when($this->statusFilter === 'active', function (Builder $query): void {
+                $query->where('is_archived', false)
+                    ->whereHas('service', function ($q) {
+                        $q->where('status', 'active');
+                    });
+            })
+            ->when($this->search !== '', function (Builder $query): void {
+                $query->where('name', 'like', "%{$this->search}%");
             })
             ->withCount('subscriptions', 'courses')
             ->orderBy($this->sortBy, $this->sortDirection)
             ->paginate($this->perPage);
+    }
+
+    #[Computed]
+    public function availableServices(): Collection
+    {
+        return Service::query()->active()->orderBy('name')->get();
     }
 
     #[Computed]
@@ -360,7 +492,9 @@ class PlanTable extends Component
             return null;
         }
 
-        return Plan::with(['courses'])->withCount('subscriptions')->find($this->detailPlanId);
+        return Plan::with(['courses'])
+            ->withCount('subscriptions')
+            ->find($this->detailPlanId);
     }
 
     public function render(): View

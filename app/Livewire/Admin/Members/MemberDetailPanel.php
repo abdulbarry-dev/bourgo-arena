@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Admin\Members;
 
-use App\Jobs\SendMemberPasswordResetEmail;
 use App\Models\Member;
 use App\Models\Subscription;
 use App\Services\LoyaltyService;
@@ -29,14 +28,6 @@ class MemberDetailPanel extends Component
 
     public $loyaltyTransactions = null;
 
-    public bool $showSuspendModal = false;
-
-    public bool $showActivateModal = false;
-
-    public bool $showResetPasswordModal = false;
-
-    public bool $showDeleteModal = false;
-
     public function mount(?int $memberId = null): void
     {
         $memberFromQuery = request()->query('member');
@@ -47,8 +38,7 @@ class MemberDetailPanel extends Component
         }
 
         $resolvedMemberId = $memberId
-            ?? (is_numeric($memberFromQuery) ? (int) $memberFromQuery : null)
-            ?? session('members.selected_member_id');
+            ?? (is_numeric($memberFromQuery) ? (int) $memberFromQuery : null);
 
         if ($resolvedMemberId !== null) {
             $this->loadMember((int) $resolvedMemberId);
@@ -77,10 +67,10 @@ class MemberDetailPanel extends Component
 
         $this->member = Member::query()
             ->with([
-                'parent.activeSubscription.plan',
-                'children.activeSubscription.plan',
-                'activeSubscription.plan',
-                'activeSubscription.enrolledBy',
+                'parent.validSubscriptions.plan',
+                'children.validSubscriptions.plan',
+                'validSubscriptions.plan',
+                'validSubscriptions.enrolledBy',
             ])
             ->find($memberId);
 
@@ -134,94 +124,6 @@ class MemberDetailPanel extends Component
         }
 
         $this->loadMember((int) $memberId);
-    }
-
-    public function suspend(): void
-    {
-        $member = $this->resolveSelectedMember();
-
-        $this->authorize('suspend', $member);
-
-        if ($member->status === 'suspended') {
-            $this->showSuspendModal = false;
-            $this->dispatch('toast', message: 'Member is already suspended.', type: 'info');
-
-            return;
-        }
-
-        $member->update(['status' => 'suspended']);
-
-        $this->showSuspendModal = false;
-
-        $this->loadMember($member->id);
-        $this->dispatch('member-updated', memberId: $member->id);
-        $this->dispatch('toast', message: 'Member suspended successfully.', type: 'success');
-    }
-
-    public function activate(): void
-    {
-        $member = $this->resolveSelectedMember();
-
-        $this->authorize('activate', $member);
-
-        if ($member->status === 'active') {
-            $this->showActivateModal = false;
-            $this->dispatch('toast', message: 'Member is already active.', type: 'info');
-
-            return;
-        }
-
-        $member->update(['status' => 'active']);
-
-        $this->showActivateModal = false;
-
-        $this->loadMember($member->id);
-        $this->dispatch('member-updated', memberId: $member->id);
-        $this->dispatch('toast', message: 'Member activated successfully.', type: 'success');
-    }
-
-    public function resetPassword(): void
-    {
-        $member = $this->resolveSelectedMember();
-
-        $this->authorize('resetPassword', Member::class);
-
-        SendMemberPasswordResetEmail::dispatch($member->id);
-
-        $this->showResetPasswordModal = false;
-
-        $this->dispatch('member-updated', memberId: $member->id);
-        $this->dispatch('toast', message: 'Password reset email sent successfully.', type: 'success');
-    }
-
-    public function delete(): void
-    {
-        $member = $this->resolveSelectedMember();
-
-        $this->authorize('delete', $member);
-
-        $deletedMemberId = $member->id;
-
-        $member->delete();
-
-        session()->forget('members.selected_member_id');
-        session()->flash('toast', [
-            'message' => 'Member deleted successfully.',
-            'type' => 'success',
-        ]);
-
-        $this->reset(
-            'memberId',
-            'member',
-            'showDeleteModal',
-            'showSuspendModal',
-            'showActivateModal',
-            'showResetPasswordModal',
-        );
-
-        $this->dispatch('member-updated', memberId: $deletedMemberId);
-
-        $this->redirectRoute('admin.members');
     }
 
     public function render(): View

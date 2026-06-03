@@ -10,15 +10,31 @@
         </x-slot>
     </x-ui.dashboard.page-header>
 
-    <x-ui.dashboard.filters columns="1">
-        <flux:input
-            wire:model.live.debounce.300ms="search"
-            icon="magnifying-glass"
-            :label="__('Search')"
-            :placeholder="__('Search managers...')"
-            clearable
-        />
-    </x-ui.dashboard.filters>
+    <x-ui.filter-row>
+        <x-slot name="search">
+            <flux:input
+                wire:model.live.debounce.300ms="search"
+                type="search"
+                :label="__('Search')"
+                :placeholder="__('Search managers...')"
+                icon="magnifying-glass"
+                clearable
+            />
+        </x-slot>
+
+        <x-slot name="controls">
+            <div class="w-56" style="min-width:160px">
+                <flux:field>
+                    <flux:label>{{ __('Status') }}</flux:label>
+                    <flux:select wire:model.live="statusFilter" placeholder="{{ __('All Statuses') }}">
+                        <flux:select.option value="">{{ __('All Statuses') }}</flux:select.option>
+                        <flux:select.option value="not_banned">{{ __('Not Banned') }}</flux:select.option>
+                        <flux:select.option value="banned">{{ __('Banned') }}</flux:select.option>
+                    </flux:select>
+                </flux:field>
+            </div>
+        </x-slot>
+    </x-ui.filter-row>
 
     @include('livewire.admin.managers.partials.table')
     @include('livewire.admin.managers.partials.create-flyout')

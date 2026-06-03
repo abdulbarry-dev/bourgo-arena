@@ -1,19 +1,27 @@
-<div class="border-t pt-4">
-    <flux:heading size="sm" class="mb-3">{{ __('Enrolled Members') }}</flux:heading>
+<div class="space-y-3">
+    <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Enrolled Members') }}</h3>
+
     @if (count($data['bookings']) > 0)
-        <div class="space-y-2">
+        <div class="grid gap-2">
             @foreach ($data['bookings'] as $booking)
-                <div class="flex items-center justify-between rounded-md bg-gray-50 p-3 dark:bg-gray-800">
-                    <div class="text-sm font-medium">
-                        {{ $booking->member->name ?? __('Unknown') }}
+                <div
+                    wire:key="session-booking-{{ $booking->id }}"
+                    class="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-3 shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
+                >
+                    <div class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 font-bold text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                        {{ substr($booking->member?->name, 0, 1) }}
                     </div>
-                    @if ($data['status'] !== 'validated')
-                        <flux:button variant="danger" size="sm" icon="trash" class="!px-2" :wire:confirm="__('Remove this booking?')" wire:click="removeBooking({{ $booking->id }})" />
-                    @endif
+                    <div class="min-w-0 flex-1">
+                        <div class="truncate text-sm font-bold text-zinc-900 dark:text-zinc-100">{{ $booking->member?->name ?? __('Unknown') }}</div>
+                        <div class="truncate text-[10px] font-medium text-zinc-400">{{ $booking->member?->email }}</div>
+                    </div>
                 </div>
             @endforeach
         </div>
     @else
-        <div class="text-sm italic text-gray-500">{{ __('No members enrolled yet.') }}</div>
+        <div class="rounded-xl border border-dashed border-zinc-300 p-8 text-center dark:border-zinc-700">
+            <flux:icon name="users" class="mx-auto size-8 text-zinc-300 dark:text-zinc-600" />
+            <p class="mt-2 text-sm font-medium text-zinc-400">{{ __('No members enrolled yet.') }}</p>
+        </div>
     @endif
 </div>

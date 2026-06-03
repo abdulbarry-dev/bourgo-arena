@@ -1,5 +1,5 @@
 <flux:modal wire:model="showActivateModal" class="max-w-md">
-    <div class="space-y-4">
+    <div class="space-y-4 pt-4">
         <flux:heading size="lg">{{ __('Activate member?') }}</flux:heading>
         <flux:text>{{ __('This will return the member status to active.') }}</flux:text>
 

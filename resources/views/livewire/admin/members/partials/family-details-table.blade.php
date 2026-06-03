@@ -33,7 +33,7 @@
                                 <flux:badge size="sm" variant="subtle" class="capitalize">{{ $member->parent->status }}</flux:badge>
                             </td>
                             <td class="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-                                {{ $member->parent->activeSubscription?->plan?->name ?? __('No active plan') }}
+                                {{ $member->parent->validSubscriptions->first()?->plan?->name ?? __('No active plan') }}
                             </td>
 
                             <td class="px-4 py-3 text-right">
@@ -57,7 +57,7 @@
                                 <flux:badge size="sm" variant="subtle" class="capitalize">{{ $child->status }}</flux:badge>
                             </td>
                             <td class="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-                                {{ $child->activeSubscription?->plan?->name ?? __('No active plan') }}
+                                {{ $child->validSubscriptions->first()?->plan?->name ?? __('No active plan') }}
                             </td>
 
                             <td class="px-4 py-3 text-right">
@@ -70,8 +70,9 @@
         @else
             <x-ui.dashboard.empty-state
                 table
+                icon="users"
                 :title="__('No family members linked')"
-                :subtitle="__('Add a parent or child to see family relationships here.')"
+                :subtitle="__('Members can be linked as parents or children. Add one to build family relationships.')"
             />
         @endif
     </x-ui.dashboard.table-shell>

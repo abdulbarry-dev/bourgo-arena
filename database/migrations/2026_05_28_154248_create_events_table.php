@@ -13,16 +13,15 @@ return new class extends Migration
     {
         Schema::create('events', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('service_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->string('sport_type')->default('padel');
             $table->string('format')->default('1v1');
             $table->integer('max_participants');
             $table->dateTime('registration_deadline')->nullable();
             $table->dateTime('start_date')->nullable();
             $table->dateTime('end_date')->nullable();
             $table->boolean('requires_check_in')->default(false);
-            $table->string('status')->default('draft');
             $table->timestamps();
         });
     }

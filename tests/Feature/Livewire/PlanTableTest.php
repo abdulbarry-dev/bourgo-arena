@@ -50,29 +50,46 @@ test('plan table hides create action for manager and shows it for admin', functi
 
     Livewire::test(PlanTable::class)
         ->assertDontSee('Create Plan')
-        ->assertDontSee('Edit');
+        ->assertDontSee('Edit Plan');
 
     $this->actingAs(User::factory()->admin()->create());
 
     Livewire::test(PlanTable::class)
         ->assertSee('Create Plan')
-        ->assertSee('Edit');
+        ->assertSee('View Details')
+        ->assertSee('Edit Plan');
+});
+
+test('plan detail flyout shows placeholder when no image and no close panel', function () {
+    $this->actingAs(User::factory()->manager()->create());
+
+    $plan = Plan::factory()->create([
+        'name' => 'Starter Pack',
+    ]);
+
+    Livewire::test(PlanTable::class)
+        ->call('openDetailFlyout', $plan->id)
+        ->assertSet('detailPlanId', $plan->id)
+        ->assertSee('Starter Pack');
 });
 
 test('plan can be saved with specific courses', function () {
     $admin = User::factory()->admin()->create();
 
+    $service = \App\Models\Service::factory()->create();
     $course1 = Course::factory()->create();
     $course2 = Course::factory()->create();
 
     $this->actingAs($admin);
     Livewire::test(PlanTable::class)
+        ->set('serviceId', $service->id)
         ->set('name', 'Boxing Package')
         ->set('price', '150.000')
         ->set('durationDays', 30)
         ->set('hasAllCourses', false)
         ->set('selectedCourses', [(string) $course1->id, (string) $course2->id])
         ->call('save')
+        ->assertHasNoErrors()
         ->assertDispatched('toast');
 
     $this->assertDatabaseHas('plans', [
@@ -88,14 +105,17 @@ test('plan can be saved with specific courses', function () {
 
 test('plan can be all inclusive', function () {
     $admin = User::factory()->admin()->create();
+    $service = \App\Models\Service::factory()->create();
 
     $this->actingAs($admin);
     Livewire::test(PlanTable::class)
+        ->set('serviceId', $service->id)
         ->set('name', 'V.I.P Gym & All Class Access')
         ->set('price', '500.000')
         ->set('durationDays', 365)
         ->set('hasAllCourses', true)
         ->call('save')
+        ->assertHasNoErrors()
         ->assertDispatched('toast');
 
     $this->assertDatabaseHas('plans', [

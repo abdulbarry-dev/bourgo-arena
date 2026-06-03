@@ -40,12 +40,12 @@ test('dashboard seeders create members and events data', function () {
 
     expect(Member::count())->toBe(12);
     expect(Member::where('email', 'lina.chafik@example.com')->value('parent_id'))->not->toBeNull();
-    expect(Event::count())->toBe(2);
+    expect(Event::count())->toBe(3);
     expect(EventParticipant::count())->toBe(8);
     expect(LoyaltyPoint::count())->toBe(12);
-    expect(Plan::count())->toBe(5);
+    expect(Plan::withoutGlobalScopes()->count())->toBe(5);
     expect(Course::count())->toBe(4);
-    expect(Subscription::count())->toBe(8);
+    expect(Subscription::count())->toBe(7);
     expect(Activity::count())->toBe(4);
     expect(ApiReservation::count())->toBe(6);
     expect(Booking::count())->toBe(6);

@@ -1,88 +1,54 @@
-<flux:modal name="view-course-modal" flyout class="max-w-md w-full" x-on:hidden="$wire.closeViewModal()">
-    @if($viewingCourse)
-        <div class="space-y-6">
-            <!-- Header with Image -->
-            <div class="-mx-6 -mt-6">
+<flux:modal wire:model="showViewFlyout" variant="flyout" class="w-full max-w-xl">
+    @if ($viewingCourse)
+        <div class="p-6">
+            <div class="flex items-center justify-between">
+                <flux:heading size="xl">{{ $viewingCourse->name }}</flux:heading>
+                <x-ui.dashboard.status-badge
+                    :status="$viewingCourse->status"
+                    :label="ucfirst($viewingCourse->status)"
+                    :color="match($viewingCourse->status) {
+                        'active' => 'green',
+                        'inactive' => 'gray',
+                        'archived' => 'orange',
+                        default => 'zinc',
+                    }"
+                />
+            </div>
+            
+            <flux:text variant="subtle" class="mt-2">
+                {{ __('Created on :date', ['date' => $viewingCourse->created_at->format('M d, Y')]) }}
+            </flux:text>
+
+            <div class="mt-8">
                 @if ($viewingCourse->image_url)
-                    <img src="{{ $viewingCourse->image_url }}" alt="{{ $viewingCourse->name }}" class="w-full h-48 object-cover">
-                @else
-                    <div class="w-full h-48 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
-                        <flux:icon.book-open class="size-16 text-zinc-300 dark:text-zinc-600" />
-                    </div>
-                @endif
-                
-                <div class="px-6 py-4 flex items-center gap-3 border-b border-zinc-200 dark:border-zinc-700">
-                    <div class="flex-1">
-                        <flux:heading size="xl">{{ __($viewingCourse->name) }}</flux:heading>
-                        <flux:subheading class="flex items-center gap-1.5">
-                            <flux:icon.user class="size-4" />
-                            {{ __($viewingCourse->instructor) }}
-                        </flux:subheading>
-                    </div>
-                    <!-- Theme Color display removed -->
-                </div>
-            </div>
-
-            <!-- Description -->
-            <div>
-                <flux:label>{{ __('Description') }}</flux:label>
-                <div class="mt-2 text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                    {{ $viewingCourse->description ? __($viewingCourse->description) : __('No description provided.') }}
-                </div>
-            </div>
-
-            <!-- Statistics / Info -->
-            <div class="grid grid-cols-2 gap-4">
-                <div class="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700">
-                    <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-1">{{ __('Total Sessions') }}</div>
-                    <div class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{{ $viewingCourse->sessions()->count() }}</div>
-                </div>
-                <div class="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700">
-                    <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-1">{{ __('Created Date') }}</div>
-                    <div class="text-sm font-bold text-zinc-900 dark:text-zinc-100">{{ $viewingCourse->created_at->format('M d, Y') }}</div>
-                </div>
-            </div>
-
-            <!-- Course Schedules -->
-            <div class="mt-6 border-t border-zinc-200 dark:border-zinc-700 pt-6">
-                <flux:heading size="md" class="mb-4">{{ __('Course Schedules') }}</flux:heading>
-                
-                @if($viewingCourse->sessions->isNotEmpty())
-                    <div class="space-y-3">
-                        @foreach($viewingCourse->sessions->sortBy('day_of_week') as $session)
-                            <div class="flex items-center justify-between p-3 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50" wire:key="session-{{ $session->id }}">
-                                <div>
-                                    <div class="font-medium text-zinc-900 dark:text-zinc-100">
-                                        {{ ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][$session->day_of_week] }}s at {{ \Carbon\Carbon::parse($session->starts_at)->format('g:i A') }}
-                                    </div>
-                                    <div class="text-sm text-zinc-500 dark:text-zinc-400">
-                                        {{ $session->duration_minutes }} {{ __('mins') }} &middot; {{ __('Capacity: :capacity', ['capacity' => $session->capacity]) }}
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-1">
-                                    <flux:button wire:click="openEditSessionModal({{ $session->id }})" variant="subtle" size="sm" icon="pencil" class="!px-2" />
-                                    <flux:button wire:click="confirmDeleteSession({{ $session->id }})" variant="subtle" size="sm" icon="trash" class="!px-2 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300" />
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                @else
-                    <div class="text-sm text-zinc-500 dark:text-zinc-400 p-4 border border-dashed border-zinc-300 dark:border-zinc-700 rounded-lg text-center">
-                        {{ __('No repeating schedules have been configured for this course yet.') }}
-                    </div>
+                    <img src="{{ $viewingCourse->image_url }}" alt="{{ $viewingCourse->name }}" class="w-full h-64 object-cover rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-700">
                 @endif
             </div>
 
-            <!-- Footer Actions -->
-            <div class="sticky bottom-0 bg-white dark:bg-zinc-900 pt-6 pb-2 -mx-2">
-                <div class="flex items-center gap-2 px-2">
-                    <flux:spacer />
-                    <flux:button wire:click="openEditModal({{ $viewingCourse->id }})" icon="pencil">{{ __('Edit Details') }}</flux:button>
-                    <flux:button wire:click="confirmDelete({{ $viewingCourse->id }})" variant="danger" icon="trash" :disabled="$viewingCourse->sessions()->count() > 0">
-                        {{ __('Delete') }}
-                    </flux:button>
+            <div class="mt-8 space-y-6">
+                <div>
+                    <flux:heading size="sm" class="mb-2">{{ __('Description') }}</flux:heading>
+                    <flux:text>{{ $viewingCourse->description ?: __('No description provided.') }}</flux:text>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="rounded-xl bg-zinc-50 p-4 dark:bg-zinc-800/50">
+                        <flux:text variant="subtle" size="sm">{{ __('Parent Service') }}</flux:text>
+                        <flux:heading size="lg">{{ $viewingCourse->service?->name ?? __('N/A') }}</flux:heading>
+                    </div>
+                    <div class="rounded-xl bg-zinc-50 p-4 dark:bg-zinc-800/50">
+                        <flux:text variant="subtle" size="sm">{{ __('Total Sessions') }}</flux:text>
+                        <flux:heading size="lg">{{ $viewingCourse->sessions->count() }}</flux:heading>
+                    </div>
                 </div>
             </div>
+        </div>
+
+        <div class="flex justify-between gap-2 px-6 pb-6">
+            <flux:button variant="ghost" icon="pencil-square" wire:click="openEditModal({{ $viewingCourse->id }})">{{ __('Edit') }}</flux:button>
+            <flux:modal.close>
+                <flux:button variant="filled">{{ __('Close') }}</flux:button>
+            </flux:modal.close>
         </div>
     @endif
 </flux:modal>

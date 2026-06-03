@@ -11,9 +11,9 @@ beforeEach(function () {
     $this->actingAs($user);
 });
 
-it('filters courses by search, category, instructor, and session presence', function () {
-    $courseWith = Course::factory()->create(['name' => 'Yoga Basics', 'category' => 'Yoga', 'instructor' => 'Alice']);
-    $courseWithout = Course::factory()->create(['name' => 'Weights 101', 'category' => 'Weights', 'instructor' => 'Bob']);
+it('filters courses by search, category, and session presence', function () {
+    $courseWith = Course::factory()->create(['name' => 'Yoga Basics', 'category' => 'Yoga']);
+    $courseWithout = Course::factory()->create(['name' => 'Weights 101', 'category' => 'Weights']);
 
     // Create a session for courseWith
     CourseSession::create([
@@ -39,12 +39,6 @@ it('filters courses by search, category, instructor, and session presence', func
         ->assertSee('Weights 101')
         ->assertDontSee('Yoga Basics');
 
-    // Instructor
-    Livewire::test(CourseManager::class)
-        ->set('instructorFilter', 'Alice')
-        ->assertSee('Yoga Basics')
-        ->assertDontSee('Weights 101');
-
     // Has sessions
     Livewire::test(CourseManager::class)
         ->set('hasSessionsFilter', 'with')
@@ -55,4 +49,28 @@ it('filters courses by search, category, instructor, and session presence', func
         ->set('hasSessionsFilter', 'without')
         ->assertSee('Weights 101')
         ->assertDontSee('Yoga Basics');
+});
+
+it('renders course view modal without close panel and shows placeholder when no image', function () {
+    $course = Course::factory()->create([
+        'name' => 'Pilates Flow',
+        'image_url' => null,
+    ]);
+
+    Livewire::test(CourseManager::class)
+        ->call('openViewFlyout', $course->id)
+        ->assertSet('viewingCourse.id', $course->id)
+        ->assertSee('Pilates Flow')
+        ->assertSee('Total Sessions');
+});
+
+it('renders course cover image in view modal when image is set', function () {
+    $course = Course::factory()->create([
+        'image_url' => 'https://example.test/courses/pilates.jpg',
+    ]);
+
+    Livewire::test(CourseManager::class)
+        ->call('openViewFlyout', $course->id)
+        ->assertSee('courses/pilates.jpg')
+        ->assertSee('Total Sessions');
 });

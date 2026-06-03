@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\ActivePlanScope;
 use Database\Factories\Shared\Billing\PlanFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -19,21 +21,31 @@ class Plan extends Model
     use HasFactory;
 
     protected $fillable = [
+        'service_id',
         'name',
         'has_all_courses',
         'price',
         'duration_days',
-        'included_services',
         'is_archived',
-        'image_url',
     ];
 
     protected $casts = [
         'price' => 'decimal:3',
         'has_all_courses' => 'boolean',
-        'included_services' => 'array',
         'is_archived' => 'boolean',
     ];
+
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::addGlobalScope(new ActivePlanScope);
+    }
+
+    public function service(): BelongsTo
+    {
+        return $this->belongsTo(Service::class);
+    }
 
     public function courses(): BelongsToMany
     {

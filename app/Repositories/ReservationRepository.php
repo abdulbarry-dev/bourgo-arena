@@ -44,11 +44,10 @@ class ReservationRepository
     /**
      * Check if member has an active reservation for a given slot.
      */
-    public function hasActiveReservationForSlot(Member $member, int $slotId, string $date): bool
+    public function hasActiveReservationForSlot(Member $member, int $slotId): bool
     {
         return ApiReservation::where('member_id', $member->id)
             ->where('activity_slot_id', $slotId)
-            ->where('date', $date)
             ->where('status', '!=', 'cancelled')
             ->exists();
     }

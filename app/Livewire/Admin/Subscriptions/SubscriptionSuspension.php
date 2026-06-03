@@ -4,12 +4,9 @@ namespace App\Livewire\Admin\Subscriptions;
 
 use App\Actions\Subscriptions\ResumeSubscriptionAction;
 use App\Actions\Subscriptions\SuspendSubscriptionAction;
-use App\Actions\Subscriptions\TransferSubscriptionAction;
 use App\Jobs\SendSubscriptionNotification;
-use App\Models\Member;
 use App\Models\Subscription;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
@@ -27,10 +24,6 @@ class SubscriptionSuspension extends Component
     public string $suspensionReason = '';
 
     public bool $confirmSuspension = false;
-
-    public ?int $transferToMemberId = null;
-
-    public bool $requiresApproval = false;
 
     public function mount(?int $subscriptionId = null): void
     {
@@ -141,69 +134,6 @@ class SubscriptionSuspension extends Component
         $this->dispatch('toast', message: 'Subscription resumed successfully', type: 'success');
     }
 
-    public function transfer(TransferSubscriptionAction $transferAction): void
-    {
-        $this->authorize('transfer', Subscription::class);
-
-        $subscription = $this->selectedSubscription;
-
-        if ($subscription === null) {
-            $this->addError('subscriptionId', 'Select a subscription first.');
-
-            return;
-        }
-
-        if (! in_array($subscription->status, ['active', 'suspended'], true)) {
-            $this->addError('subscriptionId', 'Only active or suspended subscriptions can be transferred.');
-
-            return;
-        }
-
-        $this->validate($this->transferRules($subscription->member_id));
-
-        if (Subscription::query()->where('member_id', (int) $this->transferToMemberId)->active()->exists()) {
-            $this->addError('transferToMemberId', 'The selected member already has an active subscription.');
-
-            return;
-        }
-
-        $oldMemberId = $subscription->member_id;
-        $newSubscription = $transferAction->execute($subscription, (int) $this->transferToMemberId, auth()->id());
-
-        SendSubscriptionNotification::dispatch(
-            $subscription->id,
-            'transferred-from',
-            $oldMemberId,
-            [
-                'push_intent' => true,
-                'push_status' => 'pending-infrastructure',
-                'new_member_id' => $newSubscription->member_id,
-                'new_subscription_id' => $newSubscription->id,
-            ],
-        );
-        SendSubscriptionNotification::dispatch(
-            $newSubscription->id,
-            'transferred-to',
-            $newSubscription->member_id,
-            [
-                'push_intent' => true,
-                'push_status' => 'pending-infrastructure',
-                'from_member_id' => $oldMemberId,
-                'source_subscription_id' => $subscription->id,
-            ],
-        );
-
-        $this->subscriptionId = $newSubscription->id;
-        session(['subscriptions.selected_subscription_id' => $newSubscription->id]);
-
-        $this->action = '';
-        $this->transferToMemberId = null;
-        $this->requiresApproval = false;
-
-        $this->dispatch('subscription-updated', subscriptionId: $newSubscription->id);
-        $this->dispatch('toast', message: 'Subscription transferred successfully', type: 'success');
-    }
-
     #[Computed]
     public function selectedSubscription(): ?Subscription
     {
@@ -222,21 +152,6 @@ class SubscriptionSuspension extends Component
             ->find($this->subscriptionId);
     }
 
-    #[Computed]
-    public function availableMembers(): Collection
-    {
-        if ($this->selectedSubscription === null) {
-            return collect();
-        }
-
-        return Member::query()
-            ->whereNull('deleted_at')
-            ->whereKeyNot($this->selectedSubscription->member_id)
-            ->whereDoesntHave('activeSubscription')
-            ->orderBy('name')
-            ->get(['id', 'name']);
-    }
-
     /**
      * @return array<string, array<int, mixed>>
      */
@@ -248,36 +163,6 @@ class SubscriptionSuspension extends Component
                 Rule::in(['medical', 'travel', 'other']),
             ],
             'confirmSuspension' => ['accepted'],
-        ];
-    }
-
-    /**
-     * @return array<string, array<int, mixed>>
-     */
-    protected function transferRules(int $currentMemberId): array
-    {
-        return [
-            'transferToMemberId' => [
-                'required',
-                'integer',
-                Rule::exists('members', 'id')->whereNull('deleted_at'),
-                Rule::notIn([$currentMemberId]),
-                function (string $attribute, mixed $value, \Closure $fail): void {
-                    if (! is_numeric($value)) {
-                        return;
-                    }
-
-                    $hasActiveSubscription = Subscription::query()
-                        ->where('member_id', (int) $value)
-                        ->active()
-                        ->exists();
-
-                    if ($hasActiveSubscription) {
-                        $fail('The selected member already has an active subscription.');
-                    }
-                },
-            ],
-            'requiresApproval' => ['accepted'],
         ];
     }
 

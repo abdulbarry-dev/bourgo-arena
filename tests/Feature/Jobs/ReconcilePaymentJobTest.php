@@ -17,7 +17,7 @@ it('creates a reconciliation record when webhook marks payment as paid', functio
 
     $member = Member::factory()->create();
     $activity = Activity::factory()->create();
-    $slot = ActivitySlot::factory()->create(['activity_id' => $activity->id, 'date' => now()->addDay()->toDateString(), 'starts_at' => '10:00:00', 'ends_at' => '11:00:00', 'capacity' => 4, 'booked_count' => 1]);
+    $slot = ActivitySlot::factory()->create(['activity_id' => $activity->id, 'starts_at' => '10:00:00', 'ends_at' => '11:00:00', 'capacity' => 4, 'booked_count' => 1]);
 
     $reservation = ApiReservation::factory()->for($member)->forActivity($activity)->forSlot($slot)->create(['payment_status' => 'pending', 'status' => 'confirmed']);
 
@@ -39,7 +39,7 @@ it('creates a reconciliation record when webhook marks payment as paid', functio
 it('creates a reconciliation record when webhook marks payment as refunded', function () {
     $member = Member::factory()->create();
     $activity = Activity::factory()->create();
-    $slot = ActivitySlot::factory()->create(['activity_id' => $activity->id, 'date' => now()->addDay()->toDateString(), 'starts_at' => '10:00:00', 'ends_at' => '11:00:00', 'capacity' => 4, 'booked_count' => 1]);
+    $slot = ActivitySlot::factory()->create(['activity_id' => $activity->id, 'starts_at' => '10:00:00', 'ends_at' => '11:00:00', 'capacity' => 4, 'booked_count' => 1]);
 
     $reservation = ApiReservation::factory()->for($member)->forActivity($activity)->forSlot($slot)->create(['payment_status' => 'paid', 'status' => 'confirmed']);
 

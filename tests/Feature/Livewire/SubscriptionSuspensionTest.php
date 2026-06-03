@@ -143,137 +143,18 @@ test('member selection loads active subscription context for suspension actions'
         ->assertSet('subscriptionId', $activeSubscription->id);
 });
 
-test('admin can transfer subscription to another member with approval confirmation', function () {
-    Carbon::setTestNow('2026-04-01 10:00:00');
-    Queue::fake();
-
-    $admin = User::factory()->admin()->create();
-    $sourceMember = Member::factory()->create(['status' => 'active']);
-    $targetMember = Member::factory()->create(['status' => 'active']);
-    $plan = Plan::factory()->create(['duration_days' => 30]);
-    $subscription = Subscription::factory()->create([
-        'member_id' => $sourceMember->id,
-        'plan_id' => $plan->id,
-        'status' => 'active',
-        'starts_at' => now()->subDays(10)->toDateString(),
-        'ends_at' => now()->addDays(12)->toDateString(),
-    ]);
-
-    $this->actingAs($admin);
-
-    Livewire::test(SubscriptionSuspension::class)
-        ->set('subscriptionId', $subscription->id)
-        ->set('action', 'transfer')
-        ->set('transferToMemberId', $targetMember->id)
-        ->set('requiresApproval', true)
-        ->call('transfer')
-        ->assertHasNoErrors();
-
-    $subscription->refresh();
-
-    $newSubscription = Subscription::query()
-        ->where('member_id', $targetMember->id)
-        ->where('status', 'active')
-        ->latest('id')
-        ->first();
-
-    expect($newSubscription)->not->toBeNull();
-    expect($subscription->status)->toBe('transferred');
-    expect($subscription->days_remaining)->toBe(12);
-    expect($newSubscription->plan_id)->toBe($plan->id);
-    expect($newSubscription->starts_at->toDateString())->toBe('2026-04-01');
-    expect($newSubscription->ends_at->toDateString())->toBe('2026-04-13');
-
-    $this->assertDatabaseHas('subscription_audit_logs', [
-        'subscription_id' => $subscription->id,
-        'action' => 'transfer',
-        'from_member_id' => $sourceMember->id,
-        'to_member_id' => $targetMember->id,
-        'performed_by' => $admin->id,
-    ]);
-
-    Queue::assertPushed(
-        SendSubscriptionNotification::class,
-        fn (SendSubscriptionNotification $job): bool => $job->subscriptionId === $subscription->id
-            && $job->notificationType === 'transferred-from'
-            && $job->targetMemberId === $sourceMember->id,
-    );
-    Queue::assertPushed(
-        SendSubscriptionNotification::class,
-        fn (SendSubscriptionNotification $job): bool => $job->subscriptionId === $newSubscription->id
-            && $job->notificationType === 'transferred-to'
-            && $job->targetMemberId === $targetMember->id,
-    );
-
-    Carbon::setTestNow();
-});
-
-test('manager cannot transfer subscription', function () {
+test('subscription suspension page no longer exposes transfer controls', function () {
     $manager = User::factory()->manager()->create();
-    $sourceMember = Member::factory()->create(['status' => 'active']);
-    $targetMember = Member::factory()->create(['status' => 'active']);
     $subscription = Subscription::factory()->create([
-        'member_id' => $sourceMember->id,
         'status' => 'active',
+        'ends_at' => now()->addDays(10)->toDateString(),
     ]);
 
     $this->actingAs($manager);
 
     Livewire::test(SubscriptionSuspension::class)
         ->set('subscriptionId', $subscription->id)
-        ->set('action', 'transfer')
-        ->set('transferToMemberId', $targetMember->id)
-        ->set('requiresApproval', true)
-        ->call('transfer')
-        ->assertForbidden();
-});
-
-test('cannot transfer subscription to a member with an active subscription', function () {
-    $admin = User::factory()->admin()->create();
-    $sourceMember = Member::factory()->create(['status' => 'active']);
-    $targetMember = Member::factory()->create(['status' => 'active']);
-    $plan = Plan::factory()->create();
-
-    $subscription = Subscription::factory()->create([
-        'member_id' => $sourceMember->id,
-        'status' => 'active',
-        'plan_id' => $plan->id,
-    ]);
-
-    Subscription::factory()->create([
-        'member_id' => $targetMember->id,
-        'status' => 'active',
-        'plan_id' => $plan->id,
-        'ends_at' => now()->addDays(15)->toDateString(),
-    ]);
-
-    $this->actingAs($admin);
-
-    Livewire::test(SubscriptionSuspension::class)
-        ->set('subscriptionId', $subscription->id)
-        ->set('action', 'transfer')
-        ->set('transferToMemberId', $targetMember->id)
-        ->set('requiresApproval', true)
-        ->call('transfer')
-        ->assertHasErrors(['transferToMemberId']);
-});
-
-test('transfer requires explicit approval confirmation', function () {
-    $admin = User::factory()->admin()->create();
-    $sourceMember = Member::factory()->create(['status' => 'active']);
-    $targetMember = Member::factory()->create(['status' => 'active']);
-    $subscription = Subscription::factory()->create([
-        'member_id' => $sourceMember->id,
-        'status' => 'active',
-    ]);
-
-    $this->actingAs($admin);
-
-    Livewire::test(SubscriptionSuspension::class)
-        ->set('subscriptionId', $subscription->id)
-        ->set('action', 'transfer')
-        ->set('transferToMemberId', $targetMember->id)
-        ->set('requiresApproval', false)
-        ->call('transfer')
-        ->assertHasErrors(['requiresApproval']);
+        ->assertDontSee('Transfer Subscription')
+        ->assertDontSee('Transfer To Member')
+        ->assertDontSee('transfer approval');
 });

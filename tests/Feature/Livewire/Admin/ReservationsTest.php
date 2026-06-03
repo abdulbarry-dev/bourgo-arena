@@ -15,6 +15,36 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
+it('paginates reservations five per page', function () {
+    $admin = User::factory()->create(['role' => UserRole::Admin]);
+
+    ApiReservation::factory()->count(6)->create();
+
+    $this->actingAs($admin);
+
+    $component = Livewire::test(ReservationManager::class);
+
+    expect($component->instance()->reservations->perPage())->toBe(5)
+        ->and($component->instance()->reservations->count())->toBe(5)
+        ->and($component->instance()->reservations->total())->toBe(6);
+});
+
+it('displays member avatar in the reservations table', function () {
+    $admin = User::factory()->create(['role' => UserRole::Admin]);
+    $member = Member::factory()->create([
+        'name' => 'Avatar Member',
+        'avatar' => 'members/avatars/table.jpg',
+    ]);
+
+    ApiReservation::factory()->for($member, 'member')->create();
+
+    $this->actingAs($admin);
+
+    Livewire::test(ReservationManager::class)
+        ->assertSee('Avatar Member')
+        ->assertSee(asset('storage/members/avatars/table.jpg'), false);
+});
+
 it('renders the reservations manager page', function () {
     $admin = User::factory()->create(['role' => UserRole::Admin]);
 
@@ -44,7 +74,6 @@ it('allows an admin to create a reservation for a client', function () {
     ]);
     $slot = ActivitySlot::factory()->create([
         'activity_id' => $activity->id,
-        'date' => now()->addDay()->toDateString(),
         'starts_at' => '12:00:00',
         'ends_at' => '13:00:00',
         'capacity' => 6,
@@ -60,6 +89,7 @@ it('allows an admin to create a reservation for a client', function () {
         ->set('activitySearch', 'Court Alpha')
         ->set('createMemberId', $member->id)
         ->set('createActivityId', $activity->id)
+        ->set('createDate', now()->addDay()->toDateString())
         ->set('createActivitySlotId', $slot->id)
         ->call('createReservation')
         ->assertHasNoErrors();
@@ -87,7 +117,6 @@ it('shows reservation member and payment history details', function () {
     $activity = Activity::factory()->create(['title' => 'Stade Padel 1']);
     $slot = ActivitySlot::factory()->create([
         'activity_id' => $activity->id,
-        'date' => now()->addDay()->toDateString(),
         'starts_at' => '10:00:00',
         'ends_at' => '11:00:00',
         'capacity' => 4,
@@ -99,6 +128,7 @@ it('shows reservation member and payment history details', function () {
         ->forActivity($activity)
         ->forSlot($slot)
         ->create([
+            'date' => now()->addDay()->toDateString(),
             'payment_status' => 'paid',
             'status' => 'confirmed',
         ]);
@@ -120,17 +150,17 @@ it('shows reservation member and payment history details', function () {
         ->call('openReservationDetail', $reservation->id)
         ->assertSet('selectedReservationId', $reservation->id)
         ->assertSee('PAY-RES-001')
-        ->assertSee('Open Member Profile')
-        ->assertSee('View Loyalty History');
+        ->assertSee('Full Profile')
+        ->assertSee('Loyalty Points');
 });
 
 it('can verify and refund payments from the detail flyout', function () {
     $admin = User::factory()->create(['role' => UserRole::Admin]);
     $member = Member::factory()->create();
     $activity = Activity::factory()->create();
-    $slot = ActivitySlot::factory()->create(['activity_id' => $activity->id, 'date' => now()->addDay()->toDateString(), 'starts_at' => '10:00:00', 'ends_at' => '11:00:00', 'capacity' => 4, 'booked_count' => 1]);
+    $slot = ActivitySlot::factory()->create(['activity_id' => $activity->id, 'starts_at' => '10:00:00', 'ends_at' => '11:00:00', 'capacity' => 4, 'booked_count' => 1]);
 
-    $reservation = ApiReservation::factory()->for($member)->forActivity($activity)->forSlot($slot)->create(['payment_status' => 'pending', 'status' => 'confirmed']);
+    $reservation = ApiReservation::factory()->for($member)->forActivity($activity)->forSlot($slot)->create(['date' => now()->addDay()->toDateString(), 'payment_status' => 'pending', 'status' => 'confirmed']);
 
     $payment = Payment::factory()->create(['member_id' => $member->id, 'reservation_id' => $reservation->id, 'status' => 'pending', 'amount' => $reservation->price, 'payment_reference' => 'PAY-VERIFY-001']);
 
@@ -160,7 +190,7 @@ it('can verify and refund payments from the detail flyout', function () {
 
     // UI should show admin name in the reservation detail flyout after verification
     Livewire::test(ReservationManager::class)
-        ->call('openReservationDetail', $reservation->id)
+        ->call('openHistoryModal', $payment->id)
         ->assertSee($admin->name);
 
     // Now test refund flow

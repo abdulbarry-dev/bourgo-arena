@@ -7,7 +7,7 @@ use App\Models\User;
 
 /**
  * Authorization policy for Subscription resource.
- * Governs who can enroll, suspend, resume, and transfer subscriptions.
+ * Governs who can enroll, suspend, resume, edit, and delete subscriptions.
  */
 class SubscriptionPolicy
 {
@@ -51,11 +51,12 @@ class SubscriptionPolicy
         return $user->isStaff();
     }
 
-    /**
-     * Determine if user can transfer a subscription.
-     * Only Admin can transfer subscriptions.
-     */
-    public function transfer(User $user): bool
+    public function update(User $user): bool
+    {
+        return $user->isStaff();
+    }
+
+    public function delete(User $user): bool
     {
         return $user->isAdmin();
     }

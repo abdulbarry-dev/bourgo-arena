@@ -3,6 +3,7 @@
 namespace Database\Factories\Shared\Activities;
 
 use App\Models\Activity;
+use App\Models\Service;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -15,6 +16,7 @@ class ActivityFactory extends Factory
     public function definition(): array
     {
         return [
+            'service_id' => Service::factory(),
             'title' => fake()->sentence(3),
             'category' => fake()->word(),
             'base_price' => fake()->randomFloat(2, 10, 100),

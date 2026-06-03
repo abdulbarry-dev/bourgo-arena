@@ -18,6 +18,7 @@ test('verified admins can visit the dashboard', function () {
         ->assertSee('Subscriptions')
         ->assertSee('Schedule')
         ->assertSee('Reconciliations')
+        ->assertSee('Payments Audit')
         ->assertSee('Courses')
         ->assertSee('Events & Tournaments')
         ->assertSee('Plans')
@@ -37,7 +38,9 @@ test('verified managers can visit the dashboard', function () {
         ->assertDontSee('Courses')
         ->assertDontSee('Events & Tournaments')
         ->assertDontSee('Plans')
-        ->assertDontSee('Managers');
+        ->assertDontSee('Managers')
+        ->assertDontSee('Reconciliations')
+        ->assertDontSee('Payments Audit');
 });
 
 test('members are forbidden from visiting the dashboard', function () {
@@ -48,10 +51,3 @@ test('members are forbidden from visiting the dashboard', function () {
     $response->assertForbidden();
 });
 
-test('unverified staff users are redirected to the verification notice', function () {
-    $user = User::factory()->manager()->unverified()->create();
-    $this->actingAs($user);
-
-    $response = $this->get(route('dashboard'));
-    $response->assertRedirect(route('verification.notice'));
-});

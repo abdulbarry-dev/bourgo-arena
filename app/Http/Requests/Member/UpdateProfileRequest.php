@@ -37,7 +37,7 @@ class UpdateProfileRequest extends BaseFormRequest
                 'max:20',
                 Rule::unique('members', 'phone')->ignore($this->user()->id),
             ],
-            'avatar_url' => ['sometimes', 'string', 'nullable'],
+            'avatar' => ['sometimes', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'birth_date' => ['sometimes', 'date', 'nullable'],
             'gender' => ['sometimes', 'string', 'in:male,female'],
         ];
@@ -52,10 +52,7 @@ class UpdateProfileRequest extends BaseFormRequest
     {
         $data = $this->validated();
 
-        if (isset($data['avatar_url'])) {
-            $data['avatar'] = $data['avatar_url'];
-            unset($data['avatar_url']);
-        }
+        unset($data['avatar']);
 
         if (isset($data['birth_date'])) {
             $data['date_of_birth'] = $data['birth_date'];

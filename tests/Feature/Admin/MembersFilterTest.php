@@ -33,13 +33,13 @@ it('filters members by active subscription presence', function () {
 
     // When filtering for with active subscription
     Livewire::test(MemberTable::class)
-        ->set('hasActiveSubscription', 'with')
+        ->set('hasValidSubscription', 'with')
         ->assertSee('HasSub')
         ->assertDontSee('NoSub');
 
     // When filtering for without active subscription
     Livewire::test(MemberTable::class)
-        ->set('hasActiveSubscription', 'without')
+        ->set('hasValidSubscription', 'without')
         ->assertSee('NoSub')
         ->assertDontSee('HasSub');
 });
@@ -95,7 +95,7 @@ it('supports combining search status plan and active subscription filters', func
         ->set('search', 'Ali')
         ->set('statusFilter', 'active')
         ->set('planFilter', $planA->id)
-        ->set('hasActiveSubscription', 'with')
+        ->set('hasValidSubscription', 'with')
         ->assertSee('Alice')
         ->assertDontSee('Bob')
         ->assertDontSee('Charlie');

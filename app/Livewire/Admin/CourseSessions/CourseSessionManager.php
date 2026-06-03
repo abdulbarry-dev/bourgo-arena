@@ -79,6 +79,20 @@ class CourseSessionManager extends Component
         return $this->sessions->where('day_of_week', $dayOfWeekIsoIndex)->sortBy('starts_at');
     }
 
+    #[Computed]
+    public function weekSummary(): array
+    {
+        $sessions = $this->sessions;
+        $todayIndex = now()->dayOfWeekIso - 1;
+
+        return [
+            'sessions' => $sessions->count(),
+            'activeDays' => $sessions->pluck('day_of_week')->unique()->count(),
+            'todaySessions' => $sessions->where('day_of_week', $todayIndex)->count(),
+            'totalCapacity' => $sessions->sum('capacity'),
+        ];
+    }
+
     public function isSessionCancelled($sessionId, $date)
     {
         return CourseSessionException::where('course_session_id', $sessionId)
@@ -105,6 +119,11 @@ class CourseSessionManager extends Component
     public function openClassDetails($sessionId, $dateString)
     {
         $this->dispatch('open-session-details', sessionId: $sessionId, date: $dateString);
+    }
+
+    public function openAssignParticipantsModal($sessionId, $dateString)
+    {
+        $this->dispatch('open-assign-participants', sessionId: $sessionId, date: $dateString);
     }
 
     public function openCreateModal($dayIndex = null)

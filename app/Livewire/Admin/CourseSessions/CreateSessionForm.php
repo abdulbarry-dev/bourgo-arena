@@ -42,6 +42,7 @@ class CreateSessionForm extends Component
     public function loadForm($dayIndex = null, $date = null)
     {
         $this->resetValidation();
+
         if ($date) {
             $this->starts_at_date = $date;
         } else {
@@ -53,11 +54,25 @@ class CreateSessionForm extends Component
         } else {
             $this->day_of_week = 0; // Monday default
         }
+
+        Flux::modal('create-course-session-modal')->show();
     }
 
     public function save()
     {
         $this->validate();
+
+        // Check for overlaps
+        if (CourseSession::hasOverlap(
+            (int) $this->course_id,
+            (int) $this->day_of_week,
+            $this->starts_at,
+            (int) $this->duration_minutes
+        )) {
+            $this->addError('starts_at', __('This class already has a session scheduled during this time range on this day.'));
+
+            return;
+        }
 
         try {
             Log::info('Creating new course session', [
@@ -79,7 +94,7 @@ class CreateSessionForm extends Component
             $this->dispatch('course-session-created');
             $this->reset(['course_id', 'starts_at', 'duration_minutes', 'capacity']);
 
-            Flux::modal('create-course-session')->close();
+            Flux::modal('create-course-session-modal')->close();
             $this->dispatch('toast', message: __('Course schedule added successfully!'), type: 'success');
         } catch (\Exception $e) {
             Log::error('Session creation failed', ['error' => $e->getMessage()]);

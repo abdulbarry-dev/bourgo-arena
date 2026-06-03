@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('activity_slots', function (Blueprint $table) {
             $table->id();
             $table->foreignId('activity_id')->constrained('activities')->cascadeOnDelete();
-            $table->date('date');
             $table->time('starts_at');
             $table->time('ends_at');
             $table->unsignedInteger('capacity')->default(1);
@@ -22,7 +21,8 @@ return new class extends Migration
             $table->boolean('is_available')->default(true);
             $table->timestamps();
 
-            $table->index(['activity_id', 'date', 'is_available']);
+            $table->unique(['activity_id', 'starts_at', 'ends_at'], 'activity_slots_unique_range');
+            $table->index(['activity_id', 'is_available', 'starts_at']);
         });
     }
 

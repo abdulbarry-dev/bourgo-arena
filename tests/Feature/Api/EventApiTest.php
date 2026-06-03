@@ -6,8 +6,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 it('can list public events', function () {
-    Event::factory()->count(3)->create(['status' => 'open']);
-    Event::factory()->create(['status' => 'draft']); // Should not be listed
+    Event::factory()->open()->count(3)->create();
+    Event::factory()->draft()->create(); // Should not be listed
 
     $response = $this->getJson('/api/events');
 
@@ -16,7 +16,7 @@ it('can list public events', function () {
 });
 
 it('can fetch event details', function () {
-    $event = Event::factory()->create(['status' => 'open']);
+    $event = Event::factory()->open()->create();
 
     $response = $this->getJson("/api/events/{$event->id}");
 
@@ -25,7 +25,7 @@ it('can fetch event details', function () {
 });
 
 it('cannot fetch draft events', function () {
-    $event = Event::factory()->create(['status' => 'draft']);
+    $event = Event::factory()->draft()->create();
 
     $response = $this->getJson("/api/events/{$event->id}");
 

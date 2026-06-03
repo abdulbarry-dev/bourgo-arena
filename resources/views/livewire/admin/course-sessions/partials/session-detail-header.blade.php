@@ -1,12 +1,27 @@
-<div>
-    <div class="mb-1 flex items-center gap-3">
-        <flux:heading size="lg">{{ __($session->course->name) }}</flux:heading>
-        <flux:badge :color="$badgeColor" size="sm" class="capitalize">{{ __($status) }}</flux:badge>
-    </div>
+<div class="flex items-start gap-4 pb-6 border-b border-zinc-100 dark:border-zinc-800">
+    @if ($session->course->image_url)
+        <img
+            src="{{ $session->course->image_url }}"
+            alt="{{ $session->course->name }}"
+            class="size-16 rounded-xl object-cover shadow-sm"
+        >
+    @else
+        <div class="flex size-16 shrink-0 items-center justify-center rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800">
+            <flux:icon name="academic-cap" class="size-8 text-zinc-400 dark:text-zinc-500" />
+        </div>
+    @endif
 
-    <flux:subheading>{{ \Carbon\Carbon::parse($date)->format('l, j M Y') }} {{ __('at') }} {{ \Carbon\Carbon::parse($session->starts_at)->format('H:i') }}</flux:subheading>
-
-    <div class="mt-2 text-sm text-gray-500">
-        {{ __('Instructor') }}: {{ __($session->course->instructor) }} &bull; {{ __('Capacity') }}: {{ count($data['bookings']) }}/{{ $session->capacity }}
+    <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2 mb-1">
+            <x-ui.dashboard.status-badge
+                :status="$status"
+                :label="__($status)"
+                :color="$badgeColor"
+                class="capitalize"
+            />
+        </div>
+        <flux:heading size="lg" class="truncate">{{ __($session->course->name) }}</flux:heading>
+        <flux:subheading>{{ __('Session Details & Attendance') }}</flux:subheading>
     </div>
 </div>
+

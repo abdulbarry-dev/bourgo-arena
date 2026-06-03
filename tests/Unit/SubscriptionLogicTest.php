@@ -4,13 +4,10 @@ namespace Tests\Unit;
 
 use App\Actions\Subscriptions\ResumeSubscriptionAction;
 use App\Actions\Subscriptions\SuspendSubscriptionAction;
-use App\Actions\Subscriptions\TransferSubscriptionAction;
-use App\Models\Member;
 use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
-use InvalidArgumentException;
 use Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
@@ -120,7 +117,7 @@ it('suspend freezes remaining days and writes an audit log', function () {
         'ends_at' => '2026-04-11',
     ]);
 
-    app(SuspendSubscriptionAction::class)->execute($subscription, 'medical', $manager->id);
+    app(SuspendSubscriptionAction::class)->execute($subscription, null, $manager->id);
     $subscription->refresh();
 
     expect($subscription->status)->toBe('suspended');
@@ -130,7 +127,6 @@ it('suspend freezes remaining days and writes an audit log', function () {
     $this->assertDatabaseHas('subscription_audit_logs', [
         'subscription_id' => $subscription->id,
         'action' => 'suspend',
-        'reason' => 'medical',
         'from_member_id' => $subscription->member_id,
         'performed_by' => $manager->id,
     ]);
@@ -162,91 +158,6 @@ it('resume restores subscription and writes an audit log', function () {
         'from_member_id' => $subscription->member_id,
         'performed_by' => $manager->id,
     ]);
-
-    Carbon::setTestNow();
-});
-
-it('transfer creates a new active subscription, updates source status, and logs audit', function () {
-    Carbon::setTestNow('2026-04-01 10:00:00');
-
-    $admin = User::factory()->admin()->create();
-    $sourceMember = Member::factory()->active()->create();
-    $targetMember = Member::factory()->active()->create();
-
-    $source = Subscription::factory()->create([
-        'member_id' => $sourceMember->id,
-        'status' => 'active',
-        'ends_at' => '2026-04-13',
-        'amount_paid' => 120.000,
-    ]);
-
-    $newSubscription = app(TransferSubscriptionAction::class)->execute($source, $targetMember->id, $admin->id);
-    $source->refresh();
-
-    expect($source->status)->toBe('transferred');
-    expect($source->member_id)->toBe($sourceMember->id);
-    expect($source->days_remaining)->toBe(12);
-    expect($source->ends_at->toDateString())->toBe('2026-04-01');
-
-    expect($newSubscription->member_id)->toBe($targetMember->id);
-    expect($newSubscription->status)->toBe('active');
-    expect($newSubscription->starts_at->toDateString())->toBe('2026-04-01');
-    expect($newSubscription->ends_at->toDateString())->toBe('2026-04-13');
-
-    $this->assertDatabaseHas('subscription_audit_logs', [
-        'subscription_id' => $source->id,
-        'action' => 'transfer',
-        'from_member_id' => $sourceMember->id,
-        'to_member_id' => $targetMember->id,
-        'performed_by' => $admin->id,
-    ]);
-
-    Carbon::setTestNow();
-});
-
-it('transfer for suspended subscriptions uses frozen remaining days', function () {
-    Carbon::setTestNow('2026-04-01 10:00:00');
-
-    $admin = User::factory()->admin()->create();
-    $targetMember = Member::factory()->active()->create();
-    $source = Subscription::factory()->suspendedWithRemaining(6)->create([
-        'status' => 'suspended',
-        'ends_at' => '2026-05-01',
-    ]);
-
-    $newSubscription = app(TransferSubscriptionAction::class)->execute($source, $targetMember->id, $admin->id);
-
-    expect($newSubscription->ends_at->toDateString())->toBe('2026-04-07');
-
-    Carbon::setTestNow();
-});
-
-it('transfer validates target member and source state', function () {
-    Carbon::setTestNow('2026-04-01 10:00:00');
-
-    $admin = User::factory()->admin()->create();
-    $targetMember = Member::factory()->active()->create();
-    $occupiedTargetMember = Member::factory()->active()->create();
-    $active = Subscription::factory()->create(['status' => 'active', 'ends_at' => '2026-04-20']);
-    $expired = Subscription::factory()->expired()->create();
-
-    Subscription::factory()->create([
-        'member_id' => $occupiedTargetMember->id,
-        'status' => 'active',
-        'ends_at' => '2026-04-25',
-    ]);
-
-    expect(fn () => app(TransferSubscriptionAction::class)->execute($active, $active->member_id, $admin->id))
-        ->toThrow(InvalidArgumentException::class);
-
-    expect(fn () => app(TransferSubscriptionAction::class)->execute($active, 999999, $admin->id))
-        ->toThrow(InvalidArgumentException::class);
-
-    expect(fn () => app(TransferSubscriptionAction::class)->execute($active, $occupiedTargetMember->id, $admin->id))
-        ->toThrow(InvalidArgumentException::class);
-
-    expect(fn () => app(TransferSubscriptionAction::class)->execute($expired, $targetMember->id, $admin->id))
-        ->toThrow(InvalidArgumentException::class);
 
     Carbon::setTestNow();
 });

@@ -7,29 +7,40 @@
     </div>
 
     <form wire:submit="save" class="mt-6 flex flex-col gap-6 w-full">
-        <flux:input wire:model="name" label="{{ __('Plan Name') }}" required />
-        
         <flux:field>
-            <flux:label>{{ __('Plan Image') }}</flux:label>
-            <input type="file" wire:model="image" class="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-zinc-100 file:text-zinc-700 hover:file:bg-zinc-200 dark:file:bg-zinc-800 dark:file:text-zinc-300 dark:hover:file:bg-zinc-700" accept="image/*" />
-            <flux:error name="image" />
-            
-            @if ($image)
-                <div class="mt-2 text-sm text-zinc-500">
-                    {{ __('Image preview:') }}
-                    <img src="{{ $image->temporaryUrl() }}" class="mt-1 h-20 w-auto rounded object-cover border border-zinc-200 dark:border-zinc-700" alt="{{ __('Preview') }}">
-                </div>
-            @elseif ($existingImageUrl)
-                <div class="mt-2 text-sm text-zinc-500">
-                    {{ __('Current image:') }}
-                    <img src="{{ $existingImageUrl }}" class="mt-1 h-20 w-auto rounded object-cover border border-zinc-200 dark:border-zinc-700" alt="{{ __('Current Image') }}">
+            <flux:label>{{ __('Plan Name') }}</flux:label>
+            <flux:input wire:model="name" required />
+            <flux:error name="name" />
+        </flux:field>
+
+        <flux:field>
+            <flux:label>{{ __('Parent Service') }}</flux:label>
+            @if($this->availableServices->isNotEmpty())
+                <flux:select wire:model.live="serviceId" searchable placeholder="{{ __('Select a service...') }}" required>
+                    <flux:select.option value="" disabled>{{ __('Select a service...') }}</flux:select.option>
+                    @foreach($this->availableServices as $service)
+                        <flux:select.option value="{{ $service->id }}">{{ $service->name }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+            @else
+                <div class="p-4 rounded-lg border border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800">
+                    <flux:text variant="subtle">{{ __('No services available. Please create a service first.') }}</flux:text>
                 </div>
             @endif
+            <flux:error name="serviceId" />
         </flux:field>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-            <flux:input wire:model="price" type="text" inputmode="decimal" label="{{ __('Price (TND)') }}" placeholder="129.000" required />
-            <flux:input wire:model="durationDays" type="number" min="1" step="1" label="{{ __('Duration (Days)') }}" required />
+            <flux:field>
+                <flux:label>{{ __('Price (TND)') }}</flux:label>
+                <flux:input wire:model="price" type="text" inputmode="decimal" placeholder="129.000" required />
+                <flux:error name="price" />
+            </flux:field>
+            <flux:field>
+                <flux:label>{{ __('Duration (Days)') }}</flux:label>
+                <flux:input wire:model="durationDays" type="number" min="1" step="1" required />
+                <flux:error name="durationDays" />
+            </flux:field>
         </div>
         
         <div class="space-y-4">
@@ -45,10 +56,10 @@
                         <x-slot:empty>
                             <flux:select.option disabled>{{ __('No courses found.') }}</flux:select.option>
                         </x-slot:empty>
-                        <option value="">{{ __('Search and select a course...') }}</option>
+                        <flux:select.option value="">{{ __('Search and select a course...') }}</flux:select.option>
                         @foreach($this->availableCourses as $course)
                             @if(!in_array((string)$course->id, $selectedCourses))
-                                <option value="{{ $course->id }}">{{ __($course->name) }}</option>
+                                <flux:select.option value="{{ $course->id }}">{{ __($course->name) }}</flux:select.option>
                             @endif
                         @endforeach
                     </flux:select>
@@ -76,18 +87,9 @@
             </div>
         </div>
         
-        <flux:switch wire:model="isArchived" :label="$isArchived ? __('Archived') : __('Active')" />
 
-        <flux:field>
-            <flux:label>{{ __('Included Services') }}</flux:label>
-            <flux:textarea
-                wire:model="includedServicesInput"
-                rows="4"
-                :placeholder="__('Enter any custom service names separated by commas')"
-            />
-            <flux:text variant="subtle" class="mt-2">{{ __('Example: gym, classes, pilates, boxing.') }}</flux:text>
-            <flux:error name="includedServicesInput" />
-        </flux:field>
+
+
 
         <flux:error name="save" />
 

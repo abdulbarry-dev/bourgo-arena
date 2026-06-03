@@ -3,6 +3,7 @@
 namespace Database\Factories\Dashboard\Catalog;
 
 use App\Models\Course;
+use App\Models\Service;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -15,18 +16,11 @@ class CourseFactory extends Factory
     public function definition(): array
     {
         return [
+            'service_id' => Service::factory(),
             'name' => fake()->words(2, true),
-            'instructor' => fake()->name(),
             'description' => fake()->sentence(),
             'category' => fake()->word(),
-            'icon' => 'sports_martial_arts',
+            'image_url' => null,
         ];
-    }
-
-    public function withInstructor(string $instructor): static
-    {
-        return $this->state(fn (): array => [
-            'instructor' => $instructor,
-        ]);
     }
 }

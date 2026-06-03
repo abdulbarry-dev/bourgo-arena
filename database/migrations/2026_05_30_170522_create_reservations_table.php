@@ -28,6 +28,7 @@ return new class extends Migration
 
             $table->index(['user_id', 'reservation_status'], 'reservations_user_id_reservation_status_index');
             $table->index(['activity_id', 'activity_time_slot_id'], 'reservations_activity_id_activity_time_slot_id_index');
+            $table->unique(['user_id', 'activity_time_slot_id'], 'reservations_user_slot_unique');
             $table->index(['payment_status', 'payment_gateway'], 'reservations_payment_status_payment_gateway_index');
             $table->index('transaction_reference', 'reservations_transaction_reference_index');
         });

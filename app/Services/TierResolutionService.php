@@ -38,7 +38,7 @@ class TierResolutionService
      */
     protected function resolveIndividualTier(Member $member): array
     {
-        $count = $this->subscriptionRepository->getActiveSubscriptionCount($member);
+        $count = $this->subscriptionRepository->getValidSubscriptionCount($member);
 
         return match (true) {
             $count >= 4 => ['label' => 'Max', 'multiplier' => 2.0],
@@ -54,7 +54,7 @@ class TierResolutionService
     protected function resolveFamilyTier(Member $member): array
     {
         $memberIds = $this->familyRepository->getFamilyMemberIds($member)->all();
-        $count = $this->subscriptionRepository->getActiveSubscriptionCountForMemberIds($memberIds);
+        $count = $this->subscriptionRepository->getValidSubscriptionCountForMemberIds($memberIds);
 
         return match (true) {
             $count >= 4 => ['label' => 'Family Max', 'multiplier' => 2.0],

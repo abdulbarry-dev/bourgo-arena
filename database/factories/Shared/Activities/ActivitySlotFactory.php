@@ -17,7 +17,6 @@ class ActivitySlotFactory extends Factory
     {
         return [
             'activity_id' => Activity::factory(),
-            'date' => now()->addDay(),
             'starts_at' => '10:00:00',
             'ends_at' => '11:00:00',
             'capacity' => 10,

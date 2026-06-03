@@ -26,11 +26,21 @@ class MemberTable extends Component
 
     public ?int $planFilter = null;
 
-    public string $hasActiveSubscription = 'all';
+    public string $hasValidSubscription = 'all';
 
-    public int $perPage = 10;
+    public int $perPage = 7;
 
     public bool $selectionEnabled = false;
+
+    public bool $showExportConfirmModal = false;
+
+    public ?int $actionMemberId = null;
+
+    public bool $showSuspendModal = false;
+
+    public bool $showActivateModal = false;
+
+    public bool $showDeleteModal = false;
 
     public string $sortBy = 'name';
 
@@ -46,7 +56,7 @@ class MemberTable extends Component
         $this->resetPage();
     }
 
-    public function updatedHasActiveSubscription(): void
+    public function updatedHasValidSubscription(): void
     {
         $this->resetPage();
     }
@@ -99,7 +109,7 @@ class MemberTable extends Component
         $this->authorize('viewAny', Member::class);
 
         $membersQuery = $this->filteredMembersQuery()
-            ->with(['activeSubscription.plan'])
+            ->with(['validSubscriptions.plan'])
             ->orderBy('id');
 
         return response()->streamDownload(function () use ($membersQuery): void {
@@ -118,7 +128,7 @@ class MemberTable extends Component
                         $member->email,
                         $member->phone,
                         $member->status,
-                        $member->activeSubscription?->plan?->name ?? 'No active plan',
+                        $member->validSubscriptions->first()?->plan?->name ?? 'No active plan',
                     ]);
                 }
             });
@@ -127,6 +137,95 @@ class MemberTable extends Component
         }, 'members.csv', [
             'Content-Type' => 'text/csv; charset=UTF-8',
         ]);
+    }
+
+    public function openExportConfirmModal(): void
+    {
+        $this->showExportConfirmModal = true;
+    }
+
+    public function closeExportConfirmModal(): void
+    {
+        $this->showExportConfirmModal = false;
+    }
+
+    public function confirmExport(): StreamedResponse
+    {
+        $this->closeExportConfirmModal();
+
+        return $this->exportCsv();
+    }
+
+    public function confirmSuspend(int $id): void
+    {
+        $this->actionMemberId = $id;
+        $this->showSuspendModal = true;
+    }
+
+    public function suspend(): void
+    {
+        $member = Member::findOrFail($this->actionMemberId);
+        $this->authorize('suspend', $member);
+
+        if ($member->status === 'suspended') {
+            $this->showSuspendModal = false;
+            $this->dispatch('toast', message: 'Member is already suspended.', type: 'info');
+
+            return;
+        }
+
+        $member->update(['status' => 'suspended']);
+
+        $this->showSuspendModal = false;
+        $this->dispatch('member-updated', memberId: $member->id);
+        $this->dispatch('toast', message: 'Member suspended successfully.', type: 'success');
+    }
+
+    public function confirmActivate(int $id): void
+    {
+        $this->actionMemberId = $id;
+        $this->showActivateModal = true;
+    }
+
+    public function activate(): void
+    {
+        $member = Member::findOrFail($this->actionMemberId);
+        $this->authorize('activate', $member);
+
+        if ($member->status === 'active') {
+            $this->showActivateModal = false;
+            $this->dispatch('toast', message: 'Member is already active.', type: 'info');
+
+            return;
+        }
+
+        $member->update(['status' => 'active']);
+
+        $this->showActivateModal = false;
+        $this->dispatch('member-updated', memberId: $member->id);
+        $this->dispatch('toast', message: 'Member activated successfully.', type: 'success');
+    }
+
+    public function confirmDelete(int $id): void
+    {
+        $this->actionMemberId = $id;
+        $this->showDeleteModal = true;
+    }
+
+    public function delete(): void
+    {
+        $member = Member::findOrFail($this->actionMemberId);
+        $this->authorize('delete', $member);
+
+        $member->delete();
+
+        if (session('members.selected_member_id') === $this->actionMemberId) {
+            session()->forget('members.selected_member_id');
+        }
+
+        $this->showDeleteModal = false;
+        $this->dispatch('member-updated', memberId: $this->actionMemberId);
+        $this->dispatch('toast', message: 'Member deleted successfully.', type: 'success');
     }
 
     #[Computed]
@@ -162,15 +261,15 @@ class MemberTable extends Component
             ->when($this->planFilter !== null, function (Builder $query): void {
                 $query->byPlan($this->planFilter);
             })
-            ->when($this->hasActiveSubscription !== 'all', function (Builder $query): void {
-                if ($this->hasActiveSubscription === 'with') {
-                    $query->whereHas('activeSubscription');
+            ->when($this->hasValidSubscription !== 'all', function (Builder $query): void {
+                if ($this->hasValidSubscription === 'with') {
+                    $query->whereHas('validSubscriptions');
                 } else {
-                    $query->whereDoesntHave('activeSubscription');
+                    $query->whereDoesntHave('validSubscriptions');
                 }
             })
-            ->withDetails()
-            ->with('activeSubscription.plan');
+            ->withDetails() // Re-added withDetails()
+            ->with('validSubscriptions.plan');
 
         return $this->applySorting($query);
     }
