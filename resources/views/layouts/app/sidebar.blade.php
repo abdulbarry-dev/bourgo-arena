@@ -18,6 +18,21 @@
             </flux:sidebar.header>
 
             <flux:sidebar.nav>
+                {{-- Global Search Trigger --}}
+                <button
+                    type="button"
+                    x-data
+                    x-on:click="$dispatch('livewire:dispatch', { name: 'openPalette', component: 'shared.global-search' }); $wire.$dispatch('openPalette')"
+                    @click.window.stop
+                    onclick="window.dispatchEvent(new CustomEvent('open-global-search'))"
+                    class="group flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+                    id="sidebar-search-trigger"
+                >
+                    <flux:icon.magnifying-glass class="size-4 shrink-0 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300" />
+                    <span class="flex-1 text-left">{{ __('Search') }}</span>
+                    <kbd class="hidden rounded border border-zinc-200 bg-white px-1 py-0.5 text-[9px] font-medium text-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 lg:inline-flex">⌘K</kbd>
+                </button>
+
                 <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
@@ -140,6 +155,7 @@
         {{ $slot }}
 
         <livewire:shared.notifications.toast-manager />
+        <livewire:shared.global-search />
 
     </body>
 </html>

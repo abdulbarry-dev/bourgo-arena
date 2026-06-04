@@ -5,10 +5,13 @@ use App\Livewire\Admin\Activities\ActivityManager;
 use App\Livewire\Admin\Activities\ActivitySlotsManager;
 use App\Livewire\Admin\Courses\CourseManager;
 use App\Livewire\Admin\CourseSessions\CourseSessionManager;
+use App\Livewire\Admin\Events\EventBracketManager;
 use App\Livewire\Admin\Events\EventManager;
+use App\Livewire\Admin\Events\EventParticipants;
 use App\Livewire\Admin\Managers\Index;
 use App\Livewire\Admin\Payments\AuditLogs;
 use App\Livewire\Admin\Reservations\ReservationManager;
+use App\Livewire\Admin\Search\SearchResults;
 use App\Livewire\Admin\Services\ServiceManager;
 use App\Models\Subscription;
 use Illuminate\Support\Facades\Route;
@@ -17,6 +20,9 @@ use Illuminate\Support\Facades\Route;
 // Routes accessible by BOTH Admins & Managers
 // -------------------------------------------------------------
 Route::middleware('role:admin,manager')->group(function () {
+
+    Route::get('/search', SearchResults::class)
+        ->name('admin.search');
 
     Route::view('/members', 'livewire.admin.members.dashboard')
         ->name('admin.members');
@@ -78,10 +84,10 @@ Route::prefix('admin')->middleware('role:admin')->group(function () {
     Route::get('/events', EventManager::class)
         ->name('admin.events.index');
 
-    Route::get('/events/{event}/participants', \App\Livewire\Admin\Events\EventParticipants::class)
+    Route::get('/events/{event}/participants', EventParticipants::class)
         ->name('admin.events.participants');
 
-    Route::get('/events/{event}/bracket', \App\Livewire\Admin\Events\EventBracketManager::class)
+    Route::get('/events/{event}/bracket', EventBracketManager::class)
         ->name('admin.events.bracket');
 
     Route::get('/services', ServiceManager::class)

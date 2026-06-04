@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
@@ -103,6 +104,7 @@ class ActivityManager extends Component
         $this->showActivityFlyout = true;
     }
 
+    #[On('open-activity-detail')]
     public function openDetailFlyout(int $id): void
     {
         $this->detailActivityId = $id;

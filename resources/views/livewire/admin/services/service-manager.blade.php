@@ -36,9 +36,21 @@
 
     <x-ui.dashboard.table-shell loading-targets="search,statusFilter" :has-rows="$this->services->count() > 0">
         <x-slot name="loading">
-            <flux:skeleton class="h-12 w-full" />
-            <flux:skeleton class="h-12 w-full" />
-            <flux:skeleton class="h-12 w-full" />
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                @for ($i = 0; $i < 6; $i++)
+                    <div class="rounded-2xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800">
+                        <flux:skeleton class="h-32 w-full rounded-t-2xl" />
+                        <div class="p-4">
+                            <flux:skeleton class="h-4 w-3/4 mb-2" />
+                            <flux:skeleton class="h-3 w-1/2 mb-4" />
+                            <div class="flex justify-between items-center">
+                                <flux:skeleton class="h-6 w-20 rounded-lg" />
+                                <flux:skeleton class="h-8 w-24 rounded-lg" />
+                            </div>
+                        </div>
+                    </div>
+                @endfor
+            </div>
         </x-slot>
 
         <x-slot name="empty">
@@ -52,69 +64,22 @@
             />
         </x-slot>
 
-        <table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-700">
-            <thead class="bg-zinc-50 dark:bg-zinc-900/80">
-                <tr>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Name') }}</th>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Offerings') }}</th>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Status') }}</th>
-                    <th class="px-4 py-3 text-right font-medium text-zinc-700 dark:text-zinc-200">{{ __('Actions') }}</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-zinc-100 bg-white dark:divide-zinc-800 dark:bg-zinc-900/40">
-                @foreach ($this->services as $service)
-                    <tr wire:key="service-row-{{ $service->id }}" class="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/70">
-                        <td class="px-4 py-4 align-top">
-                            <div class="flex items-center gap-3">
-                                @if ($service->image_url)
-                                    <img src="{{ $service->image_url }}" alt="{{ $service->name }}" class="size-10 rounded-lg object-cover">
-                                @else
-                                    <div class="size-10 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
-                                        <flux:icon.building-storefront class="size-5 text-zinc-400" />
-                                    </div>
-                                @endif
-                                <span class="font-medium text-zinc-900 dark:text-zinc-100">{{ $service->name }}</span>
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            @foreach ($this->services as $service)
+                <div wire:key="service-card-{{ $service->id }}" class="group relative flex flex-col rounded-2xl border border-zinc-200 bg-white shadow-sm transition-all hover:shadow-md dark:border-zinc-700 dark:bg-zinc-900/40">
+                    {{-- Header Image --}}
+                    <div class="relative h-32 w-full overflow-hidden rounded-t-2xl">
+                        @if ($service->image_url)
+                            <img src="{{ $service->image_url }}" alt="{{ $service->name }}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
+                        @else
+                            <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-rose-500 to-rose-700">
+                                <flux:icon.building-storefront class="size-8 text-white/50" />
                             </div>
-                        </td>
-                        <td class="px-4 py-4 align-top text-zinc-600 dark:text-zinc-300">
-                            <div class="flex flex-wrap gap-2">
-                                @if ($service->plans_count > 0)
-                                    <flux:badge size="sm" color="blue">{{ trans_choice(':count Plan|:count Plans', $service->plans_count) }}</flux:badge>
-                                @endif
-                                @if ($service->courses_count > 0)
-                                    <flux:badge size="sm" color="green">{{ trans_choice(':count Course|:count Courses', $service->courses_count) }}</flux:badge>
-                                @endif
-                                @if ($service->events_count > 0)
-                                    <flux:badge size="sm" color="orange">{{ trans_choice(':count Event|:count Events', $service->events_count) }}</flux:badge>
-                                @endif
-                                @if ($service->activities_count > 0)
-                                    <flux:badge size="sm" color="purple">{{ trans_choice(':count Activity|:count Activities', $service->activities_count) }}</flux:badge>
-                                @endif
-                                @if ($service->plans_count == 0 && $service->courses_count == 0 && $service->events_count == 0 && $service->activities_count == 0)
-                                    <span class="text-xs italic text-zinc-400">{{ __('No offerings linked') }}</span>
-                                @endif
-                            </div>
-                        </td>
-                        <td class="px-4 py-4 align-top">
-                            <x-ui.dashboard.status-badge
-                                :status="$service->status"
-                                :label="match($service->status) {
-                                    'active' => __('Active'),
-                                    'inactive' => __('Inactive'),
-                                    'archived' => __('Archived'),
-                                    default => ucfirst($service->status),
-                                }"
-                                :color="match($service->status) {
-                                    'active' => 'green',
-                                    'inactive' => 'gray',
-                                    'archived' => 'orange',
-                                    default => 'zinc',
-                                }"
-                            />
-                        </td>
-                        <td class="px-4 py-4 align-top text-right">
+                        @endif
+                        
+                        <div class="absolute top-3 right-3">
                             <flux:dropdown align="end">
-                                <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" />
+                                <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" class="!bg-white/90 !backdrop-blur-sm !border-none !shadow-sm dark:!bg-zinc-800/90" />
                                 <flux:menu>
                                     <flux:menu.item icon="eye" wire:click="openViewFlyout({{ $service->id }})">{{ __('View Details') }}</flux:menu.item>
                                     <flux:menu.item icon="pencil-square" wire:click="openEditFlyout({{ $service->id }})">{{ __('Edit') }}</flux:menu.item>
@@ -143,16 +108,65 @@
                                     </flux:menu.item>
                                 </flux:menu>
                             </flux:dropdown>
-                        </td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
+                        </div>
+                    </div>
+
+                    {{-- Body --}}
+                    <div class="flex flex-1 flex-col p-4">
+                        <div class="mb-3">
+                            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">{{ $service->name }}</h3>
+                            <code class="mt-1 block text-xs font-mono text-zinc-400">{{ $service->slug }}</code>
+                        </div>
+
+                        {{-- Offerings count badges --}}
+                        <div class="mb-4 flex flex-wrap gap-1.5 min-h-[1.5rem]">
+                            @if ($service->plans_count > 0)
+                                <flux:badge size="sm" color="blue" variant="subtle">{{ trans_choice(':count Plan|:count Plans', $service->plans_count) }}</flux:badge>
+                            @endif
+                            @if ($service->courses_count > 0)
+                                <flux:badge size="sm" color="green" variant="subtle">{{ trans_choice(':count Course|:count Courses', $service->courses_count) }}</flux:badge>
+                            @endif
+                            @if ($service->events_count > 0)
+                                <flux:badge size="sm" color="orange" variant="subtle">{{ trans_choice(':count Event|:count Events', $service->events_count) }}</flux:badge>
+                            @endif
+                            @if ($service->activities_count > 0)
+                                <flux:badge size="sm" color="purple" variant="subtle">{{ trans_choice(':count Activity|:count Activities', $service->activities_count) }}</flux:badge>
+                            @endif
+                            @if ($service->plans_count == 0 && $service->courses_count == 0 && $service->events_count == 0 && $service->activities_count == 0)
+                                <span class="text-[10px] italic text-zinc-400">{{ __('No offerings linked') }}</span>
+                            @endif
+                        </div>
+
+                        <div class="mt-auto flex items-center justify-between">
+                            <x-ui.dashboard.status-badge
+                                :status="$service->status"
+                                :label="match($service->status) {
+                                    'active' => __('Active'),
+                                    'inactive' => __('Inactive'),
+                                    'archived' => __('Archived'),
+                                    default => ucfirst($service->status),
+                                }"
+                                :color="match($service->status) {
+                                    'active' => 'green',
+                                    'inactive' => 'gray',
+                                    'archived' => 'orange',
+                                    default => 'zinc',
+                                }"
+                            />
+
+                            <flux:button variant="ghost" size="sm" wire:click="openViewFlyout({{ $service->id }})">
+                                {{ __('Details') }}
+                            </flux:button>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
 
         @if ($this->services->hasPages())
-        <x-slot name="pagination">
+            <x-slot name="pagination">
                 {{ $this->services->links() }}
-        </x-slot>
+            </x-slot>
         @endif
     </x-ui.dashboard.table-shell>
 

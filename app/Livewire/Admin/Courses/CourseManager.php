@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -76,7 +77,8 @@ class CourseManager extends Component
         $this->resetPage();
     }
 
-    public function openViewFlyout($id)
+    #[On('open-course-view')]
+    public function openViewFlyout($id): void
     {
         $this->viewingCourse = Course::with(['service', 'sessions'])->findOrFail($id);
         $this->showViewFlyout = true;

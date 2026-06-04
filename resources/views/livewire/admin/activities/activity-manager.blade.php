@@ -62,9 +62,21 @@
 
     <x-ui.dashboard.table-shell loading-targets="search,serviceFilter,statusFilter" :has-rows="$this->activities->count() > 0">
         <x-slot name="loading">
-            <flux:skeleton class="h-12 w-full" />
-            <flux:skeleton class="h-12 w-full" />
-            <flux:skeleton class="h-12 w-full" />
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                @for ($i = 0; $i < 6; $i++)
+                    <div class="rounded-2xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800">
+                        <flux:skeleton class="h-32 w-full rounded-t-2xl" />
+                        <div class="p-4">
+                            <flux:skeleton class="h-4 w-3/4 mb-2" />
+                            <flux:skeleton class="h-3 w-1/2 mb-4" />
+                            <div class="flex justify-between items-center">
+                                <flux:skeleton class="h-6 w-20 rounded-lg" />
+                                <flux:skeleton class="h-8 w-24 rounded-lg" />
+                            </div>
+                        </div>
+                    </div>
+                @endfor
+            </div>
         </x-slot>
 
         <x-slot name="empty">
@@ -78,72 +90,92 @@
             />
         </x-slot>
 
-        <table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-700">
-            <thead class="bg-zinc-50 dark:bg-zinc-900/80">
-                <tr>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Title') }}</th>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Service') }}</th>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Price') }}</th>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Slots') }}</th>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Status') }}</th>
-                    <th class="px-4 py-3 text-right font-medium text-zinc-700 dark:text-zinc-200">{{ __('Actions') }}</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-zinc-100 bg-white dark:divide-zinc-800 dark:bg-zinc-900/40">
-                @foreach ($this->activities as $activity)
-                    <tr wire:key="activity-row-{{ $activity->id }}" class="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/70">
-                        <td class="px-4 py-4 align-top">
-                            <span class="font-medium text-zinc-900 dark:text-zinc-100">{{ $activity->title }}</span>
-                        </td>
-                        <td class="px-4 py-4 align-top">
-                            @if($activity->service)
-                                <flux:badge size="sm" color="blue" inset="top bottom">{{ $activity->service->name }}</flux:badge>
-                            @else
-                                <span class="text-zinc-400 italic text-xs">{{ __('N/A') }}</span>
-                            @endif
-                        </td>
-                        <td class="px-4 py-4 align-top text-zinc-600 dark:text-zinc-300">{{ number_format((float) $activity->base_price, 2) }} {{ $activity->currency }}</td>
-                        <td class="px-4 py-4 align-top text-zinc-600 dark:text-zinc-300">{{ $activity->slots_count }}</td>
-                        <td class="px-4 py-4 align-top">
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            @foreach ($this->activities as $activity)
+                <div wire:key="activity-card-{{ $activity->id }}" class="group relative flex flex-col rounded-2xl border border-zinc-200 bg-white shadow-sm transition-all hover:shadow-md dark:border-zinc-700 dark:bg-zinc-900/40">
+                    {{-- Header Image --}}
+                    <div class="relative h-32 w-full overflow-hidden rounded-t-2xl">
+                        @php $firstImage = !empty($activity->images) ? $activity->images[0] : null; @endphp
+                        @if ($firstImage)
+                            <img src="{{ asset('storage/'.$firstImage) }}" alt="{{ $activity->title }}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
+                        @else
+                            <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-orange-500 to-rose-600">
+                                <flux:icon.building-storefront class="size-8 text-white/50" />
+                            </div>
+                        @endif
+                        
+                        <div class="absolute top-3 right-3">
+                            <flux:dropdown position="bottom" align="end">
+                                <flux:button
+                                    variant="ghost"
+                                    size="sm"
+                                    icon="ellipsis-horizontal"
+                                    class="!bg-white/90 !backdrop-blur-sm !border-none !shadow-sm dark:!bg-zinc-800/90"
+                                    aria-label="{{ __('Open actions for :title', ['title' => $activity->title]) }}"
+                                />
+                                <flux:menu>
+                                    <flux:menu.item icon="eye" wire:click="openDetailFlyout({{ $activity->id }})">
+                                        {{ __('View Court') }}
+                                    </flux:menu.item>
+                                    <flux:menu.item icon="calendar-days" :href="route('admin.activities.slots', $activity)" wire:navigate>
+                                        {{ __('Manage Slots') }}
+                                    </flux:menu.item>
+                                    <flux:menu.item icon="pencil-square" wire:click="openEditFlyout({{ $activity->id }})">
+                                        {{ __('Edit Activity') }}
+                                    </flux:menu.item>
+                                </flux:menu>
+                            </flux:dropdown>
+                        </div>
+                    </div>
+
+                    {{-- Body --}}
+                    <div class="flex flex-1 flex-col p-4">
+                        <div class="mb-3">
+                            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">{{ $activity->title }}</h3>
+                            <div class="mt-1 flex flex-wrap gap-2">
+                                @if($activity->service)
+                                    <flux:badge size="sm" color="blue" inset="top bottom">{{ $activity->service->name }}</flux:badge>
+                                @endif
+                                
+                                @if($activity->category)
+                                    <flux:badge size="sm" color="zinc" variant="subtle">{{ ucfirst($activity->category) }}</flux:badge>
+                                @endif
+                            </div>
+                        </div>
+
+                        {{-- Stats --}}
+                        <div class="mb-4 grid grid-cols-2 gap-2 border-y border-zinc-100 py-3 dark:border-zinc-800">
+                            <div class="text-center">
+                                <div class="text-[10px] font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{{ __('Base Price') }}</div>
+                                <div class="mt-1 text-sm font-bold text-zinc-900 dark:text-zinc-100">{{ number_format((float) $activity->base_price, 2) }} <span class="text-[10px] font-medium">{{ $activity->currency }}</span></div>
+                            </div>
+                            <div class="text-center border-l border-zinc-100 dark:border-zinc-800">
+                                <div class="text-[10px] font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{{ __('Slots') }}</div>
+                                <div class="mt-1 text-sm font-bold text-zinc-900 dark:text-zinc-100">{{ $activity->slots_count }}</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-auto flex items-center justify-between">
                             <x-ui.dashboard.status-badge
                                 :status="$activity->is_active ? 'active' : 'inactive'"
                                 :label="$activity->is_active ? __('Active') : __('Inactive')"
                                 :color="$activity->is_active ? 'green' : 'red'"
                             />
-                        </td>
-                        <td class="px-4 py-4 align-top text-right">
-                            <x-ui.dashboard.row-actions>
-                                <flux:dropdown position="bottom" align="end">
-                                    <flux:button
-                                        variant="ghost"
-                                        size="sm"
-                                        icon="ellipsis-horizontal"
-                                        class="!px-2"
-                                        aria-label="{{ __('Open actions for :title', ['title' => $activity->title]) }}"
-                                    />
-                                    <flux:menu>
-                                        <flux:menu.item icon="eye" wire:click="openDetailFlyout({{ $activity->id }})">
-                                            {{ __('View Court') }}
-                                        </flux:menu.item>
-                                        <flux:menu.item icon="calendar-days" :href="route('admin.activities.slots', $activity)" wire:navigate>
-                                            {{ __('Manage Slots') }}
-                                        </flux:menu.item>
-                                        <flux:menu.item icon="pencil-square" wire:click="openEditFlyout({{ $activity->id }})">
-                                            {{ __('Edit Activity') }}
-                                        </flux:menu.item>
-                                    </flux:menu>
-                                </flux:dropdown>
-                            </x-ui.dashboard.row-actions>
-                        </td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
+
+                            <flux:button variant="ghost" size="sm" :href="route('admin.activities.slots', $activity)" wire:navigate>
+                                {{ __('Manage Slots') }}
+                            </flux:button>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
         @if ($this->activities->hasPages())
-        <x-slot name="pagination">
+            <x-slot name="pagination">
                 {{ $this->activities->links() }}
-        </x-slot>
-         @endif
+            </x-slot>
+        @endif
     </x-ui.dashboard.table-shell>
 
     <flux:modal wire:model="showActivityFlyout" variant="flyout" class="w-full max-w-2xl" x-on:hidden="$wire.closeActivityFlyout()">

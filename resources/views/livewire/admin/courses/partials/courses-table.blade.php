@@ -1,5 +1,23 @@
 <div class="mt-6">
     <x-ui.dashboard.table-shell :has-rows="$courses->count() > 0">
+        <x-slot name="loading">
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                @for ($i = 0; $i < 6; $i++)
+                    <div class="rounded-2xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800">
+                        <flux:skeleton class="h-32 w-full rounded-t-2xl" />
+                        <div class="p-4">
+                            <flux:skeleton class="h-4 w-3/4 mb-2" />
+                            <flux:skeleton class="h-3 w-1/2 mb-4" />
+                            <div class="flex justify-between items-center">
+                                <flux:skeleton class="h-6 w-20 rounded-lg" />
+                                <flux:skeleton class="h-8 w-24 rounded-lg" />
+                            </div>
+                        </div>
+                    </div>
+                @endfor
+            </div>
+        </x-slot>
+
         <x-slot name="empty">
             <x-ui.dashboard.empty-state
                 table
@@ -11,70 +29,22 @@
             />
         </x-slot>
 
-        <table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-700">
-            <thead class="bg-zinc-50 dark:bg-zinc-900/80">
-                <tr>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Image') }}</th>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Course Name') }}</th>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Service') }}</th>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Status') }}</th>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Sessions') }}</th>
-                    <th class="px-4 py-3 text-right font-medium text-zinc-700 dark:text-zinc-200">{{ __('Actions') }}</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-zinc-100 bg-white dark:divide-zinc-800 dark:bg-zinc-900/40">
-                @foreach($courses as $course)
-                    <tr wire:key="course-row-{{ $course->id }}">
-                        <td class="px-4 py-3">
-                            @if ($course->image_url)
-                                <img src="{{ $course->image_url }}" alt="{{ $course->name }}" class="size-10 rounded-lg object-cover">
-                            @else
-                                <div class="size-10 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
-                                    <flux:icon.book-open class="size-5 text-zinc-400" />
-                                </div>
-                            @endif
-                        </td>
-
-                        <td class="px-4 py-3 font-medium text-zinc-900 dark:text-zinc-100">
-                            <div class="flex items-center gap-2">
-                                <div class="size-2 rounded-full" style="background-color: #9ca3af"></div>
-                                {{ __($course->name) }}
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            @foreach($courses as $course)
+                <div wire:key="course-card-{{ $course->id }}" class="group relative flex flex-col rounded-2xl border border-zinc-200 bg-white shadow-sm transition-all hover:shadow-md dark:border-zinc-700 dark:bg-zinc-900/40">
+                    {{-- Header Image --}}
+                    <div class="relative h-32 w-full overflow-hidden rounded-t-2xl">
+                        @if ($course->image_url)
+                            <img src="{{ $course->image_url }}" alt="{{ $course->name }}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
+                        @else
+                            <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700">
+                                <flux:icon.book-open class="size-8 text-white/50" />
                             </div>
-                        </td>
-
-                        <td class="px-4 py-3">
-                            @if($course->service)
-                                <flux:badge size="sm" color="blue" inset="top bottom">{{ $course->service->name }}</flux:badge>
-                            @else
-                                <span class="text-zinc-400 italic text-xs">{{ __('N/A') }}</span>
-                            @endif
-                        </td>
-
-                        <td class="px-4 py-3">
-                            <x-ui.dashboard.status-badge
-                                :status="$course->status"
-                                :label="match($course->status) {
-                                    'active' => __('Active'),
-                                    'inactive' => __('Inactive'),
-                                    'archived' => __('Archived'),
-                                    default => ucfirst($course->status),
-                                }"
-                                :color="match($course->status) {
-                                    'active' => 'green',
-                                    'inactive' => 'gray',
-                                    'archived' => 'orange',
-                                    default => 'zinc',
-                                }"
-                            />
-                        </td>
-
-                        <td class="px-4 py-3">
-                            <x-ui.dashboard.status-badge status="course-sessions" color="zinc" :label="$course->sessions_count ?? $course->sessions()->count()" />
-                        </td>
-
-                        <td class="px-4 py-3 text-right">
+                        @endif
+                        
+                        <div class="absolute top-3 right-3">
                             <flux:dropdown align="end">
-                                <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" class="!px-2" />
+                                <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" class="!bg-white/90 !backdrop-blur-sm !border-none !shadow-sm dark:!bg-zinc-800/90" />
                                 <flux:menu>
                                     <flux:menu.item icon="eye" wire:click="openViewFlyout({{ $course->id }})">
                                         {{ __('View Details') }}
@@ -107,8 +77,52 @@
                                     </flux:menu.item>
                                 </flux:menu>
                             </flux:dropdown>
-                        </td>
-                    </tr>
+                        </div>
+                    </div>
+
+                    {{-- Body --}}
+                    <div class="flex flex-1 flex-col p-4">
+                        <div class="mb-3">
+                            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">{{ __($course->name) }}</h3>
+                            <div class="mt-1 flex flex-wrap gap-2">
+                                @if($course->service)
+                                    <flux:badge size="sm" color="blue" inset="top bottom">{{ $course->service->name }}</flux:badge>
+                                @endif
+                                
+                                @if(isset($course->category))
+                                    <flux:badge size="sm" color="zinc" variant="subtle">{{ ucfirst($course->category) }}</flux:badge>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="mt-auto flex items-center justify-between">
+                            <div class="flex flex-col gap-1.5">
+                                <x-ui.dashboard.status-badge
+                                    :status="$course->status"
+                                    :label="match($course->status) {
+                                        'active' => __('Active'),
+                                        'inactive' => __('Inactive'),
+                                        'archived' => __('Archived'),
+                                        default => ucfirst($course->status),
+                                    }"
+                                    :color="match($course->status) {
+                                        'active' => 'green',
+                                        'inactive' => 'gray',
+                                        'archived' => 'orange',
+                                        default => 'zinc',
+                                    }"
+                                />
+                                <div class="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+                                    <flux:icon.calendar class="size-3" />
+                                    {{ trans_choice(':count Session|:count Sessions', $course->sessions_count ?? 0) }}
+                                </div>
+                            </div>
+
+                            <flux:button variant="ghost" size="sm" wire:click="openViewFlyout({{ $course->id }})">
+                                {{ __('View Details') }}
+                            </flux:button>
+                        </div>
+                    </div>
 
                     {{-- Confirmation Modals --}}
                     @if ($course->status !== 'archived')
@@ -129,8 +143,14 @@
                             <flux:button variant="danger" wire:click="confirmDelete({{ $course->id }})" x-on:click="Flux.modal('confirm-delete-{{ $course->id }}').close()">{{ __('Delete') }}</flux:button>
                         </div>
                     </flux:modal>
-                @endforeach
-            </tbody>
-        </table>
+                </div>
+            @endforeach
+        </div>
+
+        @if($courses->hasPages())
+            <x-slot name="pagination">
+                {{ $courses->links() }}
+            </x-slot>
+        @endif
     </x-ui.dashboard.table-shell>
 </div>
