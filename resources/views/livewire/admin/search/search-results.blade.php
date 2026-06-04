@@ -72,15 +72,11 @@
         <div wire:loading.remove>
             @if ($this->paginatedResults->isEmpty())
                 {{-- Empty state for this tab --}}
-                <div class="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-zinc-200 py-20 text-center dark:border-zinc-700">
-                    <div class="flex size-14 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
-                        <flux:icon :icon="\App\Livewire\Admin\Search\SearchResults::TABS[$activeTab]['icon']" class="size-7 text-zinc-400" />
-                    </div>
-                    <div>
-                        <p class="text-sm font-semibold text-zinc-700 dark:text-zinc-300">{{ __('No') }} {{ __(\App\Livewire\Admin\Search\SearchResults::TABS[$activeTab]['label']) }} {{ __('found') }}</p>
-                        <p class="mt-1 text-xs text-zinc-500">{{ __('Try a different search term or switch tabs') }}</p>
-                    </div>
-                </div>
+                <x-ui.dashboard.empty-state
+                    :icon="\App\Livewire\Admin\Search\SearchResults::TABS[$activeTab]['icon']"
+                    :title="__('No :label found', ['label' => __(\App\Livewire\Admin\Search\SearchResults::TABS[$activeTab]['label'])])"
+                    :subtitle="__('Try a different search term or switch tabs')"
+                />
             @else
                 <div class="space-y-2">
                     {{-- Members Tab --}}
@@ -295,16 +291,13 @@
         </div>
     @else
         {{-- No query yet --}}
-        <div class="flex flex-col items-center justify-center gap-4 py-24 text-center">
-            <div class="flex size-16 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
-                <flux:icon.magnifying-glass class="size-8 text-zinc-400" />
-            </div>
-            <div>
-                <p class="text-base font-semibold text-zinc-700 dark:text-zinc-300">{{ __('What are you looking for?') }}</p>
-                <p class="mt-1 text-sm text-zinc-500">{{ __('Search across members, events, courses, subscriptions, services, plans and activities.') }}</p>
-            </div>
-            <p class="text-xs text-zinc-400">{{ __('Tip: Use') }} <kbd class="rounded border border-zinc-200 bg-zinc-100 px-1.5 py-0.5 font-mono text-[10px] dark:border-zinc-700 dark:bg-zinc-800">⌘K</kbd> {{ __('to search from anywhere') }}</p>
-        </div>
+        <x-ui.dashboard.empty-state
+            icon="magnifying-glass"
+            :title="__('What are you looking for?')"
+            :subtitle="__('Search across members, events, courses, subscriptions, services, plans and activities.')"
+        >
+            <p class="text-xs text-zinc-400 mt-4">{{ __('Tip: Use') }} <kbd class="rounded border border-zinc-200 bg-zinc-100 px-1.5 py-0.5 font-mono text-[10px] dark:border-zinc-700 dark:bg-zinc-800">⌘K</kbd> {{ __('to search from anywhere') }}</p>
+        </x-ui.dashboard.empty-state>
     @endif
 
 </section>

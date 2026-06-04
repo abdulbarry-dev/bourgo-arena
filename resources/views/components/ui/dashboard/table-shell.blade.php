@@ -17,7 +17,7 @@
     @endisset
 
     <div wire:loading.remove @if ($targets !== '') wire:target="{{ $targets }}" @endif @class([
-        'overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700' => ! $borderless,
+        'overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700' => ! $borderless && $hasRows,
         'p-0.5' => $borderless, {{-- Slight padding to prevent shadow clipping --}}
     ])>
         @if ($hasRows)

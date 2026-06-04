@@ -34,11 +34,14 @@
                         </div>
                     </div>
                 @empty
-                    <div class="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-300 p-8 dark:border-zinc-700">
-                        <flux:icon name="users" class="size-8 text-zinc-300 dark:text-zinc-600" />
-                        <flux:text variant="subtle" size="sm">{{ __('No children linked to this family.') }}</flux:text>
-                        <flux:button type="button" variant="subtle" size="sm" icon="plus" class="mt-2" wire:click="addChild">{{ __('Add First Child') }}</flux:button>
-                    </div>
+                    <x-ui.dashboard.empty-state
+                        small
+                        icon="users"
+                        :title="__('No children linked')"
+                        :subtitle="__('No children linked to this family.')"
+                        :button-label="__('Add First Child')"
+                        button-wire-click="addChild"
+                    />
                 @endforelse
 
                 @if (count($children) > 0)

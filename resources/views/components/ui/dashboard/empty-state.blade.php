@@ -2,6 +2,7 @@
     'title',
     'subtitle' => null,
     'table' => false,
+    'small' => false,
     'icon' => null,
     'buttonLabel' => null,
     'buttonWireClick' => null,
@@ -10,22 +11,21 @@
 ])
 
 <div {{ $attributes->class([
-    'flex flex-col items-center justify-center text-center transition-all duration-300 w-full mx-auto',
-    'p-6' => $table,
-    'min-h-[400px] md:min-h-[calc(100vh-24rem)]' => $table,
-    'p-8 md:p-12 min-h-[400px] md:min-h-[calc(100vh-24rem)] rounded-3xl border border-dashed border-zinc-200 bg-zinc-50/50 dark:border-zinc-800/80 dark:bg-zinc-900/30' => ! $table,
+    'flex flex-col items-center justify-center text-center w-full mx-auto px-6',
+    'py-12' => $small,
+    'min-h-[300px] sm:min-h-[400px] md:min-h-[calc(100vh-24rem)]' => ! $small,
 ]) }}>
     <div class="flex w-full max-w-lg flex-col items-center justify-center mx-auto">
         @if ($icon)
-            <div class="mb-8 flex size-20 md:size-24 items-center justify-center rounded-full bg-zinc-100 ring-[10px] ring-zinc-50 dark:bg-zinc-800 dark:ring-zinc-900/50">
-                <flux:icon :name="$icon" class="size-10 md:size-12 text-zinc-500 dark:text-zinc-400" />
+            <div class="mb-8 flex size-20 items-center justify-center rounded-3xl bg-zinc-50/50 dark:bg-zinc-900/50 shadow-xs border border-zinc-100/50 dark:border-zinc-800/50">
+                <flux:icon :name="$icon" class="size-10 text-zinc-400 dark:text-zinc-500" />
             </div>
         @endif
 
-        <flux:heading size="xl" class="mb-3 font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">{{ $title }}</flux:heading>
+        <flux:heading size="xl" class="mb-3 font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">{{ $title }}</flux:heading>
 
         @if ($subtitle)
-            <flux:text variant="subtle" class="mb-8 max-w-md leading-relaxed text-zinc-500 dark:text-zinc-400">
+            <flux:text variant="subtle" class="mb-10 max-w-md leading-relaxed text-zinc-500 dark:text-zinc-400">
                 {{ $subtitle }}
             </flux:text>
         @endif
@@ -37,7 +37,7 @@
                 </flux:button>
             @endif
             @if ($buttonLabel)
-                <flux:button variant="primary" class="w-full sm:w-auto" wire:click="{{ $buttonWireClick }}">
+                <flux:button variant="primary" class="w-full sm:w-auto px-8" wire:click="{{ $buttonWireClick }}">
                     {{ $buttonLabel }}
                 </flux:button>
             @endif

@@ -93,27 +93,21 @@
             {{-- Default State (empty query) --}}
             <div wire:loading.remove wire:target="query">
                 @if (blank($this->query) || strlen($this->query) < 2)
-                    <div class="flex flex-col items-center justify-center gap-3 px-6 py-12 text-center">
-                        <div class="flex size-12 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
-                            <flux:icon.magnifying-glass class="size-6 text-zinc-400" />
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-zinc-700 dark:text-zinc-300">{{ __('Search anything') }}</p>
-                            <p class="mt-0.5 text-xs text-zinc-500">{{ __('Members, events, courses, subscriptions, and more…') }}</p>
-                        </div>
-                    </div>
+                    <x-ui.dashboard.empty-state
+                        small
+                        icon="magnifying-glass"
+                        :title="__('Search anything')"
+                        :subtitle="__('Members, events, courses, subscriptions, and more…')"
+                    />
 
                 {{-- No Results --}}
                 @elseif (! $this->hasResults)
-                    <div class="flex flex-col items-center justify-center gap-3 px-6 py-12 text-center">
-                        <div class="flex size-12 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
-                            <flux:icon.face-frown class="size-6 text-zinc-400" />
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-zinc-700 dark:text-zinc-300">{{ __('No results found') }}</p>
-                            <p class="mt-0.5 text-xs text-zinc-500">{{ __('Nothing matched') }} "<span class="font-medium">{{ $this->query }}</span>"</p>
-                        </div>
-                    </div>
+                    <x-ui.dashboard.empty-state
+                        small
+                        icon="face-frown"
+                        :title="__('No results found')"
+                        :subtitle="__('Nothing matched \":query\"', ['query' => $this->query])"
+                    />
 
                 {{-- Results Groups --}}
                 @else
