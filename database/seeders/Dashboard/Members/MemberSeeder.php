@@ -2,8 +2,13 @@
 
 namespace Database\Seeders\Dashboard\Members;
 
+use App\Models\LoyaltyPoint;
 use App\Models\Member;
+use App\Models\Plan;
+use App\Models\Service;
+use App\Models\Subscription;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class MemberSeeder extends Seeder
 {
@@ -69,6 +74,36 @@ class MemberSeeder extends Seeder
             Member::query()
                 ->where('email', $memberData['email'])
                 ->update(['parent_id' => $parent->id]);
+        }
+
+        // Ensure we have plans
+        if (Plan::count() === 0) {
+            Service::factory()->create();
+            Plan::factory()->count(5)->create();
+        }
+        $plans = Plan::all();
+
+        // Create remaining members to reach target total (default 500)
+        $currentCount = Member::count();
+        $targetCount = config('seeder.members.target', 500);
+
+        if ($currentCount < $targetCount) {
+            $membersToCreate = $targetCount - $currentCount;
+
+            $newMembers = Member::factory()->active()
+                ->count($membersToCreate)
+                ->has(Subscription::factory()->state(fn () => ['plan_id' => $plans->random()->id]))
+                ->create();
+
+            $loyaltyPoints = $newMembers->map(fn ($member) => [
+                'member_id' => $member->id,
+                'points' => fake()->numberBetween(0, 1000),
+                'transaction_type' => 'manual',
+                'source_type' => 'manual',
+                'idempotency_key' => Str::uuid()->toString(),
+                'created_at' => now(),
+            ])->toArray();
+            LoyaltyPoint::insert($loyaltyPoints);
         }
     }
 }

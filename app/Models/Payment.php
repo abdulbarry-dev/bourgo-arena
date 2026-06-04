@@ -23,20 +23,12 @@ class Payment extends Model
         'gateway_transaction_id',
         'metadata',
         'verified_at',
-        'reconciled_by',
-        'reconciled_at',
-        'refunded_by',
-        'refunded_at',
-        'refund_amount',
     ];
 
     protected $casts = [
         'amount' => 'decimal:3',
         'metadata' => 'array',
         'verified_at' => 'datetime',
-        'reconciled_at' => 'datetime',
-        'refunded_at' => 'datetime',
-        'refund_amount' => 'decimal:3',
     ];
 
     public function member()
@@ -52,29 +44,5 @@ class Payment extends Model
     public function subscription()
     {
         return $this->belongsTo(Subscription::class);
-    }
-
-    /**
-     * Admin who reconciled this payment (via reconciled_by field).
-     */
-    public function reconciledBy()
-    {
-        return $this->belongsTo(User::class, 'reconciled_by');
-    }
-
-    /**
-     * Admin who refunded this payment (via refunded_by field).
-     */
-    public function refundedBy()
-    {
-        return $this->belongsTo(User::class, 'refunded_by');
-    }
-
-    /**
-     * Reconciliation history (reconciled/refunded events).
-     */
-    public function reconciliations()
-    {
-        return $this->hasMany(PaymentReconciliation::class);
     }
 }

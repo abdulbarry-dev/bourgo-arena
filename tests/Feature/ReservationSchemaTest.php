@@ -20,7 +20,6 @@ test('reservation system migrations create the expected tables and indexes', fun
             'payment_gateway',
             'transaction_reference',
             'cancellation_reason',
-            'refund_status',
         ],
         'activity_slots' => [
             'activity_id',
@@ -49,11 +48,6 @@ test('reservation system migrations create the expected tables and indexes', fun
             'external_gateway_reference',
             'reservation_details',
             'user_information',
-            'refund_status',
-            'refund_amount',
-            'refund_reference',
-            'refunded_at',
-            'refund_details',
             'ip_address',
             'user_agent',
             'request_payload',
@@ -90,6 +84,5 @@ test('reservation system migrations create the expected tables and indexes', fun
         'payment_transactions_gateway_status_index',
         'payment_transactions_reservation_created_at_index',
         'payment_transactions_external_gateway_reference_index',
-        'payment_transactions_refund_status_index',
     ]);
 });

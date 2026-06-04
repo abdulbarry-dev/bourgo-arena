@@ -21,7 +21,6 @@ class Reservation extends Model
         'payment_gateway',
         'transaction_reference',
         'cancellation_reason',
-        'refund_status',
     ];
 
     protected function casts(): array

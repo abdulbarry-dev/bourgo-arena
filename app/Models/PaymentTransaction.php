@@ -21,11 +21,6 @@ class PaymentTransaction extends Model
         'external_gateway_reference',
         'reservation_details',
         'user_information',
-        'refund_status',
-        'refund_amount',
-        'refund_reference',
-        'refunded_at',
-        'refund_details',
         'ip_address',
         'user_agent',
         'request_payload',
@@ -36,11 +31,8 @@ class PaymentTransaction extends Model
     {
         return [
             'amount' => 'decimal:3',
-            'refund_amount' => 'decimal:3',
-            'refunded_at' => 'datetime',
             'reservation_details' => 'encrypted:array',
             'user_information' => 'encrypted:array',
-            'refund_details' => 'encrypted:array',
             'request_payload' => 'encrypted:array',
             'response_payload' => 'encrypted:array',
         ];

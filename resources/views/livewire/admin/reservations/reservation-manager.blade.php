@@ -41,7 +41,6 @@
                             <option value="">{{ __('All payment states') }}</option>
                             <option value="pending">{{ __('Pending') }}</option>
                             <option value="paid">{{ __('Paid') }}</option>
-                            <option value="refunded">{{ __('Refunded') }}</option>
                             <option value="failed">{{ __('Failed') }}</option>
                         </flux:select>
                     </flux:field>
@@ -81,7 +80,6 @@
             </thead>
             <tbody class="divide-y divide-zinc-100 bg-white dark:divide-zinc-800 dark:bg-zinc-900/40">
                 @foreach ($this->reservations as $reservation)
-                    @php($canRefundReservation = $reservation->isRefundable() && $reservation->payments->contains(fn ($payment) => $payment->status === 'paid'))
                     <tr wire:key="reservation-row-{{ $reservation->id }}" class="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/70">
                         <td class="px-4 py-4 align-top">
                             @if ($reservation->member)
@@ -168,16 +166,6 @@
                                         <flux:menu.item icon="pencil-square" wire:click="openEditModal({{ $reservation->id }})">
                                             {{ __('Edit') }}
                                         </flux:menu.item>
-
-                                        @if ($canRefundReservation)
-                                            <flux:menu.item icon="currency-dollar" wire:click="openRefundForReservation({{ $reservation->id }})">
-                                                {{ __('Refund') }}
-                                            </flux:menu.item>
-                                        @else
-                                            <flux:menu.item icon="currency-dollar" class="opacity-50 pointer-events-none" aria-disabled="true">
-                                                {{ __('Refund unavailable') }}
-                                            </flux:menu.item>
-                                        @endif
 
                                         @if ($reservation->status === 'confirmed')
                                             <flux:menu.item icon="x-mark" wire:click="openActionModal('cancel', {{ $reservation->id }})">
@@ -382,73 +370,4 @@
         </section>
     </flux:modal>
 
-    <flux:modal wire:model="showRefundModal" variant="default" class="max-w-lg" x-on:hidden="$wire.closeRefundModal()">
-        <form wire:submit.prevent="confirmRefund">
-            <div class="p-6">
-                <flux:heading size="sm">{{ __('Refund Payment') }}</flux:heading>
-                <flux:text variant="subtle">{{ __('Confirm refund amount and proceed. This action will call the gateway and update records.') }}</flux:text>
-
-                <div class="mt-4">
-                    <flux:input wire:model="refundAmount" type="number" step="0.001" :label="__('Amount to refund')" required />
-                </div>
-            </div>
-
-            <div class="flex justify-end gap-2 px-6 pb-6">
-                <flux:button type="button" variant="ghost" wire:click.prevent="closeRefundModal()">{{ __('Cancel') }}</flux:button>
-                <flux:button type="submit" variant="danger">{{ __('Confirm Refund') }}</flux:button>
-            </div>
-        </form>
-    </flux:modal>
-
-    <flux:modal wire:model="showHistoryModal" variant="default" class="max-w-3xl" x-on:hidden="$wire.closeHistoryModal()">
-        <section class="p-6">
-            <flux:heading size="sm">{{ __('Reconciliation History') }}</flux:heading>
-            <flux:text variant="subtle">{{ __('Recent verification and refund events for the selected payment.') }}</flux:text>
-
-            @if ($this->paymentReconciliationsPaginated === null || $this->paymentReconciliationsPaginated->isEmpty())
-                <div class="mt-4 text-xs text-zinc-500">{{ __('No reconciliation history for this payment.') }}</div>
-            @else
-                <div class="mt-4 overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-700">
-                    <table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-700">
-                        <thead class="bg-zinc-50 dark:bg-zinc-900/80">
-                            <tr>
-                                <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Type') }}</th>
-                                <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Amount') }}</th>
-                                <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('When') }}</th>
-                                <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('By') }}</th>
-                                <th class="px-4 py-3 text-right font-medium text-zinc-700 dark:text-zinc-200">{{ __('Actions') }}</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-zinc-100 bg-white dark:divide-zinc-800 dark:bg-zinc-900/40">
-                            @foreach ($this->paymentReconciliationsPaginated as $rec)
-                                <tr>
-                                    <td class="px-4 py-3">{{ ucfirst($rec->type) }}</td>
-                                    <td class="px-4 py-3">@if($rec->amount) {{ number_format((float) $rec->amount, 3) }} @else — @endif</td>
-                                    <td class="px-4 py-3">{{ $rec->created_at->format('M d, Y H:i') }}</td>
-                                    <td class="px-4 py-3">{{ $rec->admin?->name ?? __('System') }}</td>
-                                    <td class="px-4 py-3 text-right">
-                                        <flux:button size="sm" variant="subtle" wire:click.prevent="toggleRaw({{ $rec->id }})">{{ __('Toggle Payload') }}</flux:button>
-                                    </td>
-                                </tr>
-                                @if (! empty($showRaw[$rec->id]))
-                                    <tr>
-                                        <td colspan="5" class="px-4 py-3 bg-zinc-50">
-                                            <div class="flex justify-end mb-2">
-                                                <flux:button size="sm" variant="subtle" onclick="(function(id){const el=document.getElementById('rec-payload-'+id); if(el) navigator.clipboard.writeText(el.textContent)} )({{ $rec->id }})">{{ __('Copy Payload') }}</flux:button>
-                                            </div>
-                                            <pre id="rec-payload-{{ $rec->id }}" class="text-xs text-zinc-500 whitespace-pre-wrap">{{ json_encode($rec->metadata, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
-                                        </td>
-                                    </tr>
-                                @endif
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="mt-4">
-                    {{ $this->paymentReconciliationsPaginated->links() }}
-                </div>
-            @endif
-        </section>
-    </flux:modal>
 </x-ui.dashboard.page-wrapper>

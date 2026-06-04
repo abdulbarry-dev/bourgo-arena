@@ -23,11 +23,6 @@ return new class extends Migration
             $table->string('external_gateway_reference')->nullable();
             $table->longText('reservation_details')->nullable();
             $table->longText('user_information')->nullable();
-            $table->enum('refund_status', ['not_requested', 'pending', 'completed', 'failed'])->default('not_requested');
-            $table->decimal('refund_amount', 10, 3)->nullable();
-            $table->string('refund_reference')->nullable();
-            $table->timestamp('refunded_at')->nullable();
-            $table->longText('refund_details')->nullable();
             $table->ipAddress('ip_address')->nullable();
             $table->text('user_agent')->nullable();
             $table->longText('request_payload')->nullable();
@@ -39,7 +34,6 @@ return new class extends Migration
             $table->index(['payment_gateway', 'transaction_status'], 'payment_transactions_gateway_status_index');
             $table->index(['reservation_id', 'created_at'], 'payment_transactions_reservation_created_at_index');
             $table->index('external_gateway_reference', 'payment_transactions_external_gateway_reference_index');
-            $table->index('refund_status', 'payment_transactions_refund_status_index');
         });
     }
 

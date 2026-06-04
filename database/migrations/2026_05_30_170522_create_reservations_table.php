@@ -23,7 +23,6 @@ return new class extends Migration
             $table->enum('payment_gateway', ['konnect', 'flouci', 'manual_admin'])->nullable();
             $table->string('transaction_reference')->nullable();
             $table->text('cancellation_reason')->nullable();
-            $table->enum('refund_status', ['not_requested', 'pending', 'completed', 'failed'])->default('not_requested');
             $table->timestamps();
 
             $table->index(['user_id', 'reservation_status'], 'reservations_user_id_reservation_status_index');

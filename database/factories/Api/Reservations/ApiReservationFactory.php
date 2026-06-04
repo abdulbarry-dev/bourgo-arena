@@ -43,7 +43,7 @@ class ApiReservationFactory extends Factory
     {
         return $this->state(fn (): array => [
             'status' => 'cancelled',
-            'payment_status' => 'refunded',
+            'payment_status' => 'pending',
             'cancelled_at' => now(),
         ]);
     }

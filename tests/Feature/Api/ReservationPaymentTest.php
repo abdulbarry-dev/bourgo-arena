@@ -80,18 +80,4 @@ it('verifies a payment and marks reservation as paid', function () {
     $response->assertStatus(200)->assertJsonFragment(['status' => 'paid']);
 });
 
-it('cancels a reservation and attempts a refund', function () {
-    $reservation = ApiReservation::factory()->create(['member_id' => $this->member->id]);
 
-    $payment = Payment::factory()->create([
-        'member_id' => $this->member->id,
-        'reservation_id' => $reservation->id,
-        'status' => 'paid',
-        'driver' => config('payment.default', 'konnect'),
-        'gateway_transaction_id' => 'tx_'.Str::random(8),
-    ]);
-
-    $response = $this->deleteJson('/api/v1/reservations/'.$reservation->id.'/cancel');
-
-    $response->assertStatus(200)->assertJsonFragment(['message' => 'Reservation cancelled']);
-});

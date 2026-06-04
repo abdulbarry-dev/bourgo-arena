@@ -10,15 +10,12 @@ use App\Http\Resources\Api\ApiReservationResource;
 use App\Models\ApiReservation;
 use App\Models\Payment;
 use App\Services\LoyaltyCalculatorService;
-use App\Services\Payment\PaymentManager;
-use App\Services\PaymentAuditService;
 use App\Services\PaymentService;
 use App\Services\ReservationService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Str;
 
 class ReservationController extends Controller
 {
@@ -128,57 +125,6 @@ class ReservationController extends Controller
         }
 
         return $this->error('Payment not successful', 400);
-    }
-
-    /**
-     * Cancel reservation and, when applicable, initiate refund for paid payments.
-     */
-    public function cancelWithRefund(Request $request, ApiReservation $reservation)
-    {
-        $this->authorize('delete', $reservation);
-
-        // If reservation has paid payments, attempt refund via payment drivers
-        $paidPayment = $reservation->payments()->where('status', 'paid')->latest()->first();
-
-        if ($paidPayment) {
-            $gateway = $paidPayment->driver;
-            $transactionReference = $paidPayment->gateway_transaction_id ?? $paidPayment->payment_reference;
-            $refundAmount = $request->input('amount', $paidPayment->amount);
-
-            try {
-                $manager = app(PaymentManager::class);
-                $provider = $manager->driver($gateway);
-                $result = $provider->refund($transactionReference, (float) $refundAmount);
-            } catch (\Throwable $e) {
-                $result = ['success' => false, 'error' => $e->getMessage()];
-            }
-
-            // Log standalone audit
-            try {
-                app(PaymentAuditService::class)->logStandalone([
-                    'transaction_id' => $result['refund_id'] ?? 'refund_'.(string) Str::uuid(),
-                    'user_id' => $request->user()->id,
-                    'reservation_id' => $reservation->id,
-                    'amount' => $refundAmount,
-                    'currency' => $paidPayment->currency ?? 'TND',
-                    'payment_gateway' => $gateway,
-                    'transaction_status' => ! empty($result['success']) ? 'refund_completed' : 'refund_failed',
-                    'external_gateway_reference' => $transactionReference,
-                    'refund_status' => ! empty($result['success']) ? 'completed' : 'failed',
-                    'refund_amount' => $refundAmount,
-                    'refund_reference' => $result['refund_id'] ?? null,
-                    'refund_details' => ['response' => $result],
-                    'request_payload' => ['transaction_reference' => $transactionReference, 'amount' => $refundAmount],
-                    'response_payload' => $result,
-                ]);
-            } catch (\Throwable $e) {
-                // ignore audit failures
-            }
-        }
-
-        $this->reservationService->cancelActivityReservation($reservation);
-
-        return $this->success(null, 'Reservation cancelled');
     }
 
     /**

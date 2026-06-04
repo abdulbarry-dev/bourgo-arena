@@ -154,7 +154,7 @@ it('shows reservation member and payment history details', function () {
         ->assertSee('Loyalty Points');
 });
 
-it('can verify and refund payments from the detail flyout', function () {
+it('can verify payments from the detail flyout', function () {
     $admin = User::factory()->create(['role' => UserRole::Admin]);
     $member = Member::factory()->create();
     $activity = Activity::factory()->create();
@@ -182,43 +182,4 @@ it('can verify and refund payments from the detail flyout', function () {
 
     $this->assertDatabaseHas('payments', ['id' => $payment->id, 'status' => 'paid']);
     $this->assertDatabaseHas('api_reservations', ['id' => $reservation->id, 'payment_status' => 'paid']);
-    $this->assertDatabaseHas('payment_reconciliations', [
-        'payment_id' => $payment->id,
-        'admin_id' => $admin->id,
-        'type' => 'reconciled',
-    ]);
-
-    // UI should show admin name in the reservation detail flyout after verification
-    Livewire::test(ReservationManager::class)
-        ->call('openHistoryModal', $payment->id)
-        ->assertSee($admin->name);
-
-    // Now test refund flow
-    // Create a paid payment to refund
-    $paid = Payment::factory()->create(['member_id' => $member->id, 'reservation_id' => $reservation->id, 'status' => 'paid', 'amount' => $reservation->price, 'payment_reference' => 'PAY-REFUND-001', 'gateway_transaction_id' => 'TXN123']);
-
-    // Mock PaymentManager driver refund
-    $driverMock = Mockery::mock();
-    $driverMock->shouldReceive('refund')->andReturn(['success' => true, 'refund_id' => 'REF123']);
-
-    $pmMock = Mockery::mock(PaymentManager::class);
-    $pmMock->shouldReceive('driver')->andReturn($driverMock);
-    $pmMock->shouldReceive('getDefaultDriver')->andReturn('konnect');
-    $this->app->instance(PaymentManager::class, $pmMock);
-
-    Livewire::test(ReservationManager::class)
-        ->call('openReservationDetail', $reservation->id)
-        ->call('openRefundModal', $paid->id)
-        ->set('refundAmount', (string) ($paid->amount / 2))
-        ->call('confirmRefund')
-        ->assertHasNoErrors();
-
-    $this->assertDatabaseHas('payments', ['id' => $paid->id, 'status' => 'refunded', 'refund_amount' => ($paid->amount / 2)]);
-    $this->assertDatabaseHas('api_reservations', ['id' => $reservation->id, 'payment_status' => 'refunded']);
-    $this->assertDatabaseHas('payment_reconciliations', [
-        'payment_id' => $paid->id,
-        'admin_id' => $admin->id,
-        'type' => 'refunded',
-        'amount' => ($paid->amount / 2),
-    ]);
 });

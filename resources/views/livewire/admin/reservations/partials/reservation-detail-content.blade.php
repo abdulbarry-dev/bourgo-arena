@@ -43,7 +43,6 @@
                             :color="match ($this->selectedReservation->payment_status) {
                                 'paid' => 'green',
                                 'pending' => 'amber',
-                                'refunded' => 'blue',
                                 'failed' => 'red',
                                 default => 'zinc',
                             }"
@@ -53,18 +52,6 @@
             </div>
 
             <div class="flex items-center gap-2">
-                @php($canRefundReservation = $this->selectedReservation->isRefundable() && $this->selectedReservation->payments->contains(fn ($payment) => $payment->status === 'paid'))
-                @if ($canRefundReservation)
-                    <flux:button
-                        variant="subtle"
-                        size="sm"
-                        icon="currency-dollar"
-                        wire:click="openRefundForReservation({{ $this->selectedReservation->id }})"
-                    >
-                        {{ __('Refund') }}
-                    </flux:button>
-                @endif
-
                 @if ($this->selectedReservation->status !== 'confirmed')
                     <flux:button
                         variant="subtle"

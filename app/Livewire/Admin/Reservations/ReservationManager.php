@@ -8,9 +8,7 @@ use App\Models\ActivitySlot;
 use App\Models\ApiReservation;
 use App\Models\Member;
 use App\Models\Payment;
-use App\Models\PaymentReconciliation;
 use App\Repositories\ReservationRepository;
-use App\Services\Payment\PaymentManager as PMManager;
 use App\Services\PaymentService;
 use App\Services\ReservationService;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -153,23 +151,6 @@ class ReservationManager extends Component
 
     public string $actionPrompt = '';
 
-    public bool $showRefundModal = false;
-
-    public ?int $refundPaymentId = null;
-
-    public string|float $refundAmount = '';
-
-    // history modal state
-    public bool $showHistoryModal = false;
-
-    public ?int $historyPaymentId = null;
-
-    public int $historyPerPage = 10;
-
-    public int $historyPage = 1;
-
-    public array $showRaw = [];
-
     private function ensureStaff(): void
     {
         $user = auth()->user();
@@ -190,19 +171,6 @@ class ReservationManager extends Component
         $result = $service->verify($payment, $payment->gateway_transaction_id ?? null);
 
         if (! empty($result['success'])) {
-            $payment->update(['reconciled_by' => auth()->id(), 'reconciled_at' => now()]);
-
-            // record reconciliation event
-            try {
-                $payment->reconciliations()->create([
-                    'admin_id' => auth()->id(),
-                    'type' => 'reconciled',
-                    'amount' => null,
-                ]);
-            } catch (\Throwable $e) {
-                // non-fatal: reconciliation record failure shouldn't break UX
-            }
-
             if ($payment->reservation) {
                 $payment->reservation->update(['payment_status' => 'paid']);
             }
@@ -213,78 +181,6 @@ class ReservationManager extends Component
         }
 
         $this->dispatch('toast', message: __('Payment verification failed.'), type: 'danger');
-    }
-
-    public function openRefundModal(int $paymentId): void
-    {
-        $this->ensureStaff();
-
-        $payment = Payment::query()->findOrFail($paymentId);
-
-        $this->refundPaymentId = $payment->id;
-        $this->refundAmount = (string) $payment->amount;
-        $this->showRefundModal = true;
-    }
-
-    public function closeRefundModal(): void
-    {
-        $this->refundPaymentId = null;
-        $this->refundAmount = '';
-        $this->showRefundModal = false;
-    }
-
-    public function confirmRefund(): void
-    {
-        $this->ensureStaff();
-
-        if ($this->refundPaymentId === null) {
-            return;
-        }
-
-        $this->refundPayment((int) $this->refundPaymentId, (float) $this->refundAmount);
-
-        $this->closeRefundModal();
-    }
-
-    public function openRefundForReservation(int $reservationId): void
-    {
-        $this->ensureStaff();
-
-        $reservation = ApiReservation::query()
-            ->with(['payments' => fn ($query) => $query->orderByDesc('id')])
-            ->findOrFail($reservationId);
-
-        if (! $reservation->isRefundable()) {
-            $this->dispatch('toast', message: __('This reservation cannot be refunded because its time slot has already passed.'), type: 'danger');
-
-            return;
-        }
-
-        $payment = $reservation->payments->firstWhere('status', 'paid');
-
-        if ($payment === null) {
-            $this->dispatch('toast', message: __('No paid payment is available to refund for this reservation.'), type: 'info');
-
-            return;
-        }
-
-        $this->openRefundModal($payment->id);
-    }
-
-    public function openHistoryModal(int $paymentId): void
-    {
-        $this->historyPaymentId = $paymentId;
-        $this->showHistoryModal = true;
-        // use a separate paginator page name to avoid colliding with main pagination
-        $this->resetPage('rec_page');
-        $this->showRaw = [];
-    }
-
-    public function closeHistoryModal(): void
-    {
-        $this->historyPaymentId = null;
-        $this->showHistoryModal = false;
-        $this->historyPage = 1;
     }
 
     public function createReservation(): void
@@ -351,17 +247,6 @@ class ReservationManager extends Component
 
         $this->closeEditModal();
         $this->dispatch('toast', message: __('Reservation updated successfully.'), type: 'success');
-    }
-
-    public function toggleRaw(int $id): void
-    {
-        if (! empty($this->showRaw[$id])) {
-            unset($this->showRaw[$id]);
-
-            return;
-        }
-
-        $this->showRaw[$id] = true;
     }
 
     public function confirmReservation(int $reservationId): void
@@ -465,57 +350,6 @@ class ReservationManager extends Component
         $this->closeActionModal();
     }
 
-    public function refundPayment(int $paymentId, ?float $amount = null): void
-    {
-        $this->ensureStaff();
-
-        $payment = Payment::query()->with('reservation')->findOrFail($paymentId);
-
-        if ($payment->reservation && ! $payment->reservation->isRefundable()) {
-            $this->dispatch('toast', message: __('This payment cannot be refunded because the reservation time slot has already passed.'), type: 'danger');
-
-            return;
-        }
-
-        $manager = app(PMManager::class);
-        $driver = $manager->driver($payment->driver ?? $manager->getDefaultDriver());
-
-        $transactionId = $payment->gateway_transaction_id ?? $payment->payment_reference;
-        $result = $driver->refund($transactionId, $amount ?? (float) $payment->amount);
-
-        if (! empty($result['success'])) {
-            $payment->update([
-                'status' => 'refunded',
-                'metadata' => array_merge($payment->metadata ?? [], ['refund' => $result]),
-                'refunded_by' => auth()->id(),
-                'refunded_at' => now(),
-                'refund_amount' => $amount ?? (float) $payment->amount,
-            ]);
-
-            // record refund reconciliation event
-            try {
-                $payment->reconciliations()->create([
-                    'admin_id' => auth()->id(),
-                    'type' => 'refunded',
-                    'amount' => $amount ?? (float) $payment->amount,
-                ]);
-            } catch (\Throwable $e) {
-                // non-fatal: continue
-            }
-
-            if ($payment->reservation) {
-                $payment->reservation->update(['payment_status' => 'refunded']);
-            }
-
-            $this->dispatch('toast', message: __('Payment refunded.'), type: 'success');
-
-            return;
-        }
-
-        $payment->update(['status' => 'failed', 'metadata' => array_merge($payment->metadata ?? [], ['refund_error' => $result])]);
-        $this->dispatch('toast', message: __('Refund failed.'), type: 'danger');
-    }
-
     #[Computed]
     public function reservations(): LengthAwarePaginator
     {
@@ -605,19 +439,6 @@ class ReservationManager extends Component
         return $this->baseQuery()
             ->whereKey($this->selectedReservationId)
             ->first();
-    }
-
-    #[Computed]
-    public function paymentReconciliationsPaginated(): ?LengthAwarePaginator
-    {
-        if ($this->historyPaymentId === null) {
-            return null;
-        }
-
-        return PaymentReconciliation::query()
-            ->where('payment_id', $this->historyPaymentId)
-            ->orderByDesc('id')
-            ->paginate($this->historyPerPage, ['*'], 'rec_page', $this->historyPage);
     }
 
     public function render(): View

@@ -17,7 +17,10 @@ use App\Models\RevenueSnapshot;
 use App\Models\Subscription;
 use App\Models\User;
 use App\UserRole;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+
+uses(RefreshDatabase::class);
 
 test('manager and admin seeders create requested accounts', function () {
     $this->seed();
@@ -36,6 +39,7 @@ test('manager and admin seeders create requested accounts', function () {
 });
 
 test('dashboard seeders create members and events data', function () {
+    config(['seeder.members.target' => 12]);
     $this->seed();
 
     expect(Member::count())->toBe(12);
