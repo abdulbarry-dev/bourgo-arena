@@ -59,7 +59,6 @@
                         <option value="pending">{{ __('Pending') }}</option>
                         <option value="success">{{ __('Success') }}</option>
                         <option value="failed">{{ __('Failed') }}</option>
-                        <option value="refunded">{{ __('Refunded') }}</option>
                     </flux:select>
                 </flux:field>
             </div>
@@ -125,7 +124,6 @@
                                     'pending' => 'amber',
                                     'success' => 'green',
                                     'failed' => 'red',
-                                    'refunded' => 'blue',
                                     default => 'zinc',
                                 }"
                             />
@@ -166,7 +164,6 @@
                                                 'pending' => 'amber',
                                                 'success' => 'green',
                                                 'failed' => 'red',
-                                                'refunded' => 'blue',
                                                 default => 'zinc',
                                             }"
                                         />

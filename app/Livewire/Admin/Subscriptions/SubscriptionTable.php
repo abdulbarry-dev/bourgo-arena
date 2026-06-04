@@ -36,7 +36,7 @@ class SubscriptionTable extends Component
 
     public ?int $previewSubscriptionId = null;
 
-    public int $perPage = 10;
+    public int $perPage = 7;
 
     public string $sortBy = 'ends_at';
 

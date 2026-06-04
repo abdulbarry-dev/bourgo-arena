@@ -168,3 +168,10 @@ test('subscription table requires confirmation before exporting csv and pdf file
         ->assertSet('showExportConfirmModal', false)
         ->assertFileDownloaded('subscriptions.pdf');
 });
+
+test('subscription table defaults to 7 items per page', function () {
+    $this->actingAs(User::factory()->manager()->create());
+
+    Livewire::test(SubscriptionTable::class)
+        ->assertSet('perPage', 7);
+});
