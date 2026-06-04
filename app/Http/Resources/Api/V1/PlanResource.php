@@ -5,7 +5,7 @@ namespace App\Http\Resources\Api\V1;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class CourseResource extends JsonResource
+class PlanResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -17,10 +17,11 @@ class CourseResource extends JsonResource
         return [
             'id' => (string) $this->id,
             'name' => $this->name,
-            'description' => $this->description,
-            'category' => $this->category,
-            'image_url' => $this->image_url,
-            'status' => $this->status,
+            'price' => (float) $this->price,
+            'duration_days' => $this->duration_days,
+            'has_all_courses' => $this->has_all_courses,
+            // Include service data, specifically the image_url for UI
+            'service' => new ServiceResource($this->whenLoaded('service')),
         ];
     }
 }

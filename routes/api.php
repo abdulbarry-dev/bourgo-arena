@@ -11,19 +11,32 @@ use App\Http\Controllers\Api\V1\LoyaltyController;
 use App\Http\Controllers\Api\V1\MemberController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\PaymentController;
+use App\Http\Controllers\Api\V1\PlanController;
 use App\Http\Controllers\Api\V1\ReservationController;
 use App\Http\Controllers\Api\V1\SearchController;
+use App\Http\Controllers\Api\V1\ServiceController;
 use App\Http\Controllers\Api\V1\SubscriptionController;
 use App\Http\Controllers\Api\V1\TierController;
+use App\Http\Controllers\Api\V1\UserPaymentController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
     Route::get('search', [SearchController::class, 'index'])->name('api.v1.search.index');
+
+    Route::get('services', [ServiceController::class, 'index'])->name('api.v1.services.index');
+    Route::get('services/{service}', [ServiceController::class, 'show'])->name('api.v1.services.show');
+
+    Route::get('plans', [PlanController::class, 'index'])->name('api.v1.plans.index');
+    Route::get('plans/{plan}', [PlanController::class, 'show'])->name('api.v1.plans.show');
+
     Route::get('activities', [ActivityController::class, 'index'])->name('api.v1.activities.index');
     Route::get('activities/{activity}', [ActivityController::class, 'show'])->name('api.v1.activities.show');
     Route::get('activities/{activity}/slots', [ActivityController::class, 'slots'])->name('api.v1.activities.slots');
     Route::get('reservations/slots', [ActivityController::class, 'slots'])->name('api.v1.reservations.slots');
+
     Route::get('courses', [CourseController::class, 'index'])->name('api.v1.courses.index');
+    Route::get('courses/{course}', [CourseController::class, 'show'])->name('api.v1.courses.show');
+    Route::get('courses/{course}/sessions', [CourseController::class, 'sessions'])->name('api.v1.courses.sessions');
 
     Route::prefix('auth')->group(function () {
         Route::post('login', [AuthController::class, 'login'])->middleware('throttle:api.auth')->name('api.v1.auth.login');
@@ -65,6 +78,7 @@ Route::prefix('v1')->group(function () {
             Route::post('profile/avatar', [MemberController::class, 'uploadAvatar'])->name('api.v1.user.upload-avatar');
             Route::delete('profile/avatar', [MemberController::class, 'deleteAvatar'])->name('api.v1.user.delete-avatar');
             Route::put('password', [AuthController::class, 'updatePassword'])->middleware('throttle:api.password')->name('api.v1.user.update-password');
+            Route::get('payments', [UserPaymentController::class, 'index'])->name('api.v1.user.payments.index');
         });
 
         Route::get('reservations', [ReservationController::class, 'index'])->name('api.v1.reservations.index');
@@ -92,6 +106,8 @@ Route::prefix('v1')->group(function () {
         Route::post('device-token', [DeviceTokenController::class, 'store'])->name('api.v1.device-token.store');
 
         Route::get('member/subscription', [SubscriptionController::class, 'active'])->name('api.v1.member.subscription');
+        Route::post('subscriptions', [SubscriptionController::class, 'store'])->name('api.v1.subscriptions.store');
+        Route::post('subscriptions/{subscription}/cancel', [SubscriptionController::class, 'cancel'])->name('api.v1.subscriptions.cancel');
     });
 
     Route::prefix('payments')->group(function () {
@@ -101,7 +117,6 @@ Route::prefix('v1')->group(function () {
     });
 });
 
-// Events API
 Route::get('/events', [EventController::class, 'index']);
 Route::get('/events/{event}', [EventController::class, 'show']);
 Route::get('/events/{event}/bracket', [EventController::class, 'bracket']);

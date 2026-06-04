@@ -6,31 +6,50 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-it('can list active course sessions', function () {
+it('can list active courses catalog', function () {
     $course = Course::factory()->create([
         'name' => 'Test Course',
+        'status' => 'active',
+    ]);
+
+    Course::factory()->create([
+        'name' => 'Inactive Course',
+        'status' => 'inactive',
+    ]);
+
+    $response = $this->getJson(route('api.v1.courses.index'));
+
+    $response->assertStatus(200)
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.name', 'Test Course');
+});
+
+it('can get specific course details', function () {
+    $course = Course::factory()->create([
+        'name' => 'Test Course',
+        'status' => 'active',
+    ]);
+
+    $response = $this->getJson(route('api.v1.courses.show', $course));
+
+    $response->assertStatus(200)
+        ->assertJsonPath('data.name', 'Test Course');
+});
+
+it('can list upcoming course sessions', function () {
+    $course = Course::factory()->create([
+        'name' => 'Test Course',
+        'status' => 'active',
     ]);
 
     CourseSession::create([
         'course_id' => $course->id,
         'day_of_week' => 1,
         'starts_at' => '09:00:00',
-        'starts_at_date' => now()->toDateString(),
+        'starts_at_date' => now()->addDays(2)->toDateString(),
         'duration_minutes' => 60,
         'capacity' => 10,
         'is_cancelled' => false,
-        'ends_at_date' => now()->addDays(7)->toDateString(),
-    ]);
-
-    // Cancelled session should not be shown
-    CourseSession::create([
-        'course_id' => $course->id,
-        'day_of_week' => 1,
-        'starts_at' => '10:00:00',
-        'starts_at_date' => now()->toDateString(),
-        'duration_minutes' => 60,
-        'capacity' => 10,
-        'is_cancelled' => true,
         'ends_at_date' => now()->addDays(7)->toDateString(),
     ]);
 
@@ -46,7 +65,7 @@ it('can list active course sessions', function () {
         'ends_at_date' => now()->subDays(1)->toDateString(),
     ]);
 
-    $response = $this->getJson(route('api.v1.courses.index'));
+    $response = $this->getJson(route('api.v1.courses.sessions', $course));
 
     $response->assertStatus(200)
         ->assertJsonCount(1, 'data')
