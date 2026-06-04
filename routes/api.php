@@ -72,7 +72,6 @@ Route::prefix('v1')->group(function () {
         Route::delete('reservations/{reservation}', [ReservationController::class, 'destroy'])->name('api.v1.reservations.destroy');
         Route::post('reservations/{reservation}/payment/initiate', [ReservationController::class, 'initiatePayment'])->name('api.v1.reservations.payment.initiate');
         Route::get('reservations/{reservation}/payment/verify', [ReservationController::class, 'verifyPayment'])->name('api.v1.reservations.payment.verify');
-        Route::delete('reservations/{reservation}/cancel', [ReservationController::class, 'cancelWithRefund'])->name('api.v1.reservations.cancel');
 
         Route::get('member/tier', [TierController::class, 'show'])->name('api.v1.member.tier');
         Route::get('loyalty/balance', [LoyaltyController::class, 'balance'])->name('api.v1.loyalty.balance');

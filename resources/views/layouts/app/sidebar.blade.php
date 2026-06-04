@@ -4,7 +4,7 @@
         @include('partials.head')
     </head>
     @php
-        $isLockedDashboardPage = request()->routeIs('dashboard', 'admin.reservations.index', 'admin.activities.index', 'admin.reconciliations.index', 'admin.events.index', 'admin.services.index');
+        $isLockedDashboardPage = request()->routeIs('dashboard', 'admin.reservations.index', 'admin.activities.index', 'admin.events.index', 'admin.services.index');
     @endphp
 
     <body @class([
@@ -41,9 +41,6 @@
                     @endif
 
                     @if(auth()->user()?->isAdmin())
-                    <flux:sidebar.item icon="receipt-percent" :href="route('admin.reconciliations.index')" :current="request()->routeIs('admin.reconciliations.*')" wire:navigate>
-                        {{ __('Reconciliations') }}
-                    </flux:sidebar.item>
                         <flux:sidebar.item icon="magnifying-glass" :href="route('admin.payments.audit')" :current="request()->routeIs('admin.payments.audit*')" wire:navigate>
                             {{ __('Payments Audit') }}
                         </flux:sidebar.item>
