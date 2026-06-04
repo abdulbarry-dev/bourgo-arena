@@ -170,7 +170,7 @@
     </x-ui.dashboard.table-shell>
 
     {{-- Details Modal --}}
-    <flux:modal wire:model="showDetailsFlyout" variant="flyout" class="w-full max-w-lg" x-on:hidden="$wire.closeDetails()">
+    <flux:modal name="participant-details-modal" wire:model="showDetailsFlyout" variant="flyout" class="w-full max-w-lg" x-on:hidden="$wire.closeDetails()">
         @if ($viewingParticipant)
             <div class="space-y-8">
                 {{-- Header --}}

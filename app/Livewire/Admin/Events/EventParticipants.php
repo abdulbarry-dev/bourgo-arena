@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Events;
 use App\Models\Event;
 use App\Models\EventParticipant;
 use App\Models\Team;
+use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -45,6 +46,8 @@ class EventParticipants extends Component
         $this->viewingParticipant = EventParticipant::with(['user', 'team', 'event'])->findOrFail($id);
         $this->viewingParticipantId = $id;
         $this->showDetailsFlyout = true;
+
+        Flux::modal('participant-details-modal')->show();
     }
 
     public function closeDetails()
