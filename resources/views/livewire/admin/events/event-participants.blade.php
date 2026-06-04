@@ -1,4 +1,5 @@
 <x-ui.dashboard.page-wrapper>
+    {{-- Event Participants Management --}}
     <x-ui.dashboard.page-header
         :title="__('Participants: :name', ['name' => $event->name])"
         :subtitle="__('Manage all participants and teams registered for this championship.')"
@@ -169,7 +170,7 @@
     </x-ui.dashboard.table-shell>
 
     {{-- Details Modal --}}
-    <flux:modal name="participant-details-modal" variant="flyout" class="w-full max-w-lg" x-on:hidden="$wire.closeDetails()">
+    <flux:modal wire:model="showDetailsFlyout" variant="flyout" class="w-full max-w-lg" x-on:hidden="$wire.closeDetails()">
         @if ($viewingParticipant)
             <div class="space-y-8">
                 {{-- Header --}}
@@ -260,7 +261,9 @@
 
                 {{-- Footer Actions --}}
                 <div class="flex justify-end gap-3 border-t border-zinc-200 pt-6 dark:border-zinc-700">
-                    <flux:button variant="filled" x-on:click="Flux.modal('participant-details-modal').close()">{{ __('Close') }}</flux:button>
+                    <flux:modal.close>
+                        <flux:button variant="filled">{{ __('Close') }}</flux:button>
+                    </flux:modal.close>
                 </div>
             </div>
         @endif

@@ -14,13 +14,19 @@ class EventParticipants extends Component
     use WithPagination;
 
     public Event $event;
+
     public $search = '';
+
     public $statusFilter = '';
+
     public $teamFilter = '';
 
     public ?int $viewingParticipantId = null;
+
     public ?EventParticipant $viewingParticipant = null;
-    
+
+    public bool $showDetailsFlyout = false;
+
     public ?int $removingParticipantId = null;
 
     public function mount(Event $event)
@@ -38,14 +44,14 @@ class EventParticipants extends Component
     {
         $this->viewingParticipant = EventParticipant::with(['user', 'team', 'event'])->findOrFail($id);
         $this->viewingParticipantId = $id;
-        
-        \Flux\Flux::modal('participant-details-modal')->show();
+        $this->showDetailsFlyout = true;
     }
 
     public function closeDetails()
     {
         $this->viewingParticipant = null;
         $this->viewingParticipantId = null;
+        $this->showDetailsFlyout = false;
     }
 
     public function checkIn(int $id)
@@ -96,8 +102,8 @@ class EventParticipants extends Component
             ->with(['user', 'team'])
             ->when($this->search, function ($query) {
                 $query->whereHas('user', function ($q) {
-                    $q->where('name', 'like', '%' . $this->search . '%')
-                      ->orWhere('email', 'like', '%' . $this->search . '%');
+                    $q->where('name', 'like', '%'.$this->search.'%')
+                        ->orWhere('email', 'like', '%'.$this->search.'%');
                 });
             })
             ->when($this->statusFilter, function ($query) {
