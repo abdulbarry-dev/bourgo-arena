@@ -19,6 +19,7 @@ class EventParticipants extends Component
     public $teamFilter = '';
 
     public ?int $viewingParticipantId = null;
+    public ?EventParticipant $viewingParticipant = null;
     public ?int $editingParticipantId = null;
     public ?int $removingParticipantId = null;
 
@@ -35,9 +36,16 @@ class EventParticipants extends Component
 
     public function openDetails(int $id)
     {
+        $this->viewingParticipant = EventParticipant::with(['user', 'team', 'event'])->findOrFail($id);
         $this->viewingParticipantId = $id;
-        // Optionally show a modal/flyout
-        $this->dispatch('toast', message: __('Viewing details for participant #:id', ['id' => $id]), type: 'info');
+        
+        \Flux\Flux::modal('participant-details-modal')->show();
+    }
+
+    public function closeDetails()
+    {
+        $this->viewingParticipant = null;
+        $this->viewingParticipantId = null;
     }
 
     public function edit(int $id)

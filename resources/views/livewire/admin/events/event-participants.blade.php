@@ -170,5 +170,108 @@
             </x-slot>
         @endif
     </x-ui.dashboard.table-shell>
+
+    {{-- Details Modal --}}
+    <flux:modal name="participant-details-modal" variant="flyout" class="w-full max-w-lg" x-on:hidden="$wire.closeDetails()">
+        @if ($viewingParticipant)
+            <div class="space-y-8">
+                {{-- Header --}}
+                <div class="flex items-start justify-between border-b border-zinc-200 pb-6 dark:border-zinc-700">
+                    <div class="flex items-center gap-4">
+                        <x-ui.dashboard.member-avatar :member="$viewingParticipant->user" size="xl" rounded="2xl" class="ring-4 ring-zinc-50 dark:ring-zinc-800" />
+                        <div>
+                            <flux:heading size="xl">{{ $viewingParticipant->user->name }}</flux:heading>
+                            <flux:subheading>{{ $viewingParticipant->user->email }}</flux:subheading>
+                        </div>
+                    </div>
+                    <x-ui.dashboard.status-badge
+                        :status="$viewingParticipant->status"
+                        :label="ucfirst($viewingParticipant->status)"
+                        :color="match($viewingParticipant->status) {
+                            'registered' => 'blue',
+                            'checked_in' => 'green',
+                            'canceled' => 'red',
+                            default => 'zinc',
+                        }"
+                    />
+                </div>
+
+                {{-- Content --}}
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    {{-- Registration Info --}}
+                    <div class="space-y-4">
+                        <flux:heading size="sm" class="flex items-center gap-2">
+                            <flux:icon icon="identification" variant="mini" class="text-zinc-400" />
+                            {{ __('Registration Details') }}
+                        </flux:heading>
+                        <div class="rounded-2xl border border-zinc-200 bg-zinc-50/50 p-4 dark:border-zinc-700 dark:bg-zinc-900/30">
+                            <div class="space-y-3">
+                                <div>
+                                    <div class="text-[10px] font-bold uppercase tracking-widest text-zinc-500">{{ __('Team') }}</div>
+                                    <div class="mt-1 font-semibold text-zinc-900 dark:text-white">{{ $viewingParticipant->team?->name ?? __('Individual') }}</div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold uppercase tracking-widest text-zinc-500">{{ __('Seed Number') }}</div>
+                                    <div class="mt-1 font-semibold text-zinc-900 dark:text-white">{{ $viewingParticipant->seed_number ?? __('Not Seeded') }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Event Context --}}
+                    <div class="space-y-4">
+                        <flux:heading size="sm" class="flex items-center gap-2">
+                            <flux:icon icon="trophy" variant="mini" class="text-zinc-400" />
+                            {{ __('Event Info') }}
+                        </flux:heading>
+                        <div class="rounded-2xl border border-zinc-200 bg-zinc-50/50 p-4 dark:border-zinc-700 dark:bg-zinc-900/30">
+                            <div class="space-y-3">
+                                <div>
+                                    <div class="text-[10px] font-bold uppercase tracking-widest text-zinc-500">{{ __('Championship') }}</div>
+                                    <div class="mt-1 font-semibold text-zinc-900 dark:text-white">{{ $viewingParticipant->event->name }}</div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold uppercase tracking-widest text-zinc-500">{{ __('Format') }}</div>
+                                    <div class="mt-1 font-semibold text-zinc-900 dark:text-white">{{ $viewingParticipant->event->format }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Status / Logs --}}
+                <div class="space-y-4">
+                    <flux:heading size="sm" class="flex items-center gap-2">
+                        <flux:icon icon="clock" variant="mini" class="text-zinc-400" />
+                        {{ __('Activity') }}
+                    </flux:heading>
+                    <div class="rounded-2xl border border-zinc-200 bg-zinc-50/50 p-4 dark:border-zinc-700 dark:bg-zinc-900/30">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-[10px] font-bold uppercase tracking-widest text-zinc-500">{{ __('Registered At') }}</div>
+                                <div class="mt-1 text-sm text-zinc-700 dark:text-zinc-300">{{ $viewingParticipant->created_at->format('M d, Y H:i') }}</div>
+                            </div>
+                            @if($viewingParticipant->has_checked_in)
+                                <div class="text-right">
+                                    <div class="text-[10px] font-bold uppercase tracking-widest text-emerald-500">{{ __('Checked In At') }}</div>
+                                    <div class="mt-1 text-sm text-emerald-600 dark:text-emerald-400">{{ $viewingParticipant->checked_at?->format('M d, Y H:i') ?? $viewingParticipant->updated_at->format('M d, Y H:i') }}</div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Footer Actions --}}
+                <div class="flex justify-between gap-3 border-t border-zinc-200 pt-6 dark:border-zinc-700">
+                    <flux:button variant="ghost" icon="pencil-square" wire:click="edit({{ $viewingParticipant->id }})">
+                        {{ __('Edit Registration') }}
+                    </flux:button>
+                    <flux:modal.close>
+                        <flux:button variant="filled">{{ __('Close') }}</flux:button>
+                    </flux:modal.close>
+                </div>
+            </div>
+        @endif
+    </flux:modal>
 </x-ui.dashboard.page-wrapper>
 
