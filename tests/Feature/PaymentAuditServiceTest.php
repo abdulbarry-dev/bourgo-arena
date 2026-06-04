@@ -70,13 +70,6 @@ test('payment audit service encrypts sensitive payloads at rest', function () {
             'gateway_status' => 'ok',
             'authorization_code' => 'AUTH123',
         ],
-        'refund_status' => 'completed',
-        'refund_amount' => 3.000,
-        'refund_reference' => 'refund_123',
-        'refund_details' => [
-            'processed_by' => 'system',
-            'reason' => 'customer_request',
-        ],
     ]);
 
     $raw = DB::table('payment_transactions')->where('id', $entry->id)->first();
@@ -86,7 +79,6 @@ test('payment audit service encrypts sensitive payloads at rest', function () {
     expect((string) $raw->response_payload)->not->toContain('AUTH123');
     expect((string) $raw->user_information)->not->toContain('audit@example.test');
     expect((string) $raw->reservation_details)->not->toContain('2026-06-01');
-    expect((string) $raw->refund_details)->not->toContain('customer_request');
 
     $fresh = PaymentTransaction::findOrFail($entry->id);
 
@@ -94,5 +86,4 @@ test('payment audit service encrypts sensitive payloads at rest', function () {
     expect($fresh->request_payload['token'])->toBe('tok_secret_example');
     expect($fresh->response_payload['authorization_code'])->toBe('AUTH123');
     expect($fresh->reservation_details['date'])->toBe('2026-06-01');
-    expect($fresh->refund_details['reason'])->toBe('customer_request');
 });

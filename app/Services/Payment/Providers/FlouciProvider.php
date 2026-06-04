@@ -55,17 +55,6 @@ class FlouciProvider implements PaymentProviderInterface
         return $this->verifyPayment($transactionId);
     }
 
-    public function refund(string $transactionId, ?float $amount = null): array
-    {
-        $result = $this->service->refund($transactionId, $amount);
-
-        if (($result['success'] ?? false) === false && ($result['error'] ?? null) === 'Flouci API credentials not configured') {
-            throw new \RuntimeException('Flouci API credentials not configured');
-        }
-
-        return $result;
-    }
-
     public function validateWebhookSignature(Request $request): bool
     {
         return $this->service->validateWebhookSignature($request);

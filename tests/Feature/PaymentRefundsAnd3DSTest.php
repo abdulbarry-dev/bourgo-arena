@@ -49,19 +49,3 @@ test('initiate payment that requires 3ds preserves metadata and completes after 
     expect($payment->fresh()->status)->toBe('paid');
 });
 
-test('refund webhook marks payment refunded with partial amount', function () {
-    config(['payment.providers.konnect.webhook_secret' => 'refund-secret']);
-
-    $payment = Payment::factory()->create(['status' => 'paid', 'amount' => 100.000, 'driver' => 'konnect']);
-
-    $payload = ['payment_reference' => $payment->payment_reference, 'status' => 'refunded', 'refund_amount' => 30.0];
-    $sig = hash_hmac('sha256', json_encode($payload), config('payment.providers.konnect.webhook_secret'));
-
-    $response = $this->postJson('/api/v1/payments/webhook/konnect', $payload, ['X-konnect-Signature' => $sig]);
-
-    $response->assertOk()->assertJson(['success' => true, 'status' => 'refunded']);
-
-    $paymentFresh = $payment->fresh();
-    expect($paymentFresh->status)->toBe('refunded');
-    expect($paymentFresh->metadata['refund_amount'] ?? null)->toEqual(30.0);
-});

@@ -89,7 +89,6 @@ return [
     'webhooks' => [
         'verify_signature' => true,
         'timeout' => 30,
-        // When true, webhook dispatches reconciliation jobs synchronously (useful for tests).
         // Default to false in non-test environments so webhooks are enqueued asynchronously.
         'dispatch_sync' => env('PAYMENT_WEBHOOK_DISPATCH_SYNC', false),
     ],

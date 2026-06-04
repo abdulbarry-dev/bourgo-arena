@@ -23,12 +23,4 @@ class WebhookResultDTO
     {
         return in_array(strtolower($this->status), ['paid', 'completed', 'success'], true);
     }
-
-    /**
-     * Determine if the status represents a refund.
-     */
-    public function isRefund(): bool
-    {
-        return in_array(strtolower($this->status), ['refunded', 'refund', 'partially_refunded', 'partial_refund', 'refunded_partially'], true);
-    }
 }

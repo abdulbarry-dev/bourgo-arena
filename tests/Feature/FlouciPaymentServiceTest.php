@@ -83,7 +83,7 @@ test('flouci payment service signs initiation requests and logs the audit row', 
     ]);
 });
 
-test('flouci payment service verifies and refunds through the sandbox endpoint', function () {
+test('flouci payment service verifies through the sandbox endpoint', function () {
     Http::fake([
         'https://developers.flouci.com/api/v2/verify_payment/FLOUCI123' => Http::response([
             'success' => true,
@@ -93,15 +93,6 @@ test('flouci payment service verifies and refunds through the sandbox endpoint',
                 'payment_id' => 'FLOUCI123',
                 'developer_tracking_id' => 'PAYREF123',
                 'settlement_status' => 'AVAILABLE',
-            ],
-        ]),
-        'https://developers.flouci.com/api/v2/refund_payment' => Http::response([
-            'status' => 'success',
-            'result' => [
-                'refund_id' => 'REFUND123',
-                'payment_id' => 'FLOUCI123',
-                'amount' => '25000',
-                'status' => 'success',
             ],
         ]),
     ]);
@@ -119,18 +110,4 @@ test('flouci payment service verifies and refunds through the sandbox endpoint',
     expect($verified['success'])->toBeTrue();
     expect($verified['status'])->toBe('paid');
     expect($verified['amount'])->toBe(50.0);
-
-    $refunded = $service->refund('FLOUCI123', 25.00);
-
-    expect($refunded['success'])->toBeTrue();
-    expect($refunded['refund_id'])->toBe('REFUND123');
-    expect($refunded['amount'])->toBe(25.0);
-
-    Http::assertSentCount(2);
-
-    Http::assertSent(function ($request): bool {
-        return $request->url() === 'https://developers.flouci.com/api/v2/refund_payment'
-            && $request['payment_id'] === 'FLOUCI123'
-            && ! array_key_exists('amount', $request->data());
-    });
 });

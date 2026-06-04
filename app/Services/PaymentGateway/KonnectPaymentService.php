@@ -105,50 +105,6 @@ class KonnectPaymentService
         return $result;
     }
 
-    public function refund(string $transactionId, ?float $amount = null): array
-    {
-        if (! $this->validate()) {
-            return $this->fail('Konnect API credentials not configured');
-        }
-
-        $requestPayload = [
-            'amount' => $amount ? intval($amount * 1000) : null,
-        ];
-
-        try {
-            $response = $this->http()->post($this->baseUrl().'/payments/'.$transactionId.'/refund', $requestPayload);
-        } catch (Throwable $exception) {
-            $this->audit('refund_failed', array_merge(['transaction_id' => $transactionId], $requestPayload), ['error' => $exception->getMessage()], []);
-
-            return $this->fail($exception->getMessage());
-        }
-
-        $responsePayload = $response->json();
-
-        if (! $response->successful()) {
-            $this->audit('refund_failed', array_merge(['transaction_id' => $transactionId], $requestPayload), $responsePayload, []);
-
-            return $this->fail($this->responseMessage($responsePayload, 'Refund failed'));
-        }
-
-        $result = [
-            'success' => true,
-            'refund_id' => $response->json('refundRef'),
-            'raw' => $responsePayload,
-        ];
-
-        $this->audit(
-            'refunded',
-            array_merge(['transaction_id' => $transactionId], $requestPayload),
-            $responsePayload,
-            ['external_gateway_reference' => $transactionId],
-            $result['refund_id'] ?? ('refund_'.Str::uuid()),
-            $result['refund_id'] ?? null,
-        );
-
-        return $result;
-    }
-
     private function http(): PendingRequest
     {
         return Http::acceptJson()
@@ -184,8 +140,7 @@ class KonnectPaymentService
         array $requestPayload,
         mixed $responsePayload,
         array $context,
-        ?string $transactionId = null,
-        ?string $refundReference = null
+        ?string $transactionId = null
     ): void {
         try {
             $this->paymentAuditService->logStandalone([
@@ -199,11 +154,6 @@ class KonnectPaymentService
                 'external_gateway_reference' => $context['external_gateway_reference'] ?? $transactionId,
                 'reservation_details' => $context['reservation_details'] ?? null,
                 'user_information' => $context['user_information'] ?? $context['user'] ?? null,
-                'refund_status' => str_starts_with($status, 'refund') ? ($status === 'refunded' ? 'completed' : 'failed') : 'not_requested',
-                'refund_amount' => $context['refund_amount'] ?? null,
-                'refund_reference' => $refundReference,
-                'refunded_at' => $status === 'refunded' ? now() : null,
-                'refund_details' => $context['refund_details'] ?? null,
                 'ip_address' => $context['ip_address'] ?? null,
                 'user_agent' => $context['user_agent'] ?? null,
                 'request_payload' => $requestPayload,

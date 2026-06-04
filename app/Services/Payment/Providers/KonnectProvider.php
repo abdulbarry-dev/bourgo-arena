@@ -55,17 +55,6 @@ class KonnectProvider implements PaymentProviderInterface
         return $this->verifyPayment($transactionId);
     }
 
-    public function refund(string $transactionId, ?float $amount = null): array
-    {
-        $result = $this->service->refund($transactionId, $amount);
-
-        if (($result['success'] ?? false) === false && ($result['error'] ?? null) === 'Konnect API credentials not configured') {
-            throw new \RuntimeException('Konnect API credentials not configured');
-        }
-
-        return $result;
-    }
-
     public function validateWebhookSignature(Request $request): bool
     {
         $secret = config('payment.providers.konnect.webhook_secret');
@@ -94,7 +83,7 @@ class KonnectProvider implements PaymentProviderInterface
         $paymentReference = $data['token'] ?? $data['payment_reference'] ?? null;
 
         return new WebhookResultDTO(
-            success: in_array($status, ['paid', 'completed', 'success', 'refunded', 'refund'], true),
+            success: in_array($status, ['paid', 'completed', 'success'], true),
             status: $status ?: 'unknown',
             transactionId: $transactionId,
             orderId: $orderId,

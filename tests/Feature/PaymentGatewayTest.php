@@ -92,26 +92,6 @@ class PaymentGatewayTest extends TestCase
         $this->assertEquals(50.0, $result['amount']);
     }
 
-    public function test_konnect_gateway_refund_success(): void
-    {
-        Http::fake([
-            'https://api.sandbox.konnect.network/api/v2/payments/TXNREF123/refund' => Http::response([
-                'refundRef' => 'REFUND123',
-            ]),
-        ]);
-
-        config([
-            'payment.providers.konnect.api_key' => 'test-key',
-            'payment.providers.konnect.api_secret' => 'test-secret',
-            'payment.providers.konnect.sandbox' => true,
-        ]);
-
-        $result = (new KonnectProvider)->refund('TXNREF123', 25.0);
-
-        $this->assertTrue($result['success']);
-        $this->assertSame('REFUND123', $result['refund_id']);
-    }
-
     public function test_payment_initiation_fails_without_credentials(): void
     {
         config([

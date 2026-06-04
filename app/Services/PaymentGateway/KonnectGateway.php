@@ -32,17 +32,6 @@ class KonnectGateway
         return $result;
     }
 
-    public function refund(string $transactionId, ?float $amount = null): array
-    {
-        $result = $this->service->refund($transactionId, $amount);
-
-        if (($result['success'] ?? false) === false && ($result['error'] ?? null) === 'Konnect API credentials not configured') {
-            throw new \RuntimeException('Konnect API credentials not configured');
-        }
-
-        return $result;
-    }
-
     public function isSandbox(): bool
     {
         return true;

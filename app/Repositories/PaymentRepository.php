@@ -42,12 +42,12 @@ class PaymentRepository
     {
         // Prevent mutating completed payments for audit integrity
         if ($payment->status === 'paid') {
-            throw new ValidationException(ValidationException::withMessages(['payment' => ['Cannot modify a completed payment.']]));
+            throw ValidationException::withMessages(['payment' => ['Cannot modify a completed payment.']]);
         }
 
         // Prevent changing gateway driver after initiation
         if (isset($data['driver']) && $payment->status !== 'pending') {
-            throw new ValidationException(ValidationException::withMessages(['driver' => ['Payment gateway cannot be changed after initiation.']]));
+            throw ValidationException::withMessages(['driver' => ['Payment gateway cannot be changed after initiation.']]);
         }
 
         return $payment->update($data);

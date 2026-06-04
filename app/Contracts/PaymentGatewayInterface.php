@@ -22,9 +22,4 @@ interface PaymentGatewayInterface
      * Verify the payment status with the gateway.
      */
     public function verifyPayment(string $transactionId): array;
-
-    /**
-     * Process a refund via the gateway.
-     */
-    public function refund(string $transactionId, ?float $amount = null): array;
 }

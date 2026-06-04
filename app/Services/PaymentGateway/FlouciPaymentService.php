@@ -106,59 +106,6 @@ class FlouciPaymentService
         });
     }
 
-    public function refund(string $transactionId, ?float $amount = null): array
-    {
-        if (! $this->validate()) {
-            return $this->fail('Flouci API credentials not configured');
-        }
-
-        $requestPayload = [
-            'payment_id' => $transactionId,
-        ];
-
-        try {
-            $response = $this->http()->post($this->baseUrl().'/refund_payment', $requestPayload);
-        } catch (Throwable $exception) {
-            $this->audit('refund_failed', $requestPayload, ['error' => $exception->getMessage()], ['refund_amount' => $amount, 'external_gateway_reference' => $transactionId]);
-
-            return $this->fail($exception->getMessage());
-        }
-
-        $responsePayload = $response->json();
-        $resultPayload = $this->resultPayload($responsePayload);
-
-        if (! $this->isSuccessful($response, $responsePayload, $resultPayload)) {
-            $this->audit('refund_failed', $requestPayload, $responsePayload, ['refund_amount' => $amount, 'external_gateway_reference' => $transactionId]);
-
-            return $this->fail($this->responseMessage($responsePayload, $resultPayload, 'Refund failed'));
-        }
-
-        $refundId = (string) ($resultPayload['refund_id'] ?? $responsePayload['refund_id'] ?? Str::uuid());
-        $refundedAmount = $amount ?? (isset($resultPayload['amount']) ? ((float) $resultPayload['amount']) / 1000 : (isset($responsePayload['amount']) ? ((float) $responsePayload['amount']) / 1000 : null));
-
-        $result = [
-            'success' => true,
-            'refund_id' => $refundId,
-            'amount' => $refundedAmount,
-            'status' => 'refunded',
-            'raw' => $responsePayload,
-        ];
-
-        $this->audit(
-            'refunded',
-            $requestPayload,
-            $responsePayload,
-            [
-                'external_gateway_reference' => $transactionId,
-                'refund_amount' => $refundedAmount,
-            ],
-            $transactionId,
-            $refundId,
-        );
-
-        return $result;
-    }
-
     public function validateWebhookSignature(Request $request): bool
     {
         $providedSignature = (string) ($request->header('X-Flouci-Signature') ?? $request->input('signature') ?? '');
@@ -244,8 +191,7 @@ class FlouciPaymentService
         array $requestPayload,
         mixed $responsePayload,
         array $context,
-        ?string $transactionId = null,
-        ?string $refundReference = null
+        ?string $transactionId = null
     ): void {
         try {
             $this->paymentAuditService->logStandalone([
@@ -259,11 +205,6 @@ class FlouciPaymentService
                 'external_gateway_reference' => $context['external_gateway_reference'] ?? $transactionId,
                 'reservation_details' => $context['reservation_details'] ?? null,
                 'user_information' => $context['user_information'] ?? $context['user'] ?? null,
-                'refund_status' => str_starts_with($status, 'refund') ? ($status === 'refunded' ? 'completed' : 'failed') : 'not_requested',
-                'refund_amount' => $context['refund_amount'] ?? null,
-                'refund_reference' => $refundReference,
-                'refunded_at' => $status === 'refunded' ? now() : null,
-                'refund_details' => $context['refund_details'] ?? null,
                 'ip_address' => $context['ip_address'] ?? null,
                 'user_agent' => $context['user_agent'] ?? null,
                 'request_payload' => $requestPayload,

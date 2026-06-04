@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\DTOs\Payment\WebhookResultDTO;
 use App\DTOs\PaymentInitiateDTO;
-use App\Jobs\ReconcilePaymentJob;
 use App\Models\Payment;
 use App\Repositories\PaymentRepository;
 use App\Services\Payment\PaymentManager;
@@ -61,7 +60,6 @@ class PaymentService
             'response_payload' => $result,
             'external_gateway_reference' => $result['gateway_transaction_id'] ?? $payment->gateway_transaction_id,
             'payment_gateway' => $payment->driver,
-            'refund_status' => 'not_requested',
         ]);
 
         return $result;
@@ -85,6 +83,10 @@ class PaymentService
                 'gateway_transaction_id' => $result['transaction_id'] ?? $payment->gateway_transaction_id,
             ]);
 
+            if ($payment->reservation_id) {
+                $payment->reservation->update(['payment_status' => 'paid']);
+            }
+
             $this->auditPayment($payment, [
                 'transaction_id' => $result['transaction_id'] ?? $transactionId,
                 'transaction_status' => 'paid',
@@ -92,7 +94,6 @@ class PaymentService
                 'response_payload' => $result,
                 'external_gateway_reference' => $result['transaction_id'] ?? $payment->gateway_transaction_id,
                 'payment_gateway' => $payment->driver,
-                'refund_status' => 'not_requested',
             ]);
 
             return ['success' => true, 'status' => 'paid', 'data' => $result];
@@ -107,7 +108,6 @@ class PaymentService
             'response_payload' => $result,
             'external_gateway_reference' => $result['transaction_id'] ?? $payment->gateway_transaction_id,
             'payment_gateway' => $payment->driver,
-            'refund_status' => 'not_requested',
         ]);
 
         return ['success' => false, 'status' => $status ?? 'unknown', 'data' => $result];
@@ -152,18 +152,21 @@ class PaymentService
                 'request_payload' => $dto->rawPayload,
                 'response_payload' => ['message' => 'already_processed'],
                 'external_gateway_reference' => $dto->transactionId,
-                'refund_status' => 'not_requested',
             ]);
 
             return ['success' => true, 'message' => 'already_processed'];
         }
 
         if ($dto->isPaid()) {
-            $dispatchSync = config('payment.webhooks.dispatch_sync', false);
-            if ($dispatchSync) {
-                ReconcilePaymentJob::dispatchSync($payment->id, $dto->rawPayload);
-            } else {
-                ReconcilePaymentJob::dispatch($payment->id, $dto->rawPayload);
+            $this->paymentRepository->updatePayment($payment, [
+                'status' => 'paid',
+                'metadata' => $dto->rawPayload,
+                'verified_at' => now(),
+                'gateway_transaction_id' => $dto->transactionId ?? $payment->gateway_transaction_id,
+            ]);
+
+            if ($payment->reservation_id) {
+                $payment->reservation->update(['payment_status' => 'paid']);
             }
 
             $this->auditPayment($payment, [
@@ -171,36 +174,11 @@ class PaymentService
                 'transaction_status' => 'paid',
                 'payment_gateway' => $payment->driver,
                 'request_payload' => $dto->rawPayload,
-                'response_payload' => ['queued_reconciliation' => true],
+                'response_payload' => ['status' => 'paid'],
                 'external_gateway_reference' => $dto->transactionId,
-                'refund_status' => 'not_requested',
             ]);
 
             return ['success' => true];
-        }
-
-        if ($dto->isRefund()) {
-            $dispatchSync = config('payment.webhooks.dispatch_sync', false);
-            if ($dispatchSync) {
-                ReconcilePaymentJob::dispatchSync($payment->id, $dto->rawPayload);
-            } else {
-                ReconcilePaymentJob::dispatch($payment->id, $dto->rawPayload);
-            }
-
-            $this->auditPayment($payment, [
-                'transaction_id' => $dto->transactionId ?? $payment->gateway_transaction_id ?? $payment->payment_reference,
-                'transaction_status' => 'refunded',
-                'payment_gateway' => $payment->driver,
-                'request_payload' => $dto->rawPayload,
-                'response_payload' => ['queued_reconciliation' => true, 'status' => 'refunded'],
-                'external_gateway_reference' => $dto->transactionId,
-                'refund_status' => 'pending',
-                'refund_details' => [
-                    'raw_payload' => $dto->rawPayload,
-                ],
-            ]);
-
-            return ['success' => true, 'status' => 'refunded'];
         }
 
         $this->paymentRepository->updatePayment($payment, ['status' => 'failed', 'metadata' => $dto->rawPayload]);
@@ -212,7 +190,6 @@ class PaymentService
             'request_payload' => $dto->rawPayload,
             'response_payload' => ['status' => $dto->status],
             'external_gateway_reference' => $dto->transactionId,
-            'refund_status' => 'not_requested',
         ]);
 
         return ['success' => false, 'status' => $dto->status];
@@ -231,7 +208,6 @@ class PaymentService
             'response_payload' => is_array($metadata) ? $metadata : ['metadata' => $metadata],
             'external_gateway_reference' => $payment->gateway_transaction_id,
             'payment_gateway' => $payment->driver,
-            'refund_status' => 'not_requested',
         ]);
     }
 

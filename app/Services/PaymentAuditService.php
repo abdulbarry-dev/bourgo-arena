@@ -45,39 +45,31 @@ class PaymentAuditService
             ])
             : null);
 
-        $refundDetails = $context['refund_details'] ?? array_filter([
-            'status' => $context['refund_status'] ?? null,
-            'amount' => $context['refund_amount'] ?? null,
-            'reference' => $context['refund_reference'] ?? null,
-            'refunded_at' => $context['refunded_at'] ?? null,
-        ], static fn (mixed $value): bool => $value !== null && $value !== '');
+        $transactionId = (string) ($context['transaction_id']
+            ?? $payment->gateway_transaction_id
+            ?? $payment->payment_reference
+            ?? Str::uuid());
 
-        return PaymentTransaction::create([
-            'transaction_id' => (string) ($context['transaction_id']
-                ?? $payment->gateway_transaction_id
-                ?? $payment->payment_reference
-                ?? Str::uuid()),
-            'user_id' => $this->resolveUserId($context['user_id'] ?? $resolvedUser?->id),
-            'reservation_id' => $context['reservation_id'] ?? $payment->reservation_id,
-            'amount' => (float) ($context['amount'] ?? $payment->amount),
-            'currency' => strtoupper((string) ($context['currency'] ?? $payment->currency ?? 'TND')),
-            'payment_gateway' => (string) ($context['payment_gateway'] ?? $payment->driver ?? 'manual_admin'),
-            'transaction_status' => (string) ($context['transaction_status'] ?? $payment->status ?? 'pending'),
-            'external_gateway_reference' => $context['external_gateway_reference']
-                ?? $payment->gateway_transaction_id
-                ?? null,
-            'reservation_details' => $reservationDetails,
-            'user_information' => empty($userInformation) ? null : $userInformation,
-            'refund_status' => (string) ($context['refund_status'] ?? 'not_requested'),
-            'refund_amount' => $context['refund_amount'] ?? null,
-            'refund_reference' => $context['refund_reference'] ?? null,
-            'refunded_at' => $context['refunded_at'] ?? null,
-            'refund_details' => empty($refundDetails) ? null : $refundDetails,
-            'ip_address' => $context['ip_address'] ?? $request?->ip(),
-            'user_agent' => $context['user_agent'] ?? $request?->userAgent(),
-            'request_payload' => $this->normalizePayload($context['request_payload'] ?? null),
-            'response_payload' => $this->normalizePayload($context['response_payload'] ?? null),
-        ]);
+        return PaymentTransaction::updateOrCreate(
+            ['transaction_id' => $transactionId],
+            [
+                'user_id' => $this->resolveUserId($context['user_id'] ?? $resolvedUser?->id),
+                'reservation_id' => $context['reservation_id'] ?? $payment->reservation_id,
+                'amount' => (float) ($context['amount'] ?? $payment->amount),
+                'currency' => strtoupper((string) ($context['currency'] ?? $payment->currency ?? 'TND')),
+                'payment_gateway' => (string) ($context['payment_gateway'] ?? $payment->driver ?? 'manual_admin'),
+                'transaction_status' => (string) ($context['transaction_status'] ?? $payment->status ?? 'pending'),
+                'external_gateway_reference' => $context['external_gateway_reference']
+                    ?? $payment->gateway_transaction_id
+                    ?? null,
+                'reservation_details' => $reservationDetails,
+                'user_information' => empty($userInformation) ? null : $userInformation,
+                'ip_address' => $context['ip_address'] ?? $request?->ip(),
+                'user_agent' => $context['user_agent'] ?? $request?->userAgent(),
+                'request_payload' => $this->normalizePayload($context['request_payload'] ?? null),
+                'response_payload' => $this->normalizePayload($context['response_payload'] ?? null),
+            ]
+        );
     }
 
     /**
@@ -87,27 +79,26 @@ class PaymentAuditService
     {
         $request ??= request();
 
-        return PaymentTransaction::create([
-            'transaction_id' => (string) ($context['transaction_id'] ?? Str::uuid()),
-            'user_id' => $this->resolveUserId($context['user_id'] ?? $request?->user()?->id),
-            'reservation_id' => $context['reservation_id'] ?? null,
-            'amount' => (float) ($context['amount'] ?? 0),
-            'currency' => strtoupper((string) ($context['currency'] ?? 'TND')),
-            'payment_gateway' => (string) ($context['payment_gateway'] ?? 'manual_admin'),
-            'transaction_status' => (string) ($context['transaction_status'] ?? 'unknown'),
-            'external_gateway_reference' => $context['external_gateway_reference'] ?? null,
-            'reservation_details' => $this->normalizePayload($context['reservation_details'] ?? null),
-            'user_information' => $this->normalizePayload($context['user_information'] ?? null),
-            'refund_status' => (string) ($context['refund_status'] ?? 'not_requested'),
-            'refund_amount' => $context['refund_amount'] ?? null,
-            'refund_reference' => $context['refund_reference'] ?? null,
-            'refunded_at' => $context['refunded_at'] ?? null,
-            'refund_details' => $this->normalizePayload($context['refund_details'] ?? null),
-            'ip_address' => $context['ip_address'] ?? $request?->ip(),
-            'user_agent' => $context['user_agent'] ?? $request?->userAgent(),
-            'request_payload' => $this->normalizePayload($context['request_payload'] ?? null),
-            'response_payload' => $this->normalizePayload($context['response_payload'] ?? null),
-        ]);
+        $transactionId = (string) ($context['transaction_id'] ?? Str::uuid());
+
+        return PaymentTransaction::updateOrCreate(
+            ['transaction_id' => $transactionId],
+            [
+                'user_id' => $this->resolveUserId($context['user_id'] ?? $request?->user()?->id),
+                'reservation_id' => $context['reservation_id'] ?? null,
+                'amount' => (float) ($context['amount'] ?? 0),
+                'currency' => strtoupper((string) ($context['currency'] ?? 'TND')),
+                'payment_gateway' => (string) ($context['payment_gateway'] ?? 'manual_admin'),
+                'transaction_status' => (string) ($context['transaction_status'] ?? 'unknown'),
+                'external_gateway_reference' => $context['external_gateway_reference'] ?? null,
+                'reservation_details' => $this->normalizePayload($context['reservation_details'] ?? null),
+                'user_information' => $this->normalizePayload($context['user_information'] ?? null),
+                'ip_address' => $context['ip_address'] ?? $request?->ip(),
+                'user_agent' => $context['user_agent'] ?? $request?->userAgent(),
+                'request_payload' => $this->normalizePayload($context['request_payload'] ?? null),
+                'response_payload' => $this->normalizePayload($context['response_payload'] ?? null),
+            ]
+        );
     }
 
     private function normalizePayload(mixed $payload): ?array
