@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\V1\UserPaymentController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
+    // --- Public / Guest Accessible Endpoints ---
     Route::get('search', [SearchController::class, 'index'])->name('api.v1.search.index');
 
     Route::get('services', [ServiceController::class, 'index'])->name('api.v1.services.index');
@@ -38,6 +39,13 @@ Route::prefix('v1')->group(function () {
     Route::get('courses/{course}', [CourseController::class, 'show'])->name('api.v1.courses.show');
     Route::get('courses/{course}/sessions', [CourseController::class, 'sessions'])->name('api.v1.courses.sessions');
 
+    Route::get('events', [EventController::class, 'index'])->name('api.v1.events.index');
+    Route::get('events/{event}', [EventController::class, 'show'])->name('api.v1.events.show');
+    Route::get('events/{event}/bracket', [EventController::class, 'bracket'])->name('api.v1.events.bracket');
+
+    Route::get('tiers', [TierController::class, 'index'])->name('api.v1.tiers.index');
+
+    // --- Authentication Endpoints ---
     Route::prefix('auth')->group(function () {
         Route::post('login', [AuthController::class, 'login'])->middleware('throttle:api.auth')->name('api.v1.auth.login');
         Route::post('register', [AuthController::class, 'register'])->middleware('throttle:api.auth')->name('api.v1.auth.register');
@@ -55,17 +63,20 @@ Route::prefix('v1')->group(function () {
         });
     });
 
+    // --- User Verification Endpoints ---
     Route::middleware('auth:sanctum')->prefix('user')->group(function () {
         Route::get('verification-status', [AuthController::class, 'verificationStatus'])->name('api.v1.user.verification-status');
         Route::post('verify-email', [AuthController::class, 'verifyEmail'])->name('api.v1.auth.verify-email');
         Route::post('verify-phone', [AuthController::class, 'verifyPhone'])->name('api.v1.auth.verify-phone');
     });
 
+    // --- Notification Endpoints ---
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('notifications', [NotificationController::class, 'index'])->name('api.v1.notifications.index');
         Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('api.v1.notifications.mark-all-read');
     });
 
+    // --- Protected Member Endpoints ---
     Route::middleware(['auth:sanctum', 'verified.account', 'onboarding.completed'])->group(function () {
         Route::get('member/profile', [MemberController::class, 'profile'])->name('api.v1.member.profile');
         Route::put('member/profile', [MemberController::class, 'updateProfile'])->name('api.v1.member.update-profile');
@@ -108,6 +119,11 @@ Route::prefix('v1')->group(function () {
         Route::get('member/subscription', [SubscriptionController::class, 'active'])->name('api.v1.member.subscription');
         Route::post('subscriptions', [SubscriptionController::class, 'store'])->name('api.v1.subscriptions.store');
         Route::post('subscriptions/{subscription}/cancel', [SubscriptionController::class, 'cancel'])->name('api.v1.subscriptions.cancel');
+
+        Route::get('user/events', [EventParticipantController::class, 'myEvents'])->name('api.v1.user.events');
+        Route::post('events/{event}/register', [EventParticipantController::class, 'register'])->name('api.v1.events.register');
+        Route::post('events/{event}/withdraw', [EventParticipantController::class, 'withdraw'])->name('api.v1.events.withdraw');
+        Route::post('events/{event}/check-in', [EventParticipantController::class, 'checkIn'])->name('api.v1.events.check-in');
     });
 
     Route::prefix('payments')->group(function () {
@@ -115,15 +131,4 @@ Route::prefix('v1')->group(function () {
         Route::post('verify', [PaymentController::class, 'verify'])->name('api.v1.payments.verify');
         Route::post('webhook/{provider}', [PaymentController::class, 'webhook'])->name('api.v1.payments.webhook');
     });
-});
-
-Route::get('/events', [EventController::class, 'index']);
-Route::get('/events/{event}', [EventController::class, 'show']);
-Route::get('/events/{event}/bracket', [EventController::class, 'bracket']);
-
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/user/events', [EventParticipantController::class, 'myEvents']);
-    Route::post('/events/{event}/register', [EventParticipantController::class, 'register']);
-    Route::post('/events/{event}/withdraw', [EventParticipantController::class, 'withdraw']);
-    Route::post('/events/{event}/check-in', [EventParticipantController::class, 'checkIn']);
 });
