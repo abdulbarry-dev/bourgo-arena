@@ -34,11 +34,11 @@
         </x-slot>
     </x-ui.filter-row>
 
-    <x-ui.dashboard.table-shell loading-targets="search,statusFilter" :has-rows="$this->services->count() > 0">
+    <x-ui.dashboard.table-shell borderless loading-targets="search,statusFilter" :has-rows="$this->services->count() > 0">
         <x-slot name="loading">
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                 @for ($i = 0; $i < 6; $i++)
-                    <div class="rounded-2xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800">
+                    <div class="rounded-2xl bg-white dark:bg-zinc-800">
                         <flux:skeleton class="h-32 w-full rounded-t-2xl" />
                         <div class="p-4">
                             <flux:skeleton class="h-4 w-3/4 mb-2" />
@@ -64,9 +64,9 @@
             />
         </x-slot>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             @foreach ($this->services as $service)
-                <div wire:key="service-card-{{ $service->id }}" class="group relative flex flex-col rounded-2xl border border-zinc-200 bg-white shadow-sm transition-all hover:shadow-md dark:border-zinc-700 dark:bg-zinc-900/40">
+                <div wire:key="service-card-{{ $service->id }}" class="group relative flex flex-col rounded-2xl bg-white shadow-sm transition-all hover:shadow-md dark:bg-zinc-900/40">
                     {{-- Header Image --}}
                     <div class="relative h-32 w-full overflow-hidden rounded-t-2xl">
                         @if ($service->image_url)

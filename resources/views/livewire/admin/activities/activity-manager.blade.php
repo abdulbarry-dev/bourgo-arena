@@ -60,11 +60,11 @@
         </x-slot>
     </x-ui.filter-row>
 
-    <x-ui.dashboard.table-shell loading-targets="search,serviceFilter,statusFilter" :has-rows="$this->activities->count() > 0">
+    <x-ui.dashboard.table-shell borderless loading-targets="search,serviceFilter,statusFilter" :has-rows="$this->activities->count() > 0">
         <x-slot name="loading">
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                 @for ($i = 0; $i < 6; $i++)
-                    <div class="rounded-2xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800">
+                    <div class="rounded-2xl bg-white dark:bg-zinc-800">
                         <flux:skeleton class="h-32 w-full rounded-t-2xl" />
                         <div class="p-4">
                             <flux:skeleton class="h-4 w-3/4 mb-2" />
@@ -92,7 +92,7 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             @foreach ($this->activities as $activity)
-                <div wire:key="activity-card-{{ $activity->id }}" class="group relative flex flex-col rounded-2xl border border-zinc-200 bg-white shadow-sm transition-all hover:shadow-md dark:border-zinc-700 dark:bg-zinc-900/40">
+                <div wire:key="activity-card-{{ $activity->id }}" class="group relative flex flex-col rounded-2xl bg-white shadow-sm transition-all hover:shadow-md dark:bg-zinc-900/40">
                     {{-- Header Image --}}
                     <div class="relative h-32 w-full overflow-hidden rounded-t-2xl">
                         @php $firstImage = !empty($activity->images) ? $activity->images[0] : null; @endphp
@@ -144,12 +144,12 @@
                         </div>
 
                         {{-- Stats --}}
-                        <div class="mb-4 grid grid-cols-2 gap-2 border-y border-zinc-100 py-3 dark:border-zinc-800">
+                        <div class="mb-4 grid grid-cols-2 gap-2 py-3">
                             <div class="text-center">
                                 <div class="text-[10px] font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{{ __('Base Price') }}</div>
                                 <div class="mt-1 text-sm font-bold text-zinc-900 dark:text-zinc-100">{{ number_format((float) $activity->base_price, 2) }} <span class="text-[10px] font-medium">{{ $activity->currency }}</span></div>
                             </div>
-                            <div class="text-center border-l border-zinc-100 dark:border-zinc-800">
+                            <div class="text-center">
                                 <div class="text-[10px] font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{{ __('Slots') }}</div>
                                 <div class="mt-1 text-sm font-bold text-zinc-900 dark:text-zinc-100">{{ $activity->slots_count }}</div>
                             </div>

@@ -1,8 +1,8 @@
-<x-ui.dashboard.table-shell loading-targets="search,statusFilter" :has-rows="$this->plans->count() > 0">
+<x-ui.dashboard.table-shell borderless loading-targets="search,statusFilter" :has-rows="$this->plans->count() > 0">
     <x-slot name="loading">
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             @for ($i = 0; $i < 6; $i++)
-                <div class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800">
+                <div class="rounded-2xl bg-white p-4 dark:bg-zinc-800">
                     <div class="flex items-center gap-3">
                         <flux:skeleton class="size-10 rounded-full" />
                         <div class="space-y-2">
@@ -37,7 +37,7 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         @foreach ($this->plans as $plan)
-            <div wire:key="plan-card-{{ $plan->id }}" class="group relative flex flex-col rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm transition-all hover:shadow-md dark:border-zinc-700 dark:bg-zinc-900/40">
+            <div wire:key="plan-card-{{ $plan->id }}" class="group relative flex flex-col rounded-2xl bg-white p-4 shadow-sm transition-all hover:shadow-md dark:bg-zinc-900/40">
                 {{-- Header --}}
                 <div class="flex items-start justify-between">
                     <div class="flex items-center gap-3">
@@ -97,12 +97,12 @@
                 </div>
 
                 {{-- Stats --}}
-                <div class="mt-5 grid grid-cols-3 gap-2 border-y border-zinc-100 py-3 dark:border-zinc-800">
+                <div class="mt-5 grid grid-cols-3 gap-2 py-3">
                     <div class="text-center">
                         <div class="text-[10px] font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{{ __('Price') }}</div>
                         <div class="mt-1 text-sm font-bold text-zinc-900 dark:text-zinc-100">{{ number_format((float) $plan->price, 0) }} <span class="text-[10px] font-medium">TND</span></div>
                     </div>
-                    <div class="text-center border-x border-zinc-100 dark:border-zinc-800">
+                    <div class="text-center">
                         <div class="text-[10px] font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{{ __('Duration') }}</div>
                         <div class="mt-1 text-sm font-bold text-zinc-900 dark:text-zinc-100">{{ $plan->duration_days }} <span class="text-[10px] font-medium">days</span></div>
                     </div>

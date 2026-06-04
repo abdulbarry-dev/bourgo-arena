@@ -1,9 +1,9 @@
 <div class="mt-6">
-    <x-ui.dashboard.table-shell loading-targets="search,statusFilter,categoryFilter,hasSessionsFilter" :has-rows="$courses->count() > 0">
+    <x-ui.dashboard.table-shell borderless loading-targets="search,statusFilter,categoryFilter,hasSessionsFilter" :has-rows="$courses->count() > 0">
         <x-slot name="loading">
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                 @for ($i = 0; $i < 6; $i++)
-                    <div class="rounded-2xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800">
+                    <div class="rounded-2xl bg-white dark:bg-zinc-800">
                         <flux:skeleton class="h-32 w-full rounded-t-2xl" />
                         <div class="p-4">
                             <flux:skeleton class="h-4 w-3/4 mb-2" />
@@ -31,7 +31,7 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             @foreach($courses as $course)
-                <div wire:key="course-card-{{ $course->id }}" class="group relative flex flex-col rounded-2xl border border-zinc-200 bg-white shadow-sm transition-all hover:shadow-md dark:border-zinc-700 dark:bg-zinc-900/40">
+                <div wire:key="course-card-{{ $course->id }}" class="group relative flex flex-col rounded-2xl bg-white shadow-sm transition-all hover:shadow-md dark:bg-zinc-900/40">
                     {{-- Header Image --}}
                     <div class="relative h-32 w-full overflow-hidden rounded-t-2xl">
                         @if ($course->image_url)

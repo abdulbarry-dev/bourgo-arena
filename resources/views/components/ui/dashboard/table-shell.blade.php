@@ -1,6 +1,7 @@
 @props([
     'loadingTargets' => null,
     'hasRows' => true,
+    'borderless' => false,
 ])
 
 @php
@@ -15,9 +16,12 @@
         </div>
     @endisset
 
-    <div wire:loading.remove @if ($targets !== '') wire:target="{{ $targets }}" @endif class="overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700">
+    <div wire:loading.remove @if ($targets !== '') wire:target="{{ $targets }}" @endif @class([
+        'overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700' => ! $borderless,
+        'p-0.5' => $borderless, {{-- Slight padding to prevent shadow clipping --}}
+    ])>
         @if ($hasRows)
-            <div class="overflow-x-auto">
+            <div @class(['overflow-x-auto' => ! $borderless])>
                 {{ $tableContent }}
             </div>
         @else
@@ -33,7 +37,7 @@
         @endif
 
         @isset($pagination)
-            <div class="border-t border-zinc-200 px-4 py-3 dark:border-zinc-700">
+            <div @class(['px-4 py-3', 'border-t border-zinc-200 dark:border-zinc-700' => ! $borderless])>
                 {{ $pagination }}
             </div>
         @endisset
