@@ -2,7 +2,10 @@
 
 namespace App\Services;
 
+use App\DTOs\Tier\TierData;
+use App\DTOs\Tier\TierResolution;
 use App\Models\Member;
+use Illuminate\Support\Collection;
 
 class TierResolutionService
 {
@@ -13,54 +16,115 @@ class TierResolutionService
 
     /**
      * Resolve the tier for a given member.
-     *
-     * @return array{label: string, multiplier: float}
      */
-    public function resolveTier(Member $member): array
+    public function resolveTier(Member $member): TierResolution
     {
-        if ($member->parent_id !== null) {
-            $parent = $member->parent()->first();
+        $resolvedMember = $this->resolveEffectiveMember($member);
 
-            if ($parent !== null) {
-                $member = $parent;
-            }
+        if ($resolvedMember->is_family_account) {
+            return $this->resolveFamilyTier($resolvedMember);
         }
 
-        if ($member->is_family_account) {
-            return $this->resolveFamilyTier($member);
-        }
-
-        return $this->resolveIndividualTier($member);
+        return $this->resolveIndividualTier($resolvedMember);
     }
 
     /**
-     * Resolve tier for individual accounts based on active subscription count.
+     * Get all available membership tiers grouped by type.
+     *
+     * @return array{tiers: Collection<int, TierData>, family_tiers: Collection<int, TierData>}
      */
-    protected function resolveIndividualTier(Member $member): array
+    public function getAllTiers(): array
+    {
+        return [
+            'tiers' => $this->getIndividualTiers(),
+            'family_tiers' => $this->getFamilyTiers(),
+        ];
+    }
+
+    /**
+     * Resolve effective member (parent if child).
+     */
+    protected function resolveEffectiveMember(Member $member): Member
+    {
+        if ($member->parent_id !== null) {
+            return $member->parent()->first() ?? $member;
+        }
+
+        return $member;
+    }
+
+    /**
+     * Resolve tier for individual accounts.
+     */
+    protected function resolveIndividualTier(Member $member): TierResolution
     {
         $count = $this->subscriptionRepository->getValidSubscriptionCount($member);
 
-        return match (true) {
-            $count >= 4 => ['label' => 'Max', 'multiplier' => 2.0],
-            $count === 3 => ['label' => 'Ultra', 'multiplier' => 1.5],
-            $count === 2 => ['label' => 'Plus', 'multiplier' => 1.2],
-            default => ['label' => 'Standard', 'multiplier' => 1.0],
-        };
+        return $this->calculateTierDetails($count, $this->getIndividualTiers());
     }
 
     /**
-     * Resolve tier for family accounts based on family member count.
+     * Resolve tier for family accounts.
      */
-    protected function resolveFamilyTier(Member $member): array
+    protected function resolveFamilyTier(Member $member): TierResolution
     {
         $memberIds = $this->familyRepository->getFamilyMemberIds($member)->all();
         $count = $this->subscriptionRepository->getValidSubscriptionCountForMemberIds($memberIds);
 
-        return match (true) {
-            $count >= 4 => ['label' => 'Family Max', 'multiplier' => 2.0],
-            $count === 3 => ['label' => 'Family Ultra', 'multiplier' => 1.5],
-            $count === 2 => ['label' => 'Family Plus', 'multiplier' => 1.2],
-            default => ['label' => 'Family', 'multiplier' => 1.0],
-        };
+        return $this->calculateTierDetails($count, $this->getFamilyTiers());
+    }
+
+    /**
+     * Calculate current tier, next tier, and progress using DTOs.
+     *
+     * @param  Collection<int, TierData>  $tiers
+     */
+    protected function calculateTierDetails(int $count, Collection $tiers): TierResolution
+    {
+        $currentTier = $tiers->first();
+        $nextTier = null;
+
+        foreach ($tiers as $index => $tier) {
+            if ($count >= $tier->requiredSubscriptions) {
+                $currentTier = $tier;
+                $nextTier = $tiers->get($index + 1);
+            } else {
+                break;
+            }
+        }
+
+        $progressPercentage = 100;
+        if ($nextTier) {
+            $prevRequired = $currentTier->requiredSubscriptions;
+            $nextRequired = $nextTier->requiredSubscriptions;
+            $progressPercentage = (int) (($count - $prevRequired) / ($nextRequired - $prevRequired) * 100);
+        }
+
+        return new TierResolution(
+            currentTier: $currentTier,
+            currentSubscriptionCount: $count,
+            nextTier: $nextTier,
+            progressPercentage: min(100, max(0, $progressPercentage))
+        );
+    }
+
+    /**
+     * Get individual tiers from configuration.
+     *
+     * @return Collection<int, TierData>
+     */
+    protected function getIndividualTiers(): Collection
+    {
+        return collect(config('tiers.individual'))->map(fn (array $tier) => TierData::fromArray($tier));
+    }
+
+    /**
+     * Get family tiers from configuration.
+     *
+     * @return Collection<int, TierData>
+     */
+    protected function getFamilyTiers(): Collection
+    {
+        return collect(config('tiers.family'))->map(fn (array $tier) => TierData::fromArray($tier));
     }
 }

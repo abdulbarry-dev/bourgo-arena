@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\EnsureAccountIsVerified;
+use App\Http\Middleware\EnsureOnboardingIsCompleted;
 use App\Models\Member;
 use App\Models\Payment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -8,6 +10,11 @@ use Illuminate\Support\Facades\Http;
 uses(RefreshDatabase::class);
 
 test('initiate payment that requires 3ds preserves metadata and completes after webhook', function () {
+    $this->withoutMiddleware([
+        EnsureAccountIsVerified::class,
+        EnsureOnboardingIsCompleted::class,
+    ]);
+
     Http::fake([
         'https://api.sandbox.konnect.network/api/v2/payments/init-payment' => Http::response([
             'payUrl' => 'https://pay.konnect.com/3ds',
@@ -24,6 +31,7 @@ test('initiate payment that requires 3ds preserves metadata and completes after 
     ]);
 
     $member = Member::factory()->create();
+    $this->actingAs($member, 'sanctum');
 
     $response = $this->postJson('/api/v1/payments/initiate', [
         'member_id' => $member->id,
@@ -48,4 +56,3 @@ test('initiate payment that requires 3ds preserves metadata and completes after 
 
     expect($payment->fresh()->status)->toBe('paid');
 });
-

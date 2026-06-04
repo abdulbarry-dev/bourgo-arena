@@ -19,6 +19,28 @@ beforeEach(function () {
     Sanctum::actingAs($this->child, ['*'], 'sanctum');
 });
 
+test('tiers index endpoint returns all available membership and family tiers', function () {
+    $response = $this->getJson(route('api.v1.tiers.index'));
+
+    $response
+        ->assertSuccessful()
+        ->assertJsonStructure([
+            'success',
+            'data' => [
+                'tiers' => [
+                    '*' => ['label', 'multiplier', 'requirements', 'benefits'],
+                ],
+                'family_tiers' => [
+                    '*' => ['label', 'multiplier', 'requirements', 'benefits'],
+                ],
+            ],
+        ])
+        ->assertJsonCount(4, 'data.tiers')
+        ->assertJsonCount(4, 'data.family_tiers')
+        ->assertJsonPath('data.tiers.0.label', 'Standard')
+        ->assertJsonPath('data.family_tiers.0.label', 'Family');
+});
+
 test('tier endpoint resolves family tier for child account based on active subscriptions', function () {
     Subscription::factory()->create([
         'member_id' => $this->parent->id,

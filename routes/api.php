@@ -124,11 +124,15 @@ Route::prefix('v1')->group(function () {
         Route::post('events/{event}/register', [EventParticipantController::class, 'register'])->name('api.v1.events.register');
         Route::post('events/{event}/withdraw', [EventParticipantController::class, 'withdraw'])->name('api.v1.events.withdraw');
         Route::post('events/{event}/check-in', [EventParticipantController::class, 'checkIn'])->name('api.v1.events.check-in');
+
+        // General Payment Endpoints
+        Route::prefix('payments')->group(function () {
+            Route::post('initiate', [PaymentController::class, 'initiate'])->middleware('throttle:payments')->name('api.v1.payments.initiate');
+            Route::post('verify', [PaymentController::class, 'verify'])->name('api.v1.payments.verify');
+        });
     });
 
     Route::prefix('payments')->group(function () {
-        Route::post('initiate', [PaymentController::class, 'initiate'])->middleware('throttle:payments')->name('api.v1.payments.initiate');
-        Route::post('verify', [PaymentController::class, 'verify'])->name('api.v1.payments.verify');
         Route::post('webhook/{provider}', [PaymentController::class, 'webhook'])->name('api.v1.payments.webhook');
     });
 });

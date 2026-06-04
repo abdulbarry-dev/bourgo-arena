@@ -3,12 +3,11 @@
 namespace App\Services;
 
 use App\Models\Subscription;
-use App\Models\User;
 
 class SubscriptionService
 {
-    public function getActiveForUser(User $user): ?Subscription
+    public function getActiveForUser($member): ?Subscription
     {
-        return $user->validSubscriptions()->with('plan')->orderByDesc('ends_at')->first();
+        return $member->validSubscriptions()->with('plan')->orderByDesc('ends_at')->first();
     }
 }
