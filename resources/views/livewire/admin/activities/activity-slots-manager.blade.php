@@ -43,7 +43,7 @@
         </div>
     </div>
 
-    <x-ui.dashboard.table-shell :has-rows="$this->paginatedSlots->count() > 0">
+    <x-ui.dashboard.table-shell loading-targets="paginatedSlots" :has-rows="$this->paginatedSlots->count() > 0">
         <x-slot name="empty">
             <x-ui.dashboard.empty-state
                 table

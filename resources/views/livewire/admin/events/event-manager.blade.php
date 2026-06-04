@@ -35,9 +35,31 @@
 
     <x-ui.dashboard.table-shell loading-targets="search,serviceIdFilter" :has-rows="$events->count() > 0">
         <x-slot name="loading">
-            <flux:skeleton class="h-12 w-full" />
-            <flux:skeleton class="h-12 w-full" />
-            <flux:skeleton class="h-12 w-full" />
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                @for ($i = 0; $i < 6; $i++)
+                    <div class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800">
+                        <div class="flex items-center gap-3">
+                            <flux:skeleton class="size-10 rounded-xl" />
+                            <div class="space-y-2">
+                                <flux:skeleton class="h-4 w-24" />
+                                <flux:skeleton class="h-3 w-16" />
+                            </div>
+                        </div>
+                        <div class="mt-4 grid grid-cols-2 gap-2 border-y border-zinc-100 py-3 dark:border-zinc-800">
+                             <flux:skeleton class="h-8 w-full rounded-lg" />
+                             <flux:skeleton class="h-8 w-full rounded-lg" />
+                        </div>
+                        <div class="mt-4 space-y-2">
+                            <flux:skeleton class="h-3 w-3/4" />
+                            <flux:skeleton class="h-3 w-1/2" />
+                        </div>
+                        <div class="mt-6 flex items-center justify-between">
+                            <flux:skeleton class="h-8 w-20 rounded-lg" />
+                            <flux:skeleton class="h-8 w-24 rounded-lg" />
+                        </div>
+                    </div>
+                @endfor
+            </div>
         </x-slot>
 
         <x-slot name="empty">
@@ -51,81 +73,104 @@
             />
         </x-slot>
 
-        <table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-700">
-            <thead class="bg-zinc-50 dark:bg-zinc-900/80">
-                <tr>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Event Name') }}</th>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Service') }}</th>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Format') }}</th>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Dates') }}</th>
-                    <th class="px-4 py-3 text-left font-medium text-zinc-700 dark:text-zinc-200">{{ __('Participants') }}</th>
-                    <th class="px-4 py-3 text-right font-medium text-zinc-700 dark:text-zinc-200">{{ __('Actions') }}</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-zinc-100 bg-white dark:divide-zinc-800 dark:bg-zinc-900/40">
-                @foreach ($events as $event)
-                    <tr wire:key="event-row-{{ $event->id }}" class="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/70">
-                        <td class="px-4 py-4 align-top font-medium text-zinc-900 dark:text-zinc-100">
-                            {{ $event->name }}
-                        </td>
-                        <td class="px-4 py-4 align-top">
-                            @if($event->service)
-                                <flux:badge size="sm" color="blue" inset="top bottom">{{ $event->service->name }}</flux:badge>
-                            @else
-                                <span class="text-zinc-400 italic text-xs">{{ __('N/A') }}</span>
-                            @endif
-                        </td>
-                        <td class="px-4 py-4 align-top text-zinc-600 dark:text-zinc-300">
-                            <div class="flex flex-col">
-                                <span class="text-xs text-zinc-500">{{ $event->format }}</span>
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            @foreach ($events as $event)
+                <div wire:key="event-card-{{ $event->id }}" class="group relative flex flex-col rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm transition-all hover:shadow-md dark:border-zinc-700 dark:bg-zinc-900/40">
+                    {{-- Header --}}
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="flex size-10 items-center justify-center rounded-xl bg-orange-50 text-orange-600 dark:bg-orange-950/30 dark:text-orange-400">
+                                <flux:icon name="trophy" variant="mini" class="size-5" />
                             </div>
-                        </td>
-                        <td class="px-4 py-4 align-top text-zinc-600 dark:text-zinc-300">
-                            <div class="flex flex-col text-sm">
-                                <span>{{ __('Start') }}: {{ $event->start_date ? $event->start_date->format('M d, Y') : '-' }}</span>
-                                <span class="text-xs text-zinc-500">{{ __('End') }}: {{ $event->end_date ? $event->end_date->format('M d, Y') : '-' }}</span>
+                            <div>
+                                <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">{{ $event->name }}</h3>
+                                <div class="mt-0.5">
+                                    @if($event->service)
+                                        <flux:badge size="sm" color="blue" inset="top bottom">{{ $event->service->name }}</flux:badge>
+                                    @else
+                                        <span class="text-xs italic text-zinc-400">{{ __('N/A') }}</span>
+                                    @endif
+                                </div>
                             </div>
-                        </td>
-                        <td class="px-4 py-4 align-top text-zinc-600 dark:text-zinc-300">
-                            {{ $event->participants_count }} / {{ $event->max_participants }}
-                        </td>
-                        <td class="px-4 py-4 align-top text-right">
-                            <x-ui.dashboard.row-actions>
-                                <flux:dropdown position="bottom" align="end">
-                                    <flux:button
-                                        variant="ghost"
-                                        size="sm"
-                                        icon="ellipsis-horizontal"
-                                        class="!px-2"
-                                        aria-label="{{ __('Open actions for :name', ['name' => $event->name]) }}"
-                                    />
-                                    <flux:menu>
-                                        <flux:menu.item icon="pencil-square" wire:click="edit({{ $event->id }})">
-                                            {{ __('Edit Event') }}
-                                        </flux:menu.item>
-                                        <flux:menu.item icon="users" href="{{ route('admin.events.participants', $event->id) }}">
-                                            {{ __('Participants') }}
-                                        </flux:menu.item>
-                                        <flux:menu.item icon="trophy" href="{{ route('admin.events.bracket', $event->id) }}">
-                                            {{ __('Bracket') }}
-                                        </flux:menu.item>
-                                        <flux:menu.separator />
-                                        @if(in_array($event->status, ['draft', 'open']))
-                                            <flux:menu.item icon="x-circle" wire:click="openCancelModal({{ $event->id }})" variant="danger">
-                                                {{ __('Cancel Event') }}
-                                            </flux:menu.item>
-                                        @endif
-                                        <flux:menu.item icon="trash" wire:click="openDeleteModal({{ $event->id }})" variant="danger">
-                                            {{ __('Delete Event') }}
-                                        </flux:menu.item>
-                                    </flux:menu>
-                                </flux:dropdown>
-                            </x-ui.dashboard.row-actions>
-                        </td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
+                        </div>
+
+                        <flux:dropdown position="bottom" align="end">
+                            <flux:button
+                                variant="ghost"
+                                size="sm"
+                                icon="ellipsis-horizontal"
+                                class="!px-2"
+                                aria-label="{{ __('Open actions for :name', ['name' => $event->name]) }}"
+                            />
+                            <flux:menu>
+                                <flux:menu.item icon="pencil-square" wire:click="edit({{ $event->id }})">
+                                    {{ __('Edit Event') }}
+                                </flux:menu.item>
+                                <flux:menu.item icon="users" href="{{ route('admin.events.participants', $event->id) }}">
+                                    {{ __('Participants') }}
+                                </flux:menu.item>
+                                <flux:menu.item icon="trophy" href="{{ route('admin.events.bracket', $event->id) }}">
+                                    {{ __('Bracket') }}
+                                </flux:menu.item>
+                                <flux:menu.separator />
+                                @if(in_array($event->status, ['draft', 'open']))
+                                    <flux:menu.item icon="x-circle" wire:click="openCancelModal({{ $event->id }})" variant="danger">
+                                        {{ __('Cancel Event') }}
+                                    </flux:menu.item>
+                                @endif
+                                <flux:menu.item icon="trash" wire:click="openDeleteModal({{ $event->id }})" variant="danger">
+                                    {{ __('Delete Event') }}
+                                </flux:menu.item>
+                            </flux:menu>
+                        </flux:dropdown>
+                    </div>
+
+                    {{-- Info Grid --}}
+                    <div class="mt-5 grid grid-cols-2 gap-2 border-y border-zinc-100 py-3 dark:border-zinc-800">
+                        <div class="text-center border-r border-zinc-100 dark:border-zinc-800">
+                            <div class="text-[10px] font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{{ __('Format') }}</div>
+                            <div class="mt-1 text-sm font-bold text-zinc-900 dark:text-zinc-100">{{ $event->format }}</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-[10px] font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{{ __('Participants') }}</div>
+                            <div class="mt-1 text-sm font-bold text-zinc-900 dark:text-zinc-100">{{ $event->participants_count }} / {{ $event->max_participants }}</div>
+                        </div>
+                    </div>
+
+                    {{-- Dates --}}
+                    <div class="mt-4 space-y-2">
+                        <div class="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                            <flux:icon name="calendar" variant="mini" class="size-4" />
+                            <span>{{ __('Start') }}: {{ $event->start_date ? $event->start_date->format('M d, Y') : '-' }}</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                            <flux:icon name="calendar" variant="mini" class="size-4" />
+                            <span>{{ __('End') }}: {{ $event->end_date ? $event->end_date->format('M d, Y') : '-' }}</span>
+                        </div>
+                    </div>
+
+                    {{-- Footer --}}
+                    <div class="mt-auto pt-5 flex items-center justify-between">
+                        <x-ui.dashboard.status-badge
+                            :status="$event->status"
+                            :label="ucfirst(str_replace('_', ' ', $event->status))"
+                            :color="match($event->status) {
+                                'open' => 'green',
+                                'in_progress' => 'blue',
+                                'completed' => 'zinc',
+                                'canceled' => 'red',
+                                'draft' => 'gray',
+                                default => 'zinc',
+                            }"
+                        />
+
+                        <flux:button variant="ghost" size="sm" href="{{ route('admin.events.participants', $event->id) }}">
+                            {{ __('Details') }}
+                        </flux:button>
+                    </div>
+                </div>
+            @endforeach
+        </div>
 
         @if ($events->hasPages())
         <x-slot name="pagination">

@@ -1,5 +1,5 @@
 <div class="mt-6">
-    <x-ui.dashboard.table-shell :has-rows="$courses->count() > 0">
+    <x-ui.dashboard.table-shell loading-targets="search,statusFilter,categoryFilter,hasSessionsFilter" :has-rows="$courses->count() > 0">
         <x-slot name="loading">
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                 @for ($i = 0; $i < 6; $i++)

@@ -10,12 +10,12 @@
 
 <div class="space-y-4">
     @isset($loading)
-        <div @if ($targets !== '') wire:loading.flex wire:target="{{ $targets }}" @endif class="grid gap-3">
+        <div wire:loading.flex @if ($targets !== '') wire:target="{{ $targets }}" @endif class="grid gap-3">
             {{ $loading }}
         </div>
     @endisset
 
-    <div @if ($targets !== '') wire:loading.remove wire:target="{{ $targets }}" @endif class="overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700">
+    <div wire:loading.remove @if ($targets !== '') wire:target="{{ $targets }}" @endif class="overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700">
         @if ($hasRows)
             <div class="overflow-x-auto">
                 {{ $tableContent }}
