@@ -16,8 +16,8 @@
             <flux:field class="md:col-span-2">
                 <flux:label>{{ __('Parent Service') }}</flux:label>
                 @if($this->availableServices->isNotEmpty())
-                    <flux:select wire:model.live="serviceId" searchable placeholder="{{ __('Select a service...') }}" required>
-                        <flux:select.option value="" disabled>{{ __('Select a service...') }}</flux:select.option>
+                    <flux:select wire:model.live="service_id" searchable placeholder="{{ __('Select a service...') }}" required>
+                        <flux:select.option value="">{{ __('Select a service...') }}</flux:select.option>
                         @foreach($this->availableServices as $service)
                             <flux:select.option value="{{ $service->id }}">{{ $service->name }}</flux:select.option>
                         @endforeach
@@ -27,7 +27,7 @@
                         <flux:text variant="subtle">{{ __('No services available. Please create a service first.') }}</flux:text>
                     </div>
                 @endif
-                <flux:error name="serviceId" />
+                <flux:error name="service_id" />
             </flux:field>
 
             <flux:field class="md:col-span-2">

@@ -66,7 +66,7 @@ it('can create a new event', function () {
 
     Livewire::test(EventManager::class)
         ->set('name', 'Padel Championship')
-        ->set('serviceId', $service->id)
+        ->set('service_id', $service->id)
         ->set('format', '1v1')
         ->set('max_participants', 16)
         ->set('registration_deadline', now()->subDay()->format('Y-m-d\TH:i'))

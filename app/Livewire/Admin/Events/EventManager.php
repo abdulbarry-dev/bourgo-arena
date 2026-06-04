@@ -24,7 +24,7 @@ class EventManager extends Component
 
     public $editingEventId = null;
 
-    public $serviceId = null;
+    public ?int $service_id = null;
 
     public $name = '';
 
@@ -52,11 +52,6 @@ class EventManager extends Component
         $this->resetPage();
     }
 
-    public function updatedServiceId($value)
-    {
-        $this->serviceId = (int) $value;
-    }
-
     public function openCreateModal()
     {
         $this->resetForm();
@@ -72,19 +67,19 @@ class EventManager extends Component
     public function save()
     {
         $this->validate([
-            'serviceId' => 'required',
+            'service_id' => 'required',
             'name' => 'required|string|max:255',
             'format' => 'required|string',
             'max_participants' => 'required|integer|min:2',
         ]);
 
-        if (! Service::where('id', $this->serviceId)->exists()) {
-            throw ValidationException::withMessages(['serviceId' => 'The selected service is invalid.']);
+        if (! Service::where('id', $this->service_id)->exists()) {
+            throw ValidationException::withMessages(['service_id' => 'The selected service is invalid.']);
         }
 
         DB::transaction(function (): void {
             $eventData = [
-                'service_id' => $this->serviceId,
+                'service_id' => $this->service_id,
                 'name' => $this->name,
                 'description' => $this->description,
                 'format' => $this->format,
@@ -110,7 +105,7 @@ class EventManager extends Component
     public function edit(Event $event)
     {
         $this->editingEventId = $event->id;
-        $this->serviceId = $event->service_id;
+        $this->service_id = $event->service_id;
         $this->name = $event->name;
         $this->description = $event->description;
         $this->format = $event->format;
@@ -126,7 +121,7 @@ class EventManager extends Component
     private function resetForm()
     {
         $this->reset([
-            'editingEventId', 'serviceId', 'name', 'description', 'format',
+            'editingEventId', 'service_id', 'name', 'description', 'format',
             'max_participants', 'requires_check_in', 'registration_deadline',
             'start_date', 'end_date',
         ]);
