@@ -21,12 +21,6 @@ class EventParticipants extends Component
     public ?int $viewingParticipantId = null;
     public ?EventParticipant $viewingParticipant = null;
     
-    public ?int $editingParticipantId = null;
-    public ?EventParticipant $editingParticipant = null;
-    public $editingTeamId = null;
-    public $editingSeedNumber = null;
-    public $editingStatus = '';
-
     public ?int $removingParticipantId = null;
 
     public function mount(Event $event)
@@ -52,47 +46,6 @@ class EventParticipants extends Component
     {
         $this->viewingParticipant = null;
         $this->viewingParticipantId = null;
-    }
-
-    public function edit(int $id)
-    {
-        $this->editingParticipant = EventParticipant::with('user')->findOrFail($id);
-        $this->editingParticipantId = $id;
-        $this->editingTeamId = $this->editingParticipant->team_id;
-        $this->editingSeedNumber = $this->editingParticipant->seed_number;
-        $this->editingStatus = $this->editingParticipant->status;
-
-        \Flux\Flux::modal('edit-registration-modal')->show();
-    }
-
-    public function saveEdit()
-    {
-        $this->validate([
-            'editingTeamId' => 'nullable|exists:teams,id',
-            'editingSeedNumber' => 'nullable|integer|min:1',
-            'editingStatus' => 'required|in:registered,checked_in,canceled',
-        ]);
-
-        $this->editingParticipant->update([
-            'team_id' => $this->editingTeamId,
-            'seed_number' => $this->editingSeedNumber,
-            'status' => $this->editingStatus,
-            'has_checked_in' => $this->editingStatus === 'checked_in',
-            'checked_in_at' => ($this->editingStatus === 'checked_in' && !$this->editingParticipant->has_checked_in) ? now() : $this->editingParticipant->checked_at,
-        ]);
-
-        $this->closeEdit();
-        $this->dispatch('toast', message: __('Registration updated successfully.'), type: 'success');
-    }
-
-    public function closeEdit()
-    {
-        $this->editingParticipant = null;
-        $this->editingParticipantId = null;
-        $this->editingTeamId = null;
-        $this->editingSeedNumber = null;
-        $this->editingStatus = '';
-        \Flux\Flux::modal('edit-registration-modal')->close();
     }
 
     public function checkIn(int $id)

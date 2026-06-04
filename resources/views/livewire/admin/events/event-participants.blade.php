@@ -104,9 +104,6 @@
                                 class="!px-2"
                             />
                             <flux:menu>
-                                <flux:menu.item icon="pencil-square" wire:click="edit({{ $participant->id }})">
-                                    {{ __('Edit Registration') }}
-                                </flux:menu.item>
                                 @if(!$participant->has_checked_in && $participant->status !== 'canceled')
                                     <flux:menu.item icon="check-circle" wire:click="checkIn({{ $participant->id }})">
                                         {{ __('Check In') }}
@@ -262,59 +259,10 @@
                 </div>
 
                 {{-- Footer Actions --}}
-                <div class="flex justify-between gap-3 border-t border-zinc-200 pt-6 dark:border-zinc-700">
-                    <flux:button variant="ghost" icon="pencil-square" wire:click="edit({{ $viewingParticipant->id }})">
-                        {{ __('Edit Registration') }}
-                    </flux:button>
+                <div class="flex justify-end gap-3 border-t border-zinc-200 pt-6 dark:border-zinc-700">
                     <flux:button variant="filled" x-on:click="Flux.modal('participant-details-modal').close()">{{ __('Close') }}</flux:button>
                 </div>
             </div>
-        @endif
-    </flux:modal>
-
-    {{-- Edit Modal --}}
-    <flux:modal name="edit-registration-modal" variant="flyout" class="w-full max-w-lg" x-on:hidden="$wire.closeEdit()">
-        @if ($editingParticipant)
-            <form wire:submit.prevent="saveEdit" class="space-y-8">
-                <div>
-                    <flux:heading size="lg">{{ __('Edit Registration') }}</flux:heading>
-                    <flux:subheading>{{ __('Update participant details and status for :name.', ['name' => $editingParticipant->user->name]) }}</flux:subheading>
-                </div>
-
-                <div class="space-y-4">
-                    <flux:field>
-                        <flux:label>{{ __('Team (Optional)') }}</flux:label>
-                        <flux:select wire:model="editingTeamId" placeholder="{{ __('Choose a team...') }}" searchable>
-                            <flux:select.option value="">{{ __('Individual') }}</flux:select.option>
-                            @foreach($this->availableTeams as $team)
-                                <flux:select.option value="{{ $team->id }}">{{ $team->name }}</flux:select.option>
-                            @endforeach
-                        </flux:select>
-                        <flux:error name="editingTeamId" />
-                    </flux:field>
-
-                    <flux:field>
-                        <flux:label>{{ __('Seed Number') }}</flux:label>
-                        <flux:input type="number" wire:model="editingSeedNumber" placeholder="{{ __('e.g. 1') }}" />
-                        <flux:error name="editingSeedNumber" />
-                    </flux:field>
-
-                    <flux:field>
-                        <flux:label>{{ __('Status') }}</flux:label>
-                        <flux:select wire:model="editingStatus">
-                            <flux:select.option value="registered">{{ __('Registered') }}</flux:select.option>
-                            <flux:select.option value="checked_in">{{ __('Checked In') }}</flux:select.option>
-                            <flux:select.option value="canceled">{{ __('Canceled') }}</flux:select.option>
-                        </flux:select>
-                        <flux:error name="editingStatus" />
-                    </flux:field>
-                </div>
-
-                <div class="flex justify-end gap-2 border-t border-zinc-200 pt-6 dark:border-zinc-700">
-                    <flux:button variant="ghost" x-on:click="Flux.modal('edit-registration-modal').close()">{{ __('Cancel') }}</flux:button>
-                    <flux:button type="submit" variant="primary">{{ __('Update Registration') }}</flux:button>
-                </div>
-            </form>
         @endif
     </flux:modal>
 </x-ui.dashboard.page-wrapper>
