@@ -18,7 +18,7 @@ class EventParticipant extends Model
     use HasFactory;
 
     protected $fillable = [
-        'event_id', 'user_id', 'seed_number', 'has_checked_in', 'status', 'withdrawn_at',
+        'event_id', 'user_id', 'team_id', 'seed_number', 'has_checked_in', 'status', 'withdrawn_at',
     ];
 
     protected function casts(): array
@@ -37,5 +37,10 @@ class EventParticipant extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function team()
+    {
+        return $this->belongsTo(Team::class);
     }
 }

@@ -17,6 +17,20 @@ class AppServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
+        \Illuminate\Support\Facades\Event::listen(
+            \App\Events\EventCanceled::class,
+            \App\Listeners\LogAdminAction::class,
+        );
+
+        \Illuminate\Support\Facades\Event::listen(
+            \App\Events\EventCanceled::class,
+            \App\Listeners\HandleEventCancellation::class,
+        );
+
+        \Illuminate\Support\Facades\Event::listen(
+            \App\Events\EventDeleted::class,
+            \App\Listeners\LogAdminAction::class,
+        );
         $this->configureDefaults();
         $this->registerRateLimits();
         $this->registerMacros();

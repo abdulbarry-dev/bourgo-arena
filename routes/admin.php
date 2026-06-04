@@ -78,6 +78,12 @@ Route::prefix('admin')->middleware('role:admin')->group(function () {
     Route::get('/events', EventManager::class)
         ->name('admin.events.index');
 
+    Route::get('/events/{event}/participants', \App\Livewire\Admin\Events\EventParticipants::class)
+        ->name('admin.events.participants');
+
+    Route::get('/events/{event}/bracket', \App\Livewire\Admin\Events\EventBracketManager::class)
+        ->name('admin.events.bracket');
+
     Route::get('/services', ServiceManager::class)
         ->name('admin.services.index');
 });

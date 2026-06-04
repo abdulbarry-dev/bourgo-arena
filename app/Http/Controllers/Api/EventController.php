@@ -32,17 +32,23 @@ class EventController extends Controller
 
     public function bracket(Event $event)
     {
-        $matches = $event->matches()
-            ->with(['participant1.user', 'participant2.user'])
-            ->orderBy('round', 'asc')
-            ->orderBy('match_number', 'asc')
-            ->get()
-            ->groupBy('round');
+        $cacheKey = "event.{$event->id}.bracket";
 
-        $formattedBracket = [];
-        foreach ($matches as $round => $roundMatches) {
-            $formattedBracket['round_'.$round] = EventMatchResource::collection($roundMatches);
-        }
+        $formattedBracket = \Illuminate\Support\Facades\Cache::remember($cacheKey, now()->addHours(24), function () use ($event) {
+            $matches = $event->matches()
+                ->with(['participant1.user', 'participant1.team', 'participant2.user', 'participant2.team'])
+                ->orderBy('round', 'asc')
+                ->orderBy('match_number', 'asc')
+                ->get()
+                ->groupBy('round');
+
+            $bracket = [];
+            foreach ($matches as $round => $roundMatches) {
+                $bracket['round_'.$round] = EventMatchResource::collection($roundMatches);
+            }
+
+            return $bracket;
+        });
 
         return response()->json([
             'data' => $formattedBracket,

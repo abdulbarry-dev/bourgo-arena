@@ -24,6 +24,10 @@ class EventManager extends Component
 
     public $editingEventId = null;
 
+    public ?Event $eventToCancel = null;
+    public ?Event $eventToDelete = null;
+    public $deleteConfirmName = '';
+
     public ?int $service_id = null;
 
     public $name = '';
@@ -123,8 +127,52 @@ class EventManager extends Component
         $this->reset([
             'editingEventId', 'service_id', 'name', 'description', 'format',
             'max_participants', 'requires_check_in', 'registration_deadline',
-            'start_date', 'end_date',
+            'start_date', 'end_date', 'eventToCancel', 'eventToDelete', 'deleteConfirmName'
         ]);
+    }
+
+    public function openCancelModal(Event $event)
+    {
+        if (!in_array($event->status, ['draft', 'open'])) {
+            Flux::toast('Only draft or open events can be canceled.', variant: 'danger');
+            return;
+        }
+
+        $this->eventToCancel = $event;
+        Flux::modal('cancel-event-modal')->show();
+    }
+
+    public function confirmCancel()
+    {
+        if ($this->eventToCancel) {
+            $this->eventToCancel->cancel();
+            Flux::toast('Event canceled successfully.', variant: 'success');
+        }
+
+        Flux::modal('cancel-event-modal')->close();
+        $this->resetForm();
+    }
+
+    public function openDeleteModal(Event $event)
+    {
+        $this->eventToDelete = $event;
+        $this->deleteConfirmName = '';
+        Flux::modal('delete-event-modal')->show();
+    }
+
+    public function confirmDelete()
+    {
+        if ($this->eventToDelete && $this->deleteConfirmName === $this->eventToDelete->name) {
+            $this->eventToDelete->delete();
+            event(new \App\Events\EventDeleted($this->eventToDelete));
+            Flux::toast('Event deleted successfully.', variant: 'success');
+        } else {
+            Flux::toast('Event name does not match.', variant: 'danger');
+            return;
+        }
+
+        Flux::modal('delete-event-modal')->close();
+        $this->resetForm();
     }
 
     #[Computed]

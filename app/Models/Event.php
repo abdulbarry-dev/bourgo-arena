@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Events\EventCanceled;
 
 class Event extends Model
 {
@@ -17,11 +19,12 @@ class Event extends Model
     }
 
     /** @use HasFactory<EventFactory> */
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'service_id', 'name', 'description', 'format', 'max_participants',
         'registration_deadline', 'start_date', 'end_date', 'requires_check_in',
+        'canceled_at'
     ];
 
     protected function casts(): array
@@ -30,12 +33,17 @@ class Event extends Model
             'registration_deadline' => 'datetime',
             'start_date' => 'datetime',
             'end_date' => 'datetime',
+            'canceled_at' => 'datetime',
             'requires_check_in' => 'boolean',
         ];
     }
 
     public function getStatusAttribute(): string
     {
+        if ($this->canceled_at) {
+            return 'canceled';
+        }
+
         if ($this->end_date && $this->end_date->isPast()) {
             return 'completed';
         }
@@ -49,6 +57,17 @@ class Event extends Model
         }
 
         return 'draft';
+    }
+
+    public function cancel(): void
+    {
+        if (! in_array($this->status, ['draft', 'open'])) {
+            throw new \Exception('Only draft or open events can be canceled.');
+        }
+
+        $this->update(['canceled_at' => now()]);
+
+        EventCanceled::dispatch($this);
     }
 
     public function scopePublished($query)

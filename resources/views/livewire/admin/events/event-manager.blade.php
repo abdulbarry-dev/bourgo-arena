@@ -103,6 +103,21 @@
                                         <flux:menu.item icon="pencil-square" wire:click="edit({{ $event->id }})">
                                             {{ __('Edit Event') }}
                                         </flux:menu.item>
+                                        <flux:menu.item icon="users" href="{{ route('admin.events.participants', $event->id) }}">
+                                            {{ __('Participants') }}
+                                        </flux:menu.item>
+                                        <flux:menu.item icon="trophy" href="{{ route('admin.events.bracket', $event->id) }}">
+                                            {{ __('Bracket') }}
+                                        </flux:menu.item>
+                                        <flux:menu.separator />
+                                        @if(in_array($event->status, ['draft', 'open']))
+                                            <flux:menu.item icon="x-circle" wire:click="openCancelModal({{ $event->id }})" variant="danger">
+                                                {{ __('Cancel Event') }}
+                                            </flux:menu.item>
+                                        @endif
+                                        <flux:menu.item icon="trash" wire:click="openDeleteModal({{ $event->id }})" variant="danger">
+                                            {{ __('Delete Event') }}
+                                        </flux:menu.item>
                                     </flux:menu>
                                 </flux:dropdown>
                             </x-ui.dashboard.row-actions>
@@ -120,5 +135,43 @@
     </x-ui.dashboard.table-shell>
 
     @include('livewire.admin.events.partials.modals.form-modal')
+
+    <flux:modal name="cancel-event-modal" class="min-w-[22rem]">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ __('Cancel Event') }}</flux:heading>
+                <flux:subheading>{{ __('Are you sure you want to cancel this event? This action will mark all participants as canceled and flag payments for reconciliation.') }}</flux:subheading>
+            </div>
+            <div class="flex gap-2">
+                <flux:spacer />
+                <flux:modal.close>
+                    <flux:button variant="ghost">{{ __('Cancel') }}</flux:button>
+                </flux:modal.close>
+                <flux:button wire:click="confirmCancel" variant="danger">{{ __('Confirm Cancellation') }}</flux:button>
+            </div>
+        </div>
+    </flux:modal>
+
+    <flux:modal name="delete-event-modal" class="min-w-[22rem]">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ __('Delete Event') }}</flux:heading>
+                <flux:subheading>{{ __('Are you sure you want to delete this event? This action is destructive and requires confirmation.') }}</flux:subheading>
+            </div>
+            
+            <flux:field>
+                <flux:label>{{ __('Please type the event name to confirm') }}</flux:label>
+                <flux:input wire:model="deleteConfirmName" placeholder="{{ $eventToDelete?->name }}" />
+            </flux:field>
+
+            <div class="flex gap-2">
+                <flux:spacer />
+                <flux:modal.close>
+                    <flux:button variant="ghost">{{ __('Cancel') }}</flux:button>
+                </flux:modal.close>
+                <flux:button wire:click="confirmDelete" variant="danger">{{ __('Delete Permanently') }}</flux:button>
+            </div>
+        </div>
+    </flux:modal>
 
 </x-ui.dashboard.page-wrapper>
