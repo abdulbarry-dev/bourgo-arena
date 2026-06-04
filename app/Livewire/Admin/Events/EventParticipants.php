@@ -18,9 +18,52 @@ class EventParticipants extends Component
     public $statusFilter = '';
     public $teamFilter = '';
 
+    public ?int $viewingParticipantId = null;
+    public ?int $editingParticipantId = null;
+    public ?int $removingParticipantId = null;
+
     public function mount(Event $event)
     {
         $this->event = $event;
+    }
+
+    public function openAddParticipantModal()
+    {
+        // Implementation for adding participants
+        $this->dispatch('toast', message: __('Add participant functionality coming soon.'), type: 'info');
+    }
+
+    public function openDetails(int $id)
+    {
+        $this->viewingParticipantId = $id;
+        // Optionally show a modal/flyout
+        $this->dispatch('toast', message: __('Viewing details for participant #:id', ['id' => $id]), type: 'info');
+    }
+
+    public function edit(int $id)
+    {
+        $this->editingParticipantId = $id;
+        $this->dispatch('toast', message: __('Edit registration for participant #:id', ['id' => $id]), type: 'info');
+    }
+
+    public function checkIn(int $id)
+    {
+        $participant = EventParticipant::findOrFail($id);
+        $participant->update([
+            'status' => 'checked_in',
+            'has_checked_in' => true,
+            'checked_in_at' => now(),
+        ]);
+
+        $this->dispatch('toast', message: __('Participant checked in successfully.'), type: 'success');
+    }
+
+    public function confirmRemoval(int $id)
+    {
+        $this->removingParticipantId = $id;
+        // In a real app, this would show a confirmation modal.
+        // For now, let's implement the removal directly or dispatch a toast.
+        $this->dispatch('toast', message: __('Confirm removal for participant #:id', ['id' => $id]), type: 'warning');
     }
 
     public function updatedSearch()
