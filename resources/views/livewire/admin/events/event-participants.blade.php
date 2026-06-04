@@ -97,25 +97,27 @@
                             </div>
                         </div>
 
-                        <flux:dropdown position="bottom" align="end">
-                            <flux:button
-                                variant="ghost"
-                                size="sm"
-                                icon="ellipsis-horizontal"
-                                class="!px-2"
-                            />
-                            <flux:menu>
-                                @if(!$participant->has_checked_in && $participant->status !== 'canceled')
-                                    <flux:menu.item icon="check-circle" wire:click="checkIn({{ $participant->id }})">
-                                        {{ __('Check In') }}
+                        <div x-on:click.stop>
+                            <flux:dropdown offset="-10">
+                                <flux:button
+                                    variant="ghost"
+                                    size="sm"
+                                    icon="ellipsis-horizontal"
+                                    class="!px-2"
+                                />
+                                <flux:menu>
+                                    @if(!$participant->has_checked_in && $participant->status !== 'canceled')
+                                        <flux:menu.item icon="check-circle" wire:click="checkIn({{ $participant->id }})">
+                                            {{ __('Check In') }}
+                                        </flux:menu.item>
+                                    @endif
+                                    <flux:menu.separator />
+                                    <flux:menu.item icon="trash" variant="danger" wire:click="confirmRemoval({{ $participant->id }})">
+                                        {{ __('Remove Participant') }}
                                     </flux:menu.item>
-                                @endif
-                                <flux:menu.separator />
-                                <flux:menu.item icon="trash" variant="danger" wire:click="confirmRemoval({{ $participant->id }})">
-                                    {{ __('Remove Participant') }}
-                                </flux:menu.item>
-                            </flux:menu>
-                        </flux:dropdown>
+                                </flux:menu>
+                            </flux:dropdown>
+                        </div>
                     </div>
 
                     {{-- Info Row --}}
