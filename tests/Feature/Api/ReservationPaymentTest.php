@@ -47,8 +47,7 @@ it('initiates a payment for an existing reservation', function () {
     $deposit = round($reservation->price * 0.10, 3);
     $response = $this->postJson('/api/v1/reservations/'.$reservation->id.'/payment/initiate', ['gateway' => 'konnect', 'amount' => $deposit]);
 
-    // In CI/env without gateway credentials this may fail; assert we receive an error or success depending on env
-    $response->assertStatus(500)->assertJsonFragment(['message' => 'Payment initiation failed']);
+    $response->assertStatus(200);
 });
 
 it('verifies a payment and marks reservation as paid', function () {

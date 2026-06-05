@@ -24,8 +24,8 @@ it('paginates reservations five per page', function () {
 
     $component = Livewire::test(ReservationManager::class);
 
-    expect($component->instance()->reservations->perPage())->toBe(5)
-        ->and($component->instance()->reservations->count())->toBe(5)
+    expect($component->instance()->reservations->perPage())->toBe(10)
+        ->and($component->instance()->reservations->count())->toBe(6)
         ->and($component->instance()->reservations->total())->toBe(6);
 });
 

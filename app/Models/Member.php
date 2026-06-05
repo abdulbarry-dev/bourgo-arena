@@ -199,6 +199,26 @@ class Member extends Authenticatable
         return $this->hasMany(ApiReservation::class);
     }
 
+    public function hasAccessToCourse(Course $course): bool
+    {
+        return $this->validSubscriptions()
+            ->with('plan.courses')
+            ->get()
+            ->contains(function (Subscription $subscription) use ($course): bool {
+                $plan = $subscription->plan;
+
+                if ($plan === null) {
+                    return false;
+                }
+
+                if ($plan->has_all_courses) {
+                    return true;
+                }
+
+                return $plan->courses->contains('id', $course->id);
+            });
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', 'active');

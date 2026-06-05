@@ -20,7 +20,7 @@ return new class extends Migration
             $table->enum('payment_status', ['not_initiated', 'pending', 'completed', 'refunded'])->default('not_initiated');
             $table->decimal('deposit_amount', 10, 3)->default(0);
             $table->decimal('full_amount', 10, 3)->default(0);
-            $table->enum('payment_gateway', ['konnect', 'flouci', 'manual_admin'])->nullable();
+            $table->enum('payment_gateway', ['konnect', 'manual_admin'])->nullable();
             $table->string('transaction_reference')->nullable();
             $table->text('cancellation_reason')->nullable();
             $table->timestamps();

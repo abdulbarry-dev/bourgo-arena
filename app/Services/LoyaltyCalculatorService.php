@@ -7,9 +7,11 @@ use App\Models\LoyaltyAuditLog;
 use App\Models\LoyaltyPoint;
 use App\Models\Member;
 use App\Models\Subscription;
+use App\Notifications\LoyaltyPointsUpdatedNotification;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class LoyaltyCalculatorService
 {
@@ -27,7 +29,7 @@ class LoyaltyCalculatorService
 
         $tier = $this->tierResolutionService->resolveTier($member);
         $basePoints = (int) config('loyalty.fixed_monthly_renewal_points', 0);
-        $points = (int) round($basePoints * (float) $tier['multiplier']);
+        $points = (int) round($basePoints * (float) $tier->currentTier->multiplier);
 
         if ($points <= 0) {
             return false;
@@ -44,8 +46,8 @@ class LoyaltyCalculatorService
             idempotencyKey: $idempotencyKey,
             auditAction: 'credit',
             auditMetadata: [
-                'tier_label' => $tier['label'],
-                'tier_multiplier' => $tier['multiplier'],
+                'tier_label' => $tier->currentTier->label,
+                'tier_multiplier' => $tier->currentTier->multiplier,
             ],
         );
     }
@@ -81,7 +83,7 @@ class LoyaltyCalculatorService
         $monthlyCount = max(1, $monthlyCount);
 
         $basePoints = (int) config('loyalty.variable.base_points_per_reservation', 0);
-        $points = (int) round($basePoints * $monthlyCount * (float) $tier['multiplier']);
+        $points = (int) round($basePoints * $monthlyCount * (float) $tier->currentTier->multiplier);
 
         // computed points logged previously during debugging; removed for cleanup
 
@@ -100,12 +102,98 @@ class LoyaltyCalculatorService
             idempotencyKey: $idempotencyKey,
             auditAction: 'credit',
             auditMetadata: [
-                'tier_label' => $tier['label'],
-                'tier_multiplier' => $tier['multiplier'],
+                'tier_label' => $tier->currentTier->label,
+                'tier_multiplier' => $tier->currentTier->multiplier,
                 'monthly_paid_reservations' => $monthlyCount,
                 'activity_category' => $activity->category,
             ],
         );
+    }
+
+    public function giftPoints(Member $member, int $points, string $reason): bool
+    {
+        if ($points <= 0) {
+            return false;
+        }
+
+        $success = $this->creditPoints(
+            member: $member,
+            points: $points,
+            transactionType: 'gift',
+            sourceType: 'Bourgo Arena',
+            sourceId: auth()->id(),
+            idempotencyKey: 'gift:'.Str::uuid(),
+            auditAction: 'gift',
+            auditMetadata: [
+                'admin_id' => auth()->id(),
+                'admin_name' => auth()->user()?->name,
+                'reason' => $reason,
+            ],
+        );
+
+        if ($success) {
+            $member->notify(new LoyaltyPointsUpdatedNotification($member, $points, 'gift', $reason));
+        }
+
+        return $success;
+    }
+
+    public function refundPoints(Member $member, int $points, string $reason): bool
+    {
+        if ($points <= 0) {
+            return false;
+        }
+
+        return (bool) DB::transaction(function () use ($member, $points, $reason) {
+            $lockedMember = Member::query()->lockForUpdate()->findOrFail($member->id);
+            $balanceBefore = (int) ($lockedMember->loyalty_points ?? 0);
+
+            // Ensure we don't go below zero
+            $actualPointsToRefund = min($points, $balanceBefore);
+
+            if ($actualPointsToRefund <= 0) {
+                return false;
+            }
+
+            LoyaltyPoint::query()->create([
+                'member_id' => $lockedMember->id,
+                'points' => -$actualPointsToRefund,
+                'transaction_type' => 'refund',
+                'source_type' => 'Bourgo Arena',
+                'source_id' => auth()->id(),
+                'idempotency_key' => 'refund:'.Str::uuid(),
+                'created_at' => now(),
+            ]);
+
+            $balanceAfter = $balanceBefore - $actualPointsToRefund;
+
+            $lockedMember->update([
+                'loyalty_points' => $balanceAfter,
+            ]);
+
+            LoyaltyAuditLog::query()->create([
+                'member_id' => $lockedMember->id,
+                'action' => 'refund',
+                'points_changed' => -$actualPointsToRefund,
+                'balance_before' => $balanceBefore,
+                'balance_after' => $balanceAfter,
+                'source_type' => 'Bourgo Arena',
+                'source_id' => auth()->id(),
+                'ip_address' => request()?->ip(),
+                'user_agent' => request()?->userAgent(),
+                'metadata' => [
+                    'admin_id' => auth()->id(),
+                    'admin_name' => auth()->user()?->name,
+                    'reason' => $reason,
+                    'requested_refund' => $points,
+                ],
+                'created_at' => now(),
+            ]);
+
+            $lockedMember->notify(new LoyaltyPointsUpdatedNotification($lockedMember, $actualPointsToRefund, 'refund', $reason));
+
+            return true;
+        });
     }
 
     /**

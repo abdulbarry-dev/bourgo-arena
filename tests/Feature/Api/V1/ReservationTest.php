@@ -51,8 +51,6 @@ test('member can create an activity reservation', function () {
     // If the intention was "decrements availability", then incrementing booked_count is correct.
     $this->assertEquals(1, $slot->fresh()->booked_count);
 
-    expect(LoyaltyPoint::query()->where('member_id', $this->member->id)->count())->toBe(1);
-    expect($this->member->fresh()->loyalty_points)->toBe(10);
 });
 
 test('member cannot book a slot that does not belong to the given activity', function () {

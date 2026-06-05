@@ -35,7 +35,7 @@ class ReservationController extends Controller
         $this->authorize('view', $reservation);
 
         $gateway = $request->input('gateway', null);
-        if ($gateway !== null && ! in_array($gateway, ['konnect', 'flouci'], true)) {
+        if ($gateway !== null && ! in_array($gateway, ['konnect', 'test'], true)) {
             return $this->error('Unsupported payment gateway', 422);
         }
 
@@ -152,22 +152,6 @@ class ReservationController extends Controller
         $this->reservationService->assertNoActiveReservationForSlot($request->user(), $dto->activitySlotId);
 
         $reservation = $this->reservationService->makeActivityReservation($request->user(), $dto);
-
-        if (! config('payment.konnect.api_key') || ! config('payment.konnect.api_secret')) {
-            $reservation->update(['payment_status' => 'paid']);
-
-            // Credit loyalty for the reservation (best-effort)
-            try {
-                $this->loyaltyCalculatorService->creditVariableForReservation($reservation);
-            } catch (\Throwable $e) {
-                // do not block reservation creation on loyalty failures
-            }
-
-            return (new ApiReservationResource($reservation->load(['activity', 'slot'])))->additional([
-                'success' => true,
-                'message' => 'Reservation created successfully',
-            ])->response()->setStatusCode(201);
-        }
 
         // Create deposit payment (10%) and initiate checkout
         $depositAmount = round($reservation->price * 0.10, 3);

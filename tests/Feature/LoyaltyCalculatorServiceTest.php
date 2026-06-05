@@ -9,7 +9,12 @@ use App\Models\LoyaltyPoint;
 use App\Models\Member;
 use App\Models\Subscription;
 use App\Services\LoyaltyCalculatorService;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
+
+beforeEach(function () {
+    Notification::fake();
+});
 
 test('loyalty reservation accrual is idempotent', function () {
     /** @var Member $member */

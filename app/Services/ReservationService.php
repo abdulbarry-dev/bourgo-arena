@@ -179,7 +179,7 @@ class ReservationService
             'reason' => $reason,
         ];
 
-        if (! in_array($gateway, ['konnect', 'flouci'], true)) {
+        if (! in_array($gateway, ['konnect'], true)) {
             $result = [
                 'success' => false,
                 'error' => 'Unsupported payment gateway for automatic refund.',
@@ -356,7 +356,7 @@ class ReservationService
     protected function calculateReservationPrice(Member $member, Activity $activity): float
     {
         $tier = $this->tierResolutionService->resolveTier($member);
-        $discount = (float) config('loyalty.pricing_discounts.'.$tier['label'], 0.0);
+        $discount = (float) config('loyalty.pricing_discounts.'.$tier->currentTier->label, 0.0);
 
         $discount = max(0.0, min(1.0, $discount));
         $basePrice = (float) $activity->base_price;
