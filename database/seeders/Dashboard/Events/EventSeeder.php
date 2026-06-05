@@ -22,8 +22,8 @@ class EventSeeder extends Seeder
                 'name' => 'Summer Padel Cup',
                 'description' => 'A compact doubles bracket for the summer competitive block.',
                 'images' => [
-                    'https://picsum.photos/seed/padel1/800/600',
-                    'https://picsum.photos/seed/padel2/800/600',
+                    'https://images.unsplash.com/photo-1622262584164-9fbdfad33f57?auto=format&fit=crop&q=80&w=1470',
+                    'https://images.unsplash.com/photo-1626224580143-69324021275d?auto=format&fit=crop&q=80&w=1470',
                 ],
                 'format' => '2v2',
                 'max_participants' => 8,
@@ -37,9 +37,9 @@ class EventSeeder extends Seeder
                 'name' => 'Autumn Tennis Ladder',
                 'description' => 'A progressive tennis ladder with seeded rounds and weekly updates.',
                 'images' => [
-                    'https://picsum.photos/seed/tennis1/800/600',
-                    'https://picsum.photos/seed/tennis2/800/600',
-                    'https://picsum.photos/seed/tennis3/800/600',
+                    'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?auto=format&fit=crop&q=80&w=1470',
+                    'https://images.unsplash.com/photo-1542144557-140653a3f3cb?auto=format&fit=crop&q=80&w=1470',
+                    'https://images.unsplash.com/photo-1517646331032-9e8563c520a1?auto=format&fit=crop&q=80&w=1470',
                 ],
                 'format' => '1v1',
                 'max_participants' => 12,
@@ -53,7 +53,7 @@ class EventSeeder extends Seeder
                 'name' => 'Community Fun Run',
                 'description' => 'A non-competitive 5k run for all members.',
                 'images' => [
-                    'https://picsum.photos/seed/run1/800/600',
+                    'https://images.unsplash.com/photo-1552674605-15c37eee02a6?auto=format&fit=crop&q=80&w=1470',
                 ],
                 'format' => 'group',
                 'max_participants' => 100,
