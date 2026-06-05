@@ -74,13 +74,13 @@ class SearchResults extends Component
     public function paginatedResults(): LengthAwarePaginator
     {
         if (blank($this->query)) {
-            return new \Illuminate\Pagination\LengthAwarePaginator([], 0, 15);
+            return new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10);
         }
 
         /** @var GlobalSearchService $service */
         $service = app(GlobalSearchService::class);
 
-        return $service->searchType($this->activeTab, $this->query, perPage: 15);
+        return $service->searchType($this->activeTab, $this->query, perPage: 10);
     }
 
     #[Computed]

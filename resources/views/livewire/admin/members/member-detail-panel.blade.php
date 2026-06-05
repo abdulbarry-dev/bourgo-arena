@@ -32,16 +32,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <div class="flex items-center gap-2">
-                        @if ($member->is_family_account)
-                            @can('update', $member)
-                                <flux:button variant="ghost" icon="users" size="sm" wire:click="$dispatch('open-manage-family-flyout', { memberId: {{ $member->id }} })">
-                                    {{ __('Family') }}
-                                </flux:button>
-                            @endcan
-                        @endif
-                    </div>
                 </div>
 
                 {{-- Tabs Navigation --}}

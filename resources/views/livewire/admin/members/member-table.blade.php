@@ -81,6 +81,48 @@
     @include('livewire.admin.members.partials.modals.activate-modal')
     @include('livewire.admin.members.partials.modals.delete-modal')
 
+    {{-- Loyalty Adjustment Modal --}}
+    <flux:modal wire:model="isLoyaltyAdjustmentModalOpen" class="max-w-md w-full">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">
+                    {{ $loyaltyAdjustmentType === 'gift' ? __('Gift Loyalty Points') : __('Refund Loyalty Points') }}
+                </flux:heading>
+                <flux:subheading>
+                    {{ $loyaltyAdjustmentType === 'gift' 
+                        ? __('Add bonus loyalty points to this member\'s account.') 
+                        : __('Deduct loyalty points from this member\'s account.') }}
+                </flux:subheading>
+            </div>
+
+            <form wire:submit="submitLoyaltyAdjustment" class="space-y-4">
+                <flux:input 
+                    label="{{ __('Amount of Points') }}" 
+                    type="number" 
+                    wire:model="loyaltyAdjustmentAmount" 
+                    placeholder="e.g. 500"
+                    required
+                />
+
+                <flux:textarea 
+                    label="{{ __('Reason') }}" 
+                    wire:model="loyaltyAdjustmentReason" 
+                    placeholder="{{ __('Describe why you are adjusting these points...') }}"
+                    required
+                />
+
+                <div class="flex justify-end gap-2">
+                    <flux:modal.close>
+                        <flux:button variant="ghost">{{ __('Cancel') }}</flux:button>
+                    </flux:modal.close>
+                    <flux:button type="submit" variant="primary">
+                        {{ $loyaltyAdjustmentType === 'gift' ? __('Confirm Gift') : __('Confirm Refund') }}
+                    </flux:button>
+                </div>
+            </form>
+        </div>
+    </flux:modal>
+
     <livewire:admin.members.manage-family-flyout />
     <livewire:admin.members.edit-member-flyout />
 </section>

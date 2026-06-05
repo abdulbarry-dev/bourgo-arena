@@ -4,6 +4,7 @@ namespace App\Livewire\Admin\Members;
 
 use App\Models\Member;
 use App\Models\Plan;
+use App\Services\LoyaltyCalculatorService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -28,7 +29,7 @@ class MemberTable extends Component
 
     public string $hasValidSubscription = 'all';
 
-    public int $perPage = 7;
+    public int $perPage = 10;
 
     public bool $selectionEnabled = false;
 
@@ -45,6 +46,14 @@ class MemberTable extends Component
     public string $sortBy = 'name';
 
     public string $sortDirection = 'asc';
+
+    public bool $isLoyaltyAdjustmentModalOpen = false;
+
+    public string $loyaltyAdjustmentType = 'gift'; // 'gift' or 'refund'
+
+    public int $loyaltyAdjustmentAmount = 0;
+
+    public string $loyaltyAdjustmentReason = '';
 
     public function mount(bool $selectionEnabled = false): void
     {
@@ -210,6 +219,50 @@ class MemberTable extends Component
     {
         $this->actionMemberId = $id;
         $this->showDeleteModal = true;
+    }
+
+    public function openLoyaltyModal(int $memberId, string $type): void
+    {
+        $this->actionMemberId = $memberId;
+        $member = Member::findOrFail($memberId);
+        $this->authorize('update', $member);
+
+        $this->loyaltyAdjustmentType = $type;
+        $this->loyaltyAdjustmentAmount = 0;
+        $this->loyaltyAdjustmentReason = '';
+        $this->isLoyaltyAdjustmentModalOpen = true;
+    }
+
+    public function submitLoyaltyAdjustment(LoyaltyCalculatorService $calculator): void
+    {
+        $member = Member::findOrFail($this->actionMemberId);
+        $this->authorize('update', $member);
+
+        $this->validate([
+            'loyaltyAdjustmentAmount' => 'required|integer|min:1',
+            'loyaltyAdjustmentReason' => 'required|string|min:3|max:255',
+        ]);
+
+        $success = false;
+        if ($this->loyaltyAdjustmentType === 'gift') {
+            $success = $calculator->giftPoints($member, $this->loyaltyAdjustmentAmount, $this->loyaltyAdjustmentReason);
+        } else {
+            $success = $calculator->refundPoints($member, $this->loyaltyAdjustmentAmount, $this->loyaltyAdjustmentReason);
+        }
+
+        if ($success) {
+            $this->isLoyaltyAdjustmentModalOpen = false;
+            $this->dispatch('member-updated', memberId: $member->id);
+
+            $this->dispatch('toast',
+                type: 'success',
+                message: $this->loyaltyAdjustmentType === 'gift'
+                    ? __('Points gifted successfully.')
+                    : __('Points refunded successfully.')
+            );
+        } else {
+            $this->dispatch('toast', type: 'error', message: __('Failed to adjust points.'));
+        }
     }
 
     public function delete(): void

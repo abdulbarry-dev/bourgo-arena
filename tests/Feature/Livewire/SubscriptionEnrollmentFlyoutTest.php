@@ -15,6 +15,7 @@ test('manager can enroll pending member and activate access', function () {
     Storage::fake('local');
     config(['payment.receipts.disk' => 'local']);
     Queue::fake();
+    \Illuminate\Support\Facades\Notification::fake();
 
     $manager = User::factory()->manager()->create();
     $member = Member::factory()->create(['status' => 'pending']);

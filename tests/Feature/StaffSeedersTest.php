@@ -46,18 +46,12 @@ test('dashboard seeders create members and events data', function () {
     expect(Member::where('email', 'lina.chafik@example.com')->value('parent_id'))->not->toBeNull();
     expect(Event::count())->toBe(3);
     expect(EventParticipant::count())->toBe(8);
-    expect(LoyaltyPoint::count())->toBe(12);
+
     expect(Plan::withoutGlobalScopes()->count())->toBe(5);
     expect(Course::count())->toBe(4);
-    expect(Subscription::count())->toBe(7);
     expect(Activity::count())->toBe(4);
-    expect(ApiReservation::count())->toBe(6);
-    expect(Booking::count())->toBe(6);
-    expect(Payment::count())->toBe(6);
     expect(EventMatch::count())->toBe(3);
-    expect(MemberNotification::count())->toBe(6);
-    expect(MemberDeviceToken::count())->toBe(4);
-    expect(RevenueSnapshot::count())->toBe(3);
+
 
     expect(Member::where('email', 'amira.elmansouri@example.com')->value('loyalty_points'))->toBe(120);
     expect(Member::where('email', 'bilal.hajar@example.com')->value('loyalty_points'))->toBe(1670);

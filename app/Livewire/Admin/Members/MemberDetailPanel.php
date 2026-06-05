@@ -8,12 +8,14 @@ use App\Services\LoyaltyService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\View\View;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class MemberDetailPanel extends Component
 {
     use AuthorizesRequests;
 
+    #[Url(as: 'member')]
     public ?int $memberId = null;
 
     public ?Member $member = null;
@@ -96,6 +98,26 @@ class MemberDetailPanel extends Component
         if ($value === 'loyalty') {
             $this->loadLoyalty();
         }
+    }
+
+    public function updatedMemberId(?int $value): void
+    {
+        if ($value !== null) {
+            $this->loadMember($value);
+            $this->isDetailPanelOpen = true;
+        } else {
+            $this->isDetailPanelOpen = false;
+        }
+    }
+
+    #[On('member-updated')]
+    public function refreshFromMemberUpdated(int $memberId): void
+    {
+        if ($this->memberId !== null && $this->memberId !== $memberId) {
+            return;
+        }
+
+        $this->loadMember($memberId);
     }
 
     #[On('subscription-created')]

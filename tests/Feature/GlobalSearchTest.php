@@ -169,7 +169,18 @@ test('global search palette returns results for matching query', function () {
 
     Livewire::test(GlobalSearch::class)
         ->set('query', 'PaletteTestMember')
-        ->assertSee('PaletteTestMember');
+        ->assertSee('PaletteTestMember')
+        ->assertSee('member=');
+});
+
+test('global search palette member link includes ID', function () {
+    $this->actingAs(User::factory()->admin()->create());
+
+    $member = Member::factory()->create(['name' => 'LinkTestMember']);
+
+    Livewire::test(GlobalSearch::class)
+        ->set('query', 'LinkTestMember')
+        ->assertSee(route('admin.members', ['member' => $member->id]));
 });
 
 test('global search palette navigates to results page', function () {

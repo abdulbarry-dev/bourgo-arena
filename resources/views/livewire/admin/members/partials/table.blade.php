@@ -66,6 +66,22 @@
                                             </flux:menu.item>
                                         @endcan
 
+                                        <flux:menu.separator />
+
+                                        <flux:menu.item icon="gift" wire:click="openLoyaltyModal({{ $member->id }}, 'gift')">{{ __('Gift Loyalty Points') }}</flux:menu.item>
+                                        <flux:menu.item icon="arrow-uturn-left" wire:click="openLoyaltyModal({{ $member->id }}, 'refund')">{{ __('Refund Loyalty Points') }}</flux:menu.item>
+                                        
+                                        @if ($member->is_family_account)
+                                            @can('update', $member)
+                                                <flux:menu.separator />
+                                                <flux:menu.item icon="users" wire:click="$dispatch('open-manage-family-flyout', { memberId: {{ $member->id }} })">
+                                                    {{ __('Manage Family') }}
+                                                </flux:menu.item>
+                                            @endcan
+                                        @endif
+
+                                        <flux:menu.separator />
+
                                         @if ($member->status !== 'suspended')
                                             @can('suspend', $member)
                                                 <flux:menu.item icon="no-symbol" wire:click="confirmSuspend({{ $member->id }})">

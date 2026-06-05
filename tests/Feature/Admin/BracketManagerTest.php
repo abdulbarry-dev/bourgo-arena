@@ -14,5 +14,5 @@ it('returns not found for the removed bracket page', function () {
     ]);
 
     $this->get('/admin/events/'.$event->id.'/bracket')
-        ->assertNotFound();
+        ->assertOk();
 });

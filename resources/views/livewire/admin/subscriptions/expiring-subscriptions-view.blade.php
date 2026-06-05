@@ -66,13 +66,13 @@
 
     <x-ui.dashboard.panel class="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/30">
         <flux:text>
-            {{ __(':count subscriptions match the current filters and expire within the selected window. Reminders queued this session: :sent.', ['count' => $expiringSubscriptions->count(), 'sent' => $touchedCount]) }}
+            {{ __(':count subscriptions match the current filters and expire within the selected window. Reminders queued this session: :sent.', ['count' => $this->expiringSubscriptions->total(), 'sent' => $touchedCount]) }}
         </flux:text>
     </x-ui.dashboard.panel>
 
     <flux:error name="subscriptionId" />
 
-    <x-ui.dashboard.table-shell loading-targets="search,planId,daysWindow" :has-rows="$expiringSubscriptions->count() > 0">
+    <x-ui.dashboard.table-shell loading-targets="search,planId,daysWindow" :has-rows="$this->expiringSubscriptions->total() > 0">
         <x-slot name="loading">
             <flux:skeleton class="h-12 w-full" />
             <flux:skeleton class="h-12 w-full" />
@@ -99,7 +99,7 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-zinc-100 bg-white dark:divide-zinc-800 dark:bg-zinc-900/40">
-                @foreach ($expiringSubscriptions as $subscription)
+                @foreach ($this->expiringSubscriptions as $subscription)
                     <tr wire:key="expiring-subscription-{{ $subscription->id }}" class="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/70">
                         <td class="px-4 py-4 align-top">
                             <div class="flex items-center gap-3">
@@ -145,5 +145,11 @@
                 @endforeach
             </tbody>
         </table>
+
+        @if ($this->expiringSubscriptions->hasPages())
+            <x-slot name="pagination">
+                {{ $this->expiringSubscriptions->links() }}
+            </x-slot>
+        @endif
     </x-ui.dashboard.table-shell>
 </x-ui.dashboard.page-wrapper>

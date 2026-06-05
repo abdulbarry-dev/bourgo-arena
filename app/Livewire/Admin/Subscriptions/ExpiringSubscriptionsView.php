@@ -8,21 +8,22 @@ use App\Models\Subscription;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\View\View;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Session;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class ExpiringSubscriptionsView extends Component
 {
     use AuthorizesRequests;
-
-    /**
-     * @var Collection<int, Subscription>
-     */
-    public Collection $expiringSubscriptions;
+    use WithPagination;
 
     public Collection $plans;
+
+    public int $perPage = 10;
 
     #[Session]
     public string $search = '';
@@ -50,34 +51,38 @@ class ExpiringSubscriptionsView extends Component
         $this->authorize('viewAny', Subscription::class);
 
         $this->plans = Plan::query()->orderBy('name')->get();
-
-        $this->loadExpiringSubscriptions();
     }
 
     #[On('subscription-updated')]
-    public function loadExpiringSubscriptions(): void
+    public function refreshList(): void
+    {
+        // Handled by computed property refresh
+    }
+
+    #[Computed]
+    public function expiringSubscriptions(): LengthAwarePaginator
     {
         $this->authorize('viewAny', Subscription::class);
 
-        $this->expiringSubscriptions = $this->filteredQuery()
+        return $this->filteredQuery()
             ->with(['member', 'plan'])
             ->orderBy('ends_at')
-            ->get();
+            ->paginate($this->perPage);
     }
 
     public function updatedSearch(): void
     {
-        $this->loadExpiringSubscriptions();
+        $this->resetPage();
     }
 
     public function updatedPlanId(): void
     {
-        $this->loadExpiringSubscriptions();
+        $this->resetPage();
     }
 
     public function updatedDaysWindow(): void
     {
-        $this->loadExpiringSubscriptions();
+        $this->resetPage();
     }
 
     public function sendReminder(int $subscriptionId): void
@@ -137,7 +142,6 @@ class ExpiringSubscriptionsView extends Component
             $count++;
         }
 
-        $this->expiringSubscriptions = $subscriptions;
         $this->touchedCount += $count;
 
         if ($count === 0) {
