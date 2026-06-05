@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 interface PaymentProviderInterface extends PaymentGatewayInterface
 {
     /**
-     * Get the unique name/slug of the provider (e.g., 'konnect', 'flouci').
+     * Get the unique name/slug of the provider (e.g., 'konnect').
      */
     public function getName(): string;
 

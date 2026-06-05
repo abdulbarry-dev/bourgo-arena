@@ -45,9 +45,9 @@ test('payment audit service encrypts sensitive payloads at rest', function () {
     $payment = Payment::factory()->create([
         'amount' => 20.100,
         'currency' => 'TND',
-        'driver' => 'flouci',
+        'driver' => 'konnect',
         'status' => 'paid',
-        'payment_reference' => 'flouci_ref_987',
+        'payment_reference' => 'konnect_ref_987',
     ]);
 
     $entry = app(PaymentAuditService::class)->log($payment, [

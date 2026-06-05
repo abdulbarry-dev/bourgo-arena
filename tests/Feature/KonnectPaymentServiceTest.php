@@ -62,7 +62,6 @@ test('konnect payment service initiates payments against the sandbox network end
     Http::assertSent(function ($request): bool {
         return $request->url() === 'https://api.sandbox.konnect.network/api/v2/payments/init-payment'
             && $request['amount'] === 12500
-            && $request['token'] === 'order-123'
             && $request['orderId'] === 'order-123';
     });
 

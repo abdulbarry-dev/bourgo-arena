@@ -17,7 +17,7 @@ class AuditLogs extends Component
 
     public string $status = '';
 
-    public int $perPage = 20;
+    public int $perPage = 10;
 
     public bool $showExportConfirmModal = false;
 

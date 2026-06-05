@@ -25,13 +25,7 @@ class KonnectProvider implements PaymentProviderInterface
 
     public function initiatePayment(Payment $payment, array $options = []): array
     {
-        $result = $this->service->initiatePayment($this->buildPayload($payment, $options));
-
-        if (($result['success'] ?? false) === false && ($result['error'] ?? null) === 'Konnect API credentials not configured') {
-            throw new \RuntimeException('Konnect API credentials not configured');
-        }
-
-        return $result;
+        return $this->service->initiatePayment($this->buildPayload($payment, $options));
     }
 
     public function initiate(Payment $payment, array $options = []): array
@@ -41,13 +35,7 @@ class KonnectProvider implements PaymentProviderInterface
 
     public function verifyPayment(string $transactionId): array
     {
-        $result = $this->service->verifyPayment($transactionId);
-
-        if (($result['success'] ?? false) === false && ($result['error'] ?? null) === 'Konnect API credentials not configured') {
-            throw new \RuntimeException('Konnect API credentials not configured');
-        }
-
-        return $result;
+        return $this->service->verifyPayment($transactionId);
     }
 
     public function verify(string $transactionId): array

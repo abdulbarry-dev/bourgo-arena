@@ -27,6 +27,8 @@ class KonnectPaymentService
 
         $requestPayload = $this->buildInitiationPayload($payload);
 
+        Log::debug('Konnect Initiation Request', ['url' => $this->baseUrl().'/payments/init-payment', 'payload' => $requestPayload]);
+
         try {
             $response = $this->http()->post($this->baseUrl().'/payments/init-payment', $requestPayload);
         } catch (Throwable $exception) {
@@ -38,6 +40,11 @@ class KonnectPaymentService
         $responsePayload = $response->json();
 
         if (! $response->successful()) {
+            Log::error('Konnect Initiation Failed', [
+                'status' => $response->status(),
+                'payload' => $requestPayload,
+                'response' => $responsePayload,
+            ]);
             $this->audit('failed', $requestPayload, $responsePayload, $payload);
 
             return $this->fail($this->responseMessage($responsePayload, 'Payment initiation failed'));
@@ -112,26 +119,44 @@ class KonnectPaymentService
             ->timeout((int) config('payment.webhooks.timeout', 30))
             ->retry([200, 500, 1000], throw: false)
             ->withHeaders([
-                'Authorization' => 'Bearer '.$this->apiKey(),
+                'x-api-key' => $this->apiKey(),
             ]);
     }
 
     private function buildInitiationPayload(array $payload): array
     {
         $amount = (float) ($payload['amount'] ?? 0);
+        $user = $payload['user'] ?? Arr::only($payload, ['user_name', 'user_email', 'user_phone']);
+
+        $customer = null;
+        if (! empty($user)) {
+            $name = $user['name'] ?? $user['user_name'] ?? 'Customer User';
+            $parts = explode(' ', (string) $name, 2);
+
+            $customer = array_filter([
+                'firstname' => trim($parts[0] ?? 'Customer'),
+                'lastname' => trim($parts[1] ?? 'User'),
+                'email' => $user['email'] ?? $user['user_email'] ?? 'customer@example.com',
+                'phoneNumber' => $user['phone'] ?? $user['user_phone'] ?? null,
+            ]);
+        }
+
+        $webhookUrl = $payload['webhook_url'] ?? rtrim((string) config('app.url'), '/').'/api/v1/payments/webhook/konnect';
+        if ($this->sandbox() && str_contains($webhookUrl, 'localhost')) {
+            $webhookUrl = null;
+        }
 
         return array_filter([
             'receiverWalletId' => $this->apiSecret(),
             'amount' => intval($amount * 1000),
-            'currency' => strtoupper((string) ($payload['currency'] ?? 'TND')),
-            'token' => $payload['order_id'] ?? $payload['payment_reference'] ?? $payload['transaction_reference'] ?? null,
-            'orderId' => $payload['order_id'] ?? $payload['payment_reference'] ?? $payload['transaction_reference'] ?? null,
+            'currency' => 'TND',
+            'orderId' => (string) ($payload['order_id'] ?? $payload['payment_reference'] ?? $payload['transaction_reference'] ?? Str::random(12)),
             'successUrl' => $payload['success_url'] ?? config('app.url'),
             'failureUrl' => $payload['failure_url'] ?? config('app.url'),
-            'webhookUrl' => $payload['webhook_url'] ?? rtrim((string) config('app.url'), '/').'/api/v1/payments/webhook/konnect',
+            'webhookUrl' => $webhookUrl,
             'description' => $payload['description'] ?? 'Payment',
             'type' => $payload['type'] ?? 'immediate',
-            'customer' => $payload['user'] ?? Arr::only($payload, ['user_name', 'user_email', 'user_phone']),
+            'customer' => $customer,
         ], static fn (mixed $value): bool => $value !== null && $value !== [] && $value !== '');
     }
 

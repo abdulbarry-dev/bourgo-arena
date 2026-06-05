@@ -29,11 +29,6 @@ return [
             'sandbox' => env('KONNECT_SANDBOX', true),
             'webhook_secret' => env('KONNECT_WEBHOOK_SECRET'),
         ],
-        'flouci' => [
-            'app_token' => env('FLOUCI_APP_TOKEN'),
-            'app_secret' => env('FLOUCI_APP_SECRET'),
-            'sandbox' => env('FLOUCI_SANDBOX', true),
-        ],
     ],
 
     // Legacy fallback for tests/old implementations
@@ -57,7 +52,7 @@ return [
     'methods' => [
         'cash' => true,
         'konnect' => true,
-        'flouci' => true,
+        'test' => true,
     ],
 
     'initiate_per_minute' => env('PAYMENT_INITIATE_PER_MINUTE', 10),

@@ -22,7 +22,7 @@ class InitiatePaymentRequest extends FormRequest
             'currency' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
             'type' => ['nullable', 'string'],
-            'provider' => ['nullable', 'string', 'in:konnect,flouci'],
+            'provider' => ['nullable', 'string', 'in:konnect,test'],
         ];
     }
 

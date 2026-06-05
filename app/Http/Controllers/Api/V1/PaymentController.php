@@ -81,7 +81,7 @@ class PaymentController extends Controller
     }
 
     /**
-     * Webhook endpoint for Konnect callbacks.
+     * Webhook endpoint for gateway callbacks.
      */
     public function webhook(Request $request, string $provider): JsonResponse
     {
