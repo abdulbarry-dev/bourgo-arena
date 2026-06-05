@@ -116,7 +116,7 @@ class EventParticipants extends Component
                 $query->where('team_id', $this->teamFilter);
             })
             ->latest()
-            ->paginate(15);
+            ->paginate(10);
 
         return view('livewire.admin.events.event-participants', [
             'participants' => $participants,

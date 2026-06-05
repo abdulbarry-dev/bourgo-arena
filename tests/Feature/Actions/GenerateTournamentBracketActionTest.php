@@ -9,7 +9,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 it('generates a bracket for exactly 4 participants', function () {
-    $event = Event::factory()->create();
+    $event = Event::factory()->create(['requires_check_in' => false]);
 
     // Create 4 participants
     for ($i = 0; $i < 4; $i++) {
@@ -17,12 +17,12 @@ it('generates a bracket for exactly 4 participants', function () {
         EventParticipant::factory()->create(['event_id' => $event->id, 'user_id' => $user->id]);
     }
 
-    $action = new GenerateTournamentBracketAction();
+    $action = new GenerateTournamentBracketAction;
     $action->execute($event);
 
     // 4 participants -> 2 matches in round 1, 1 match in round 2
     expect($event->matches()->count())->toBe(3);
-    
+
     $round1Matches = $event->matches()->where('round', 1)->get();
     expect($round1Matches->count())->toBe(2);
 
@@ -39,7 +39,7 @@ it('generates a bracket for exactly 4 participants', function () {
 });
 
 it('generates a bracket for 3 participants and assigns 1 bye', function () {
-    $event = Event::factory()->create();
+    $event = Event::factory()->create(['requires_check_in' => false]);
 
     // Create 3 participants
     for ($i = 0; $i < 3; $i++) {
@@ -47,7 +47,7 @@ it('generates a bracket for 3 participants and assigns 1 bye', function () {
         EventParticipant::factory()->create(['event_id' => $event->id, 'user_id' => $user->id]);
     }
 
-    $action = new GenerateTournamentBracketAction();
+    $action = new GenerateTournamentBracketAction;
     $action->execute($event);
 
     // Next power of 2 is 4, so it builds a bracket of 4.
@@ -68,18 +68,20 @@ it('generates a bracket for 3 participants and assigns 1 bye', function () {
             expect($match->winner_id)->toBe($match->participant1_id);
         }
     }
-    
+
     expect($byes)->toBe(1);
 });
 
 it('deletes old matches when regenerating a bracket', function () {
-    $event = Event::factory()->create();
+    $event = Event::factory()->create(['requires_check_in' => false]);
 
-    $user = User::factory()->create();
-    EventParticipant::factory()->create(['event_id' => $event->id, 'user_id' => $user->id]);
+    for ($i = 0; $i < 2; $i++) {
+        $user = User::factory()->create();
+        EventParticipant::factory()->create(['event_id' => $event->id, 'user_id' => $user->id]);
+    }
 
-    $action = new GenerateTournamentBracketAction();
-    
+    $action = new GenerateTournamentBracketAction;
+
     // First generation (will just make 1 match since it needs at least power of 2=2)
     $action->execute($event);
     $firstMatchId = $event->matches()->first()->id;

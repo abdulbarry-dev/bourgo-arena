@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Api\V1;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Str;
 
 class EventResource extends JsonResource
 {
@@ -15,9 +16,10 @@ class EventResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
+            'id' => (string) $this->id,
             'name' => $this->name,
             'description' => $this->description,
+            'images' => collect($this->images)->map(fn ($path) => Str::startsWith($path, 'http') ? $path : asset('storage/'.$path)),
             'format' => $this->format,
             'max_participants' => $this->max_participants,
             'participants_count' => $this->whenCounted('participants'),

@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Api\V1\EventResource;
 use App\Http\Resources\EventMatchResource;
-use App\Http\Resources\EventResource;
 use App\Models\Event;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class EventController extends Controller
 {
@@ -34,7 +35,7 @@ class EventController extends Controller
     {
         $cacheKey = "event.{$event->id}.bracket";
 
-        $formattedBracket = \Illuminate\Support\Facades\Cache::remember($cacheKey, now()->addHours(24), function () use ($event) {
+        $formattedBracket = Cache::remember($cacheKey, now()->addHours(24), function () use ($event) {
             $matches = $event->matches()
                 ->with(['participant1.user', 'participant1.team', 'participant2.user', 'participant2.team'])
                 ->orderBy('round', 'asc')

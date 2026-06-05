@@ -76,64 +76,133 @@
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             @foreach ($events as $event)
                 <div wire:key="event-card-{{ $event->id }}" class="group relative flex flex-col rounded-2xl bg-white p-5 shadow-sm transition-all hover:shadow-md dark:bg-zinc-900/40">
-                    {{-- Header --}}
-                    <div class="flex items-start justify-between gap-3">
-                        <div class="flex min-w-0 items-center gap-3">
-                            <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-600 dark:bg-orange-950/30 dark:text-orange-400">
-                                <flux:icon name="trophy" variant="mini" class="size-5" />
+                    {{-- Header with Carousel --}}
+                    @php
+                        $carouselImages = collect($event->images ?? [])
+                            ->whenEmpty(fn($c) => $event->image_url ? collect([$event->image_url]) : $c)
+                            ->values()
+                            ->map(fn($p) => Str::startsWith($p, ['http', '/storage']) ? $p : asset('storage/'.$p))
+                            ->toArray();
+                    @endphp
+                    <div class="relative overflow-hidden rounded-xl mb-4 group/carousel" x-data="{ 
+                        active: 0, 
+                        images: {{ json_encode($carouselImages) }},
+                        next() { if(this.images.length) this.active = (this.active + 1) % this.images.length },
+                        prev() { if(this.images.length) this.active = (this.active - 1 + this.images.length) % this.images.length },
+                        init() { if(this.images.length > 1) setInterval(() => this.next(), 5000) }
+                    }">
+                        @if(!empty($carouselImages))
+                            <div class="relative aspect-video w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+                                <template x-for="(img, idx) in images" :key="'evt-card-'+idx">
+                                    <div 
+                                        x-show="active === idx" 
+                                        x-transition:enter="transition ease-out duration-700"
+                                        x-transition:enter-start="opacity-0 scale-105"
+                                        x-transition:enter-end="opacity-100 scale-100"
+                                        x-transition:leave="transition ease-in duration-500"
+                                        x-transition:leave-start="opacity-100"
+                                        x-transition:leave-end="opacity-0"
+                                        class="absolute inset-0 h-full w-full"
+                                    >
+                                        <img :src="img" class="h-full w-full object-cover" loading="lazy">
+                                    </div>
+                                </template>
+
+                                @if(count($carouselImages) > 1)
+                                    <div class="absolute inset-0 flex items-center justify-between px-3 opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-300 pointer-events-none">
+                                        <button @click.stop="prev" class="pointer-events-auto flex size-8 items-center justify-center rounded-full bg-black/20 text-white shadow-sm ring-1 ring-white/10 hover:bg-black/40 transition-all backdrop-blur-md dark:bg-white/10 dark:hover:bg-white/20">
+                                            <flux:icon name="chevron-left" variant="mini" class="size-4" />
+                                        </button>
+                                        <button @click.stop="next" class="pointer-events-auto flex size-8 items-center justify-center rounded-full bg-black/20 text-white shadow-sm ring-1 ring-white/10 hover:bg-black/40 transition-all backdrop-blur-md dark:bg-white/10 dark:hover:bg-white/20">
+                                            <flux:icon name="chevron-right" variant="mini" class="size-4" />
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5 p-1 rounded-full bg-black/20 backdrop-blur-xs">
+                                        <template x-for="(img, idx) in images" :key="'evt-dot-'+idx">
+                                            <button 
+                                                @click.stop="active = idx"
+                                                :class="active === idx ? 'bg-white w-4' : 'bg-white/40 w-1.5 hover:bg-white/60'" 
+                                                class="h-1.5 rounded-full transition-all duration-300"
+                                            ></button>
+                                        </template>
+                                    </div>
+                                @endif
                             </div>
-                            <div class="min-w-0 overflow-hidden">
-                                <h3 class="truncate font-semibold text-zinc-900 dark:text-zinc-100">{{ $event->name }}</h3>
-                                <div class="mt-0.5 truncate">
-                                    @if($event->service)
-                                        <flux:badge size="sm" color="blue" inset="top bottom">{{ $event->service->name }}</flux:badge>
-                                    @else
-                                        <span class="text-xs italic text-zinc-400">{{ __('N/A') }}</span>
-                                    @endif
-                                </div>
+                        @else
+                            <div class="flex aspect-video w-full items-center justify-center bg-orange-50 text-orange-600 dark:bg-orange-950/30 dark:text-orange-400">
+                                <flux:icon name="trophy" class="size-12 opacity-20" />
+                            </div>
+                        @endif
+
+                        {{-- Event Info Overlay --}}
+                        <div class="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/60 to-transparent p-4 text-white">
+                            <h3 class="truncate font-semibold">{{ $event->name }}</h3>
+                            <div class="mt-1 flex items-center gap-2">
+                                @if($event->service)
+                                    <span class="text-xs font-medium text-blue-200">{{ $event->service->name }}</span>
+                                @endif
+                                <span class="text-zinc-300">·</span>
+                                <span class="text-xs">{{ $event->format }}</span>
                             </div>
                         </div>
 
-                        <flux:dropdown position="bottom" align="end">
-                            <flux:button
-                                variant="ghost"
-                                size="sm"
-                                icon="ellipsis-horizontal"
-                                class="!px-2"
-                                aria-label="{{ __('Open actions for :name', ['name' => $event->name]) }}"
-                            />
-                            <flux:menu>
-                                <flux:menu.item icon="pencil-square" wire:click="edit({{ $event->id }})">
-                                    {{ __('Edit Event') }}
-                                </flux:menu.item>
-                                <flux:menu.item icon="users" href="{{ route('admin.events.participants', $event->id) }}">
-                                    {{ __('Participants') }}
-                                </flux:menu.item>
-                                <flux:menu.item icon="trophy" href="{{ route('admin.events.bracket', $event->id) }}">
-                                    {{ __('Bracket') }}
-                                </flux:menu.item>
-                                <flux:menu.separator />
-                                @if(in_array($event->status, ['draft', 'open']))
-                                    <flux:menu.item icon="x-circle" wire:click="openCancelModal({{ $event->id }})" variant="danger">
-                                        {{ __('Cancel Event') }}
+                        <div class="absolute right-2 top-2">
+                            <flux:dropdown position="bottom" align="end">
+                                <flux:button
+                                    variant="ghost"
+                                    size="sm"
+                                    icon="ellipsis-horizontal"
+                                    class="!px-2 text-white hover:bg-white/20"
+                                    aria-label="{{ __('Open actions for :name', ['name' => $event->name]) }}"
+                                />
+                                <flux:menu>
+                                    <flux:menu.item icon="pencil-square" wire:click="edit({{ $event->id }})">
+                                        {{ __('Edit Event') }}
                                     </flux:menu.item>
-                                @endif
-                                <flux:menu.item icon="trash" wire:click="openDeleteModal({{ $event->id }})" variant="danger">
-                                    {{ __('Delete Event') }}
-                                </flux:menu.item>
-                            </flux:menu>
-                        </flux:dropdown>
+                                    <flux:menu.item icon="users" href="{{ route('admin.events.participants', $event->id) }}">
+                                        {{ __('Participants') }}
+                                    </flux:menu.item>
+                                    <flux:menu.item icon="trophy" href="{{ route('admin.events.bracket', $event->id) }}">
+                                        {{ __('Bracket') }}
+                                    </flux:menu.item>
+                                    <flux:menu.separator />
+                                    @if(in_array($event->status, ['draft', 'open']))
+                                        <flux:menu.item icon="x-circle" wire:click="openCancelModal({{ $event->id }})" variant="danger">
+                                            {{ __('Cancel Event') }}
+                                        </flux:menu.item>
+                                    @endif
+                                    <flux:menu.item icon="trash" wire:click="openDeleteModal({{ $event->id }})" variant="danger">
+                                        {{ __('Delete Event') }}
+                                    </flux:menu.item>
+                                </flux:menu>
+                            </flux:dropdown>
+                        </div>
                     </div>
 
+                    {{-- Removed redundant Header --}}
+
                     {{-- Info Grid --}}
-                    <div class="mt-5 grid grid-cols-2 gap-2 py-3">
-                        <div class="text-center">
-                            <div class="text-[10px] font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{{ __('Format') }}</div>
-                            <div class="mt-1 text-sm font-bold text-zinc-900 dark:text-zinc-100">{{ $event->format }}</div>
+                    <div class="grid grid-cols-2 gap-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
+                        <div class="flex items-center gap-2">
+                            <div class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+                                <flux:icon name="users" variant="mini" class="size-4" />
+                            </div>
+                            <div class="min-w-0">
+                                <div class="text-[10px] font-medium uppercase tracking-wider text-zinc-500">{{ __('Participants') }}</div>
+                                <div class="text-sm font-bold text-zinc-900 dark:text-zinc-100">{{ $event->participants_count }} / {{ $event->max_participants }}</div>
+                            </div>
                         </div>
-                        <div class="text-center">
-                            <div class="text-[10px] font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{{ __('Participants') }}</div>
-                            <div class="mt-1 text-sm font-bold text-zinc-900 dark:text-zinc-100">{{ $event->participants_count }} / {{ $event->max_participants }}</div>
+                        <div class="flex items-center gap-2">
+                            <div class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+                                <flux:icon name="clock" variant="mini" class="size-4" />
+                            </div>
+                            <div class="min-w-0">
+                                <div class="text-[10px] font-medium uppercase tracking-wider text-zinc-500">{{ __('Deadline') }}</div>
+                                <div class="text-sm font-bold text-zinc-900 dark:text-zinc-100 truncate">
+                                    {{ $event->registration_deadline ? $event->registration_deadline->format('M d') : '-' }}
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -164,7 +233,7 @@
                             }"
                         />
 
-                        <flux:button variant="ghost" size="sm" href="{{ route('admin.events.participants', $event->id) }}">
+                        <flux:button variant="ghost" size="sm" wire:click="openViewModal({{ $event->id }})">
                             {{ __('Details') }}
                         </flux:button>
                     </div>
@@ -180,6 +249,7 @@
     </x-ui.dashboard.table-shell>
 
     @include('livewire.admin.events.partials.modals.form-modal')
+    @include('livewire.admin.events.partials.modals.view-modal')
 
     <flux:modal name="cancel-event-modal" class="min-w-[22rem]">
         <div class="space-y-6">

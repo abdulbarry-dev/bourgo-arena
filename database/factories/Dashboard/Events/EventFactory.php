@@ -19,6 +19,11 @@ class EventFactory extends Factory
             'service_id' => Service::factory(),
             'name' => fake()->words(3, true).' Championship',
             'description' => fake()->sentence(),
+            'images' => [
+                'https://picsum.photos/seed/'.fake()->uuid.'/800/600',
+                'https://picsum.photos/seed/'.fake()->uuid.'/800/600',
+                'https://picsum.photos/seed/'.fake()->uuid.'/800/600',
+            ],
             'format' => fake()->randomElement(['1v1', '2v2', '5v5']),
             'max_participants' => fake()->randomElement([8, 16, 32]),
             'registration_deadline' => now()->addDays(5),

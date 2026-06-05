@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('events', function (Blueprint $table) {
@@ -16,19 +13,21 @@ return new class extends Migration
             $table->foreignId('service_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->text('description')->nullable();
+            $table->json('images')->nullable();
             $table->string('format')->default('1v1');
             $table->integer('max_participants');
             $table->dateTime('registration_deadline')->nullable();
             $table->dateTime('start_date')->nullable();
             $table->dateTime('end_date')->nullable();
             $table->boolean('requires_check_in')->default(false);
+            $table->timestamp('canceled_at')->nullable();
             $table->timestamps();
+            $table->softDeletes();
+
+            $table->index(['start_date', 'end_date']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('events');

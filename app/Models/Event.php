@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Events\EventCanceled;
 use Database\Factories\Dashboard\Events\EventFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,7 +10,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Events\EventCanceled;
 
 class Event extends Model
 {
@@ -22,9 +22,9 @@ class Event extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'service_id', 'name', 'description', 'format', 'max_participants',
+        'service_id', 'name', 'description', 'images', 'format', 'max_participants',
         'registration_deadline', 'start_date', 'end_date', 'requires_check_in',
-        'canceled_at'
+        'canceled_at',
     ];
 
     protected function casts(): array
@@ -35,6 +35,7 @@ class Event extends Model
             'end_date' => 'datetime',
             'canceled_at' => 'datetime',
             'requires_check_in' => 'boolean',
+            'images' => 'array',
         ];
     }
 

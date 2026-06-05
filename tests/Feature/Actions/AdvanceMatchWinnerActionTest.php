@@ -28,7 +28,7 @@ it('advances a winner to the next match', function () {
         'next_match_id' => $nextMatch->id,
     ]);
 
-    $action = new AdvanceMatchWinnerAction();
+    $action = new AdvanceMatchWinnerAction;
     $action->execute($currentMatch, $participant1->id, '2-1');
 
     $currentMatch->refresh();
@@ -57,7 +57,7 @@ it('fails if the winner is not part of the match', function () {
         'participant2_id' => $participant2->id,
     ]);
 
-    $action = new AdvanceMatchWinnerAction();
-    
+    $action = new AdvanceMatchWinnerAction;
+
     $action->execute($currentMatch, $randomParticipant->id);
-})->throws(Exception::class, 'The selected winner is not part of this match.');
+})->throws(Exception::class, 'The specified winner is not a participant in this match.');

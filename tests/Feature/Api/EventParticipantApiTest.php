@@ -18,7 +18,7 @@ it('allows an authenticated user to register for an event', function () {
 
     Sanctum::actingAs($user);
 
-    $response = $this->postJson("/api/events/{$event->id}/register");
+    $response = $this->postJson("/api/v1/events/{$event->id}/register");
 
     $response->assertStatus(201)
         ->assertJsonPath('status', 'approved');
@@ -45,7 +45,7 @@ it('waitlists user if event is full', function () {
 
     Sanctum::actingAs($user);
 
-    $response = $this->postJson("/api/events/{$event->id}/register");
+    $response = $this->postJson("/api/v1/events/{$event->id}/register");
 
     $response->assertStatus(201)
         ->assertJsonPath('status', 'waitlisted');
@@ -74,7 +74,7 @@ it('allows an authenticated user to withdraw and auto-promotes waitlist', functi
 
     Sanctum::actingAs($user);
 
-    $response = $this->postJson("/api/events/{$event->id}/withdraw");
+    $response = $this->postJson("/api/v1/events/{$event->id}/withdraw");
 
     $response->assertStatus(200);
 

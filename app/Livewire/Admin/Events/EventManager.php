@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\Events;
 
+use App\Events\EventDeleted;
 use App\Models\Event;
 use App\Models\Service;
 use Flux\Flux;
@@ -9,11 +10,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
 class EventManager extends Component
 {
-    use WithPagination;
+    use WithFileUploads, WithPagination;
 
     public $search = '';
 
@@ -25,7 +27,15 @@ class EventManager extends Component
     public $editingEventId = null;
 
     public ?Event $eventToCancel = null;
+
     public ?Event $eventToDelete = null;
+
+    public ?Event $eventToView = null;
+
+    public $imageToDeleteIndex = null;
+
+    public $isNewImageDeletion = false;
+
     public $deleteConfirmName = '';
 
     public ?int $service_id = null;
@@ -36,15 +46,21 @@ class EventManager extends Component
 
     public $format = '1v1';
 
-    public $max_participants = 16;
-
-    public $requires_check_in = false;
+    public $max_participants = 2;
 
     public $registration_deadline = null;
 
     public $start_date = null;
 
     public $end_date = null;
+
+    public $requires_check_in = false;
+
+    public $images = []; // Existing image paths
+
+    public $newImages = []; // Persistent collection of new uploads (temporary files)
+
+    public $uploadQueue = []; // Temporary target for the latest file selection
 
     public function updatedSearch()
     {
@@ -54,6 +70,73 @@ class EventManager extends Component
     public function updatedServiceIdFilter()
     {
         $this->resetPage();
+    }
+
+    public function updatedUploadQueue()
+    {
+        $this->validate([
+            'uploadQueue.*' => 'image|max:2048', // 2MB Max
+        ]);
+
+        foreach ($this->uploadQueue as $file) {
+            if (count($this->images) + count($this->newImages) < 3) {
+                $this->newImages[] = $file;
+            } else {
+                Flux::toast('Maximum of 3 images allowed.', variant: 'danger');
+                break;
+            }
+        }
+
+        $this->dispatch('clear-upload-queue');
+    }
+
+    #[On('clear-upload-queue')]
+    public function clearUploadQueue()
+    {
+        $this->uploadQueue = [];
+    }
+
+    public function confirmImageDeletion($index, $isNew = false)
+    {
+        $this->imageToDeleteIndex = $index;
+        $this->isNewImageDeletion = $isNew;
+        Flux::modal('confirm-image-delete')->show();
+    }
+
+    public function executeImageDeletion()
+    {
+        if ($this->isNewImageDeletion) {
+            array_splice($this->newImages, $this->imageToDeleteIndex, 1);
+        } else {
+            array_splice($this->images, $this->imageToDeleteIndex, 1);
+        }
+
+        $this->closeImageDeleteModal();
+    }
+
+    public function closeImageDeleteModal()
+    {
+        Flux::modal('confirm-image-delete')->close();
+        $this->imageToDeleteIndex = null;
+        $this->isNewImageDeletion = false;
+    }
+
+    public function clearNewImages()
+    {
+        $this->newImages = [];
+        $this->uploadQueue = [];
+    }
+
+    public function openViewModal(Event $event)
+    {
+        $this->eventToView = $event;
+        Flux::modal('view-event-modal')->show();
+    }
+
+    public function closeViewModal()
+    {
+        Flux::modal('view-event-modal')->close();
+        $this->eventToView = null;
     }
 
     public function openCreateModal()
@@ -75,6 +158,7 @@ class EventManager extends Component
             'name' => 'required|string|max:255',
             'format' => 'required|string',
             'max_participants' => 'required|integer|min:2',
+            'newImages.*' => 'image|max:2048',
         ]);
 
         if (! Service::where('id', $this->service_id)->exists()) {
@@ -82,10 +166,17 @@ class EventManager extends Component
         }
 
         DB::transaction(function (): void {
+            $imagePaths = $this->images;
+
+            foreach ($this->newImages as $image) {
+                $imagePaths[] = $image->store('events', 'public');
+            }
+
             $eventData = [
                 'service_id' => $this->service_id,
                 'name' => $this->name,
                 'description' => $this->description,
+                'images' => $imagePaths,
                 'format' => $this->format,
                 'max_participants' => $this->max_participants,
                 'requires_check_in' => $this->requires_check_in,
@@ -112,6 +203,9 @@ class EventManager extends Component
         $this->service_id = $event->service_id;
         $this->name = $event->name;
         $this->description = $event->description;
+        $this->images = $event->images ?? [];
+        $this->newImages = []; // Clear any temporary uploads
+        $this->uploadQueue = [];
         $this->format = $event->format;
         $this->max_participants = $event->max_participants;
         $this->requires_check_in = $event->requires_check_in;
@@ -125,16 +219,17 @@ class EventManager extends Component
     private function resetForm()
     {
         $this->reset([
-            'editingEventId', 'service_id', 'name', 'description', 'format',
+            'editingEventId', 'service_id', 'name', 'description', 'images', 'newImages', 'uploadQueue', 'format',
             'max_participants', 'requires_check_in', 'registration_deadline',
-            'start_date', 'end_date', 'eventToCancel', 'eventToDelete', 'deleteConfirmName'
+            'start_date', 'end_date', 'eventToCancel', 'eventToDelete', 'deleteConfirmName',
         ]);
     }
 
     public function openCancelModal(Event $event)
     {
-        if (!in_array($event->status, ['draft', 'open'])) {
+        if (! in_array($event->status, ['draft', 'open'])) {
             Flux::toast('Only draft or open events can be canceled.', variant: 'danger');
+
             return;
         }
 
@@ -164,10 +259,11 @@ class EventManager extends Component
     {
         if ($this->eventToDelete && $this->deleteConfirmName === $this->eventToDelete->name) {
             $this->eventToDelete->delete();
-            event(new \App\Events\EventDeleted($this->eventToDelete));
+            event(new EventDeleted($this->eventToDelete));
             Flux::toast('Event deleted successfully.', variant: 'success');
         } else {
             Flux::toast('Event name does not match.', variant: 'danger');
+
             return;
         }
 
