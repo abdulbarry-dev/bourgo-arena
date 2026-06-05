@@ -16,12 +16,14 @@ class Service extends Model
         'slug',
         'description',
         'image_url',
+        'images',
         'status',
         'archived_at',
     ];
 
     protected $casts = [
         'archived_at' => 'datetime',
+        'images' => 'array',
     ];
 
     public function scopeActive($query)

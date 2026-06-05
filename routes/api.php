@@ -37,7 +37,6 @@ Route::prefix('v1')->group(function () {
 
     Route::get('courses', [CourseController::class, 'index'])->name('api.v1.courses.index');
     Route::get('courses/{course}', [CourseController::class, 'show'])->name('api.v1.courses.show');
-    Route::get('courses/{course}/sessions', [CourseController::class, 'sessions'])->name('api.v1.courses.sessions');
 
     Route::get('events', [EventController::class, 'index'])->name('api.v1.events.index');
     Route::get('events/{event}', [EventController::class, 'show'])->name('api.v1.events.show');
@@ -100,6 +99,10 @@ Route::prefix('v1')->group(function () {
 
         Route::get('member/tier', [TierController::class, 'show'])->name('api.v1.member.tier');
         Route::get('loyalty/balance', [LoyaltyController::class, 'balance'])->name('api.v1.loyalty.balance');
+
+        Route::get('courses/{course}/sessions', [CourseController::class, 'sessions'])
+            ->middleware('course.access')
+            ->name('api.v1.courses.sessions');
 
         Route::prefix('family')->group(function () {
             Route::get('children', [FamilyController::class, 'index'])->name('api.v1.family.children.index');

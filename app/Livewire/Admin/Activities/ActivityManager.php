@@ -4,6 +4,7 @@ namespace App\Livewire\Admin\Activities;
 
 use App\Models\Activity;
 use App\Models\Service;
+use Flux\Flux;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\View\View;
@@ -35,6 +36,10 @@ class ActivityManager extends Component
 
     public ?int $detailActivityId = null;
 
+    public $imageToDeleteIndex = null;
+
+    public $isNewImageDeletion = false;
+
     public string $title = '';
 
     public string $category = '';
@@ -45,9 +50,78 @@ class ActivityManager extends Component
 
     public string $featuresInput = '';
 
-    public array $images = [];
+    public array $images = []; // Existing image paths
+
+    public $newImages = []; // Persistent collection of new uploads (temporary files)
+
+    public $uploadQueue = []; // Temporary target for the latest file selection
 
     public bool $isActive = true;
+
+    public function updatedUploadQueue()
+    {
+        $this->validate([
+            'uploadQueue.*' => 'image|max:2048', // 2MB Max
+        ]);
+
+        foreach ($this->uploadQueue as $file) {
+            if (count($this->images) + count($this->newImages) < 3) {
+                $this->newImages[] = $file;
+            } else {
+                $this->dispatch('toast', message: __('Maximum of 3 images allowed.'), type: 'danger');
+                break;
+            }
+        }
+
+        $this->dispatch('clear-upload-queue');
+    }
+
+    #[On('clear-upload-queue')]
+    public function clearUploadQueue()
+    {
+        $this->uploadQueue = [];
+    }
+
+    public function confirmImageDeletion($index, $isNew = false)
+    {
+        $this->imageToDeleteIndex = $index;
+        $this->isNewImageDeletion = $isNew;
+        Flux::modal('confirm-image-delete')->show();
+    }
+
+    public function executeImageDeletion()
+    {
+        if ($this->isNewImageDeletion) {
+            array_splice($this->newImages, $this->imageToDeleteIndex, 1);
+        } else {
+            array_splice($this->images, $this->imageToDeleteIndex, 1);
+        }
+
+        $this->closeImageDeleteModal();
+    }
+
+    public function closeImageDeleteModal()
+    {
+        Flux::modal('confirm-image-delete')->close();
+        $this->imageToDeleteIndex = null;
+        $this->isNewImageDeletion = false;
+    }
+
+    public function removeImage($index)
+    {
+        array_splice($this->images, $index, 1);
+    }
+
+    public function removeNewImage($index)
+    {
+        array_splice($this->newImages, $index, 1);
+    }
+
+    public function clearNewImages()
+    {
+        $this->newImages = [];
+        $this->uploadQueue = [];
+    }
 
     public function updatedSearch(): void
     {
@@ -100,6 +174,9 @@ class ActivityManager extends Component
         $this->basePrice = number_format((float) $activity->base_price, 2, '.', '');
         $this->description = $activity->description;
         $this->featuresInput = implode(', ', $activity->features ?? []);
+        $this->images = $activity->images ?? [];
+        $this->newImages = [];
+        $this->uploadQueue = [];
         $this->isActive = $activity->is_active;
         $this->showActivityFlyout = true;
     }
@@ -127,6 +204,11 @@ class ActivityManager extends Component
     {
         $validated = $this->validate($this->rules());
 
+        $imagePaths = $this->images;
+        foreach ($this->newImages as $image) {
+            $imagePaths[] = $image->store('activities', 'public');
+        }
+
         $payload = [
             'service_id' => $validated['serviceId'],
             'title' => $validated['title'],
@@ -136,15 +218,8 @@ class ActivityManager extends Component
             'description' => $validated['description'] ?: null,
             'features' => $this->normalizeFeatures($validated['featuresInput']),
             'is_active' => $validated['isActive'],
+            'images' => $imagePaths,
         ];
-
-        if (! empty($this->images)) {
-            $uploadedImages = [];
-            foreach ($this->images as $image) {
-                $uploadedImages[] = $image->store('activities', 'public');
-            }
-            $payload['images'] = $uploadedImages;
-        }
 
         if ($this->activityId === null) {
             Activity::query()->create($payload);
@@ -232,6 +307,8 @@ class ActivityManager extends Component
             'description',
             'featuresInput',
             'images',
+            'newImages',
+            'uploadQueue',
             'isActive',
         ]);
 
@@ -247,8 +324,6 @@ class ActivityManager extends Component
             'basePrice' => ['required', 'numeric', 'min:0'],
             'description' => ['nullable', 'string'],
             'featuresInput' => ['nullable', 'string'],
-            'images' => ['nullable', 'array', 'max:3'],
-            'images.*' => ['image', 'max:2048'],
             'isActive' => ['boolean'],
         ];
     }

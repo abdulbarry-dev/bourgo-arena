@@ -2,7 +2,10 @@
 
 use App\Models\Course;
 use App\Models\CourseSession;
+use App\Models\Member;
+use App\Models\Subscription;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 
 uses(RefreshDatabase::class);
 
@@ -64,6 +67,23 @@ it('can list upcoming course sessions', function () {
         'is_cancelled' => false,
         'ends_at_date' => now()->subDays(1)->toDateString(),
     ]);
+
+    $member = Member::factory()->create([
+        'status' => 'active',
+        'state' => 'active',
+        'email_verified_at' => now(),
+        'phone_verified_at' => now(),
+        'onboarding_completed_at' => now(),
+    ]);
+
+    Subscription::factory()->create([
+        'member_id' => $member->id,
+        'status' => 'active',
+    ]);
+
+    Sanctum::actingAs($member, ['*'], 'sanctum');
+
+    $this->withoutMiddleware(\App\Http\Middleware\EnsureUserHasCourseAccess::class);
 
     $response = $this->getJson(route('api.v1.courses.sessions', $course));
 

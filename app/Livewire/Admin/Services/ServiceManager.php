@@ -3,9 +3,9 @@
 namespace App\Livewire\Admin\Services;
 
 use App\Models\Service;
+use Flux\Flux;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -38,6 +38,16 @@ class ServiceManager extends Component
 
     public string $status = 'active';
 
+    public $images = []; // Existing image paths
+
+    public $newImages = []; // Persistent collection of new uploads (temporary files)
+
+    public $uploadQueue = []; // Temporary target for the latest file selection
+
+    public $imageToDeleteIndex = null;
+
+    public $isNewImageDeletion = false;
+
     public function updatedSearch(): void
     {
         $this->resetPage();
@@ -46,6 +56,62 @@ class ServiceManager extends Component
     public function updatedStatusFilter(): void
     {
         $this->resetPage();
+    }
+
+    public function updatedUploadQueue()
+    {
+        $this->validate([
+            'uploadQueue.*' => 'image|max:2048', // 2MB Max
+        ]);
+
+        foreach ($this->uploadQueue as $file) {
+            if (count($this->images) + count($this->newImages) < 3) {
+                $this->newImages[] = $file;
+            } else {
+                $this->dispatch('toast', message: __('Maximum of 3 images allowed.'), type: 'danger');
+                break;
+            }
+        }
+
+        // Use a slight delay or dispatch to clear the queue to avoid state conflicts
+        $this->dispatch('clear-upload-queue');
+    }
+
+    #[On('clear-upload-queue')]
+    public function clearUploadQueue()
+    {
+        $this->uploadQueue = [];
+    }
+
+    public function confirmImageDeletion($index, $isNew = false)
+    {
+        $this->imageToDeleteIndex = $index;
+        $this->isNewImageDeletion = $isNew;
+        Flux::modal('confirm-image-delete')->show();
+    }
+
+    public function executeImageDeletion()
+    {
+        if ($this->isNewImageDeletion) {
+            array_splice($this->newImages, $this->imageToDeleteIndex, 1);
+        } else {
+            array_splice($this->images, $this->imageToDeleteIndex, 1);
+        }
+
+        $this->closeImageDeleteModal();
+    }
+
+    public function closeImageDeleteModal()
+    {
+        Flux::modal('confirm-image-delete')->close();
+        $this->imageToDeleteIndex = null;
+        $this->isNewImageDeletion = false;
+    }
+
+    public function clearNewImages()
+    {
+        $this->newImages = [];
+        $this->uploadQueue = [];
     }
 
     public function openCreateFlyout(): void
@@ -63,8 +129,9 @@ class ServiceManager extends Component
         $this->serviceId = $service->id;
         $this->name = $service->name;
         $this->description = $service->description;
-        $this->existingImageUrl = $service->image_url;
-        $this->image = null;
+        $this->images = is_array($service->images) ? $service->images : ($service->image_url ? [$service->image_url] : []);
+        $this->newImages = [];
+        $this->uploadQueue = [];
         $this->status = $service->status;
 
         $this->showServiceFlyout = true;
@@ -134,28 +201,25 @@ class ServiceManager extends Component
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'image' => ['nullable', 'image', 'max:2048'],
         ]);
+
+        $imagePaths = $this->images;
+        foreach ($this->newImages as $image) {
+            $imagePaths[] = $image->store('services', 'public');
+        }
 
         $payload = [
             'name' => $validated['name'],
             'description' => $validated['description'] ?: null,
-            'status' => 'active',
-            'archived_at' => null,
+            'status' => $this->status,
+            'archived_at' => $this->status === 'archived' ? now() : null,
+            'images' => $imagePaths,
+            'image_url' => count($imagePaths) > 0 ? $imagePaths[0] : null,
         ];
-
-        if ($this->image) {
-            $path = $this->image->store('services', 'public');
-            $payload['image_url'] = Storage::url($path);
-        }
 
         if ($this->serviceId) {
             $service = Service::query()->findOrFail($this->serviceId);
-            $service->update([
-                'name' => $payload['name'],
-                'description' => $payload['description'],
-                'image_url' => $payload['image_url'] ?? $service->image_url,
-            ]);
+            $service->update($payload);
         } else {
             Service::query()->create($payload);
         }
@@ -170,9 +234,13 @@ class ServiceManager extends Component
             'serviceId',
             'name',
             'description',
-            'image',
-            'existingImageUrl',
+            'images',
+            'newImages',
+            'uploadQueue',
+            'imageToDeleteIndex',
+            'isNewImageDeletion',
         ]);
+        $this->status = 'active';
     }
 
     #[Computed]

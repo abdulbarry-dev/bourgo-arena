@@ -21,6 +21,8 @@ class ServiceController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $services = Service::active()
+            ->with(['plans', 'courses', 'events', 'activities'])
+            ->withCount(['plans', 'courses', 'events', 'activities'])
             ->orderBy('name')
             ->paginate($request->integer('per_page', 15));
 
@@ -33,6 +35,9 @@ class ServiceController extends Controller
     public function show(Service $service): ServiceResource
     {
         abort_if(! $service->isActive(), 404, 'Service not found or inactive.');
+
+        $service->load(['plans', 'courses', 'events', 'activities'])
+            ->loadCount(['plans', 'courses', 'events', 'activities']);
 
         return new ServiceResource($service);
     }

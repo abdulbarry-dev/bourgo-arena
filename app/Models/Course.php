@@ -24,6 +24,7 @@ class Course extends Model
         'service_id',
         'name',
         'description',
+        'images',
         'category',
         'image_url',
         'status',
@@ -32,6 +33,7 @@ class Course extends Model
 
     protected $casts = [
         'archived_at' => 'datetime',
+        'images' => 'array',
     ];
 
     public function scopeActive($query)

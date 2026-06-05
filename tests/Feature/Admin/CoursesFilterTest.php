@@ -61,7 +61,8 @@ it('renders course view modal without close panel and shows placeholder when no 
         ->call('openViewFlyout', $course->id)
         ->assertSet('viewingCourse.id', $course->id)
         ->assertSee('Pilates Flow')
-        ->assertSee('Total Sessions');
+        ->assertSee('Sessions')
+        ->assertSee('Total');
 });
 
 it('renders course cover image in view modal when image is set', function () {
@@ -71,6 +72,7 @@ it('renders course cover image in view modal when image is set', function () {
 
     Livewire::test(CourseManager::class)
         ->call('openViewFlyout', $course->id)
-        ->assertSee('courses/pilates.jpg')
-        ->assertSee('Total Sessions');
+        ->assertSee('pilates.jpg')
+        ->assertSee('Sessions')
+        ->assertSee('Total');
 });

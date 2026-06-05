@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Http\Middleware\EnsureAccountIsVerified;
 use App\Http\Middleware\EnsureEmailVerifiedOrIsStaff;
 use App\Http\Middleware\EnsureOnboardingIsCompleted;
+use App\Http\Middleware\EnsureUserHasCourseAccess;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\EnsureUserIsNotBanned;
 use App\Http\Middleware\ForceJsonResponse;
@@ -63,6 +64,7 @@ class MiddlewareServiceProvider extends ServiceProvider
             'verified' => EnsureEmailVerifiedOrIsStaff::class,
             'verified.account' => EnsureAccountIsVerified::class,
             'onboarding.completed' => EnsureOnboardingIsCompleted::class,
+            'course.access' => EnsureUserHasCourseAccess::class,
         ]);
     }
 }

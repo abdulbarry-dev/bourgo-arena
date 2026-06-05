@@ -7,7 +7,6 @@ use App\Models\Course;
 use App\Models\Service;
 use Flux\Flux;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
@@ -34,6 +33,16 @@ class CourseManager extends Component
 
     #[Validate('nullable|image|max:2048')]
     public $image;
+
+    public $images = []; // Existing image paths
+
+    public $newImages = []; // Persistent collection of new uploads (temporary files)
+
+    public $uploadQueue = []; // Temporary target for the latest file selection
+
+    public $imageToDeleteIndex = null;
+
+    public $isNewImageDeletion = false;
 
     public $existingImageUrl = null;
 
@@ -75,6 +84,61 @@ class CourseManager extends Component
     public function updatedHasSessionsFilter()
     {
         $this->resetPage();
+    }
+
+    public function updatedUploadQueue()
+    {
+        $this->validate([
+            'uploadQueue.*' => 'image|max:2048', // 2MB Max
+        ]);
+
+        foreach ($this->uploadQueue as $file) {
+            if (count($this->images) + count($this->newImages) < 3) {
+                $this->newImages[] = $file;
+            } else {
+                $this->dispatch('toast', message: __('Maximum of 3 images allowed.'), type: 'danger');
+                break;
+            }
+        }
+
+        $this->dispatch('clear-upload-queue');
+    }
+
+    #[On('clear-upload-queue')]
+    public function clearUploadQueue()
+    {
+        $this->uploadQueue = [];
+    }
+
+    public function confirmImageDeletion($index, $isNew = false)
+    {
+        $this->imageToDeleteIndex = $index;
+        $this->isNewImageDeletion = $isNew;
+        Flux::modal('confirm-image-delete')->show();
+    }
+
+    public function executeImageDeletion()
+    {
+        if ($this->isNewImageDeletion) {
+            array_splice($this->newImages, $this->imageToDeleteIndex, 1);
+        } else {
+            array_splice($this->images, $this->imageToDeleteIndex, 1);
+        }
+
+        $this->closeImageDeleteModal();
+    }
+
+    public function closeImageDeleteModal()
+    {
+        Flux::modal('confirm-image-delete')->close();
+        $this->imageToDeleteIndex = null;
+        $this->isNewImageDeletion = false;
+    }
+
+    public function clearNewImages()
+    {
+        $this->newImages = [];
+        $this->uploadQueue = [];
     }
 
     #[On('open-course-view')]
@@ -162,8 +226,9 @@ class CourseManager extends Component
         $this->description = $course->description;
         $this->status = $course->status;
 
-        $this->existingImageUrl = $course->image_url;
-        $this->image = null;
+        $this->images = is_array($course->images) ? $course->images : ($course->image_url ? [$course->image_url] : []);
+        $this->newImages = [];
+        $this->uploadQueue = [];
 
         $this->isModalOpen = true;
         $this->showViewFlyout = false;
@@ -175,18 +240,20 @@ class CourseManager extends Component
         $this->validate();
 
         try {
+            $imagePaths = $this->images;
+            foreach ($this->newImages as $img) {
+                $imagePaths[] = $img->store('courses', 'public');
+            }
+
             $payload = [
                 'service_id' => $this->serviceId,
                 'name' => $this->name,
                 'description' => $this->description,
                 'status' => $this->status,
                 'archived_at' => $this->status === 'archived' ? now() : null,
+                'images' => $imagePaths,
+                'image_url' => count($imagePaths) > 0 ? $imagePaths[0] : null,
             ];
-
-            if ($this->image) {
-                $path = $this->image->store('courses', 'public');
-                $payload['image_url'] = Storage::url($path);
-            }
 
             if ($this->editingCourseId) {
                 $course = Course::findOrFail($this->editingCourseId);
@@ -252,7 +319,20 @@ class CourseManager extends Component
 
     public function resetForm()
     {
-        $this->reset(['serviceId', 'name', 'description', 'editingCourseId', 'image', 'existingImageUrl', 'status']);
+        $this->reset([
+            'serviceId',
+            'name',
+            'description',
+            'editingCourseId',
+            'image',
+            'images',
+            'newImages',
+            'uploadQueue',
+            'imageToDeleteIndex',
+            'isNewImageDeletion',
+            'existingImageUrl',
+            'status',
+        ]);
         $this->resetValidation();
         $this->status = 'active';
     }

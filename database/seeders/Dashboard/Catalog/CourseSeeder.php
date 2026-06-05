@@ -22,6 +22,10 @@ class CourseSeeder extends Seeder
                 'description' => 'Foundational strength and conditioning for active members.',
                 'category' => 'fitness',
                 'service_id' => $fitnessService?->id,
+                'images' => [
+                    'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80&w=1000',
+                    'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=1000',
+                ],
                 'image_url' => 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80&w=1000',
             ],
             [
@@ -29,6 +33,10 @@ class CourseSeeder extends Seeder
                 'description' => 'Competitive padel drills and live match rotations.',
                 'category' => 'padel',
                 'service_id' => $padelService?->id,
+                'images' => [
+                    'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&q=80&w=1000',
+                    'https://images.unsplash.com/photo-1626224580143-69324021275d?auto=format&fit=crop&q=80&w=1000',
+                ],
                 'image_url' => 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&q=80&w=1000',
             ],
             [
@@ -36,6 +44,10 @@ class CourseSeeder extends Seeder
                 'description' => 'Technique, footwork, and shot selection for tennis players.',
                 'category' => 'tennis',
                 'service_id' => $tennisService?->id,
+                'images' => [
+                    'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?auto=format&fit=crop&q=80&w=1000',
+                    'https://images.unsplash.com/photo-1542144557-140653a3f3cb?auto=format&fit=crop&q=80&w=1000',
+                ],
                 'image_url' => 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?auto=format&fit=crop&q=80&w=1000',
             ],
             [
@@ -43,6 +55,10 @@ class CourseSeeder extends Seeder
                 'description' => 'Mobility, breathwork, and recovery sessions for all levels.',
                 'category' => 'wellness',
                 'service_id' => $wellnessService?->id,
+                'images' => [
+                    'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&q=80&w=1000',
+                    'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&q=80&w=1000',
+                ],
                 'image_url' => 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&q=80&w=1000',
             ],
         ];
