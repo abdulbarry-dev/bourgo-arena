@@ -10,7 +10,7 @@ class MemberRepository
 {
     public function loadProfileRelations(Member $member): Member
     {
-        return $member->load(['validSubscriptions.plan', 'children']);
+        return $member->load(['activeSubscription.plan', 'children']);
     }
 
     public function updateProfile(Member $member, array $data): Member

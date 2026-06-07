@@ -21,7 +21,6 @@ class Activity extends Model
         'title',
         'category',
         'base_price',
-        'currency',
         'image_url',
         'images',
         'description',
@@ -52,6 +51,11 @@ class Activity extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    public function getCurrencyAttribute(): string
+    {
+        return 'TND';
     }
 
     /** @use HasFactory<ActivityFactory> */

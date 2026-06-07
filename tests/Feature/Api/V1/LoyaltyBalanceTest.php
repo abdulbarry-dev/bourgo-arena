@@ -68,3 +68,32 @@ test('loyalty balance endpoint returns most recent transactions first', function
         ->assertSuccessful()
         ->assertJsonPath('data.transactions.0.id', $newest->id);
 });
+
+test('loyalty balance endpoint returns clean source types', function () {
+    LoyaltyPoint::query()->create([
+        'member_id' => $this->member->id,
+        'points' => 10,
+        'transaction_type' => 'fixed',
+        'source_type' => 'subscription',
+        'source_id' => 1,
+        'idempotency_key' => 'test:subscription',
+        'created_at' => now(),
+    ]);
+
+    LoyaltyPoint::query()->create([
+        'member_id' => $this->member->id,
+        'points' => 20,
+        'transaction_type' => 'variable',
+        'source_type' => 'reservation',
+        'source_id' => 1,
+        'idempotency_key' => 'test:reservation',
+        'created_at' => now()->subMinute(),
+    ]);
+
+    $response = $this->getJson(route('api.v1.loyalty.balance'));
+
+    $response
+        ->assertSuccessful()
+        ->assertJsonPath('data.transactions.0.source_type', 'subscription')
+        ->assertJsonPath('data.transactions.1.source_type', 'reservation');
+});

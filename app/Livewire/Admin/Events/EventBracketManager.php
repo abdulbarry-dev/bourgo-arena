@@ -2,22 +2,26 @@
 
 namespace App\Livewire\Admin\Events;
 
+use App\Actions\Events\AdvanceMatchWinnerAction;
+use App\Actions\Events\GenerateTournamentBracketAction;
+use App\Jobs\NotifyBracketPublishedJob;
 use App\Models\Event;
 use App\Models\EventMatch;
-use App\Actions\Events\GenerateTournamentBracketAction;
-use App\Actions\Events\AdvanceMatchWinnerAction;
-use Livewire\Component;
-use Illuminate\Support\Facades\DB;
 use Flux\Flux;
+use Illuminate\Support\Facades\DB;
+use Livewire\Component;
 
 class EventBracketManager extends Component
 {
     public Event $event;
+
     public $bracketExists = false;
 
     // Advance match modal state
     public $advancingMatchId = null;
+
     public $winnerId = null;
+
     public $matchScore = '';
 
     public function mount(Event $event)
@@ -33,16 +37,16 @@ class EventBracketManager extends Component
 
     public function generateBracket()
     {
-        $action = new GenerateTournamentBracketAction();
+        $action = new GenerateTournamentBracketAction;
         $action->execute($this->event);
-        
+
         $this->checkBracketExists();
         Flux::toast('Bracket generated successfully.', variant: 'success');
     }
 
     public function publishBracket()
     {
-        \App\Jobs\NotifyBracketPublishedJob::dispatch($this->event);
+        NotifyBracketPublishedJob::dispatch($this->event);
         Flux::toast('Bracket published! Participants have been notified.', variant: 'success');
     }
 
@@ -62,10 +66,10 @@ class EventBracketManager extends Component
         ]);
 
         $match = EventMatch::findOrFail($this->advancingMatchId);
-        
+
         try {
             DB::transaction(function () use ($match) {
-                $action = new AdvanceMatchWinnerAction();
+                $action = new AdvanceMatchWinnerAction;
                 $action->execute($match, $this->winnerId, $this->matchScore);
             });
             Flux::toast('Match winner advanced successfully.', variant: 'success');
@@ -93,7 +97,7 @@ class EventBracketManager extends Component
         }
 
         return view('livewire.admin.events.event-bracket-manager', [
-            'matchesByRound' => $matchesByRound
+            'matchesByRound' => $matchesByRound,
         ]);
     }
 }

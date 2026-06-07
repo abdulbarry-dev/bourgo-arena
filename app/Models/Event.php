@@ -53,7 +53,7 @@ class Event extends Model
             return 'in_progress';
         }
 
-        if ($this->registration_deadline && $this->registration_deadline->isPast()) {
+        if ($this->registration_deadline && $this->registration_deadline->isFuture()) {
             return 'open';
         }
 
@@ -74,7 +74,7 @@ class Event extends Model
     public function scopePublished($query)
     {
         return $query->whereNotNull('registration_deadline')
-            ->where('registration_deadline', '<=', now());
+            ->where('registration_deadline', '>', now());
     }
 
     public function scopeOpen($query)

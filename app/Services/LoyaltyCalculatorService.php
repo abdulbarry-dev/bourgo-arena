@@ -41,7 +41,7 @@ class LoyaltyCalculatorService
             member: $member,
             points: $points,
             transactionType: 'fixed',
-            sourceType: Subscription::class,
+            sourceType: $subscription->getMorphClass(),
             sourceId: $subscription->id,
             idempotencyKey: $idempotencyKey,
             auditAction: 'credit',
@@ -66,7 +66,7 @@ class LoyaltyCalculatorService
         }
 
         $eligibleCategories = (array) config('loyalty.variable.eligible_categories', []);
-        if (! in_array($activity->category, $eligibleCategories, true)) {
+        if (! in_array($activity->service?->name, $eligibleCategories, true)) {
             return false;
         }
 
@@ -97,7 +97,7 @@ class LoyaltyCalculatorService
             member: $member,
             points: $points,
             transactionType: 'variable',
-            sourceType: ApiReservation::class,
+            sourceType: $reservation->getMorphClass(),
             sourceId: $reservation->id,
             idempotencyKey: $idempotencyKey,
             auditAction: 'credit',
@@ -105,7 +105,7 @@ class LoyaltyCalculatorService
                 'tier_label' => $tier->currentTier->label,
                 'tier_multiplier' => $tier->currentTier->multiplier,
                 'monthly_paid_reservations' => $monthlyCount,
-                'activity_category' => $activity->category,
+
             ],
         );
     }

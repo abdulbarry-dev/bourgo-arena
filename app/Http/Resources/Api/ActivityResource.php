@@ -17,11 +17,8 @@ class ActivityResource extends BaseJsonResource
         return [
             'id' => $this->id,
             'title' => $this->title,
-            'category' => $this->category,
             'base_price' => (float) $this->base_price,
-            'currency' => $this->currency,
             'image_url' => $this->image_url,
-            'icon' => $this->icon,
             'description' => $this->description,
             'features' => $this->features,
             'rating' => (float) $this->rating,

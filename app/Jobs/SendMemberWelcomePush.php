@@ -42,6 +42,26 @@ class SendMemberWelcomePush implements ShouldQueue
             return;
         }
 
+        $prefs = $member->preferences['notifications'] ?? [];
+        if (! ($prefs['push_enabled'] ?? true) || (isset($prefs['account_updates']) && ! $prefs['account_updates'])) {
+            return;
+        }
+
+        $prefs = $member->preferences['notifications'] ?? [];
+        if (! ($prefs['push_enabled'] ?? true) || (isset($prefs['account_updates']) && ! $prefs['account_updates'])) {
+            return;
+        }
+
+        $prefs = $member->preferences['notifications'] ?? [];
+        if (! ($prefs['push_enabled'] ?? true) || (isset($prefs['account_updates']) && ! $prefs['account_updates'])) {
+            return;
+        }
+
+        $prefs = $member->preferences['notifications'] ?? [];
+        if (! ($prefs['push_enabled'] ?? true) || (isset($prefs['account_updates']) && ! $prefs['account_updates'])) {
+            return;
+        }
+
         $tokens = $member->deviceTokens
             ->pluck('token')
             ->filter(fn (?string $token): bool => is_string($token) && $token !== '')

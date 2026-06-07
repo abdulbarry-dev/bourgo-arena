@@ -2,8 +2,8 @@
 
 namespace App\Notifications;
 
+use App\Models\Event;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -14,9 +14,7 @@ class EventCanceledNotification extends Notification
     /**
      * Create a new notification instance.
      */
-    public function __construct(public \App\Models\Event $event)
-    {
-    }
+    public function __construct(public Event $event) {}
 
     /**
      * Get the notification's delivery channels.
@@ -34,8 +32,8 @@ class EventCanceledNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Event Canceled: ' . $this->event->name)
-            ->line('We regret to inform you that the event "' . $this->event->name . '" has been canceled.')
+            ->subject('Event Canceled: '.$this->event->name)
+            ->line('We regret to inform you that the event "'.$this->event->name.'" has been canceled.')
             ->line('Your registration fee is currently pending reconciliation. Our team will contact you shortly regarding the next steps for your refund or platform credit.')
             ->action('View Events', url('/events'))
             ->line('Thank you for understanding!');

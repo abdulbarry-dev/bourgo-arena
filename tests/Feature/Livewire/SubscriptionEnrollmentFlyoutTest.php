@@ -7,6 +7,7 @@ use App\Models\Member;
 use App\Models\Plan;
 use App\Models\Subscription;
 use App\Models\User;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -15,7 +16,7 @@ test('manager can enroll pending member and activate access', function () {
     Storage::fake('local');
     config(['payment.receipts.disk' => 'local']);
     Queue::fake();
-    \Illuminate\Support\Facades\Notification::fake();
+    Notification::fake();
 
     $manager = User::factory()->manager()->create();
     $member = Member::factory()->create(['status' => 'pending']);

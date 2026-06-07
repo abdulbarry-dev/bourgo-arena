@@ -26,7 +26,6 @@ class CourseResource extends JsonResource
             'name' => $this->name,
             'description' => $this->description,
             'images' => $images,
-            'category' => $this->category,
             'image_url' => $this->image_url ? (Str::startsWith($this->image_url, 'http') ? $this->image_url : asset('storage/'.$this->image_url)) : null,
             'status' => $this->status,
         ];

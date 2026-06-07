@@ -4,7 +4,6 @@ namespace App\Actions\Events;
 
 use App\Models\Event;
 use App\Models\EventMatch;
-use App\Models\EventParticipant;
 use Illuminate\Support\Facades\DB;
 
 class GenerateTournamentBracketAction
@@ -18,7 +17,7 @@ class GenerateTournamentBracketAction
             // Fetch checked-in participants, or registered if none checked in
             $participants = $event->participants()
                 ->where('status', '!=', 'canceled')
-                ->when($event->requires_check_in, fn($q) => $q->where('has_checked_in', true))
+                ->when($event->requires_check_in, fn ($q) => $q->where('has_checked_in', true))
                 ->orderBy('seed_number')
                 ->get();
 
@@ -33,10 +32,10 @@ class GenerateTournamentBracketAction
 
             // Generate Match tree from final backwards to Round 1
             $totalRounds = log($bracketSize, 2);
-            
+
             // We'll store matches by round to link them
             $matchesByRound = [];
-            
+
             // Build the tree
             for ($round = $totalRounds; $round >= 1; $round--) {
                 $matchesInRound = $bracketSize / pow(2, $round);
@@ -72,12 +71,12 @@ class GenerateTournamentBracketAction
 
                 // If we still have participants and haven't hit the byes limit for this pairing
                 if ($participantIndex < $participantCount) {
-                     // Distribute byes roughly
-                     if ($byesCount > 0 && $index % 2 !== 0) {
-                         $byesCount--;
-                     } else {
-                         $p2 = $participants[$participantIndex++] ?? null;
-                     }
+                    // Distribute byes roughly
+                    if ($byesCount > 0 && $index % 2 !== 0) {
+                        $byesCount--;
+                    } else {
+                        $p2 = $participants[$participantIndex++] ?? null;
+                    }
                 }
 
                 $match->update([
@@ -86,16 +85,16 @@ class GenerateTournamentBracketAction
                 ]);
 
                 // If p2 is null (bye), p1 automatically wins and advances
-                if ($p1 && !$p2) {
+                if ($p1 && ! $p2) {
                     $match->update([
                         'winner_id' => $p1->id,
                         'status' => 'completed',
-                        'score' => 'BYE'
+                        'score' => 'BYE',
                     ]);
-                    
+
                     if ($match->next_match_id) {
                         $nextMatch = EventMatch::find($match->next_match_id);
-                        if (!$nextMatch->participant1_id) {
+                        if (! $nextMatch->participant1_id) {
                             $nextMatch->update(['participant1_id' => $p1->id]);
                         } else {
                             $nextMatch->update(['participant2_id' => $p1->id]);

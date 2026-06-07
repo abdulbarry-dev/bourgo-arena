@@ -5,7 +5,6 @@
 use App\Models\Activity;
 use App\Models\ActivitySlot;
 use App\Models\ApiReservation;
-use App\Models\LoyaltyPoint;
 use App\Models\Member;
 use App\Models\Subscription;
 use Laravel\Sanctum\Sanctum;
@@ -24,7 +23,7 @@ beforeEach(function () {
 });
 
 test('member can create an activity reservation', function () {
-    $activity = Activity::factory()->create(['base_price' => 100.00, 'category' => 'Padel']);
+    $activity = Activity::factory()->create(['base_price' => 100.00]);
     $slot = ActivitySlot::factory()->create([
         'activity_id' => $activity->id,
         'capacity' => 10,
@@ -79,7 +78,7 @@ test('reservation price is recalculated server-side (price shield) regardless of
         'ends_at' => now()->addDays(10)->toDateString(),
     ]);
 
-    $activity = Activity::factory()->create(['base_price' => 100.00, 'category' => 'Padel']);
+    $activity = Activity::factory()->create(['base_price' => 100.00]);
     $slot = ActivitySlot::factory()->create([
         'activity_id' => $activity->id,
         'capacity' => 10,

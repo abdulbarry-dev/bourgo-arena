@@ -7,7 +7,6 @@ use App\Models\ApiReservation;
 use App\Models\Member;
 use App\Models\Payment;
 use App\Services\PaymentService;
-use Illuminate\Support\Str;
 
 uses()->group('api', 'reservations');
 
@@ -78,5 +77,3 @@ it('verifies a payment and marks reservation as paid', function () {
 
     $response->assertStatus(200)->assertJsonFragment(['status' => 'paid']);
 });
-
-

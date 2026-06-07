@@ -19,10 +19,9 @@ class InitiatePaymentRequest extends FormRequest
             'reservation_id' => ['nullable', 'integer', 'exists:api_reservations,id'],
             'subscription_id' => ['nullable', 'integer', 'exists:subscriptions,id'],
             'amount' => ['required', 'numeric', 'min:0'],
-            'currency' => ['nullable', 'string'],
+
             'description' => ['nullable', 'string'],
             'type' => ['nullable', 'string'],
-            'provider' => ['nullable', 'string', 'in:konnect,test'],
         ];
     }
 
@@ -33,12 +32,11 @@ class InitiatePaymentRequest extends FormRequest
             reservationId: $this->validated('reservation_id'),
             subscriptionId: $this->validated('subscription_id'),
             amount: $this->validated('amount'),
-            currency: $this->validated('currency'),
+
             description: $this->validated('description'),
             type: $this->validated('type'),
             paymentReference: null,
-            metadata: null,
-            provider: $this->validated('provider')
+            metadata: null
         );
     }
 }

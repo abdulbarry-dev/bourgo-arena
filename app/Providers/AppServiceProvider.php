@@ -2,14 +2,22 @@
 
 namespace App\Providers;
 
+use App\Events\EventCanceled;
+use App\Events\EventDeleted;
+use App\Listeners\HandleEventCancellation;
+use App\Listeners\LogAdminAction;
+use App\Models\ApiReservation;
+use App\Models\Subscription;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
 use Illuminate\Routing\RouteRegistrar;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -17,19 +25,24 @@ class AppServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        \Illuminate\Support\Facades\Event::listen(
-            \App\Events\EventCanceled::class,
-            \App\Listeners\LogAdminAction::class,
+        Relation::morphMap([
+            'subscription' => Subscription::class,
+            'reservation' => ApiReservation::class,
+        ]);
+
+        Event::listen(
+            EventCanceled::class,
+            LogAdminAction::class,
         );
 
-        \Illuminate\Support\Facades\Event::listen(
-            \App\Events\EventCanceled::class,
-            \App\Listeners\HandleEventCancellation::class,
+        Event::listen(
+            EventCanceled::class,
+            HandleEventCancellation::class,
         );
 
-        \Illuminate\Support\Facades\Event::listen(
-            \App\Events\EventDeleted::class,
-            \App\Listeners\LogAdminAction::class,
+        Event::listen(
+            EventDeleted::class,
+            LogAdminAction::class,
         );
         $this->configureDefaults();
         $this->registerRateLimits();

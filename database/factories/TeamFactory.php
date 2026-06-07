@@ -13,7 +13,7 @@ class TeamFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->company . ' ' . $this->faker->colorName,
+            'name' => $this->faker->company.' '.$this->faker->colorName,
             'owner_id' => User::factory(),
         ];
     }

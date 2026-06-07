@@ -18,7 +18,6 @@ class EventMatchResource extends JsonResource
             'id' => $this->id,
             'round' => $this->round,
             'match_number' => $this->match_number,
-            'scheduled_at' => $this->scheduled_at,
             'score' => $this->score,
             'status' => $this->status,
             'participant1' => $this->participant1 ? new EventParticipantResource($this->participant1) : null,

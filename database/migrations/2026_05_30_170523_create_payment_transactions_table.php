@@ -14,9 +14,8 @@ return new class extends Migration
             $table->string('transaction_id')->unique();
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->unsignedBigInteger('reservation_id')->nullable();
-            $table->decimal('amount', 10, 3)->default(0);
-            $table->string('currency', 8)->default('TND');
-            $table->string('payment_gateway');
+            $table->decimal('amount', 10, 3);
+            $table->string('payment_gateway')->nullable();
             $table->string('transaction_status')->default('pending');
             $table->string('external_gateway_reference')->nullable();
             $table->longText('reservation_details')->nullable();

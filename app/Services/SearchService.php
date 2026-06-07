@@ -16,15 +16,13 @@ class SearchService
         $qLower = strtolower($q);
 
         $activities = Activity::whereRaw('LOWER(title) LIKE ?', ['%'.$qLower.'%'])
-            ->orWhereRaw('LOWER(category) LIKE ?', ['%'.$qLower.'%'])
             ->get()
             ->map(function ($activity) {
                 return (object) [
                     'id' => $activity->id,
                     'type' => 'activity',
                     'title' => $activity->title,
-                    'subtitle' => $activity->category,
-                    'icon' => $activity->icon ?? null,
+                    'subtitle' => $activity->service->name ?? null,
                 ];
             });
 
@@ -35,8 +33,7 @@ class SearchService
                     'id' => $course->id,
                     'type' => 'course',
                     'title' => $course->name,
-                    'subtitle' => $course->category,
-                    'icon' => $course->icon ?? null,
+                    'subtitle' => $course->service->name ?? null,
                 ];
             });
 

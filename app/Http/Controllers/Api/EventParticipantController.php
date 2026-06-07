@@ -36,7 +36,7 @@ class EventParticipantController extends Controller
         }
 
         $currentCount = $event->participants()->count();
-        $status = $currentCount >= $event->max_participants ? 'waitlisted' : 'approved';
+        $status = $currentCount >= $event->max_participants ? 'waitlisted' : 'pending';
 
         $participant = EventParticipant::create([
             'event_id' => $event->id,

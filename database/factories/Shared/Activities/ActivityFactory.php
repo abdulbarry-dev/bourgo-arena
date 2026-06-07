@@ -18,9 +18,8 @@ class ActivityFactory extends Factory
         return [
             'service_id' => Service::factory(),
             'title' => fake()->sentence(3),
-            'category' => fake()->word(),
+            'category' => 'court',
             'base_price' => fake()->randomFloat(2, 10, 100),
-            'currency' => 'TND',
             'image_url' => null,
 
             'description' => fake()->sentence(),

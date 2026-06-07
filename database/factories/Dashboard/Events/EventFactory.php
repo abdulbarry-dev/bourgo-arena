@@ -43,18 +43,18 @@ class EventFactory extends Factory
     public function draft(): static
     {
         return $this->state(fn (): array => [
-            'registration_deadline' => now()->addDays(5),
-            'start_date' => now()->addDays(7),
-            'end_date' => now()->addDays(10),
+            'registration_deadline' => null,
+            'start_date' => null,
+            'end_date' => null,
         ]);
     }
 
     public function open(): static
     {
         return $this->state(fn (): array => [
-            'registration_deadline' => now()->subDays(1),
-            'start_date' => now()->addDays(1),
-            'end_date' => now()->addDays(3),
+            'registration_deadline' => now()->addDays(5),
+            'start_date' => now()->addDays(7),
+            'end_date' => now()->addDays(10),
         ]);
     }
 

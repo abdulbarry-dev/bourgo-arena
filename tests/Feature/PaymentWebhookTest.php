@@ -24,7 +24,6 @@ test('konnect webhook verifies signature and reconciles payment', function () {
         'driver' => 'konnect',
         'type' => 'reservation_deposit',
         'amount' => 5.000,
-        'currency' => 'TND',
         'status' => 'initiated',
         'payment_reference' => 'pay_test_123',
     ]);

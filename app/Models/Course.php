@@ -25,7 +25,6 @@ class Course extends Model
         'name',
         'description',
         'images',
-        'category',
         'image_url',
         'status',
         'archived_at',

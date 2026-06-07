@@ -58,7 +58,6 @@ it('opens the activity edit modal from the slots page', function () {
     $activity = Activity::factory()->create([
         'title' => 'Court Gamma',
         'base_price' => 60,
-        'currency' => 'TND',
         'description' => 'Initial description',
         'features' => ['lights', 'covered'],
         'is_active' => true,
@@ -75,6 +74,7 @@ it('opens the activity edit modal from the slots page', function () {
     Livewire::test(ActivitySlotsManager::class, ['activity' => $activity])
         ->call('openEditActivityModal')
         ->set('activityTitle', 'Court Gamma Updated')
+        ->set('activityCategory', 'studio')
         ->set('activityBasePrice', '72.50')
         ->set('activityDescription', 'Updated description')
         ->call('saveActivity')
@@ -83,6 +83,7 @@ it('opens the activity edit modal from the slots page', function () {
     $this->assertDatabaseHas('activities', [
         'id' => $activity->id,
         'title' => 'Court Gamma Updated',
+        'category' => 'studio',
         'base_price' => 72.5,
         'description' => 'Updated description',
     ]);
@@ -97,7 +98,7 @@ it('can create an activity and manage slots on the slots page', function () {
     Livewire::test(ActivityManager::class)
         ->set('serviceId', $service->id)
         ->set('title', 'Stade Padel 1')
-        ->set('category', 'padel')
+        ->set('category', 'court')
         ->set('basePrice', '75.000')
         ->set('featuresInput', 'covered court, lights')
         ->set('description', 'Main padel court')

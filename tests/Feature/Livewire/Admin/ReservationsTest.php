@@ -7,7 +7,6 @@ use App\Models\ApiReservation;
 use App\Models\Member;
 use App\Models\Payment;
 use App\Models\User;
-use App\Services\Payment\PaymentManager;
 use App\Services\PaymentService;
 use App\UserRole;
 use Illuminate\Foundation\Testing\RefreshDatabase;

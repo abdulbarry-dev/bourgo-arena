@@ -48,6 +48,15 @@ class MemberResource extends JsonResource
             'status' => $this->status,
             'state' => $this->state,
             'is_parent_account' => (bool) $this->is_family_account,
+            'preferences' => $this->preferences ?? [
+                'app' => [
+                    'theme' => 'system',
+                    'language' => 'en',
+                ],
+                'notifications' => [
+                    'push_enabled' => true,
+                ],
+            ],
 
             'children' => MemberResource::collection($this->whenLoaded('children')),
             'valid_subscriptions' => $this->whenLoaded('validSubscriptions', function () {

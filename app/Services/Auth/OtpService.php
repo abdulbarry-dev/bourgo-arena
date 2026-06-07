@@ -23,7 +23,7 @@ class OtpService
     public function generate(string $identifier, ?string $preferredChannel = null): string
     {
         $code = (string) random_int(100000, 999999);
-        $expiryMinutes = config('otp.expiry', $this->expiryMinutes);
+        $expiryMinutes = (int) config('otp.expiry', $this->expiryMinutes);
         $cooldownSeconds = (int) config('otp.resend_cooldown_seconds', $this->resendCooldownSeconds);
         $recentSendKey = $this->recentSendCacheKey($identifier);
         $cachedCodeKey = $this->cachedCodeCacheKey($identifier);
@@ -244,7 +244,7 @@ class OtpService
         } catch (\Exception $e) {
             Log::error("Failed to send OTP to {$identifier}: ".$e->getMessage());
 
-            if (app()->environment('local', 'testing')) {
+            if (app()->environment('testing')) {
                 Log::info("OTP Code (fallback log) for {$identifier}: {$code}");
             } else {
                 throw $e;

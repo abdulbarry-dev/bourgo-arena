@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\NotifyBracketPublishedJob;
 use App\Livewire\Admin\Events\EventBracketManager;
 use App\Models\Event;
 use App\Models\EventMatch;
@@ -53,7 +54,7 @@ it('admin can publish a bracket', function () {
     Livewire::test(EventBracketManager::class, ['event' => $event])
         ->call('publishBracket');
 
-    Queue::assertPushed(\App\Jobs\NotifyBracketPublishedJob::class, function ($job) use ($event) {
+    Queue::assertPushed(NotifyBracketPublishedJob::class, function ($job) use ($event) {
         return $job->event->id === $event->id;
     });
 });

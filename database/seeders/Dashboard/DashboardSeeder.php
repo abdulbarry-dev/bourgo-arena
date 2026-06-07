@@ -2,7 +2,19 @@
 
 namespace Database\Seeders\Dashboard;
 
+use Database\Seeders\Dashboard\Activities\ActivitySeeder;
+use Database\Seeders\Dashboard\Activities\ActivitySlotSeeder;
+use Database\Seeders\Dashboard\Bookings\CourtSlotSeeder;
+use Database\Seeders\Dashboard\Catalog\CourseSeeder;
+use Database\Seeders\Dashboard\Catalog\CourseSessionSeeder;
+use Database\Seeders\Dashboard\Catalog\PlanCatalogSeeder;
+use Database\Seeders\Dashboard\Catalog\ServiceSeeder;
+use Database\Seeders\Dashboard\Events\EventMatchSeeder;
+use Database\Seeders\Dashboard\Events\EventParticipantSeeder;
+use Database\Seeders\Dashboard\Events\EventSeeder;
+use Database\Seeders\Dashboard\Members\MemberSeeder;
 use Database\Seeders\Dashboard\Users\AdminUserSeeder;
+use Database\Seeders\Dashboard\Users\ManagerUserSeeder;
 use Illuminate\Database\Seeder;
 
 class DashboardSeeder extends Seeder
@@ -10,19 +22,25 @@ class DashboardSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            \Database\Seeders\Dashboard\Users\AdminUserSeeder::class,
-            \Database\Seeders\Dashboard\Users\ManagerUserSeeder::class,
-            \Database\Seeders\Dashboard\Catalog\ServiceSeeder::class,
-            \Database\Seeders\Dashboard\Catalog\PlanCatalogSeeder::class,
-            \Database\Seeders\Dashboard\Members\MemberSeeder::class,
-            \Database\Seeders\Dashboard\Catalog\CourseSeeder::class,
-            \Database\Seeders\Dashboard\Catalog\CourseSessionSeeder::class,
-            \Database\Seeders\Dashboard\Activities\ActivitySeeder::class,
-            \Database\Seeders\Dashboard\Activities\ActivitySlotSeeder::class,
-            \Database\Seeders\Dashboard\Bookings\CourtSlotSeeder::class,
-            \Database\Seeders\Dashboard\Events\EventSeeder::class,
-            \Database\Seeders\Dashboard\Events\EventParticipantSeeder::class,
-            \Database\Seeders\Dashboard\Events\EventMatchSeeder::class,
+            AdminUserSeeder::class,
+            ManagerUserSeeder::class,
+            ServiceSeeder::class,
+            PlanCatalogSeeder::class,
+            MemberSeeder::class,
+            MemberSeeder::class,
+            MemberSeeder::class,
+            MemberSeeder::class,
+            CourseSeeder::class,
+            CourseSessionSeeder::class,
+            ActivitySeeder::class,
+            ActivitySlotSeeder::class,
+            CourtSlotSeeder::class,
+            EventSeeder::class,
+            EventParticipantSeeder::class,
+            EventParticipantSeeder::class,
+            EventParticipantSeeder::class,
+            EventParticipantSeeder::class,
+            EventMatchSeeder::class,
         ]);
     }
 }

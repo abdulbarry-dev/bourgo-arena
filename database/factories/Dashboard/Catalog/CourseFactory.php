@@ -19,7 +19,6 @@ class CourseFactory extends Factory
             'service_id' => Service::factory(),
             'name' => fake()->words(2, true),
             'description' => fake()->sentence(),
-            'category' => fake()->word(),
             'image_url' => null,
         ];
     }

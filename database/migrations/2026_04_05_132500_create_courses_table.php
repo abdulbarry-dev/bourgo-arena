@@ -15,10 +15,8 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->json('images')->nullable();
             $table->string('image_url')->nullable();
-            $table->string('category')->nullable();
             $table->string('status')->default('active');
             $table->timestamp('archived_at')->nullable();
-            $table->string('icon')->nullable();
             $table->timestamps();
         });
     }

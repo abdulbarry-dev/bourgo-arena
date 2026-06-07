@@ -23,7 +23,6 @@ class PaymentFactory extends Factory
             'gateway' => null,
             'type' => 'reservation_deposit',
             'amount' => $this->faker->randomFloat(3, 1, 50),
-            'currency' => 'TND',
             'status' => 'pending',
             'payment_reference' => 'pay_'.substr(md5($this->faker->uuid), 0, 12),
             'gateway_transaction_id' => null,

@@ -10,9 +10,7 @@ uses(RefreshDatabase::class);
 
 it('allows an authenticated user to register for an event', function () {
     $user = User::factory()->create();
-    $event = Event::factory()->create([
-        'registration_deadline' => now()->subDay(),
-        'start_date' => now()->addDay(),
+    $event = Event::factory()->open()->create([
         'max_participants' => 16,
     ]);
 
@@ -21,20 +19,19 @@ it('allows an authenticated user to register for an event', function () {
     $response = $this->postJson("/api/v1/events/{$event->id}/register");
 
     $response->assertStatus(201)
-        ->assertJsonPath('status', 'approved');
+        ->assertJsonPath('status', 'pending');
 
     $this->assertDatabaseHas('event_participants', [
         'event_id' => $event->id,
         'user_id' => $user->id,
-        'status' => 'approved',
+        'status' => 'pending',
     ]);
+
 });
 
 it('waitlists user if event is full', function () {
     $user = User::factory()->create();
-    $event = Event::factory()->create([
-        'registration_deadline' => now()->subDay(),
-        'start_date' => now()->addDay(),
+    $event = Event::factory()->open()->create([
         'max_participants' => 2,
     ]);
 
@@ -55,10 +52,7 @@ it('allows an authenticated user to withdraw and auto-promotes waitlist', functi
     $user = User::factory()->create();
     $waitlistedUser = User::factory()->create();
 
-    $event = Event::factory()->create([
-        'registration_deadline' => now()->subDay(),
-        'start_date' => now()->addDay(),
-    ]);
+    $event = Event::factory()->create();
 
     $participant = EventParticipant::factory()->create([
         'event_id' => $event->id,

@@ -15,7 +15,6 @@ class PaymentTransaction extends Model
         'user_id',
         'reservation_id',
         'amount',
-        'currency',
         'payment_gateway',
         'transaction_status',
         'external_gateway_reference',

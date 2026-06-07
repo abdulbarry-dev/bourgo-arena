@@ -17,10 +17,8 @@ class CourseSessionResource extends JsonResource
      *     start_time: string,
      *     end_time: string,
      *     day_of_week: int,
-     *     category: string,
      *     capacity: int,
      *     enrolled: int,
-     *     icon: string|null,
      *     image_url: string|null
      * }
      */
@@ -35,10 +33,8 @@ class CourseSessionResource extends JsonResource
             'start_time' => $startsAt->format('H:i'),
             'end_time' => $endTime,
             'day_of_week' => $this->day_of_week,
-            'category' => $this->course->category,
             'capacity' => $this->capacity,
             'enrolled' => $this->bookings_count ?? 0,
-            'icon' => $this->course->icon,
             'image_url' => $this->course->image_url,
         ];
     }

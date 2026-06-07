@@ -18,7 +18,6 @@ class PaymentResource extends JsonResource
             'id' => (string) $this->id,
             'type' => $this->type,
             'amount' => (float) $this->amount,
-            'currency' => $this->currency,
             'status' => $this->status,
             'gateway' => $this->gateway,
             'payment_reference' => $this->payment_reference,

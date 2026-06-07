@@ -31,7 +31,6 @@ test('konnect payment service initiates payments against the sandbox network end
         'driver' => 'konnect',
         'type' => 'reservation_deposit',
         'amount' => 12.500,
-        'currency' => 'TND',
         'status' => 'pending',
         'payment_reference' => 'order-123',
         'gateway_transaction_id' => null,
@@ -40,7 +39,6 @@ test('konnect payment service initiates payments against the sandbox network end
 
     $result = app(KonnectPaymentService::class)->initiatePayment([
         'amount' => $payment->amount,
-        'currency' => $payment->currency,
         'payment_reference' => $payment->payment_reference,
         'order_id' => $payment->payment_reference,
         'description' => 'Reservation deposit',

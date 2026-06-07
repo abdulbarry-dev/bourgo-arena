@@ -3,6 +3,7 @@
 use App\Livewire\Admin\Courses\CourseManager;
 use App\Models\Course;
 use App\Models\CourseSession;
+use App\Models\Service;
 use App\Models\User;
 use Livewire\Livewire;
 
@@ -12,8 +13,11 @@ beforeEach(function () {
 });
 
 it('filters courses by search, category, and session presence', function () {
-    $courseWith = Course::factory()->create(['name' => 'Yoga Basics', 'category' => 'Yoga']);
-    $courseWithout = Course::factory()->create(['name' => 'Weights 101', 'category' => 'Weights']);
+    $service1 = Service::factory()->create(['name' => 'Yoga Group']);
+    $service2 = Service::factory()->create(['name' => 'Weights Group']);
+
+    $courseWith = Course::factory()->create(['name' => 'Yoga Basics', 'service_id' => $service1->id]);
+    $courseWithout = Course::factory()->create(['name' => 'Weights 101', 'service_id' => $service2->id]);
 
     // Create a session for courseWith
     CourseSession::create([
@@ -33,9 +37,9 @@ it('filters courses by search, category, and session presence', function () {
         ->assertSee('Yoga Basics')
         ->assertDontSee('Weights 101');
 
-    // Category
+    // Service filter (assuming we refactored it to serviceFilter)
     Livewire::test(CourseManager::class)
-        ->set('categoryFilter', 'Weights')
+        ->set('serviceFilter', $service2->id)
         ->assertSee('Weights 101')
         ->assertDontSee('Yoga Basics');
 

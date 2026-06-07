@@ -45,7 +45,7 @@ class SendCourseCancelledPush implements ShouldQueue
 
         // Get members affected
         $memberIds = Booking::where('course_session_id', $this->courseSessionId)
-            ->where('date', $this->date)
+            ->whereDate('date', $this->date)
             ->pluck('member_id')
             ->toArray();
 
@@ -62,6 +62,11 @@ class SendCourseCancelledPush implements ShouldQueue
 
         $tokens = [];
         foreach ($members as $member) {
+            $prefs = $member->preferences['notifications'] ?? [];
+            if (! ($prefs['push_enabled'] ?? true) || (isset($prefs['courses']) && ! $prefs['courses'])) {
+                continue;
+            }
+
             $memberTokens = $member->deviceTokens
                 ->pluck('token')
                 ->filter(fn (?string $token): bool => is_string($token) && $token !== '')

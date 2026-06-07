@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -45,6 +46,7 @@ class Member extends Authenticatable
         'otp_attempts',
         'otp_last_sent_at',
         'loyalty_points',
+        'preferences',
     ];
 
     protected $casts = [
@@ -61,6 +63,7 @@ class Member extends Authenticatable
         'otp_code' => 'hashed',
         'is_family_account' => 'boolean',
         'is_archived' => 'boolean',
+        'preferences' => 'array',
     ];
 
     protected static function newFactory(): Factory
@@ -172,6 +175,13 @@ class Member extends Authenticatable
         return $this->hasMany(Subscription::class);
     }
 
+    public function activeSubscription(): HasOne
+    {
+        return $this->hasOne(Subscription::class)
+            ->where('status', 'active')
+            ->whereDate('ends_at', '>', now());
+    }
+
     public function validSubscriptions(): HasMany
     {
         return $this->hasMany(Subscription::class)
@@ -192,6 +202,11 @@ class Member extends Authenticatable
     public function notifications(): HasMany
     {
         return $this->hasMany(MemberNotification::class);
+    }
+
+    public function loyaltyPoints(): HasMany
+    {
+        return $this->hasMany(LoyaltyPoint::class);
     }
 
     public function reservations(): HasMany

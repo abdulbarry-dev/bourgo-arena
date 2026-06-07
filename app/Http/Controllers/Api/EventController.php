@@ -3,11 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Api\V1\EventResource;
 use App\Http\Resources\EventMatchResource;
+use App\Http\Resources\EventResource;
 use App\Models\Event;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 
 class EventController extends Controller
 {
@@ -15,6 +14,9 @@ class EventController extends Controller
     {
         $events = Event::query()
             ->published()
+            ->when($request->sport_type, function ($q, $sportType) {
+                $q->whereHas('service', fn ($sq) => $sq->where('slug', $sportType));
+            })
             ->withCount('participants')
             ->latest()
             ->paginate(15);
@@ -24,7 +26,9 @@ class EventController extends Controller
 
     public function show(Event $event)
     {
-        abort_if($event->status === 'draft', 404);
+        if ($event->status === 'draft') {
+            abort(404);
+        }
 
         $event->loadCount('participants');
 
@@ -33,23 +37,17 @@ class EventController extends Controller
 
     public function bracket(Event $event)
     {
-        $cacheKey = "event.{$event->id}.bracket";
+        $matches = $event->matches()
+            ->with(['participant1.user', 'participant2.user'])
+            ->orderBy('round', 'asc')
+            ->orderBy('match_number', 'asc')
+            ->get()
+            ->groupBy('round');
 
-        $formattedBracket = Cache::remember($cacheKey, now()->addHours(24), function () use ($event) {
-            $matches = $event->matches()
-                ->with(['participant1.user', 'participant1.team', 'participant2.user', 'participant2.team'])
-                ->orderBy('round', 'asc')
-                ->orderBy('match_number', 'asc')
-                ->get()
-                ->groupBy('round');
-
-            $bracket = [];
-            foreach ($matches as $round => $roundMatches) {
-                $bracket['round_'.$round] = EventMatchResource::collection($roundMatches);
-            }
-
-            return $bracket;
-        });
+        $formattedBracket = [];
+        foreach ($matches as $round => $roundMatches) {
+            $formattedBracket['round_'.$round] = EventMatchResource::collection($roundMatches);
+        }
 
         return response()->json([
             'data' => $formattedBracket,

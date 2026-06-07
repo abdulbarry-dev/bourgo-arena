@@ -25,13 +25,13 @@ class ForgotPasswordTest extends TestCase
         Notification::fake();
 
         $member = Member::factory()->create([
-            'email' => 'test@example.com',
+            'email' => 'forgot-password-test@example.com',
             'status' => 'active',
             'email_verified_at' => now(),
         ]);
 
         $response = $this->postJson(route('api.v1.auth.forgot-password'), [
-            'identifier' => 'test@example.com',
+            'identifier' => 'forgot-password-test@example.com',
         ]);
 
         $response->assertStatus(200);
@@ -49,14 +49,14 @@ class ForgotPasswordTest extends TestCase
         Notification::fake();
 
         $member = Member::factory()->create([
-            'phone' => '12345678',
-            'email' => 'test@example.com',
+            'phone' => '99887766',
+            'email' => 'forgot-phone-test@example.com',
             'status' => 'active',
             'email_verified_at' => now(),
         ]);
 
         $response = $this->postJson(route('api.v1.auth.forgot-password'), [
-            'identifier' => '12345678',
+            'identifier' => '99887766',
         ]);
 
         $response->assertStatus(200);

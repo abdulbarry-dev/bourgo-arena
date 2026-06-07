@@ -63,5 +63,3 @@ test('member detail panel shows loyalty tab content from query parameter context
         ->assertSee('Current Points')
         ->assertSee('Reservation Completed');
 });
-
-

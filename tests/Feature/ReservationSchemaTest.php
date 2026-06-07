@@ -42,7 +42,6 @@ test('reservation system migrations create the expected tables and indexes', fun
             'user_id',
             'reservation_id',
             'amount',
-            'currency',
             'payment_gateway',
             'transaction_status',
             'external_gateway_reference',

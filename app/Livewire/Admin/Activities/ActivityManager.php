@@ -20,11 +20,11 @@ class ActivityManager extends Component
 
     public string $search = '';
 
-    public ?int $serviceFilter = null; // New property for service filter
+    public ?int $serviceFilter = null;
 
-    public string $statusFilter = ''; // New property for status filter
+    public string $statusFilter = '';
 
-    public string $categoryFilter = ''; // New property for category filter
+    public string $categoryFilter = '';
 
     public bool $showActivityFlyout = false;
 
@@ -42,7 +42,7 @@ class ActivityManager extends Component
 
     public string $title = '';
 
-    public string $category = '';
+    public string $category = 'court';
 
     public string $basePrice = '';
 
@@ -133,12 +133,12 @@ class ActivityManager extends Component
         $this->resetPage();
     }
 
-    public function updatedStatusFilter(): void // New method for status filter update
+    public function updatedStatusFilter(): void
     {
         $this->resetPage();
     }
 
-    public function updatedCategoryFilter(): void // New method for category filter update
+    public function updatedCategoryFilter(): void
     {
         $this->resetPage();
     }
@@ -170,7 +170,7 @@ class ActivityManager extends Component
         $this->activityId = $activity->id;
         $this->serviceId = $activity->service_id;
         $this->title = $activity->title;
-        $this->category = $activity->category;
+        $this->category = $activity->category ?? 'court';
         $this->basePrice = number_format((float) $activity->base_price, 2, '.', '');
         $this->description = $activity->description;
         $this->featuresInput = implode(', ', $activity->features ?? []);
@@ -214,7 +214,6 @@ class ActivityManager extends Component
             'title' => $validated['title'],
             'category' => $validated['category'],
             'base_price' => $validated['basePrice'],
-            'currency' => 'TND',
             'description' => $validated['description'] ?: null,
             'features' => $this->normalizeFeatures($validated['featuresInput']),
             'is_active' => $validated['isActive'],
@@ -238,15 +237,15 @@ class ActivityManager extends Component
     }
 
     #[Computed]
-    public function availableServices()
+    public function categories()
     {
-        return Service::query()->active()->orderBy('name')->get();
+        return ['court', 'room', 'field', 'studio'];
     }
 
     #[Computed]
-    public function categories()
+    public function availableServices()
     {
-        return Activity::query()->select('category')->distinct()->orderBy('category')->pluck('category')->filter()->values();
+        return Service::query()->active()->orderBy('name')->get();
     }
 
     #[Computed]
@@ -260,17 +259,17 @@ class ActivityManager extends Component
                 $query->where(function (Builder $builder) use ($term): void {
                     $builder
                         ->where('title', 'like', $term)
-                        ->orWhere('description', 'like', $term) // Search description
-                        ->orWhereJsonContains('features', $term); // Search features (assuming features is JSON)
+                        ->orWhere('description', 'like', $term)
+                        ->orWhereJsonContains('features', $term);
                 });
             })
-            ->when($this->serviceFilter, function (Builder $query) { // Apply service filter
+            ->when($this->serviceFilter, function (Builder $query) {
                 $query->where('service_id', $this->serviceFilter);
             })
-            ->when($this->categoryFilter !== '', function (Builder $query) { // Apply category filter
+            ->when($this->categoryFilter, function (Builder $query) {
                 $query->where('category', $this->categoryFilter);
             })
-            ->when($this->statusFilter !== '', function (Builder $query) { // Apply status filter
+            ->when($this->statusFilter !== '', function (Builder $query) {
                 $query->where('is_active', $this->statusFilter === 'active');
             })
             ->orderBy('title')
@@ -312,6 +311,7 @@ class ActivityManager extends Component
             'isActive',
         ]);
 
+        $this->category = 'court';
         $this->isActive = true;
     }
 
@@ -320,7 +320,7 @@ class ActivityManager extends Component
         return [
             'serviceId' => ['required', 'integer', 'exists:services,id'],
             'title' => ['required', 'string', 'max:255'],
-            'category' => ['required', 'string', 'max:100'],
+            'category' => ['required', 'string', 'in:court,room,field,studio'],
             'basePrice' => ['required', 'numeric', 'min:0'],
             'description' => ['nullable', 'string'],
             'featuresInput' => ['nullable', 'string'],

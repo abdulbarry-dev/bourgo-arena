@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\DB;
 test('payment audit service logs transaction details with sensible defaults', function () {
     $payment = Payment::factory()->create([
         'amount' => 12.345,
-        'currency' => 'TND',
         'driver' => 'konnect',
         'status' => 'initiated',
         'payment_reference' => 'audit_ref_123',
@@ -18,8 +17,7 @@ test('payment audit service logs transaction details with sensible defaults', fu
     $service = app(PaymentAuditService::class);
 
     $entry = $service->log($payment, [
-        'transaction_status' => 'initiated',
-        'request_payload' => ['amount' => 12.345, 'currency' => 'TND'],
+        'request_payload' => ['amount' => 12.345],
         'response_payload' => ['payment_url' => 'https://gateway.example/pay'],
         'ip_address' => '10.10.10.10',
         'user_agent' => 'Pest-Test-Agent',
@@ -27,12 +25,10 @@ test('payment audit service logs transaction details with sensible defaults', fu
 
     expect($entry)->toBeInstanceOf(PaymentTransaction::class);
     expect($entry->transaction_id)->toBe('audit_ref_123');
-    expect($entry->currency)->toBe('TND');
     expect($entry->payment_gateway)->toBe('konnect');
     expect($entry->transaction_status)->toBe('initiated');
     expect($entry->ip_address)->toBe('10.10.10.10');
-    expect($entry->user_agent)->toBe('Pest-Test-Agent');
-    expect($entry->request_payload)->toMatchArray(['amount' => 12.345, 'currency' => 'TND']);
+    expect($entry->request_payload)->toMatchArray(['amount' => 12.345]);
     expect($entry->response_payload)->toMatchArray(['payment_url' => 'https://gateway.example/pay']);
 });
 
@@ -44,7 +40,6 @@ test('payment audit service encrypts sensitive payloads at rest', function () {
 
     $payment = Payment::factory()->create([
         'amount' => 20.100,
-        'currency' => 'TND',
         'driver' => 'konnect',
         'status' => 'paid',
         'payment_reference' => 'konnect_ref_987',

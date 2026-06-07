@@ -3,6 +3,7 @@
 use App\Livewire\Admin\Plans\PlanTable;
 use App\Models\Course;
 use App\Models\Plan;
+use App\Models\Service;
 use App\Models\User;
 use Livewire\Livewire;
 
@@ -76,7 +77,7 @@ test('plan detail flyout shows placeholder when no image and no close panel', fu
 test('plan can be saved with specific courses', function () {
     $admin = User::factory()->admin()->create();
 
-    $service = \App\Models\Service::factory()->create();
+    $service = Service::factory()->create();
     $course1 = Course::factory()->create();
     $course2 = Course::factory()->create();
 
@@ -105,7 +106,7 @@ test('plan can be saved with specific courses', function () {
 
 test('plan can be all inclusive', function () {
     $admin = User::factory()->admin()->create();
-    $service = \App\Models\Service::factory()->create();
+    $service = Service::factory()->create();
 
     $this->actingAs($admin);
     Livewire::test(PlanTable::class)

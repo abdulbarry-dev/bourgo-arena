@@ -24,7 +24,7 @@ it('updates participants to canceled and sends notifications', function () {
         'status' => 'registered',
     ]);
 
-    $listener = new HandleEventCancellation();
+    $listener = new HandleEventCancellation;
     $listener->handle(new EventCanceled($event));
 
     $participant->refresh();
@@ -44,7 +44,7 @@ it('flags associated payments as pending_reconciliation', function () {
         'metadata' => ['event_id' => $event->id],
     ]);
 
-    $listener = new HandleEventCancellation();
+    $listener = new HandleEventCancellation;
     $listener->handle(new EventCanceled($event));
 
     $payment->refresh();

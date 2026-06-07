@@ -32,17 +32,6 @@
                 </flux:field>
             </div>
 
-            <div class="w-56" style="min-width:160px">
-                <flux:field>
-                    <flux:label>{{ __('Category') }}</flux:label>
-                    <flux:select wire:model.live="categoryFilter">
-                        <flux:select.option value="">{{ __('All categories') }}</flux:select.option>
-                        @foreach($this->categories as $category)
-                            <flux:select.option value="{{ $category }}">{{ $category }}</flux:select.option>
-                        @endforeach
-                    </flux:select>
-                </flux:field>
-            </div>
 
             <div class="w-56" style="min-width:160px">
                 <flux:field>

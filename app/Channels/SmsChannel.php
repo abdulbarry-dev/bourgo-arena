@@ -4,6 +4,7 @@ namespace App\Channels;
 
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
+use Twilio\Rest\Client;
 
 class SmsChannel
 {
@@ -21,14 +22,46 @@ class SmsChannel
         // Handle both Model notifiables and Anonymous notifiables
         $to = $notifiable->routeNotificationFor(static::class)
             ?? $notifiable->routeNotificationFor('sms')
-            ?? $notifiable->phone;
+            ?? ($notifiable->phone ?? null);
 
         if (! $to) {
+            Log::warning('SmsChannel: No phone number found for notifiable.', [
+                'notifiable' => get_class($notifiable),
+            ]);
+
             return;
         }
 
-        // Logic for sending SMS via a provider (e.g. Twilio, Vonage) would go here.
-        // For now, we log the SMS message to the application log.
-        Log::info("SMS OTP sent to {$to}: {$message}");
+        // Clean number and ensure +216 for 8-digit Tunisian numbers
+        $to = preg_replace('/[^0-9+]/', '', (string) $to);
+        if (strlen($to) === 8 && ctype_digit($to)) {
+            $to = '+216'.$to;
+        }
+
+        $sid = config('services.twilio.account_sid');
+        $token = config('services.twilio.auth_token');
+        $from = config('services.twilio.from_number');
+
+        if (! $sid || ! $token || ! $from) {
+            Log::error('Twilio credentials not set in config/services.php');
+
+            return;
+        }
+
+        try {
+            $twilio = app(Client::class, [
+                'username' => $sid,
+                'password' => $token,
+            ]);
+
+            $twilio->messages->create($to, [
+                'from' => $from,
+                'body' => $message,
+            ]);
+
+            Log::info("SMS OTP sent to {$to} via Twilio.");
+        } catch (\Exception $e) {
+            Log::error("Failed to send SMS OTP to {$to} via Twilio: ".$e->getMessage());
+        }
     }
 }

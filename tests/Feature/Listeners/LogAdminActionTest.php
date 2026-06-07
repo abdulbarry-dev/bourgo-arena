@@ -16,7 +16,7 @@ it('logs admin action when event is canceled', function () {
 
     $this->actingAs($admin);
 
-    $listener = new LogAdminAction();
+    $listener = new LogAdminAction;
     $listener->handle(new EventCanceled($event));
 
     $this->assertDatabaseHas('admin_audit_logs', [
@@ -32,7 +32,7 @@ it('logs admin action when event is deleted', function () {
 
     $this->actingAs($admin);
 
-    $listener = new LogAdminAction();
+    $listener = new LogAdminAction;
     $listener->handle(new EventDeleted($event));
 
     $this->assertDatabaseHas('admin_audit_logs', [

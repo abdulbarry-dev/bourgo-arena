@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\V1\SubscriptionResource;
-use App\Models\Subscription;
 use App\Services\SubscriptionService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -40,16 +39,5 @@ class SubscriptionController extends Controller
         // TODO: Implement actual subscription creation and payment initiation flow
         // Return a dummy response for now to align the API endpoint structure
         return $this->success(null, 'Subscription initiated successfully', 201);
-    }
-
-    /**
-     * Cancel an active subscription.
-     */
-    public function cancel(Request $request, Subscription $subscription): JsonResponse
-    {
-        abort_if($subscription->member_id !== $request->user()->id, 403, 'Unauthorized');
-
-        // TODO: Implement actual cancellation logic
-        return $this->success(null, 'Subscription cancelled successfully');
     }
 }

@@ -19,7 +19,6 @@ class SearchResultResource extends JsonResource
             'type' => $this->type,
             'title' => $this->title,
             'subtitle' => $this->subtitle,
-            'icon' => $this->icon,
         ];
     }
 }

@@ -9,11 +9,9 @@ readonly class PaymentInitiateDTO
         public ?int $reservationId,
         public ?int $subscriptionId,
         public float|int $amount,
-        public ?string $currency,
         public ?string $description,
         public ?string $type,
-        public ?string $paymentReference = null,
-        public ?array $metadata = null,
-        public ?string $provider = null,
+        public ?string $paymentReference,
+        public ?array $metadata,
     ) {}
 }

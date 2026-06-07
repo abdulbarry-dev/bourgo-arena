@@ -2,8 +2,8 @@
 
 namespace App\Notifications;
 
+use App\Models\Event;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -14,9 +14,7 @@ class BracketPublishedNotification extends Notification
     /**
      * Create a new notification instance.
      */
-    public function __construct(public \App\Models\Event $event)
-    {
-    }
+    public function __construct(public Event $event) {}
 
     /**
      * Get the notification's delivery channels.
@@ -31,13 +29,13 @@ class BracketPublishedNotification extends Notification
     /**
      * Get the mail representation of the notification.
      */
-    public function toMail(object $notifiable): \Illuminate\Notifications\Messages\MailMessage
+    public function toMail(object $notifiable): MailMessage
     {
-        return (new \Illuminate\Notifications\Messages\MailMessage)
-            ->subject('Bracket Published: ' . $this->event->name)
-            ->line('The tournament bracket for "' . $this->event->name . '" has just been published!')
+        return (new MailMessage)
+            ->subject('Bracket Published: '.$this->event->name)
+            ->line('The tournament bracket for "'.$this->event->name.'" has just been published!')
             ->line('Log in to view your first matchup and scheduled match time.')
-            ->action('View Bracket', url('/events/' . $this->event->id))
+            ->action('View Bracket', url('/events/'.$this->event->id))
             ->line('Good luck!');
     }
 

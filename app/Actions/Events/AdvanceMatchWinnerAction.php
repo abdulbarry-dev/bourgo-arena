@@ -34,9 +34,9 @@ class AdvanceMatchWinnerAction
             // Determine which slot to place the winner in
             // Typically, if this is an "even" match number from the top, they go to participant1,
             // but for simplicity, we just fill the first empty slot.
-            if (!$nextMatch->participant1_id) {
+            if (! $nextMatch->participant1_id) {
                 $nextMatch->update(['participant1_id' => $winnerParticipantId]);
-            } elseif (!$nextMatch->participant2_id) {
+            } elseif (! $nextMatch->participant2_id) {
                 $nextMatch->update(['participant2_id' => $winnerParticipantId]);
             } else {
                 throw new \Exception('Next match is already full.');

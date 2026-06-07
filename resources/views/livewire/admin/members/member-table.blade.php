@@ -81,6 +81,27 @@
     @include('livewire.admin.members.partials.modals.activate-modal')
     @include('livewire.admin.members.partials.modals.delete-modal')
 
+    <livewire:admin.members.manage-family-flyout />
+    <livewire:admin.members.edit-member-flyout />
+
+    @include('livewire.admin.members.partials.modals.suspend-modal')
+    @include('livewire.admin.members.partials.modals.activate-modal')
+    @include('livewire.admin.members.partials.modals.delete-modal')
+
+    <livewire:admin.members.manage-family-flyout />
+    <livewire:admin.members.edit-member-flyout />
+
+    @include('livewire.admin.members.partials.modals.suspend-modal')
+    @include('livewire.admin.members.partials.modals.activate-modal')
+    @include('livewire.admin.members.partials.modals.delete-modal')
+
+    <livewire:admin.members.manage-family-flyout />
+    <livewire:admin.members.edit-member-flyout />
+
+    @include('livewire.admin.members.partials.modals.suspend-modal')
+    @include('livewire.admin.members.partials.modals.activate-modal')
+    @include('livewire.admin.members.partials.modals.delete-modal')
+
     {{-- Loyalty Adjustment Modal --}}
     <flux:modal wire:model="isLoyaltyAdjustmentModalOpen" class="max-w-md w-full">
         <div class="space-y-6">

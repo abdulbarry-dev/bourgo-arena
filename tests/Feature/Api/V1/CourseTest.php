@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureUserHasCourseAccess;
 use App\Models\Course;
 use App\Models\CourseSession;
 use App\Models\Member;
@@ -83,7 +84,7 @@ it('can list upcoming course sessions', function () {
 
     Sanctum::actingAs($member, ['*'], 'sanctum');
 
-    $this->withoutMiddleware(\App\Http\Middleware\EnsureUserHasCourseAccess::class);
+    $this->withoutMiddleware(EnsureUserHasCourseAccess::class);
 
     $response = $this->getJson(route('api.v1.courses.sessions', $course));
 

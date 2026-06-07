@@ -19,8 +19,7 @@ return new class extends Migration
             $table->string('driver')->default('konnect');
             $table->string('gateway')->nullable();
             $table->string('type')->nullable(); // reservation, subscription, deposit
-            $table->decimal('amount', 10, 3)->default(0);
-            $table->string('currency', 8)->default('TND');
+            $table->decimal('amount', 10, 3);
             $table->string('status')->default('pending'); // pending, initiated, paid, failed
             $table->string('payment_reference')->nullable()->unique();
             $table->string('gateway_transaction_id')->nullable();

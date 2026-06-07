@@ -40,6 +40,12 @@ class UpdateProfileRequest extends BaseFormRequest
             'avatar' => ['sometimes', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'birth_date' => ['sometimes', 'date', 'nullable'],
             'gender' => ['sometimes', 'string', 'in:male,female'],
+            'preferences' => ['sometimes', 'array'],
+            'preferences.app' => ['sometimes', 'array'],
+            'preferences.app.theme' => ['sometimes', 'string', 'in:light,dark,system'],
+            'preferences.app.language' => ['sometimes', 'string'],
+            'preferences.notifications' => ['sometimes', 'array'],
+            'preferences.notifications.*' => ['sometimes', 'boolean'],
         ];
     }
 

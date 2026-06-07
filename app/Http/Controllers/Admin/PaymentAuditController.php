@@ -16,14 +16,14 @@ class PaymentAuditController extends Controller
 
         $callback = function () use ($rows) {
             $out = fopen('php://output', 'w');
-            fputcsv($out, ['transaction_id', 'user_email', 'amount', 'currency', 'gateway', 'status', 'created_at', 'ip_address', 'user_agent']);
+            fputcsv($out, ['transaction_id', 'user_email', 'amount', 'gateway', 'status', 'created_at', 'ip_address', 'user_agent']);
 
             foreach ($rows as $row) {
                 fputcsv($out, [
                     $row->transaction_id,
                     $row->user?->email ?? null,
                     (string) $row->amount,
-                    $row->currency,
+
                     $row->payment_gateway,
                     $row->transaction_status,
                     $row->created_at?->toDateTimeString() ?? null,

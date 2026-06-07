@@ -42,11 +42,27 @@ class SubscriptionTable extends Component
 
     public string $sortDirection = 'asc';
 
+    public bool $showSubscriptionEditModal = false;
+
     public bool $showSubscriptionLifecycleModal = false;
 
     public bool $showDeleteSubscriptionModal = false;
 
     public string $subscriptionLifecycleAction = 'suspend';
+
+    public string $suspensionReason = 'medical';
+
+    public ?int $editPlanId = null;
+
+    public string $editStartsAt = '';
+
+    public string $editEndsAt = '';
+
+    public string $editPaymentMethod = 'cash';
+
+    public ?string $editPaymentReference = null;
+
+    public string $editAmountPaid = '';
 
     public function updatedSearch(): void
     {

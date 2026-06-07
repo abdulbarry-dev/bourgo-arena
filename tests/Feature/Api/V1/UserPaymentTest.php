@@ -2,7 +2,6 @@
 
 use App\Models\Member;
 use App\Models\Payment;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -17,7 +16,6 @@ it('can list user payments', function () {
     $payment = Payment::factory()->create([
         'member_id' => $member->id,
         'amount' => 100.50,
-        'currency' => 'TND',
         'status' => 'completed',
     ]);
 
@@ -26,7 +24,6 @@ it('can list user payments', function () {
     Payment::factory()->create([
         'member_id' => $otherMember->id,
         'amount' => 50.00,
-        'currency' => 'TND',
         'status' => 'completed',
     ]);
 
@@ -34,6 +31,5 @@ it('can list user payments', function () {
 
     $response->assertStatus(200)
         ->assertJsonCount(1, 'data')
-        ->assertJsonPath('data.0.amount', 100.5)
-        ->assertJsonPath('data.0.currency', 'TND');
+        ->assertJsonPath('data.0.amount', 100.5);
 });

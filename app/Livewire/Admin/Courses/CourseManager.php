@@ -54,9 +54,9 @@ class CourseManager extends Component
 
     public $statusFilter = '';
 
-    public $categoryFilter = '';
-
     public $hasSessionsFilter = 'all';
+
+    public $serviceFilter = '';
 
     public $deletingCourseId = null;
 
@@ -76,12 +76,12 @@ class CourseManager extends Component
         $this->resetPage();
     }
 
-    public function updatedCategoryFilter()
+    public function updatedHasSessionsFilter()
     {
         $this->resetPage();
     }
 
-    public function updatedHasSessionsFilter()
+    public function updatedServiceFilter()
     {
         $this->resetPage();
     }
@@ -177,23 +177,17 @@ class CourseManager extends Component
 
         $query = $this->applySearchFilter($query, $this->search, ['name']);
 
-        if ($this->categoryFilter) {
-            $query->where('category', $this->categoryFilter);
-        }
-
         if ($this->statusFilter) {
             $query->where('status', $this->statusFilter);
+        }
+
+        if ($this->serviceFilter) {
+            $query->where('service_id', $this->serviceFilter);
         }
 
         $query = $this->applyRelationPresenceFilter($query, 'sessions', $this->hasSessionsFilter);
 
         return $query->withCount('sessions')->orderBy('name')->paginate(10);
-    }
-
-    #[Computed]
-    public function categories()
-    {
-        return Course::query()->select('category')->distinct()->orderBy('category')->pluck('category')->filter()->values();
     }
 
     public function updatedServiceId($value)

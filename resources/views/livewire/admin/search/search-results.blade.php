@@ -158,8 +158,8 @@
                                         <span>{{ $result->service?->name }}</span>
                                         <span class="text-zinc-300 dark:text-zinc-700">•</span> <span>{{ number_format($result->price, 0) }} {{ __('TND') }}</span>
                                     @elseif($activeTab === 'activities')
-                                        <span>{{ $result->category }}</span>
-                                        <span class="text-zinc-300 dark:text-zinc-700">•</span> <span>{{ number_format($result->base_price, 0) }} {{ $result->currency }}</span>
+                                        <span>{{ $result->subtitle }}</span>
+                                        <span class="text-zinc-300 dark:text-zinc-700">•</span> <span>{{ number_format($result->base_price, 0) }} TND</span>
                                     @endif
                                 </div>
                             </div>

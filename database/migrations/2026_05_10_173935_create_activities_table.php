@@ -15,9 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('service_id')->constrained()->cascadeOnDelete();
             $table->string('title');
-            $table->string('category');
             $table->decimal('base_price', 8, 2)->default(0);
-            $table->string('currency', 10)->default('TND');
             $table->string('image_url')->nullable();
             $table->json('images')->nullable();
             $table->text('description')->nullable();

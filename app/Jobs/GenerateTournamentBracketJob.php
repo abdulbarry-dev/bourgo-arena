@@ -14,9 +14,7 @@ class GenerateTournamentBracketJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct(public Event $event)
-    {
-    }
+    public function __construct(public Event $event) {}
 
     /**
      * Execute the job.

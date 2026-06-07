@@ -88,7 +88,9 @@ class KonnectProvider implements PaymentProviderInterface
 
         return array_filter([
             'amount' => (float) $payment->amount,
-            'currency' => $payment->currency ?? 'TND',
+            'amount' => (float) $payment->amount,
+            'amount' => (float) $payment->amount,
+            'amount' => (float) $payment->amount,
             'payment_reference' => $payment->payment_reference,
             'order_id' => $payment->payment_reference,
             'description' => $options['description'] ?? 'Payment',

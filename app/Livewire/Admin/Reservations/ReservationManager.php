@@ -193,7 +193,7 @@ class ReservationManager extends Component
         $slot = ActivitySlot::query()->with('activity')->findOrFail($validated['createActivitySlotId']);
 
         $reservationService = app(ReservationService::class);
-        $reservationService->assertNoActiveReservationForSlot($member, $slot->id);
+        $reservationService->assertNoActiveReservationForSlot($member, $slot->id, $validated['createDate']);
 
         $reservationService->makeActivityReservation(
             $member,

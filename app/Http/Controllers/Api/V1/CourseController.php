@@ -46,7 +46,7 @@ class CourseController extends Controller
      */
     public function sessions(Course $course, CourseService $service): AnonymousResourceCollection
     {
-        abort_if(!$course->isActive(), 404, 'Course not found or inactive.');
+        abort_if(! $course->isActive(), 404, 'Course not found or inactive.');
 
         $sessions = $course->sessions()
             ->where('is_cancelled', false)

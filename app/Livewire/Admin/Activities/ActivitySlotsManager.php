@@ -24,7 +24,7 @@ class ActivitySlotsManager extends Component
 
     public string $activityTitle = '';
 
-    public string $activityCategory = 'padel';
+    public string $activityCategory = 'court';
 
     public string $activityBasePrice = '';
 
@@ -59,7 +59,7 @@ class ActivitySlotsManager extends Component
 
         $this->editingActivityId = $this->activity->id;
         $this->activityTitle = $this->activity->title;
-        $this->activityCategory = $this->activity->category;
+        $this->activityCategory = $this->activity->category ?? 'court';
         $this->activityBasePrice = number_format((float) $this->activity->base_price, 2, '.', '');
         $this->activityDescription = $this->activity->description;
         $this->activityFeaturesInput = implode(', ', $this->activity->features ?? []);
@@ -186,7 +186,6 @@ class ActivitySlotsManager extends Component
             'title' => $validated['activityTitle'],
             'category' => $validated['activityCategory'],
             'base_price' => $validated['activityBasePrice'],
-            'currency' => 'TND',
             'description' => $validated['activityDescription'] ?: null,
             'features' => $this->normalizeFeatures($validated['activityFeaturesInput']),
             'is_active' => $validated['activityIsActive'],
@@ -234,7 +233,7 @@ class ActivitySlotsManager extends Component
             'activityIsActive',
         ]);
 
-        $this->activityCategory = 'padel';
+        $this->activityCategory = 'court';
         $this->activityIsActive = true;
     }
 
@@ -258,7 +257,7 @@ class ActivitySlotsManager extends Component
     {
         return [
             'activityTitle' => ['required', 'string', 'max:255'],
-            'activityCategory' => ['required', 'string', 'max:100'],
+            'activityCategory' => ['required', 'string'],
             'activityBasePrice' => ['required', 'numeric', 'min:0'],
             'activityDescription' => ['nullable', 'string'],
             'activityFeaturesInput' => ['nullable', 'string'],

@@ -119,7 +119,7 @@ class GlobalSearchService
             ->with(['service:id,name'])
             ->withCount('sessions')
             ->limit($limit)
-            ->get(['id', 'name', 'description', 'category', 'service_id', 'status']);
+            ->get(['id', 'name', 'description', 'service_id', 'status']);
     }
 
     private function searchSubscriptions(string $term, int $limit): Collection
@@ -151,7 +151,7 @@ class GlobalSearchService
     {
         return $this->activityBaseQuery($term)
             ->limit($limit)
-            ->get(['id', 'title', 'category', 'base_price', 'currency', 'rating', 'is_active']);
+            ->get(['id', 'title', 'base_price', 'rating', 'is_active']);
     }
 
     // -------------------------------------------------------------------------
@@ -178,7 +178,7 @@ class GlobalSearchService
         return $this->courseBaseQuery($term)
             ->with(['service:id,name'])
             ->withCount('sessions')
-            ->paginate($perPage, ['id', 'name', 'description', 'category', 'service_id', 'status']);
+            ->paginate($perPage, ['id', 'name', 'description', 'service_id', 'status']);
     }
 
     private function searchSubscriptionsPaginated(string $term, int $perPage): mixed
@@ -206,7 +206,7 @@ class GlobalSearchService
     private function searchActivitiesPaginated(string $term, int $perPage): mixed
     {
         return $this->activityBaseQuery($term)
-            ->paginate($perPage, ['id', 'title', 'category', 'base_price', 'currency', 'rating', 'is_active']);
+            ->paginate($perPage, ['id', 'title', 'base_price', 'rating', 'is_active']);
     }
 
     // -------------------------------------------------------------------------
@@ -232,8 +232,7 @@ class GlobalSearchService
         return Course::query()
             ->where(function ($q) use ($term): void {
                 $q->where('name', 'like', "%{$term}%")
-                    ->orWhere('description', 'like', "%{$term}%")
-                    ->orWhere('category', 'like', "%{$term}%");
+                    ->orWhere('description', 'like', "%{$term}%");
             });
     }
 
@@ -266,8 +265,7 @@ class GlobalSearchService
         return Activity::query()
             ->where(function ($q) use ($term): void {
                 $q->where('title', 'like', "%{$term}%")
-                    ->orWhere('description', 'like', "%{$term}%")
-                    ->orWhere('category', 'like', "%{$term}%");
+                    ->orWhere('description', 'like', "%{$term}%");
             });
     }
 

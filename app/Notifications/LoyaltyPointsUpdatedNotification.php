@@ -104,15 +104,18 @@ class LoyaltyPointsUpdatedNotification extends Notification implements ShouldQue
             ->toArray();
 
         if (count($tokens) > 0) {
-            app(PushNotificationService::class)->send(
-                tokens: $tokens,
-                title: $title,
-                body: $message,
-                data: [
-                    'type' => 'loyalty_update',
-                    'member_id' => (string) $this->member->id,
-                ]
-            );
+            $prefs = $this->member->preferences['notifications'] ?? [];
+            if (($prefs['push_enabled'] ?? true) && (! isset($prefs['loyalty']) || $prefs['loyalty'])) {
+                app(PushNotificationService::class)->send(
+                    tokens: $tokens,
+                    title: $title,
+                    body: $message,
+                    data: [
+                        'type' => 'loyalty_update',
+                        'member_id' => (string) $this->member->id,
+                    ]
+                );
+            }
         }
     }
 }

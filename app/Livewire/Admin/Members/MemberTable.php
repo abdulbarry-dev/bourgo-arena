@@ -29,7 +29,7 @@ class MemberTable extends Component
 
     public string $hasValidSubscription = 'all';
 
-    public int $perPage = 10;
+    public int $perPage = 7;
 
     public bool $selectionEnabled = false;
 
@@ -221,6 +221,22 @@ class MemberTable extends Component
         $this->showDeleteModal = true;
     }
 
+    public function delete(): void
+    {
+        $member = Member::findOrFail($this->actionMemberId);
+        $this->authorize('delete', $member);
+
+        $member->delete();
+
+        if (session('members.selected_member_id') === $this->actionMemberId) {
+            session()->forget('members.selected_member_id');
+        }
+
+        $this->showDeleteModal = false;
+        $this->dispatch('member-updated', memberId: $this->actionMemberId);
+        $this->dispatch('toast', message: 'Member deleted successfully.', type: 'success');
+    }
+
     public function openLoyaltyModal(int $memberId, string $type): void
     {
         $this->actionMemberId = $memberId;
@@ -263,22 +279,6 @@ class MemberTable extends Component
         } else {
             $this->dispatch('toast', type: 'error', message: __('Failed to adjust points.'));
         }
-    }
-
-    public function delete(): void
-    {
-        $member = Member::findOrFail($this->actionMemberId);
-        $this->authorize('delete', $member);
-
-        $member->delete();
-
-        if (session('members.selected_member_id') === $this->actionMemberId) {
-            session()->forget('members.selected_member_id');
-        }
-
-        $this->showDeleteModal = false;
-        $this->dispatch('member-updated', memberId: $this->actionMemberId);
-        $this->dispatch('toast', message: 'Member deleted successfully.', type: 'success');
     }
 
     #[Computed]

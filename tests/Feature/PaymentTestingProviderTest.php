@@ -77,7 +77,6 @@ test('it fails verification if reference contains fail', function () {
     $payment = Payment::create([
         'member_id' => $this->member->id,
         'amount' => 100,
-        'currency' => 'TND',
         'driver' => 'test',
         'status' => 'initiated',
         'payment_reference' => 'test_fail_123',
