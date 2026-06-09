@@ -4,7 +4,7 @@
         @include('partials.head')
     </head>
     @php
-        $isLockedDashboardPage = request()->routeIs('dashboard', 'admin.reservations.index', 'admin.activities.index', 'admin.events.index', 'admin.services.index');
+        $isLockedDashboardPage = request()->routeIs('admin.reservations.index', 'admin.activities.index', 'admin.events.index', 'admin.services.index');
     @endphp
 
     <body @class([
