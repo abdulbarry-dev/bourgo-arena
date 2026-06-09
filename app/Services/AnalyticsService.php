@@ -9,6 +9,7 @@ use App\Models\OccupancyHourlyAggregate;
 use App\Models\Payment;
 use App\Models\RevenueSnapshot;
 use App\Models\Subscription;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class AnalyticsService
@@ -79,11 +80,17 @@ class AnalyticsService
         ];
     }
 
-    public function getRevenueTrend(int $days = 30): array
+    public function getRevenueTrend(int $days = 30, ?string $from = null, ?string $to = null): array
     {
-        $snapshots = RevenueSnapshot::where('date', '>=', now()->subDays($days + 1))
-            ->orderBy('date')
-            ->get();
+        $query = RevenueSnapshot::orderBy('date');
+
+        if ($from && $to) {
+            $query->whereBetween('date', [$from, $to]);
+        } else {
+            $query->where('date', '>=', now()->subDays($days + 1));
+        }
+
+        $snapshots = $query->get();
 
         $labels = $snapshots->map(fn ($s) => $s->date->format('M d'))->toArray();
         $values = $snapshots->map(fn ($s) => (float) $s->total_revenue)->toArray();
@@ -119,22 +126,38 @@ class AnalyticsService
         ];
     }
 
-    public function getMemberGrowth(int $days = 30): array
+    public function getMemberGrowth(int $days = 30, ?string $from = null, ?string $to = null): array
     {
-        $records = Member::where('created_at', '>=', now()->subDays($days))
-            ->select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(*) as count'))
+        $query = Member::select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(*) as count'))
             ->groupBy(DB::raw('DATE(created_at)'))
-            ->orderBy('date')
-            ->get()
-            ->keyBy('date');
+            ->orderBy('date');
 
-        $dates = collect();
-        for ($i = $days; $i >= 0; $i--) {
-            $date = now()->subDays($i)->format('Y-m-d');
-            $dates->push([
-                'date' => now()->subDays($i)->format('M d'),
-                'count' => (int) ($records->get($date)?->count ?? 0),
-            ]);
+        if ($from && $to) {
+            $query->whereBetween('created_at', [$from, Carbon::parse($to)->endOfDay()]);
+            $records = $query->get()->keyBy('date');
+
+            $dates = collect();
+            $start = Carbon::parse($from);
+            $end = Carbon::parse($to);
+            for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
+                $key = $date->format('Y-m-d');
+                $dates->push([
+                    'date' => $date->format('M d'),
+                    'count' => (int) ($records->get($key)?->count ?? 0),
+                ]);
+            }
+        } else {
+            $query->where('created_at', '>=', now()->subDays($days));
+            $records = $query->get()->keyBy('date');
+
+            $dates = collect();
+            for ($i = $days; $i >= 0; $i--) {
+                $date = now()->subDays($i)->format('Y-m-d');
+                $dates->push([
+                    'date' => now()->subDays($i)->format('M d'),
+                    'count' => (int) ($records->get($date)?->count ?? 0),
+                ]);
+            }
         }
 
         return [
@@ -143,10 +166,17 @@ class AnalyticsService
         ];
     }
 
-    public function getRevenueByMethod(int $days = 30): array
+    public function getRevenueByMethod(int $days = 30, ?string $from = null, ?string $to = null): array
     {
-        $snapshots = RevenueSnapshot::where('date', '>=', now()->subDays($days))
-            ->get();
+        $snapshotsQuery = RevenueSnapshot::orderBy('date');
+
+        if ($from && $to) {
+            $snapshotsQuery->whereBetween('date', [$from, $to]);
+        } else {
+            $snapshotsQuery->where('date', '>=', now()->subDays($days));
+        }
+
+        $snapshots = $snapshotsQuery->get();
 
         $aggregated = [];
         foreach ($snapshots as $snapshot) {
@@ -157,14 +187,17 @@ class AnalyticsService
         }
 
         if (empty($aggregated)) {
-            $payments = Payment::where('status', 'completed')
-                ->where('created_at', '>=', now()->subDays($days))
+            $paymentsQuery = Payment::where('status', 'completed')
                 ->select('gateway', DB::raw('SUM(amount) as total'))
-                ->groupBy('gateway')
-                ->pluck('total', 'gateway')
-                ->toArray();
+                ->groupBy('gateway');
 
-            $aggregated = $payments;
+            if ($from && $to) {
+                $paymentsQuery->whereBetween('created_at', [$from, Carbon::parse($to)->endOfDay()]);
+            } else {
+                $paymentsQuery->where('created_at', '>=', now()->subDays($days));
+            }
+
+            $aggregated = $paymentsQuery->pluck('total', 'gateway')->toArray();
         }
 
         return [
@@ -265,14 +298,19 @@ class AnalyticsService
         ];
     }
 
-    public function getReservationMetrics(int $days = 30): array
+    public function getReservationMetrics(int $days = 30, ?string $from = null, ?string $to = null): array
     {
-        $total = ApiReservation::where('created_at', '>=', now()->subDays($days))->count();
-        $canceled = ApiReservation::whereNotNull('cancelled_at')
-            ->where('created_at', '>=', now()->subDays($days))
-            ->count();
-        $revenue = ApiReservation::where('created_at', '>=', now()->subDays($days))
-            ->sum('price');
+        $baseQuery = ApiReservation::query();
+
+        if ($from && $to) {
+            $baseQuery->whereBetween('created_at', [$from, Carbon::parse($to)->endOfDay()]);
+        } else {
+            $baseQuery->where('created_at', '>=', now()->subDays($days));
+        }
+
+        $total = (clone $baseQuery)->count();
+        $canceled = (clone $baseQuery)->whereNotNull('cancelled_at')->count();
+        $revenue = (clone $baseQuery)->sum('price');
 
         return [
             'total_reservations' => $total,

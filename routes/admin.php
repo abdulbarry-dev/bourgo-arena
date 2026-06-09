@@ -73,8 +73,11 @@ Route::prefix('admin')->middleware('role:admin')->group(function () {
     Route::get('/payments/audit/export', [PaymentAuditController::class, 'exportCsv'])
         ->name('admin.payments.audit.export');
 
-    Route::get('/analytics/export/pdf', AnalyticsExportController::class)
+    Route::get('/analytics/export/pdf', [AnalyticsExportController::class, 'exportPdf'])
         ->name('admin.analytics.export.pdf');
+
+    Route::get('/analytics/export/csv', [AnalyticsExportController::class, 'exportCsv'])
+        ->name('admin.analytics.export.csv');
 
     Route::view('/plans', 'livewire.admin.plans.dashboard')
         ->name('admin.plans');

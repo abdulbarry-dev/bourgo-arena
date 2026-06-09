@@ -2,7 +2,7 @@
 
 <x-ui.dashboard.page-wrapper>
     <div class="space-y-6" wire:key="analytics-dashboard">
-        <div wire:loading.block wire:target="period"
+        <div wire:loading.block wire:target="preset,from,to"
              class="fixed inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-sm dark:bg-zinc-900/60">
             <div class="flex flex-col items-center gap-3">
                 <flux:icon.arrow-path class="size-8 animate-spin text-zinc-400" />
@@ -15,17 +15,39 @@
             :subtitle="__('Track revenue, subscriptions, members, occupancy, and the operational signals that matter.')"
         >
             <x-slot name="actions">
-                <flux:select wire:model.live="period" class="min-w-[140px]">
+                <flux:select wire:model.live="preset" class="min-w-[150px]">
                     <flux:select.option value="30_days">{{ __('Last 30 Days') }}</flux:select.option>
                     <flux:select.option value="90_days">{{ __('Last 90 Days') }}</flux:select.option>
                     <flux:select.option value="12_months">{{ __('Last 12 Months') }}</flux:select.option>
+                    <flux:select.option value="custom">{{ __('Custom Range') }}</flux:select.option>
                 </flux:select>
 
+                @if($preset === 'custom')
+                    <flux:input type="date" wire:model.live="from" class="min-w-[140px]" />
+                    <flux:input type="date" wire:model.live="to" class="min-w-[140px]" />
+                @endif
+
                 @can('exportReports')
-                    <flux:button variant="primary" icon="arrow-down-tray" size="sm"
-                                 :href="route('admin.analytics.export.pdf')">
-                        {{ __('Export PDF') }}
-                    </flux:button>
+                    <flux:dropdown align="end">
+                        <flux:button variant="primary" icon="arrow-down-tray" size="sm">
+                            {{ __('Export') }}
+                        </flux:button>
+
+                        <flux:menu>
+                            <flux:menu.item
+                                :href="route('admin.analytics.export.pdf', ['from' => $from, 'to' => $to])"
+                                icon="document-text"
+                            >
+                                {{ __('Export PDF') }}
+                            </flux:menu.item>
+                            <flux:menu.item
+                                :href="route('admin.analytics.export.csv', ['from' => $from, 'to' => $to])"
+                                icon="table-cells"
+                            >
+                                {{ __('Export CSV') }}
+                            </flux:menu.item>
+                        </flux:menu>
+                    </flux:dropdown>
                 @endcan
             </x-slot>
         </x-ui.dashboard.page-header>

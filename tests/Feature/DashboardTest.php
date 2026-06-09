@@ -74,7 +74,7 @@ test('dashboard shows empty states when no data', function () {
         ->assertSee(__('No subscriptions expiring soon'));
 });
 
-test('dashboard shows period selector', function () {
+test('dashboard shows preset range selector', function () {
     $user = User::factory()->admin()->create();
     $this->actingAs($user);
 
@@ -83,27 +83,41 @@ test('dashboard shows period selector', function () {
     $response->assertOk()
         ->assertSee(__('Last 30 Days'))
         ->assertSee(__('Last 90 Days'))
-        ->assertSee(__('Last 12 Months'));
+        ->assertSee(__('Last 12 Months'))
+        ->assertSee(__('Custom Range'));
 });
 
-test('dashboard export button visible for admin', function () {
+test('dashboard shows date inputs when custom range selected', function () {
+    $user = User::factory()->admin()->create();
+    $this->actingAs($user);
+
+    $response = $this->get(route('dashboard', ['range' => 'custom', 'from' => '2026-01-01', 'to' => '2026-06-09']));
+
+    $response->assertOk()
+        ->assertSee('2026-01-01')
+        ->assertSee('2026-06-09');
+});
+
+test('dashboard export dropdown visible for admin', function () {
     $user = User::factory()->admin()->create();
     $this->actingAs($user);
 
     $response = $this->get(route('dashboard'));
 
     $response->assertOk()
-        ->assertSee(__('Export PDF'));
+        ->assertSee(__('Export'))
+        ->assertSee(__('Export PDF'))
+        ->assertSee(__('Export CSV'));
 });
 
-test('dashboard does not show export button for managers', function () {
+test('dashboard does not show export dropdown for managers', function () {
     $user = User::factory()->manager()->create();
     $this->actingAs($user);
 
     $response = $this->get(route('dashboard'));
 
     $response->assertOk()
-        ->assertDontSee(__('Export PDF'));
+        ->assertDontSee(__('Export'));
 });
 
 test('verified managers can visit the dashboard', function () {
