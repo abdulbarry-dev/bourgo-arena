@@ -47,6 +47,9 @@ class Member extends Authenticatable
         'otp_last_sent_at',
         'loyalty_points',
         'preferences',
+        'last_payment_ip',
+        'last_payment_country',
+        'last_payment_at',
     ];
 
     protected $casts = [

@@ -4,10 +4,12 @@ use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\EventParticipantController;
 use App\Http\Controllers\Api\V1\ActivityController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\CourseBookingController;
 use App\Http\Controllers\Api\V1\CourseController;
 use App\Http\Controllers\Api\V1\DeviceTokenController;
 use App\Http\Controllers\Api\V1\FamilyController;
 use App\Http\Controllers\Api\V1\LoyaltyController;
+use App\Http\Controllers\Api\V1\LoyaltyPaymentController;
 use App\Http\Controllers\Api\V1\MemberController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\PaymentController;
@@ -91,18 +93,26 @@ Route::prefix('v1')->group(function () {
             Route::get('payments', [UserPaymentController::class, 'index'])->name('api.v1.user.payments.index');
         });
 
-        Route::get('reservations', [ReservationController::class, 'index'])->name('api.v1.reservations.index');
+        Route::get('reservations/ongoing', [ReservationController::class, 'ongoing'])->name('api.v1.reservations.ongoing');
+        Route::get('reservations/history', [ReservationController::class, 'history'])->name('api.v1.reservations.history');
         Route::post('reservations', [ReservationController::class, 'store'])->name('api.v1.reservations.store');
         Route::delete('reservations/{reservation}', [ReservationController::class, 'destroy'])->name('api.v1.reservations.destroy');
         Route::post('reservations/{reservation}/payment/initiate', [ReservationController::class, 'initiatePayment'])->name('api.v1.reservations.payment.initiate');
         Route::get('reservations/{reservation}/payment/verify', [ReservationController::class, 'verifyPayment'])->name('api.v1.reservations.payment.verify');
 
         Route::get('member/tier', [TierController::class, 'show'])->name('api.v1.member.tier');
-        Route::get('loyalty/balance', [LoyaltyController::class, 'balance'])->name('api.v1.loyalty.balance');
 
         Route::get('courses/{course}/sessions', [CourseController::class, 'sessions'])
             ->middleware('course.access')
             ->name('api.v1.courses.sessions');
+
+        Route::get('courses/{course}/sessions/{session}/booking', [CourseBookingController::class, 'show'])
+            ->middleware('course.access')
+            ->name('api.v1.courses.sessions.booking.show');
+
+        Route::post('courses/{course}/sessions/{session}/book', [CourseBookingController::class, 'store'])
+            ->middleware('course.access')
+            ->name('api.v1.courses.sessions.book');
 
         Route::prefix('family')->group(function () {
             Route::get('children', [FamilyController::class, 'index'])->name('api.v1.family.children.index');
@@ -120,6 +130,7 @@ Route::prefix('v1')->group(function () {
         Route::post('device-token', [DeviceTokenController::class, 'store'])->name('api.v1.device-token.store');
 
         Route::get('member/subscription', [SubscriptionController::class, 'active'])->name('api.v1.member.subscription');
+        Route::get('member/subscriptions/history', [SubscriptionController::class, 'history'])->name('api.v1.member.subscriptions.history');
         Route::post('subscriptions', [SubscriptionController::class, 'store'])->name('api.v1.subscriptions.store');
         Route::post('subscriptions/{subscription}/cancel', [SubscriptionController::class, 'cancel'])->name('api.v1.subscriptions.cancel');
 
@@ -129,13 +140,20 @@ Route::prefix('v1')->group(function () {
         Route::post('events/{event}/check-in', [EventParticipantController::class, 'checkIn'])->name('api.v1.events.check-in');
 
         // General Payment Endpoints
-        Route::prefix('payments')->group(function () {
+        Route::prefix('payments')->middleware('tunisia_geo')->group(function () {
             Route::post('initiate', [PaymentController::class, 'initiate'])->middleware('throttle:payments')->name('api.v1.payments.initiate');
             Route::post('verify', [PaymentController::class, 'verify'])->name('api.v1.payments.verify');
         });
+
+        // Loyalty Payment Endpoints
+        Route::prefix('loyalty')->middleware('tunisia_geo')->group(function () {
+            Route::post('pay', [LoyaltyPaymentController::class, 'initiate'])->name('api.v1.loyalty.pay');
+            Route::get('payments', [LoyaltyPaymentController::class, 'history'])->name('api.v1.loyalty.payments');
+            Route::get('balance', [LoyaltyController::class, 'balance'])->name('api.v1.loyalty.balance');
+        });
     });
 
-    Route::prefix('payments')->group(function () {
+    Route::prefix('payments')->middleware('tunisia_geo')->group(function () {
         Route::post('webhook/{provider}', [PaymentController::class, 'webhook'])->name('api.v1.payments.webhook');
     });
 });

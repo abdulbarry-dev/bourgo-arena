@@ -53,6 +53,14 @@ return [
         'cash' => true,
         'konnect' => true,
         'test' => true,
+        'loyalty_points' => true,
+    ],
+
+    'geo_restriction' => [
+        'enabled' => true,
+        'allowed_countries' => ['TN'],
+        'exempt_staff' => true,
+        'block_local_ips' => false,
     ],
 
     'initiate_per_minute' => env('PAYMENT_INITIATE_PER_MINUTE', 10),
@@ -80,6 +88,10 @@ return [
     | Configure webhook verification and security settings
     |
     */
+
+    'subscription' => [
+        'pending_timeout_minutes' => (int) env('PENDING_PAYMENT_TIMEOUT_MINUTES', 30),
+    ],
 
     'webhooks' => [
         'verify_signature' => true,
