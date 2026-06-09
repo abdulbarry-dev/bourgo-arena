@@ -2,7 +2,7 @@
 
 <x-ui.dashboard.page-wrapper>
     <div class="space-y-6" wire:key="analytics-dashboard">
-        <div wire:loading.block wire:target="preset,from,to"
+        <div wire:loading.block wire:target="from,to,setPreset"
              class="fixed inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-sm dark:bg-zinc-900/60">
             <div class="flex flex-col items-center gap-3">
                 <flux:icon.arrow-path class="size-8 animate-spin text-zinc-400" />
@@ -16,49 +16,66 @@
         >
             <x-slot name="actions">
                 <div class="flex flex-wrap items-center gap-2">
-                    <flux:select wire:model.live="preset" class="min-w-[150px]">
-                        <flux:select.option value="30_days">{{ __('Last 30 Days') }}</flux:select.option>
-                        <flux:select.option value="90_days">{{ __('Last 90 Days') }}</flux:select.option>
-                        <flux:select.option value="12_months">{{ __('Last 12 Months') }}</flux:select.option>
-                        <flux:select.option value="custom">{{ __('Custom Range') }}</flux:select.option>
-                    </flux:select>
+                    <flux:input type="date" wire:model.live="from" class="min-w-[140px]" />
+                    <flux:input type="date" wire:model.live="to" class="min-w-[140px]" />
 
-                    @if($preset === 'custom')
-                        <flux:input type="date" wire:model.live="from" class="min-w-[140px]" />
-                        <flux:input type="date" wire:model.live="to" class="min-w-[140px]" />
-                    @else
-                        <span class="hidden text-sm text-zinc-500 dark:text-zinc-400 sm:inline">
-                            {{ \Carbon\Carbon::parse($from)->format('M d, Y') }} &mdash; {{ \Carbon\Carbon::parse($to)->format('M d, Y') }}
-                        </span>
-                    @endif
+                    <flux:button wire:click="setPreset('30d')" size="sm" variant="outline" squared>
+                        30d
+                    </flux:button>
+                    <flux:button wire:click="setPreset('90d')" size="sm" variant="outline" squared>
+                        90d
+                    </flux:button>
+                    <flux:button wire:click="setPreset('12m')" size="sm" variant="outline" squared>
+                        12m
+                    </flux:button>
 
                     @can('exportReports')
                         <flux:button
                             variant="outline"
                             icon="arrow-down-tray"
-                            :href="route('admin.analytics.export.csv', ['from' => $from, 'to' => $to])"
+                            wire:click="openExportConfirmModal('csv')"
+                            wire:loading.attr="disabled"
+                            wire:target="openExportConfirmModal,confirmExport"
                         >
-                            {{ __('Export CSV') }}
+                            <span wire:loading.remove wire:target="openExportConfirmModal,confirmExport">{{ __('Export CSV') }}</span>
+                            <span wire:loading wire:target="openExportConfirmModal,confirmExport">{{ __('Exporting...') }}</span>
                         </flux:button>
                         <flux:button
                             variant="primary"
                             icon="arrow-down-tray"
-                            :href="route('admin.analytics.export.pdf', ['from' => $from, 'to' => $to])"
+                            wire:click="openExportConfirmModal('pdf')"
+                            wire:loading.attr="disabled"
+                            wire:target="openExportConfirmModal,confirmExport"
                         >
-                            {{ __('Export PDF') }}
+                            <span wire:loading.remove wire:target="openExportConfirmModal,confirmExport">{{ __('Export PDF') }}</span>
+                            <span wire:loading wire:target="openExportConfirmModal,confirmExport">{{ __('Exporting...') }}</span>
                         </flux:button>
-                    @endcan
-                </div>
-            </x-slot>
-        </x-ui.dashboard.page-header>
+                            <x-ui.confirm-modal
+                                wire:model.self="showExportConfirmModal"
+                                :title="$exportFormat === 'pdf'
+                                    ? __('Export Analytics PDF')
+                                    : __('Export Analytics CSV')"
+                                :description="$exportFormat === 'pdf'
+                                    ? __('This will generate a PDF report of the analytics dashboard for the selected date range.')
+                                    : __('This will generate a CSV file of the analytics data for the selected date range.')"
+                                cancel-action="closeExportConfirmModal"
+                                confirm-action="confirmExport"
+                                :confirm-text="$exportFormat === 'pdf' ? __('Export PDF') : __('Export CSV')"
+                                confirm-icon="arrow-down-tray"
+                                loading-target="confirmExport"
+                            />
+                        @endcan
+                    </div>
+                </x-slot>
+            </x-ui.dashboard.page-header>
 
-        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <x-ui.dashboard.panel padding="p-5">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Revenue (MTD)') }}</p>
-                        <h3 class="mt-2 text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
-                            {{ number_format($kpiData['revenue_mtd'] ?? 0, 3) }}<span class="text-lg font-normal text-zinc-400"> TND</span>
+            <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <x-ui.dashboard.panel padding="p-5">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Revenue (MTD)') }}</p>
+                            <h3 class="mt-2 text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
+                                {{ number_format($kpiData['revenue_mtd'] ?? 0, 3) }}<span class="text-lg font-normal text-zinc-400"> TND</span>
                         </h3>
                     </div>
                     <div class="flex size-12 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400">
@@ -457,5 +474,6 @@
                 </x-ui.dashboard.panel>
             </div>
         </div>
+
     </div>
 </x-ui.dashboard.page-wrapper>

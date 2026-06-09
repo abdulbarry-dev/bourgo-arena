@@ -74,31 +74,30 @@ test('dashboard shows empty states when no data', function () {
         ->assertSee(__('No subscriptions expiring soon'));
 });
 
-test('dashboard shows preset range selector', function () {
+test('dashboard shows date range inputs and preset chips', function () {
     $user = User::factory()->admin()->create();
     $this->actingAs($user);
 
     $response = $this->get(route('dashboard'));
 
     $response->assertOk()
-        ->assertSee(__('Last 30 Days'))
-        ->assertSee(__('Last 90 Days'))
-        ->assertSee(__('Last 12 Months'))
-        ->assertSee(__('Custom Range'));
+        ->assertSee('30d')
+        ->assertSee('90d')
+        ->assertSee('12m');
 });
 
-test('dashboard shows date inputs when custom range selected', function () {
+test('dashboard shows date inputs with URL-persisted values', function () {
     $user = User::factory()->admin()->create();
     $this->actingAs($user);
 
-    $response = $this->get(route('dashboard', ['range' => 'custom', 'from' => '2026-01-01', 'to' => '2026-06-09']));
+    $response = $this->get(route('dashboard', ['from' => '2026-01-01', 'to' => '2026-06-09']));
 
     $response->assertOk()
         ->assertSee('2026-01-01')
         ->assertSee('2026-06-09');
 });
 
-test('dashboard shows export buttons for admin', function () {
+test('dashboard shows export buttons with loading states for admin', function () {
     $user = User::factory()->admin()->create();
     $this->actingAs($user);
 
@@ -106,7 +105,30 @@ test('dashboard shows export buttons for admin', function () {
 
     $response->assertOk()
         ->assertSee(__('Export CSV'))
-        ->assertSee(__('Export PDF'));
+        ->assertSee(__('Export PDF'))
+        ->assertSee(__('Exporting...'));
+});
+
+test('dashboard shows export confirm modal text for admin', function () {
+    $user = User::factory()->admin()->create();
+    $this->actingAs($user);
+
+    $response = $this->get(route('dashboard'));
+
+    $response->assertOk()
+        ->assertSee(__('Export Analytics CSV'))
+        ->assertSee(__('This will generate a CSV file'));
+});
+
+test('dashboard does not show export confirm modal for managers', function () {
+    $user = User::factory()->manager()->create();
+    $this->actingAs($user);
+
+    $response = $this->get(route('dashboard'));
+
+    $response->assertOk()
+        ->assertDontSee(__('Export Analytics CSV'))
+        ->assertDontSee(__('Export CSV'));
 });
 
 test('dashboard does not show export buttons for managers', function () {

@@ -16,10 +16,10 @@ class Dashboard extends Component
     #[Url(as: 'to')]
     public string $to = '';
 
-    #[Url(as: 'range')]
-    public string $preset = '30_days';
-
     public bool $loading = true;
+
+    public bool $showExportConfirmModal = false;
+    public string $exportFormat = 'csv';
 
     public array $kpiData = [];
     public array $revenueTrend = [];
@@ -34,47 +34,62 @@ class Dashboard extends Component
 
     public function mount(): void
     {
-        $this->syncDatesFromPreset();
-        $this->loadData();
-    }
+        if (empty($this->from)) {
+            $this->from = now()->subDays(30)->toDateString();
+        }
+        if (empty($this->to)) {
+            $this->to = now()->toDateString();
+        }
 
-    public function updatedPreset(): void
-    {
-        $this->syncDatesFromPreset();
         $this->loadData();
     }
 
     public function updatedFrom(): void
     {
-        $this->preset = 'custom';
+        $this->loadData();
     }
 
     public function updatedTo(): void
     {
-        $this->preset = 'custom';
+        $this->loadData();
     }
 
-    protected function syncDatesFromPreset(): void
+    public function setPreset(string $preset): void
     {
-        if ($this->preset === 'custom') {
-            if (empty($this->from)) {
-                $this->from = now()->subDays(30)->toDateString();
-            }
-            if (empty($this->to)) {
-                $this->to = now()->toDateString();
-            }
-
-            return;
-        }
-
-        $days = match ($this->preset) {
-            '90_days' => 90,
-            '12_months' => 365,
+        $days = match ($preset) {
+            '90d' => 90,
+            '12m' => 365,
             default => 30,
         };
 
         $this->from = now()->subDays($days)->toDateString();
         $this->to = now()->toDateString();
+    }
+
+    public function openExportConfirmModal(string $format): void
+    {
+        if (! in_array($format, ['csv', 'pdf'], true)) {
+            return;
+        }
+
+        $this->exportFormat = $format;
+        $this->showExportConfirmModal = true;
+    }
+
+    public function closeExportConfirmModal(): void
+    {
+        $this->showExportConfirmModal = false;
+    }
+
+    public function confirmExport(): void
+    {
+        $this->showExportConfirmModal = false;
+
+        $route = $this->exportFormat === 'pdf'
+            ? 'admin.analytics.export.pdf'
+            : 'admin.analytics.export.csv';
+
+        $this->redirectRoute($route, ['from' => $this->from, 'to' => $this->to]);
     }
 
     public function loadData(): void
