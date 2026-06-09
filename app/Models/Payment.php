@@ -22,6 +22,9 @@ class Payment extends Model
         'gateway_transaction_id',
         'metadata',
         'verified_at',
+        'ip_address',
+        'country_code',
+        'city',
     ];
 
     protected $casts = [
@@ -29,6 +32,28 @@ class Payment extends Model
         'metadata' => 'array',
         'verified_at' => 'datetime',
     ];
+
+    public function getDescriptionAttribute(): string
+    {
+        if ($this->type === 'subscription' && $this->subscription) {
+            return __('Subscription: :plan', ['plan' => $this->subscription->plan?->name]);
+        }
+
+        if ($this->type === 'reservation' && $this->reservation) {
+            return __('Reservation: :activity', ['activity' => $this->reservation->activity?->name]);
+        }
+
+        return ucfirst($this->type);
+    }
+
+    public function getReceiptUrlAttribute(): ?string
+    {
+        if ($this->type === 'subscription' && $this->subscription?->receipt_path) {
+            return asset('storage/'.$this->subscription->receipt_path);
+        }
+
+        return null;
+    }
 
     public function member()
     {

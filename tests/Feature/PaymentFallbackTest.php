@@ -7,7 +7,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    // Force clear all potential config paths for tests
+    $this->withoutMiddleware(['tunisia_geo']);
+
     config(['payment.providers.konnect.api_key' => null]);
     config(['payment.providers.konnect.api_secret' => null]);
     config(['payment.konnect.api_key' => null]);

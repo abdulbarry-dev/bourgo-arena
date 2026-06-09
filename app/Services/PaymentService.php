@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\DTOs\PaymentInitiateDTO;
+use App\Events\PaymentPaid;
 use App\Models\Payment;
 use App\Repositories\PaymentRepository;
 use App\Services\PaymentGateway\KonnectGateway;
@@ -22,6 +23,17 @@ class PaymentService
 
     public function createPayment(PaymentInitiateDTO $dto): Payment
     {
+        $geoService = app(GeoLocationService::class);
+
+        try {
+            $geo = $geoService->detect(request());
+            $countryCode = $geo->countryCode;
+            $ipAddress = $geo->ip;
+        } catch (\Throwable $e) {
+            $countryCode = null;
+            $ipAddress = request()->ip();
+        }
+
         return $this->paymentRepository->createPayment([
             'member_id' => $dto->memberId,
             'reservation_id' => $dto->reservationId,
@@ -32,6 +44,8 @@ class PaymentService
             'status' => 'pending',
             'payment_reference' => $dto->paymentReference ?? 'konnect_'.bin2hex(random_bytes(6)),
             'metadata' => $dto->metadata,
+            'ip_address' => $ipAddress,
+            'country_code' => $countryCode,
         ]);
     }
 
@@ -76,6 +90,8 @@ class PaymentService
                 'gateway_transaction_id' => $result['transaction_id'] ?? $payment->gateway_transaction_id,
             ]);
 
+            PaymentPaid::dispatch($payment->fresh());
+
             return ['success' => true, 'status' => 'paid', 'data' => $result];
         }
 
@@ -117,13 +133,13 @@ class PaymentService
         }
 
         if (in_array($status, ['paid', 'completed', 'success'], true)) {
-            // ReconcilePaymentJob logic was purged in commit 07801d79
-            // For now we just update the payment status directly if needed, or rely on verification
             $this->paymentRepository->updatePayment($payment, [
                 'status' => 'paid',
                 'verified_at' => now(),
                 'metadata' => array_merge($payment->metadata ?? [], $data),
             ]);
+
+            PaymentPaid::dispatch($payment->fresh());
 
             return ['success' => true];
         }

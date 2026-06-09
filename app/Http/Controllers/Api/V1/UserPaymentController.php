@@ -21,6 +21,7 @@ class UserPaymentController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $payments = Payment::where('member_id', $request->user()->id)
+            ->with(['subscription.plan', 'reservation.activity'])
             ->latest()
             ->paginate($request->integer('per_page', 15));
 

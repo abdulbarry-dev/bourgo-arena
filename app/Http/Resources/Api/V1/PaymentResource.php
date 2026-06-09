@@ -17,10 +17,14 @@ class PaymentResource extends JsonResource
         return [
             'id' => (string) $this->id,
             'type' => $this->type,
+            'description' => $this->description,
             'amount' => (float) $this->amount,
             'status' => $this->status,
             'gateway' => $this->gateway,
             'payment_reference' => $this->payment_reference,
+            'reservation_id' => $this->reservation_id,
+            'subscription_id' => $this->subscription_id,
+            'receipt_url' => $this->receipt_url,
             'created_at' => $this->created_at?->toIso8601String(),
         ];
     }

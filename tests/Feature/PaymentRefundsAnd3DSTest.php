@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\Http;
 
 uses(RefreshDatabase::class);
 
+beforeEach(function () {
+    $this->withoutMiddleware(['tunisia_geo']);
+});
+
 test('initiate payment that requires 3ds preserves metadata and completes after webhook', function () {
     $this->withoutMiddleware([
         EnsureAccountIsVerified::class,

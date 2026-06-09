@@ -19,7 +19,7 @@ class InitiatePaymentRequest extends FormRequest
             'reservation_id' => ['nullable', 'integer', 'exists:api_reservations,id'],
             'subscription_id' => ['nullable', 'integer', 'exists:subscriptions,id'],
             'amount' => ['required', 'numeric', 'min:0'],
-
+            'provider' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
             'type' => ['nullable', 'string'],
         ];

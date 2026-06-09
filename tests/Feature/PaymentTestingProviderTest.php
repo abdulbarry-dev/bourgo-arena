@@ -7,6 +7,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
+    $this->withoutMiddleware(['tunisia_geo']);
+
     $this->member = Member::factory()->create([
         'email_verified_at' => now(),
         'phone_verified_at' => now(),

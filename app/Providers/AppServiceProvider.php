@@ -4,8 +4,10 @@ namespace App\Providers;
 
 use App\Events\EventCanceled;
 use App\Events\EventDeleted;
+use App\Events\PaymentPaid;
 use App\Listeners\HandleEventCancellation;
 use App\Listeners\LogAdminAction;
+use App\Listeners\ProcessSuccessfulPayment;
 use App\Models\ApiReservation;
 use App\Models\Subscription;
 use Carbon\CarbonImmutable;
@@ -43,6 +45,11 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(
             EventDeleted::class,
             LogAdminAction::class,
+        );
+
+        Event::listen(
+            PaymentPaid::class,
+            ProcessSuccessfulPayment::class,
         );
         $this->configureDefaults();
         $this->registerRateLimits();
