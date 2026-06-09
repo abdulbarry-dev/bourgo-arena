@@ -33,10 +33,6 @@ return [
 
     'connections' => [
 
-        // 'reverb' connection removed to avoid application-level dependence on
-        // the Reverb websocket provider. Use 'pusher', 'ably', 'log', or 'null'
-        // connections instead.
-
         'pusher' => [
             'driver' => 'pusher',
             'key' => env('PUSHER_APP_KEY'),
