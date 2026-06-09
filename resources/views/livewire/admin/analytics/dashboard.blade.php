@@ -36,7 +36,7 @@
                     <div>
                         <p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Revenue (MTD)') }}</p>
                         <h3 class="mt-2 text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
-                            ${{ number_format($kpiData['revenue_mtd'] ?? 0, 2) }}
+                            {{ number_format($kpiData['revenue_mtd'] ?? 0, 3) }}<span class="text-lg font-normal text-zinc-400"> TND</span>
                         </h3>
                     </div>
                     <div class="flex size-12 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400">

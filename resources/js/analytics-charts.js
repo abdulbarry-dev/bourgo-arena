@@ -109,7 +109,7 @@ export function createLineChart(canvas, data, options = {}) {
                     grid: { color: dark ? colors.grid.dark : colors.grid.light, drawBorder: false },
                     ticks: {
                         color: dark ? colors.zinc.dark : colors.zinc.light,
-                        callback: (v) => '$' + v.toLocaleString(),
+                        callback: (v) => v.toLocaleString() + ' TND',
                     },
                     beginAtZero: true,
                 },
@@ -319,7 +319,7 @@ export function createPieChart(canvas, data, options = {}) {
                         label: (ctx) => {
                             const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
                             const pct = ((ctx.parsed / total) * 100).toFixed(1);
-                            return ` ${ctx.label}: $${ctx.parsed.toLocaleString()} (${pct}%)`;
+                            return ` ${ctx.label}: ${ctx.parsed.toLocaleString()} TND (${pct}%)`;
                         },
                     },
                 },

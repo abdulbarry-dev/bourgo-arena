@@ -20,13 +20,25 @@ class AnalyticsService
         $startOfLastMonth = $now->copy()->subMonth()->startOfMonth();
         $endOfLastMonth = $now->copy()->subMonth()->endOfMonth();
 
-        $revenueMtd = Payment::where('status', 'completed')
+        $revenueMtd = Payment::whereIn('status', ['completed', 'paid', 'confirmed'])
             ->where('created_at', '>=', $startOfMonth)
-            ->sum('amount');
+            ->sum('amount')
+            + Subscription::whereDate('created_at', '>=', $startOfMonth)
+                ->whereIn('status', ['active', 'expired'])
+                ->sum('amount_paid')
+            + ApiReservation::whereDate('created_at', '>=', $startOfMonth)
+                ->where('status', 'confirmed')
+                ->sum('price');
 
-        $revenueLastMonth = Payment::where('status', 'completed')
+        $revenueLastMonth = Payment::whereIn('status', ['completed', 'paid', 'confirmed'])
             ->whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])
-            ->sum('amount');
+            ->sum('amount')
+            + Subscription::whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])
+                ->whereIn('status', ['active', 'expired'])
+                ->sum('amount_paid')
+            + ApiReservation::whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])
+                ->where('status', 'confirmed')
+                ->sum('price');
 
         $activeSubs = Subscription::where('status', 'active')
             ->where(function ($q) {

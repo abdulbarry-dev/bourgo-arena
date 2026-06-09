@@ -35,7 +35,7 @@
     <div class="summary">
         <div class="card">
             <div class="label">{{ __('Total Revenue') }}</div>
-            <div class="value">${{ number_format($totalRevenue, 2) }}</div>
+            <div class="value">{{ number_format($totalRevenue, 3) }} TND</div>
         </div>
         <div class="card">
             <div class="label">{{ __('Active Subs') }}</div>
@@ -66,7 +66,7 @@
             @forelse ($snapshots as $snapshot)
                 <tr>
                     <td>{{ $snapshot->date->toDateString() }}</td>
-                    <td class="text-right">${{ number_format($snapshot->total_revenue, 2) }}</td>
+                    <td class="text-right">{{ number_format($snapshot->total_revenue, 3) }} TND</td>
                     <td class="text-right">{{ $snapshot->active_subscriptions }}</td>
                     <td class="text-right">{{ $snapshot->expired_subscriptions }}</td>
                     <td class="text-right">{{ $snapshot->churn_rate }}%</td>
@@ -80,7 +80,7 @@
         <tfoot>
             <tr>
                 <th>{{ __('Total') }}</th>
-                <th class="text-right">${{ number_format($totalRevenue, 2) }}</th>
+                <th class="text-right">{{ number_format($totalRevenue, 3) }} TND</th>
                 <th class="text-right">{{ $latest?->active_subscriptions ?? 0 }}</th>
                 <th class="text-right">{{ $latest?->expired_subscriptions ?? 0 }}</th>
                 <th class="text-right">{{ $latest?->churn_rate ?? 0 }}%</th>
