@@ -42,6 +42,10 @@ class AuthServiceProvider extends ServiceProvider
             };
         });
 
+        Gate::define('exportReports', function (User $user) {
+            return $user->isAdmin();
+        });
+
         ResetPassword::toMailUsing(function (object $notifiable, string $token) {
             return new QueuedResetPassword($token);
         });

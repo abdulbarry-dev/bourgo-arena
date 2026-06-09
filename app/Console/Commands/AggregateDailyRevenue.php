@@ -2,6 +2,10 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Activity;
+use App\Models\ApiReservation;
+use App\Models\Event;
+use App\Models\Member;
 use App\Models\Plan;
 use App\Models\RevenueSnapshot;
 use App\Models\Subscription;
@@ -12,7 +16,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
 #[Signature('analytics:aggregate-revenue {--date= : The date to aggregate (Y-m-d), defaults to yesterday}')]
-#[Description('Aggregates daily revenue and subscription metrics into revenue_snapshots')]
+#[Description('Aggregates daily revenue, subscription, member, event, and activity metrics into revenue_snapshots')]
 class AggregateDailyRevenue extends Command
 {
     public function handle()
@@ -47,6 +51,41 @@ class AggregateDailyRevenue extends Command
             })
             ->toArray();
 
+        $memberMetrics = [
+            'total' => Member::count(),
+            'active' => Member::where('status', 'active')->count(),
+            'new_today' => Member::whereDate('created_at', $date)->count(),
+            'pending_verification' => Member::where('status', 'pending_verification')->count(),
+            'pending_onboarding' => Member::where('state', 'pending_onboarding')->count(),
+            'family_accounts' => Member::where('is_family_account', true)->count(),
+        ];
+
+        $eventMetrics = [
+            'upcoming' => Event::whereNull('canceled_at')
+                ->where(function ($q) {
+                    $q->whereNull('start_date')->orWhere('start_date', '>=', now());
+                })
+                ->count(),
+            'in_progress' => Event::whereNull('canceled_at')
+                ->where('start_date', '<=', now())
+                ->where('end_date', '>=', now())
+                ->count(),
+            'completed' => Event::whereNull('canceled_at')
+                ->where('end_date', '<', now())
+                ->count(),
+            'canceled' => Event::whereNotNull('canceled_at')->count(),
+            'total_participants' => DB::table('event_participants')
+                ->whereDate('created_at', '<=', $date)
+                ->count(),
+        ];
+
+        $activityMetrics = [
+            'active_activities' => Activity::where('is_active', true)->count(),
+            'reservations_today' => ApiReservation::whereDate('created_at', $date)->count(),
+            'revenue_from_reservations' => ApiReservation::whereDate('created_at', $date)
+                ->sum('price'),
+        ];
+
         RevenueSnapshot::updateOrCreate(
             ['date' => $date->toDateString()],
             [
@@ -56,6 +95,9 @@ class AggregateDailyRevenue extends Command
                 'churn_rate' => $churnRate,
                 'revenue_by_method' => $revenueByMethod,
                 'plan_metrics' => $planMetrics,
+                'member_metrics' => $memberMetrics,
+                'event_metrics' => $eventMetrics,
+                'activity_metrics' => $activityMetrics,
             ]
         );
 

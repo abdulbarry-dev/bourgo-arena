@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AnalyticsExportController;
 use App\Http\Controllers\Admin\PaymentAuditController;
 use App\Livewire\Admin\Activities\ActivityManager;
 use App\Livewire\Admin\Activities\ActivitySessionManager;
@@ -71,6 +72,9 @@ Route::prefix('admin')->middleware('role:admin')->group(function () {
 
     Route::get('/payments/audit/export', [PaymentAuditController::class, 'exportCsv'])
         ->name('admin.payments.audit.export');
+
+    Route::get('/analytics/export/pdf', AnalyticsExportController::class)
+        ->name('admin.analytics.export.pdf');
 
     Route::view('/plans', 'livewire.admin.plans.dashboard')
         ->name('admin.plans');
