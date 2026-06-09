@@ -17,10 +17,8 @@ class ApiReservation extends Model
     protected $fillable = [
         'member_id',
         'activity_id',
-        'activity_slot_id',
+        'activity_session_id',
         'date',
-        'starts_at',
-        'ends_at',
         'price',
         'status',
         'payment_status',
@@ -44,9 +42,9 @@ class ApiReservation extends Model
         return $this->belongsTo(Activity::class);
     }
 
-    public function slot(): BelongsTo
+    public function session(): BelongsTo
     {
-        return $this->belongsTo(ActivitySlot::class, 'activity_slot_id');
+        return $this->belongsTo(ActivitySession::class, 'activity_session_id');
     }
 
     public function payments(): HasMany
@@ -61,11 +59,11 @@ class ApiReservation extends Model
 
     public function isRefundable(): bool
     {
-        if (! $this->date || ! $this->starts_at) {
+        if (! $this->date || ! $this->session) {
             return false;
         }
 
-        return Carbon::parse($this->date->format('Y-m-d').' '.$this->starts_at)->isFuture();
+        return Carbon::parse($this->date->format('Y-m-d').' '.$this->session->starts_at)->isFuture();
     }
 
     /** @use HasFactory<ApiReservationFactory> */

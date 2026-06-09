@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\V1\ActivityResource;
-use App\Http\Resources\Api\V1\ActivitySlotResource;
+use App\Http\Resources\Api\V1\ActivitySessionResource;
 use App\Models\Activity;
 use App\Services\ActivityService;
 use App\Traits\ApiResponse;
@@ -18,11 +18,6 @@ class ActivityController extends Controller
         protected ActivityService $activityService
     ) {}
 
-    /**
-     * Display a listing of active activities.
-     *
-     * @return AnonymousResourceCollection<ActivityResource>
-     */
     public function index(): AnonymousResourceCollection
     {
         $activities = $this->activityService->paginateActiveActivities();
@@ -30,9 +25,6 @@ class ActivityController extends Controller
         return $this->paginated($activities, ActivityResource::class);
     }
 
-    /**
-     * Display the specified activity.
-     */
     public function show(Activity $activity): ActivityResource
     {
         return (new ActivityResource($activity))->additional([
@@ -42,15 +34,15 @@ class ActivityController extends Controller
     }
 
     /**
-     * Display available slots for the specified activity.
-     *
-     * @return AnonymousResourceCollection<ActivitySlotResource>
+     * Display available sessions for the specified activity.
+     * Returns sessions active within a 7-day window, optionally filtered by date.
      */
     public function slots(?Activity $activity = null): AnonymousResourceCollection
     {
-        $slots = $this->activityService->getAvailableSlots($activity);
+        $date = request()->query('date');
+        $sessions = $this->activityService->getAvailableSessions($activity, $date);
 
-        return ActivitySlotResource::collection($slots)->additional([
+        return ActivitySessionResource::collection($sessions)->additional([
             'success' => true,
             'message' => null,
         ]);

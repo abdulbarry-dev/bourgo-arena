@@ -26,12 +26,11 @@ class ActivityResource extends JsonResource
             'title' => $this->title,
             'name' => $this->title, // Keep for backward compatibility/tests
             'base_price' => (float) $this->base_price,
+            'capacity' => $this->capacity,
             'image_url' => $this->image_url ? (Str::startsWith($this->image_url, 'http') ? $this->image_url : asset('storage/'.$this->image_url)) : null,
             'images' => $images,
             'description' => $this->description,
             'features' => $this->features,
-            'rating' => (float) $this->rating,
-            'review_count' => (int) $this->review_count,
         ];
     }
 }

@@ -45,18 +45,6 @@
                 </flux:field>
             </div>
 
-            {{-- Category Filter --}}
-            <div class="w-56" style="min-width:160px">
-                <flux:field>
-                    <flux:label>{{ __('Category') }}</flux:label>
-                    <flux:select wire:model.live="categoryFilter" placeholder="{{ __('All Categories') }}">
-                        <flux:select.option value="">{{ __('All Categories') }}</flux:select.option>
-                        @foreach($this->categories as $category)
-                            <flux:select.option value="{{ $category }}">{{ ucfirst($category) }}</flux:select.option>
-                        @endforeach
-                    </flux:select>
-                </flux:field>
-            </div>
         </x-slot>
     </x-ui.filter-row>
 
@@ -121,7 +109,9 @@
                                         x-transition:leave-end="opacity-0"
                                         class="absolute inset-0 h-full w-full"
                                     >
-                                        <img :src="img" class="h-full w-full object-cover" loading="lazy">
+                                        <img :src="img" class="h-full w-full object-cover" loading="lazy"
+                                             x-on:error="$el.remove()"
+                                        >
                                     </div>
                                 </template>
 
@@ -159,8 +149,6 @@
                                 @if($activity->service)
                                     <span class="text-xs font-medium text-blue-200">{{ $activity->service->name }}</span>
                                 @endif
-                                <span class="text-zinc-300">·</span>
-                                <span class="text-xs uppercase tracking-tighter">{{ $activity->category }}</span>
                             </div>
                         </div>
                         
@@ -176,8 +164,8 @@
                                     <flux:menu.item icon="eye" wire:click="openDetailFlyout({{ $activity->id }})">
                                         {{ __('View Court') }}
                                     </flux:menu.item>
-                                    <flux:menu.item icon="calendar-days" :href="route('admin.activities.slots', $activity)" wire:navigate>
-                                        {{ __('Manage Slots') }}
+                                    <flux:menu.item icon="calendar-days" :href="route('admin.activities.sessions', $activity)" wire:navigate>
+                                        {{ __('Manage Sessions') }}
                                     </flux:menu.item>
                                     <flux:menu.item icon="pencil-square" wire:click="openEditFlyout({{ $activity->id }})">
                                         {{ __('Edit Activity') }}
@@ -203,8 +191,8 @@
                                 <flux:icon name="calendar-days" variant="mini" class="size-4" />
                             </div>
                             <div class="min-w-0">
-                                <div class="text-[10px] font-medium uppercase tracking-wider text-zinc-500">{{ __('Slots') }}</div>
-                                <div class="text-sm font-bold text-zinc-900 dark:text-zinc-100">{{ $activity->slots_count }}</div>
+                                <div class="text-[10px] font-medium uppercase tracking-wider text-zinc-500">{{ __('Sessions') }}</div>
+                                <div class="text-sm font-bold text-zinc-900 dark:text-zinc-100">{{ $activity->sessions_count }}</div>
                             </div>
                         </div>
                     </div>
@@ -236,26 +224,16 @@
         <form wire:submit.prevent="save">
             <div class="p-6">
                 <flux:heading size="lg">{{ $activityId === null ? __('Create Activity') : __('Edit Activity') }}</flux:heading>
-                <flux:text variant="subtle">{{ __('Court details only. Manage availability slots from the Manage Slots page.') }}</flux:text>
+                <flux:text variant="subtle">{{ __('Court details only. Manage availability sessions from the Sessions page.') }}</flux:text>
 
                 <div class="mt-6 space-y-5">
-                    <flux:field>
-                        <flux:label>{{ __('Activity Title') }}</flux:label>
-                        <flux:input wire:model="title" placeholder="{{ __('Stade Padel 1') }}" required />
-                        <flux:error name="title" />
-                    </flux:field>
+                        <flux:field>
+                            <flux:label>{{ __('Activity Title') }}</flux:label>
+                            <flux:input wire:model="title" placeholder="{{ __('Stade Padel 1') }}" required />
+                            <div class="min-h-[20px]"><flux:error name="title" /></div>
+                        </flux:field>
 
-                    <flux:field>
-                        <flux:label>{{ __('Category') }}</flux:label>
-                        <flux:select wire:model="category" searchable placeholder="{{ __('Select a category...') }}" required>
-                             @foreach($this->categories as $category)
-                                <flux:select.option value="{{ $category }}">{{ ucfirst($category) }}</flux:select.option>
-                            @endforeach
-                        </flux:select>
-                        <flux:error name="category" />
-                    </flux:field>
-
-                    <flux:field>
+                        <flux:field>
                         <flux:label>{{ __('Parent Service') }}</flux:label>
                         @if($this->availableServices->isNotEmpty())
                             <flux:select wire:model.live="serviceId" searchable placeholder="{{ __('Select a service...') }}" required>
@@ -269,19 +247,26 @@
                                 <flux:text variant="subtle">{{ __('No services available. Please create a service first.') }}</flux:text>
                             </div>
                         @endif
-                        <flux:error name="serviceId" />
+                        <div class="min-h-[20px]"><flux:error name="serviceId" /></div>
                     </flux:field>
 
                     <flux:field>
                         <flux:label>{{ __('Base Price') }}</flux:label>
                         <flux:input wire:model="basePrice" type="text" inputmode="decimal" placeholder="{{ __('50.000') }}" required suffix="TND" />
-                        <flux:error name="basePrice" />
+                        <div class="min-h-[20px]"><flux:error name="basePrice" /></div>
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>{{ __('Max Capacity') }}</flux:label>
+                        <flux:input wire:model="capacity" type="number" min="1" placeholder="{{ __('e.g. 10') }}" />
+                        <flux:description>{{ __('Informational maximum number of participants.') }}</flux:description>
+                        <div class="min-h-[20px]"><flux:error name="capacity" /></div>
                     </flux:field>
 
                     <flux:field>
                         <flux:label>{{ __('Description') }}</flux:label>
                         <flux:textarea wire:model="description" rows="4" />
-                        <flux:error name="description" />
+                        <div class="min-h-[20px]"><flux:error name="description" /></div>
                     </flux:field>
 
                     <flux:field>
@@ -374,7 +359,8 @@
                                     {{-- Existing Stored Images --}}
                                     @foreach($images as $index => $path)
                                         <div wire:key="stored-activity-img-{{ $index }}-{{ md5($path) }}" class="group relative aspect-square overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-800 ring-1 ring-zinc-200/50 dark:ring-white/5 shadow-sm">
-                                            <img src="{{ Str::startsWith($path, ['http', '/storage']) ? $path : asset('storage/' . $path) }}" class="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110" alt="">
+                                            <img src="{{ Str::startsWith($path, ['http', '/storage']) ? $path : asset('storage/' . $path) }}" class="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110" alt=""
+                                                 onerror="this.remove()">
                                             
                                             <div class="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500">
                                                 <div class="absolute top-2 right-2 scale-90 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-500 delay-75">
@@ -394,7 +380,8 @@
                                     {{-- New Pending Uploads --}}
                                     @foreach($newImages as $index => $image)
                                         <div wire:key="pending-activity-img-{{ $index }}-{{ $image->getClientOriginalName() }}" class="group relative aspect-square overflow-hidden rounded-2xl bg-blue-50 dark:bg-blue-500/5 ring-2 ring-blue-500/20 shadow-sm">
-                                            <img src="{{ $image->temporaryUrl() }}" class="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110" alt="">
+                                            <img src="{{ $image->temporaryUrl() }}" class="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110" alt=""
+                                                 onerror="this.remove()">
                                             
                                             <div class="absolute inset-0 bg-linear-to-t from-blue-900/90 via-blue-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500">
                                                 <div class="absolute top-2 right-2 scale-90 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-500 delay-75">
@@ -433,8 +420,8 @@
                             </div>
                         @endif
                         
-                        <flux:error name="uploadQueue" />
-                        <flux:error name="uploadQueue.*" />
+                        <div class="min-h-[20px]"><flux:error name="uploadQueue" /></div>
+                        <div class="min-h-[20px]"><flux:error name="uploadQueue.*" /></div>
                     </div>
 
                     <flux:switch wire:model="isActive" :label="$isActive ? __('Active') : __('Inactive')" />
@@ -478,7 +465,8 @@
                                  x-transition:leave-start="opacity-100"
                                  x-transition:leave-end="opacity-0"
                                  class="absolute inset-0 h-full w-full">
-                                <img :src="img" class="h-full w-full object-cover opacity-80" alt="">
+                                <img :src="img" class="h-full w-full object-cover opacity-80" alt=""
+                                     x-on:error="$el.remove()">
                             </div>
                         </template>
 
@@ -529,9 +517,6 @@
                                     {{ $this->selectedActivity->service->name }}
                                 </span>
                             @endif
-                            @if($this->selectedActivity->category)
-                                <span class="text-zinc-400 font-bold text-xs uppercase tracking-widest">{{ $this->selectedActivity->category }}</span>
-                            @endif
                         </div>
                     </div>
                 </div>
@@ -544,7 +529,7 @@
                     </div>
                     <div class="flex flex-col p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-700/50">
                         <span class="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1">{{ __('Availability') }}</span>
-                        <span class="text-sm font-bold text-zinc-900 dark:text-zinc-100">{{ $this->selectedActivity->slots_count }} {{ __('Active Slots') }}</span>
+                        <span class="text-sm font-bold text-zinc-900 dark:text-zinc-100">{{ $this->selectedActivity->sessions_count }} {{ __('Active Sessions') }}</span>
                         <span class="text-[10px] text-zinc-500 font-medium">{{ __('Real-time management') }}</span>
                     </div>
                 </div>
@@ -579,11 +564,11 @@
                     <flux:button
                         variant="primary"
                         icon="calendar-days"
-                        :href="route('admin.activities.slots', $this->selectedActivity)"
+                        :href="route('admin.activities.sessions', $this->selectedActivity)"
                         wire:navigate
                         class="flex-1"
                     >
-                        {{ __('Manage Slots') }}
+                        {{ __('Manage Sessions') }}
                     </flux:button>
                 </div>
             </div>

@@ -19,14 +19,12 @@ class Activity extends Model
     protected $fillable = [
         'service_id',
         'title',
-        'category',
         'base_price',
+        'capacity',
         'image_url',
         'images',
         'description',
         'features',
-        'rating',
-        'review_count',
         'is_active',
     ];
 
@@ -34,13 +32,18 @@ class Activity extends Model
         'features' => 'array',
         'images' => 'array',
         'base_price' => 'decimal:2',
-        'rating' => 'decimal:1',
+        'capacity' => 'integer',
         'is_active' => 'boolean',
     ];
 
     public function service(): BelongsTo
     {
         return $this->belongsTo(Service::class);
+    }
+
+    public function sessions(): HasMany
+    {
+        return $this->hasMany(ActivitySession::class);
     }
 
     public function slots(): HasMany

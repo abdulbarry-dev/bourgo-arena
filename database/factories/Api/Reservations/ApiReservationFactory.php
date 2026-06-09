@@ -3,7 +3,7 @@
 namespace Database\Factories\Api\Reservations;
 
 use App\Models\Activity;
-use App\Models\ActivitySlot;
+use App\Models\ActivitySession;
 use App\Models\ApiReservation;
 use App\Models\Member;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -17,13 +17,13 @@ class ApiReservationFactory extends Factory
 
     public function definition(): array
     {
+        $session = ActivitySession::factory()->create();
+
         return [
             'member_id' => Member::factory(),
-            'activity_id' => Activity::factory(),
-            'activity_slot_id' => ActivitySlot::factory(),
+            'activity_id' => $session->activity_id,
+            'activity_session_id' => $session->id,
             'date' => now()->addDay()->toDateString(),
-            'starts_at' => '10:00:00',
-            'ends_at' => '11:00:00',
             'price' => fake()->randomFloat(2, 10, 100),
             'status' => 'confirmed',
             'payment_status' => 'pending',
@@ -56,15 +56,13 @@ class ApiReservationFactory extends Factory
         ]);
     }
 
-    public function forSlot(ActivitySlot $slot): static
+    public function forSession(ActivitySession $session): static
     {
         return $this->state(fn (): array => [
-            'activity_id' => $slot->activity_id,
-            'activity_slot_id' => $slot->id,
+            'activity_id' => $session->activity_id,
+            'activity_session_id' => $session->id,
             'date' => now()->addDay()->toDateString(),
-            'starts_at' => $slot->starts_at,
-            'ends_at' => $slot->ends_at,
-            'price' => $slot->activity?->base_price ?? 0,
+            'price' => $session->activity?->base_price ?? 0,
         ]);
     }
 }

@@ -22,9 +22,7 @@ class ActivitySlotResource extends JsonResource
             'start_time' => $this->starts_at,
             'end_time' => $this->ends_at,
             'capacity' => $this->capacity,
-            'booked_count' => $this->booked_count,
             'is_available' => $this->is_available,
-            'is_fully_booked' => $this->isFullyBooked(),
         ];
     }
 }

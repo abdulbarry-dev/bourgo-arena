@@ -26,7 +26,6 @@ test('reservation system migrations create the expected tables and indexes', fun
             'starts_at',
             'ends_at',
             'capacity',
-            'booked_count',
             'is_available',
         ],
         'activity_time_slots' => [
@@ -34,7 +33,6 @@ test('reservation system migrations create the expected tables and indexes', fun
             'start_time',
             'end_time',
             'max_capacity',
-            'reserved_count',
             'is_available',
         ],
         'payment_transactions' => [

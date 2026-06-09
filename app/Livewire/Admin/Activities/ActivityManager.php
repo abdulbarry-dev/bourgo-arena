@@ -24,8 +24,6 @@ class ActivityManager extends Component
 
     public string $statusFilter = '';
 
-    public string $categoryFilter = '';
-
     public bool $showActivityFlyout = false;
 
     public bool $showDetailFlyout = false;
@@ -42,9 +40,9 @@ class ActivityManager extends Component
 
     public string $title = '';
 
-    public string $category = 'court';
-
     public string $basePrice = '';
+
+    public ?int $capacity = null;
 
     public ?string $description = null;
 
@@ -138,11 +136,6 @@ class ActivityManager extends Component
         $this->resetPage();
     }
 
-    public function updatedCategoryFilter(): void
-    {
-        $this->resetPage();
-    }
-
     public function updatedServiceId($value)
     {
         $this->serviceId = (int) $value;
@@ -170,8 +163,8 @@ class ActivityManager extends Component
         $this->activityId = $activity->id;
         $this->serviceId = $activity->service_id;
         $this->title = $activity->title;
-        $this->category = $activity->category ?? 'court';
         $this->basePrice = number_format((float) $activity->base_price, 2, '.', '');
+        $this->capacity = $activity->capacity;
         $this->description = $activity->description;
         $this->featuresInput = implode(', ', $activity->features ?? []);
         $this->images = $activity->images ?? [];
@@ -212,8 +205,8 @@ class ActivityManager extends Component
         $payload = [
             'service_id' => $validated['serviceId'],
             'title' => $validated['title'],
-            'category' => $validated['category'],
             'base_price' => $validated['basePrice'],
+            'capacity' => $validated['capacity'],
             'description' => $validated['description'] ?: null,
             'features' => $this->normalizeFeatures($validated['featuresInput']),
             'is_active' => $validated['isActive'],
@@ -237,12 +230,6 @@ class ActivityManager extends Component
     }
 
     #[Computed]
-    public function categories()
-    {
-        return ['court', 'room', 'field', 'studio'];
-    }
-
-    #[Computed]
     public function availableServices()
     {
         return Service::query()->active()->orderBy('name')->get();
@@ -252,7 +239,7 @@ class ActivityManager extends Component
     public function activities(): LengthAwarePaginator
     {
         $activities = Activity::query()
-            ->withCount('slots')
+            ->withCount('sessions')
             ->when($this->search !== '', function (Builder $query): void {
                 $term = '%'.$this->search.'%';
 
@@ -265,9 +252,6 @@ class ActivityManager extends Component
             })
             ->when($this->serviceFilter, function (Builder $query) {
                 $query->where('service_id', $this->serviceFilter);
-            })
-            ->when($this->categoryFilter, function (Builder $query) {
-                $query->where('category', $this->categoryFilter);
             })
             ->when($this->statusFilter !== '', function (Builder $query) {
                 $query->where('is_active', $this->statusFilter === 'active');
@@ -286,7 +270,7 @@ class ActivityManager extends Component
         }
 
         return Activity::query()
-            ->withCount('slots')
+            ->withCount('sessions')
             ->find($this->detailActivityId);
     }
 
@@ -301,8 +285,8 @@ class ActivityManager extends Component
             'activityId',
             'serviceId',
             'title',
-            'category',
             'basePrice',
+            'capacity',
             'description',
             'featuresInput',
             'images',
@@ -311,7 +295,6 @@ class ActivityManager extends Component
             'isActive',
         ]);
 
-        $this->category = 'court';
         $this->isActive = true;
     }
 
@@ -320,8 +303,8 @@ class ActivityManager extends Component
         return [
             'serviceId' => ['required', 'integer', 'exists:services,id'],
             'title' => ['required', 'string', 'max:255'],
-            'category' => ['required', 'string', 'in:court,room,field,studio'],
             'basePrice' => ['required', 'numeric', 'min:0'],
+            'capacity' => ['nullable', 'integer', 'min:1'],
             'description' => ['nullable', 'string'],
             'featuresInput' => ['nullable', 'string'],
             'isActive' => ['boolean'],

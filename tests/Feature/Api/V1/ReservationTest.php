@@ -3,7 +3,7 @@
 /** @var TestCase $this */
 
 use App\Models\Activity;
-use App\Models\ActivitySlot;
+use App\Models\ActivitySession;
 use App\Models\ApiReservation;
 use App\Models\Member;
 use App\Models\Subscription;
@@ -24,18 +24,17 @@ beforeEach(function () {
 
 test('member can create an activity reservation', function () {
     $activity = Activity::factory()->create(['base_price' => 100.00]);
-    $slot = ActivitySlot::factory()->create([
+    $session = ActivitySession::factory()->create([
         'activity_id' => $activity->id,
-        'capacity' => 10,
-        'booked_count' => 0,
-        'is_available' => true,
+        'starts_at_date' => now(),
+        'ends_at_date' => now()->addMonth(),
     ]);
 
     $reservationDate = now()->addDay()->toDateString();
 
     $response = $this->postJson(route('api.v1.reservations.store'), [
         'activity_id' => $activity->id,
-        'activity_slot_id' => $slot->id,
+        'activity_session_id' => $session->id,
         'date' => $reservationDate,
         'price' => 0.01,
     ]);
@@ -45,18 +44,42 @@ test('member can create an activity reservation', function () {
     $reservation = ApiReservation::query()->latest('id')->first();
     expect($reservation)->not->toBeNull();
     expect((float) $reservation->price)->toBe(100.00);
-
-    // The task says "decrements slot booked_count", but logically it increments booked_count.
-    // If the intention was "decrements availability", then incrementing booked_count is correct.
-    $this->assertEquals(1, $slot->fresh()->booked_count);
-
+    expect($reservation->activity_session_id)->toBe($session->id);
+    expect($reservation->date->toDateString())->toBe($reservationDate);
+    expect($reservation->status)->toBe('confirmed');
 });
 
-test('member cannot book a slot that does not belong to the given activity', function () {
+test('member cannot book a session already reserved for the same date', function () {
+    $activity = Activity::factory()->create();
+    $session = ActivitySession::factory()->create([
+        'activity_id' => $activity->id,
+        'starts_at_date' => now(),
+    ]);
+
+    $reservationDate = now()->addDay()->toDateString();
+
+    ApiReservation::factory()->create([
+        'member_id' => Member::factory()->create()->id,
+        'activity_id' => $activity->id,
+        'activity_session_id' => $session->id,
+        'date' => $reservationDate,
+        'status' => 'confirmed',
+    ]);
+
+    $response = $this->postJson(route('api.v1.reservations.store'), [
+        'activity_id' => $activity->id,
+        'activity_session_id' => $session->id,
+        'date' => $reservationDate,
+    ]);
+
+    $response->assertStatus(422);
+});
+
+test('member cannot book a session that does not belong to the given activity', function () {
     $activity = Activity::factory()->create();
     $otherActivity = Activity::factory()->create();
 
-    $slot = ActivitySlot::factory()->create([
+    $session = ActivitySession::factory()->create([
         'activity_id' => $otherActivity->id,
     ]);
 
@@ -64,7 +87,7 @@ test('member cannot book a slot that does not belong to the given activity', fun
 
     $response = $this->postJson(route('api.v1.reservations.store'), [
         'activity_id' => $activity->id,
-        'activity_slot_id' => $slot->id,
+        'activity_session_id' => $session->id,
         'date' => $reservationDate,
     ]);
 
@@ -79,18 +102,16 @@ test('reservation price is recalculated server-side (price shield) regardless of
     ]);
 
     $activity = Activity::factory()->create(['base_price' => 100.00]);
-    $slot = ActivitySlot::factory()->create([
+    $session = ActivitySession::factory()->create([
         'activity_id' => $activity->id,
-        'capacity' => 10,
-        'booked_count' => 0,
-        'is_available' => true,
+        'starts_at_date' => now(),
     ]);
 
     $reservationDate = now()->addDay()->toDateString();
 
     $response = $this->postJson(route('api.v1.reservations.store'), [
         'activity_id' => $activity->id,
-        'activity_slot_id' => $slot->id,
+        'activity_session_id' => $session->id,
         'date' => $reservationDate,
         'price' => 0.01,
     ]);
@@ -108,16 +129,10 @@ test('member can cancel their reservation', function () {
         ->for($this->member)
         ->create(['status' => 'confirmed']);
 
-    $slot = $reservation->slot;
-    $slot->update(['booked_count' => 1]);
-
     $response = $this->deleteJson(route('api.v1.reservations.destroy', $reservation));
 
     $response->assertSuccessful();
     $this->assertEquals('cancelled', $reservation->fresh()->status);
-
-    // Cancelling returns slot availability (decrements booked_count)
-    $this->assertEquals(0, $slot->fresh()->booked_count);
 });
 
 test('member cannot cancel someone else reservation', function () {
@@ -129,4 +144,50 @@ test('member cannot cancel someone else reservation', function () {
     $response = $this->deleteJson(route('api.v1.reservations.destroy', $reservation));
 
     $response->assertForbidden();
+});
+
+test('member can list ongoing reservations', function () {
+    /** @var TestCase $this */
+    ApiReservation::factory()
+        ->for($this->member)
+        ->create([
+            'status' => 'confirmed',
+            'date' => now()->addDays(2)->toDateString(),
+        ]);
+
+    ApiReservation::factory()
+        ->for($this->member)
+        ->create([
+            'status' => 'confirmed',
+            'date' => now()->subDays(2)->toDateString(),
+        ]);
+
+    $response = $this->getJson(route('api.v1.reservations.ongoing'));
+
+    $response->assertSuccessful();
+    $response->assertJsonCount(1, 'data');
+    expect($response->json('data.0.status'))->toBe('confirmed');
+});
+
+test('member can list reservation history', function () {
+    /** @var TestCase $this */
+    ApiReservation::factory()
+        ->for($this->member)
+        ->create([
+            'status' => 'confirmed',
+            'date' => now()->addDays(2)->toDateString(),
+        ]);
+
+    ApiReservation::factory()
+        ->for($this->member)
+        ->create([
+            'status' => 'confirmed',
+            'date' => now()->subDays(2)->toDateString(),
+        ]);
+
+    $response = $this->getJson(route('api.v1.reservations.history'));
+
+    $response->assertSuccessful();
+    $response->assertJsonCount(1, 'data');
+    expect($response->json('data.0.date'))->toBe(now()->subDays(2)->toDateString());
 });

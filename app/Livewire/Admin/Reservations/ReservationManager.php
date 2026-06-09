@@ -4,7 +4,7 @@ namespace App\Livewire\Admin\Reservations;
 
 use App\DTOs\StoreReservationDTO;
 use App\Models\Activity;
-use App\Models\ActivitySlot;
+use App\Models\ActivitySession;
 use App\Models\ApiReservation;
 use App\Models\Member;
 use App\Models\Payment;
@@ -51,7 +51,7 @@ class ReservationManager extends Component
 
     public ?int $createActivityId = null;
 
-    public ?int $createActivitySlotId = null;
+    public ?int $createActivitySessionId = null;
 
     public string $createDate = '';
 
@@ -61,7 +61,7 @@ class ReservationManager extends Component
 
     public ?int $editActivityId = null;
 
-    public ?int $editActivitySlotId = null;
+    public ?int $editActivitySessionId = null;
 
     public string $editDate = '';
 
@@ -107,13 +107,13 @@ class ReservationManager extends Component
         $this->resetEditForm();
 
         $reservation = ApiReservation::query()
-            ->with(['member', 'activity', 'slot'])
+            ->with(['member', 'activity', 'session'])
             ->findOrFail($reservationId);
 
         $this->editReservationId = $reservation->id;
         $this->editMemberId = $reservation->member_id;
         $this->editActivityId = $reservation->activity_id;
-        $this->editActivitySlotId = $reservation->activity_slot_id;
+        $this->editActivitySessionId = $reservation->activity_session_id;
         $this->editDate = $reservation->date?->toDateString() ?? today()->toDateString();
         $this->showEditModal = true;
     }
@@ -132,15 +132,14 @@ class ReservationManager extends Component
 
     public function updatedCreateActivityId(): void
     {
-        $this->createActivitySlotId = null;
+        $this->createActivitySessionId = null;
     }
 
     public function updatedEditActivityId(): void
     {
-        $this->editActivitySlotId = null;
+        $this->editActivitySessionId = null;
     }
 
-    // Generic action confirmation modal state
     public bool $showActionModal = false;
 
     public ?int $actionReservationId = null;
@@ -190,16 +189,16 @@ class ReservationManager extends Component
         $validated = $this->validate($this->createRules());
 
         $member = Member::query()->findOrFail($validated['createMemberId']);
-        $slot = ActivitySlot::query()->with('activity')->findOrFail($validated['createActivitySlotId']);
+        $session = ActivitySession::query()->findOrFail($validated['createActivitySessionId']);
 
         $reservationService = app(ReservationService::class);
-        $reservationService->assertNoActiveReservationForSlot($member, $slot->id, $validated['createDate']);
+        $reservationService->assertNoActiveReservationForSession($member, $session->id, $validated['createDate']);
 
         $reservationService->makeActivityReservation(
             $member,
             new StoreReservationDTO(
-                activityId: $slot->activity_id,
-                activitySlotId: $slot->id,
+                activityId: $session->activity_id,
+                activitySessionId: $session->id,
                 date: $validated['createDate'],
             )
         );
@@ -221,27 +220,27 @@ class ReservationManager extends Component
 
         DB::transaction(function () use ($validated, $reservation): void {
             $reservationRepository = app(ReservationRepository::class);
-            $oldSlot = $reservationRepository->lockSlotForUpdate((int) $reservation->activity_slot_id);
-            $newSlot = $reservationRepository->lockSlotForUpdate((int) $validated['editActivitySlotId']);
+            $reservationRepository->lockSessionForUpdate((int) $validated['editActivitySessionId']);
 
-            if ((int) $validated['editActivitySlotId'] !== (int) $reservation->activity_slot_id) {
-                if ($newSlot->isFullyBooked()) {
+            if ((int) $validated['editActivitySessionId'] !== (int) $reservation->activity_session_id) {
+                $alreadyReserved = ApiReservation::where('activity_session_id', (int) $validated['editActivitySessionId'])
+                    ->whereDate('date', $validated['editDate'])
+                    ->where('status', '!=', 'cancelled')
+                    ->where('id', '!=', $reservation->id)
+                    ->exists();
+
+                if ($alreadyReserved) {
                     throw ValidationException::withMessages([
-                        'editActivitySlotId' => ['This activity slot is already fully booked.'],
+                        'editActivitySessionId' => ['This activity session is already reserved for this date.'],
                     ]);
                 }
-
-                $oldSlot->decrement('booked_count');
-                $newSlot->increment('booked_count');
             }
 
             $reservation->update([
                 'member_id' => (int) $validated['editMemberId'],
                 'activity_id' => (int) $validated['editActivityId'],
-                'activity_slot_id' => (int) $validated['editActivitySlotId'],
+                'activity_session_id' => (int) $validated['editActivitySessionId'],
                 'date' => $validated['editDate'],
-                'starts_at' => $newSlot->starts_at,
-                'ends_at' => $newSlot->ends_at,
             ]);
         });
 
@@ -295,7 +294,6 @@ class ReservationManager extends Component
         }
     }
 
-    // Open the shared action confirmation modal
     public function openActionModal(string $action, int $reservationId): void
     {
         $this->ensureStaff();
@@ -359,7 +357,6 @@ class ReservationManager extends Component
     #[Computed]
     public function members(): Collection
     {
-        // Return a larger unfiltered set for client-side searchable select
         return Member::query()
             ->orderBy('name')
             ->limit(100)
@@ -369,7 +366,6 @@ class ReservationManager extends Component
     #[Computed]
     public function activities(): Collection
     {
-        // Return activities for client-side searchable select
         return Activity::query()
             ->active()
             ->orderBy('title')
@@ -378,55 +374,82 @@ class ReservationManager extends Component
     }
 
     #[Computed]
-    public function availableSlots(): Collection
+    public function availableSessions(): Collection
     {
         if ($this->createActivityId === null) {
             return collect();
         }
 
-        return ActivitySlot::query()
+        $query = ActivitySession::query()
+            ->with('activity')
             ->where('activity_id', $this->createActivityId)
-            ->where('is_available', true)
-            ->orderBy('starts_at')
-            ->get()
-            ->filter(fn (ActivitySlot $slot): bool => ! $slot->isFullyBooked())
-            ->values();
+            ->where('is_cancelled', false)
+            ->orderBy('day_of_week')
+            ->orderBy('starts_at');
+
+        if ($this->createDate !== '' && $this->createDate !== '0') {
+            $reservedIds = ApiReservation::where('activity_id', $this->createActivityId)
+                ->whereDate('date', $this->createDate)
+                ->where('status', '!=', 'cancelled')
+                ->pluck('activity_session_id');
+
+            $query->whereNotIn('id', $reservedIds);
+        }
+
+        return $query->get()->values();
     }
 
     #[Computed]
-    public function editAvailableSlots(): Collection
+    public function editAvailableSessions(): Collection
     {
         if ($this->editActivityId === null) {
             return collect();
         }
 
-        return ActivitySlot::query()
+        $query = ActivitySession::query()
+            ->with('activity')
             ->where('activity_id', $this->editActivityId)
-            ->where('is_available', true)
-            ->orderBy('starts_at')
-            ->get()
-            ->filter(fn (ActivitySlot $slot): bool => ! $slot->isFullyBooked() || $slot->id === $this->editActivitySlotId)
-            ->values();
+            ->where('is_cancelled', false)
+            ->orderBy('day_of_week')
+            ->orderBy('starts_at');
+
+        if ($this->editDate !== '' && $this->editDate !== '0') {
+            $reservedIds = ApiReservation::where('activity_id', $this->editActivityId)
+                ->whereDate('date', $this->editDate)
+                ->where('status', '!=', 'cancelled')
+                ->when($this->editReservationId !== null, fn ($q) => $q->where('id', '!=', $this->editReservationId))
+                ->pluck('activity_session_id');
+
+            if ($reservedIds->isNotEmpty()) {
+                $query->whereNotIn('id', $reservedIds);
+            }
+        }
+
+        return $query->get()->values();
     }
 
     #[Computed]
-    public function selectedCreateSlot(): ?ActivitySlot
+    public function selectedCreateSession(): ?ActivitySession
     {
-        if ($this->createActivitySlotId === null) {
+        if ($this->createActivitySessionId === null) {
             return null;
         }
 
-        return $this->availableSlots->firstWhere('id', $this->createActivitySlotId);
+        return ActivitySession::query()
+            ->with('activity')
+            ->find($this->createActivitySessionId);
     }
 
     #[Computed]
-    public function selectedEditSlot(): ?ActivitySlot
+    public function selectedEditSession(): ?ActivitySession
     {
-        if ($this->editActivitySlotId === null) {
+        if ($this->editActivitySessionId === null) {
             return null;
         }
 
-        return $this->editAvailableSlots->firstWhere('id', $this->editActivitySlotId);
+        return ActivitySession::query()
+            ->with('activity')
+            ->find($this->editActivitySessionId);
     }
 
     #[Computed]
@@ -452,11 +475,11 @@ class ReservationManager extends Component
             'createMemberId' => ['required', 'exists:members,id'],
             'createActivityId' => ['required', 'exists:activities,id'],
             'createDate' => ['required', 'date', 'after_or_equal:today'],
-            'createActivitySlotId' => [
+            'createActivitySessionId' => [
                 'required',
-                Rule::exists('activity_slots', 'id')->where(fn ($query) => $query
+                Rule::exists('activity_sessions', 'id')->where(fn ($query) => $query
                     ->where('activity_id', $this->createActivityId)
-                    ->where('is_available', true)),
+                    ->where('is_cancelled', false)),
             ],
         ];
     }
@@ -467,11 +490,11 @@ class ReservationManager extends Component
             'editMemberId' => ['required', 'exists:members,id'],
             'editActivityId' => ['required', 'exists:activities,id'],
             'editDate' => ['required', 'date', 'after_or_equal:today'],
-            'editActivitySlotId' => [
+            'editActivitySessionId' => [
                 'required',
-                Rule::exists('activity_slots', 'id')->where(fn ($query) => $query
+                Rule::exists('activity_sessions', 'id')->where(fn ($query) => $query
                     ->where('activity_id', $this->editActivityId)
-                    ->where('is_available', true)),
+                    ->where('is_cancelled', false)),
             ],
         ];
     }
@@ -483,7 +506,7 @@ class ReservationManager extends Component
             'activitySearch',
             'createMemberId',
             'createActivityId',
-            'createActivitySlotId',
+            'createActivitySessionId',
             'createDate',
         ]);
 
@@ -496,7 +519,7 @@ class ReservationManager extends Component
             'editReservationId',
             'editMemberId',
             'editActivityId',
-            'editActivitySlotId',
+            'editActivitySessionId',
             'editDate',
         ]);
     }
@@ -507,7 +530,7 @@ class ReservationManager extends Component
             ->with([
                 'member.validSubscriptions.plan',
                 'activity',
-                'slot',
+                'session',
                 'payments' => fn ($query) => $query->orderByDesc('id'),
             ])
             ->withCount('payments')
@@ -525,17 +548,15 @@ class ReservationManager extends Component
                         ->orWhereHas('activity', function (Builder $activityQuery) use ($term): void {
                             $activityQuery->where('title', 'like', $term);
                         })
-                        ->orWhereHas('slot', function (Builder $slotQuery) use ($term): void {
-                            $slotQuery
-                                ->where('starts_at', 'like', $term)
-                                ->orWhere('ends_at', 'like', $term);
+                        ->orWhereHas('session', function (Builder $sessionQuery) use ($term): void {
+                            $sessionQuery
+                                ->where('starts_at', 'like', $term);
                         });
                 });
             })
             ->when($this->statusFilter !== '', fn (Builder $query) => $query->where('status', $this->statusFilter))
             ->when($this->paymentStatusFilter !== '', fn (Builder $query) => $query->where('payment_status', $this->paymentStatusFilter))
             ->orderByDesc('date')
-            ->orderByDesc('starts_at')
             ->orderByDesc('id');
     }
 }

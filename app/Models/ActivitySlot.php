@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ActivitySlot extends Model
 {
@@ -21,7 +20,6 @@ class ActivitySlot extends Model
         'starts_at',
         'ends_at',
         'capacity',
-        'booked_count',
         'is_available',
     ];
 
@@ -49,16 +47,6 @@ class ActivitySlot extends Model
     public function activity(): BelongsTo
     {
         return $this->belongsTo(Activity::class);
-    }
-
-    public function reservations(): HasMany
-    {
-        return $this->hasMany(ApiReservation::class);
-    }
-
-    public function isFullyBooked(): bool
-    {
-        return $this->booked_count >= $this->capacity;
     }
 
     /** @use HasFactory<ActivitySlotFactory> */

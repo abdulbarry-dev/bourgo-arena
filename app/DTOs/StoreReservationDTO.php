@@ -6,7 +6,7 @@ class StoreReservationDTO
 {
     public function __construct(
         public readonly int $activityId,
-        public readonly int $activitySlotId,
+        public readonly int $activitySessionId,
         public readonly string $date,
     ) {}
 
@@ -14,7 +14,7 @@ class StoreReservationDTO
     {
         return new self(
             activityId: (int) $data['activity_id'],
-            activitySlotId: (int) $data['activity_slot_id'],
+            activitySessionId: (int) $data['activity_session_id'],
             date: $data['date'],
         );
     }
@@ -23,7 +23,7 @@ class StoreReservationDTO
     {
         return [
             'activity_id' => $this->activityId,
-            'activity_slot_id' => $this->activitySlotId,
+            'activity_session_id' => $this->activitySessionId,
             'date' => $this->date,
         ];
     }

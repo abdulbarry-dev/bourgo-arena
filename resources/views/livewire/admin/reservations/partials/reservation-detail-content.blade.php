@@ -73,7 +73,7 @@
                     <flux:icon name="calendar" variant="mini" class="size-4 text-zinc-400" />
                     <span>{{ $this->selectedReservation->date->format('M d, Y') }}</span>
                     <flux:separator vertical class="h-4 my-auto mx-1" />
-                    <span>{{ $this->selectedReservation->starts_at }} - {{ $this->selectedReservation->ends_at }}</span>
+                    <span>{{ \Carbon\Carbon::parse($this->selectedReservation->date?->format('Y-m-d') . ' ' . $this->selectedReservation->session?->starts_at)->format('H:i') }}</span>
                 </div>
             </div>
 
@@ -167,24 +167,23 @@
                             </div>
                             <div class="min-w-0">
                                 <flux:text class="font-semibold text-zinc-900 dark:text-white">{{ $this->selectedReservation->activity?->title ?? __('Activity') }}</flux:text>
-                                <flux:text size="sm" variant="subtle" class="mt-0.5 capitalize">{{ $this->selectedReservation->activity?->category ?? __('Category') }}</flux:text>
+                                <flux:text size="sm" variant="subtle" class="mt-0.5">{{ $this->selectedReservation->activity?->service?->name }}</flux:text>
                             </div>
                         </div>
                     </div>
 
                     <dl class="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
                         <div class="space-y-1">
-                            <dt class="text-zinc-500 dark:text-zinc-400 font-medium">{{ __('Slot Capacity') }}</dt>
+                            <dt class="text-zinc-500 dark:text-zinc-400 font-medium">{{ __('Session Capacity') }}</dt>
                             <dd class="text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                                 <flux:icon name="user-group" variant="mini" class="size-4 text-zinc-300" />
-                                {{ $this->selectedReservation->slot?->booked_count ?? 0 }} / {{ $this->selectedReservation->slot?->capacity ?? 0 }}
+                                {{ $this->selectedReservation->activity?->capacity ?? '—' }}
                             </dd>
                         </div>
                         <div class="space-y-1">
-                            <dt class="text-zinc-500 dark:text-zinc-400 font-medium">{{ __('Slot Availability') }}</dt>
+                            <dt class="text-zinc-500 dark:text-zinc-400 font-medium">{{ __('Day of Week') }}</dt>
                             <dd class="text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-                                <div class="size-2 rounded-full {{ ($this->selectedReservation->slot?->is_available ?? false) ? 'bg-green-500' : 'bg-red-500' }}"></div>
-                                {{ ($this->selectedReservation->slot?->is_available ?? false) ? __('Available') : __('Fully Booked') }}
+                                {{ \Carbon\Carbon::getDays()[$this->selectedReservation->session?->day_of_week] ?? '—' }}
                             </dd>
                         </div>
                     </dl>

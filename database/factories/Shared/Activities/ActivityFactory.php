@@ -18,14 +18,12 @@ class ActivityFactory extends Factory
         return [
             'service_id' => Service::factory(),
             'title' => fake()->sentence(3),
-            'category' => 'court',
             'base_price' => fake()->randomFloat(2, 10, 100),
+            'capacity' => fake()->numberBetween(1, 50),
             'image_url' => null,
 
             'description' => fake()->sentence(),
             'features' => [],
-            'rating' => fake()->randomFloat(1, 3, 5),
-            'review_count' => fake()->numberBetween(0, 250),
             'is_active' => true,
         ];
     }
@@ -40,8 +38,7 @@ class ActivityFactory extends Factory
     public function featured(): static
     {
         return $this->state(fn (): array => [
-            'rating' => 5.0,
-            'review_count' => fake()->numberBetween(50, 250),
+            'is_active' => true,
         ]);
     }
 }

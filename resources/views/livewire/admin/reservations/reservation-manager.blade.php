@@ -110,14 +110,14 @@
                         <td class="px-4 py-4 align-top text-zinc-600 dark:text-zinc-300">
                             <div class="flex flex-col">
                                 <span class="font-medium text-zinc-900 dark:text-zinc-100">{{ $reservation->activity?->title ?? __('Activity unavailable') }}</span>
-                                <span class="text-xs text-zinc-500">{{ $reservation->slot?->starts_at ? \Illuminate\Support\Carbon::createFromFormat('H:i:s', $reservation->slot->starts_at)->format('H:i') : $reservation->starts_at }}</span>
+                                <span class="text-xs text-zinc-500">{{ $reservation->session?->starts_at ? \Illuminate\Support\Carbon::createFromFormat('H:i:s', $reservation->session->starts_at)->format('H:i') : '' }}</span>
                                 <span class="text-xs text-zinc-500">{{ $reservation->date->format('M d, Y') }}</span>
                             </div>
                         </td>
                         <td class="px-4 py-4 align-top text-zinc-600 dark:text-zinc-300">
                             <div class="flex flex-col">
                                 <span>{{ $reservation->date->format('M d, Y') }}</span>
-                                <span class="text-xs text-zinc-500">{{ $reservation->starts_at }} - {{ $reservation->ends_at }}</span>
+                                <span class="text-xs text-zinc-500">{{ \Carbon\Carbon::parse($reservation->date->format('Y-m-d') . ' ' . $reservation->session?->starts_at)->format('H:i') }}</span>
                             </div>
                         </td>
                         <td class="px-4 py-4 align-top text-zinc-600 dark:text-zinc-300">
@@ -203,7 +203,7 @@
                     {{ __('Choose the client, the court, and the available slot. The reservation will be created immediately.') }}
                 </flux:text>
 
-                <div class="mt-6 grid gap-6 grid-cols-1">
+                <div class="mt-6 grid gap-6 grid-cols-1 items-start">
                     <div class="space-y-3 w-full">
                         <flux:label>{{ __('Client') }}</flux:label>
                         <flux:select class="w-full text-base h-12" wire:model.live="createMemberId" required searchable :placeholder="__('Search and select a client...')">
@@ -216,6 +216,7 @@
                                 @endforeach
                             @endif
                         </flux:select>
+                        <div class="min-h-[20px]"><flux:error name="createMemberId" /></div>
                     </div>
 
                     <div class="space-y-3 w-full">
@@ -226,38 +227,41 @@
                             @else
                                 <option value="">{{ __('Select a court') }}</option>
                                 @foreach ($this->activities as $activity)
-                                    <option value="{{ $activity->id }}">{{ $activity->title }} — {{ ucfirst($activity->category) }}</option>
+                                    <option value="{{ $activity->id }}">{{ $activity->title }} — {{ $activity->service?->name }}</option>
                                 @endforeach
                             @endif
                         </flux:select>
+                        <div class="min-h-[20px]"><flux:error name="createActivityId" /></div>
                     </div>
 
                     <div class="space-y-3 w-full">
                         <flux:label>{{ __('Reservation Date') }}</flux:label>
                         <flux:input type="date" class="w-full text-base h-12" wire:model.live="createDate" required />
+                        <div class="min-h-[20px]"><flux:error name="createDate" /></div>
                     </div>
 
                     <div class="space-y-3 w-full">
                         <flux:label>{{ __('Available Slot') }}</flux:label>
                         <flux:select class="w-full text-base h-12"
-                            wire:model.live="createActivitySlotId"
+                            wire:model.live="createActivitySessionId"
                             :disabled="$createActivityId === null"
                             required
                         >
-                            <option value="">{{ __('Select an available slot') }}</option>
-                            @foreach ($this->availableSlots as $slot)
-                                <option value="{{ $slot->id }}">
-                                        {{ substr($slot->starts_at, 0, 5) }} - {{ substr($slot->ends_at, 0, 5) }}
-                                    ({{ $slot->booked_count }}/{{ $slot->capacity }})
+                            <option value="">{{ __('Select a session') }}</option>
+                            @foreach ($this->availableSessions as $session)
+                                <option value="{{ $session->id }}">
+                                    {{ Carbon\Carbon::getDays()[$session->day_of_week] ?? '' }} — {{ substr($session->starts_at, 0, 5) }}
+                                    ({{ $session->duration_minutes }} min / {{ __('Capacity') }}: {{ $session->activity?->capacity }})
                                 </option>
                             @endforeach
                         </flux:select>
+                        <div class="min-h-[20px]"><flux:error name="createActivitySessionId" /></div>
 
-                        @if ($this->selectedCreateSlot !== null)
+                        @if ($this->selectedCreateSession !== null)
                             <x-ui.dashboard.panel class="bg-zinc-50 text-base text-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-300">
-                                <div class="font-medium text-zinc-900 dark:text-zinc-100 mb-1">{{ __('Selected slot') }}</div>
-                                <div class="mb-1">{{ substr($this->selectedCreateSlot->starts_at, 0, 5) }} - {{ substr($this->selectedCreateSlot->ends_at, 0, 5) }}</div>
-                                <div class="text-sm text-zinc-600">{{ __('Capacity') }}: {{ $this->selectedCreateSlot->booked_count }} / {{ $this->selectedCreateSlot->capacity }}</div>
+                                <div class="font-medium text-zinc-900 dark:text-zinc-100 mb-1">{{ __('Selected session') }}</div>
+                                <div class="mb-1">{{ Carbon\Carbon::getDays()[$this->selectedCreateSession->day_of_week] ?? '' }} — {{ substr($this->selectedCreateSession->starts_at, 0, 5) }}</div>
+                                <div class="text-sm text-zinc-600">{{ __('Duration') }}: {{ $this->selectedCreateSession->duration_minutes }} {{ __('min') }} · {{ __('Capacity') }}: {{ $this->selectedCreateSession->activity?->capacity }}</div>
                             </x-ui.dashboard.panel>
                         @endif
                     </div>
@@ -283,7 +287,7 @@
                     {{ __('Update the client, court, or time slot for this reservation.') }}
                 </flux:text>
 
-                <div class="mt-6 grid gap-6 grid-cols-1">
+                <div class="mt-6 grid gap-6 grid-cols-1 items-start">
                     <div class="space-y-3 w-full">
                         <flux:label>{{ __('Client') }}</flux:label>
                         <flux:select class="w-full text-base h-12" wire:model.live="editMemberId" required searchable :placeholder="__('Search and select a client...')">
@@ -292,6 +296,7 @@
                                 <option value="{{ $member->id }}">{{ $member->name }} — {{ $member->email }}</option>
                             @endforeach
                         </flux:select>
+                        <div class="min-h-[20px]"><flux:error name="editMemberId" /></div>
                     </div>
 
                     <div class="space-y-3 w-full">
@@ -299,37 +304,40 @@
                         <flux:select class="w-full text-base h-12" wire:model.live="editActivityId" required searchable :placeholder="__('Search and select a court...')">
                             <option value="">{{ __('Select a court') }}</option>
                             @foreach ($this->activities as $activity)
-                                <option value="{{ $activity->id }}">{{ $activity->title }} — {{ ucfirst($activity->category) }}</option>
+                                <option value="{{ $activity->id }}">{{ $activity->title }} — {{ $activity->service?->name }}</option>
                             @endforeach
                         </flux:select>
+                        <div class="min-h-[20px]"><flux:error name="editActivityId" /></div>
                     </div>
 
                     <div class="space-y-3 w-full">
                         <flux:label>{{ __('Reservation Date') }}</flux:label>
                         <flux:input type="date" class="w-full text-base h-12" wire:model.live="editDate" required />
+                        <div class="min-h-[20px]"><flux:error name="editDate" /></div>
                     </div>
 
                     <div class="space-y-3 w-full">
                         <flux:label>{{ __('Available Slot') }}</flux:label>
                         <flux:select class="w-full text-base h-12"
-                            wire:model.live="editActivitySlotId"
+                            wire:model.live="editActivitySessionId"
                             :disabled="$editActivityId === null"
                             required
                         >
-                            <option value="">{{ __('Select an available slot') }}</option>
-                            @foreach ($this->editAvailableSlots as $slot)
-                                <option value="{{ $slot->id }}">
-                                        {{ substr($slot->starts_at, 0, 5) }} - {{ substr($slot->ends_at, 0, 5) }}
-                                    ({{ $slot->booked_count }}/{{ $slot->capacity }})
+                            <option value="">{{ __('Select a session') }}</option>
+                            @foreach ($this->editAvailableSessions as $session)
+                                <option value="{{ $session->id }}">
+                                    {{ Carbon\Carbon::getDays()[$session->day_of_week] ?? '' }} — {{ substr($session->starts_at, 0, 5) }}
+                                    ({{ $session->duration_minutes }} min / {{ __('Capacity') }}: {{ $session->activity?->capacity }})
                                 </option>
                             @endforeach
                         </flux:select>
+                        <div class="min-h-[20px]"><flux:error name="editActivitySessionId" /></div>
 
-                        @if ($this->selectedEditSlot !== null)
+                        @if ($this->selectedEditSession !== null)
                             <x-ui.dashboard.panel class="bg-zinc-50 text-base text-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-300">
-                                <div class="font-medium text-zinc-900 dark:text-zinc-100 mb-1">{{ __('Selected slot') }}</div>
-                                <div class="mb-1">{{ substr($this->selectedEditSlot->starts_at, 0, 5) }} - {{ substr($this->selectedEditSlot->ends_at, 0, 5) }}</div>
-                                <div class="text-sm text-zinc-600">{{ __('Capacity') }}: {{ $this->selectedEditSlot->booked_count }} / {{ $this->selectedEditSlot->capacity }}</div>
+                                <div class="font-medium text-zinc-900 dark:text-zinc-100 mb-1">{{ __('Selected session') }}</div>
+                                <div class="mb-1">{{ Carbon\Carbon::getDays()[$this->selectedEditSession->day_of_week] ?? '' }} — {{ substr($this->selectedEditSession->starts_at, 0, 5) }}</div>
+                                <div class="text-sm text-zinc-600">{{ __('Duration') }}: {{ $this->selectedEditSession->duration_minutes }} {{ __('min') }} · {{ __('Capacity') }}: {{ $this->selectedEditSession->activity?->capacity }}</div>
                             </x-ui.dashboard.panel>
                         @endif
                     </div>

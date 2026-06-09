@@ -151,7 +151,7 @@ class GlobalSearchService
     {
         return $this->activityBaseQuery($term)
             ->limit($limit)
-            ->get(['id', 'title', 'base_price', 'rating', 'is_active']);
+            ->get(['id', 'title', 'base_price', 'is_active']);
     }
 
     // -------------------------------------------------------------------------
@@ -206,7 +206,7 @@ class GlobalSearchService
     private function searchActivitiesPaginated(string $term, int $perPage): mixed
     {
         return $this->activityBaseQuery($term)
-            ->paginate($perPage, ['id', 'title', 'base_price', 'rating', 'is_active']);
+            ->paginate($perPage, ['id', 'title', 'base_price', 'is_active']);
     }
 
     // -------------------------------------------------------------------------

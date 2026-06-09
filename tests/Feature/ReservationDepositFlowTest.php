@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\Activity;
-use App\Models\ActivitySlot;
+use App\Models\ActivitySession;
 use App\Models\Member;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Http;
 uses(RefreshDatabase::class);
 
 test('reservation creation creates deposit payment and returns payment_url', function () {
-    // Fake Konnect initiate endpoint
     Http::fake([
         'https://api.sandbox.konnect.network/api/v2/payments/init-payment' => Http::response([
             'payUrl' => 'https://pay.konnect.com/123',
@@ -29,14 +28,14 @@ test('reservation creation creates deposit payment and returns payment_url', fun
     ]);
 
     $activity = Activity::factory()->create(['base_price' => 100]);
-    $slot = ActivitySlot::factory()->create(['activity_id' => $activity->id]);
+    $session = ActivitySession::factory()->create(['activity_id' => $activity->id]);
     $reservationDate = now()->addDay()->toDateString();
 
     $this->actingAs($member, 'sanctum');
 
     $response = $this->postJson('/api/v1/reservations', [
         'activity_id' => $activity->id,
-        'activity_slot_id' => $slot->id,
+        'activity_session_id' => $session->id,
         'date' => $reservationDate,
     ]);
 

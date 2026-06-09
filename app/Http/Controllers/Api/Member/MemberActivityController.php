@@ -19,10 +19,14 @@ class MemberActivityController extends Controller
 
     public function show(ActivityService $service, int $id): JsonResponse
     {
-        $activity = Activity::active()->with(['slots' => function ($query) {
-            $query->where('date', '>=', now()->toDateString())
-                ->where('is_available', true)
-                ->orderBy('date')
+        $activity = Activity::active()->with(['sessions' => function ($query) {
+            $query->where('is_cancelled', false)
+                ->where('starts_at_date', '<=', now()->addDays(7)->toDateString())
+                ->where(function ($q) {
+                    $q->whereNull('ends_at_date')
+                        ->orWhere('ends_at_date', '>=', now()->toDateString());
+                })
+                ->orderBy('day_of_week')
                 ->orderBy('starts_at');
         }])->findOrFail($id);
 

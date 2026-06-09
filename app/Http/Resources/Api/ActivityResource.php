@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Api;
 
+use App\Http\Resources\Api\V1\ActivitySessionResource;
 use App\Http\Resources\BaseJsonResource;
 use Illuminate\Http\Request;
 
@@ -18,13 +19,12 @@ class ActivityResource extends BaseJsonResource
             'id' => $this->id,
             'title' => $this->title,
             'base_price' => (float) $this->base_price,
+            'capacity' => $this->capacity,
             'image_url' => $this->image_url,
             'description' => $this->description,
             'features' => $this->features,
-            'rating' => (float) $this->rating,
-            'review_count' => (int) $this->review_count,
             'is_active' => (bool) $this->is_active,
-            'slots' => ActivitySlotResource::collection($this->whenLoaded('slots')),
+            'sessions' => ActivitySessionResource::collection($this->whenLoaded('sessions')),
         ];
     }
 }

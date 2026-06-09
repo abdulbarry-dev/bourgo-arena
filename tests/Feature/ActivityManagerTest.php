@@ -13,11 +13,10 @@ beforeEach(function () {
     $this->actingAs($this->user);
 });
 
-it('can create an activity with a category', function () {
+it('can create an activity', function () {
     Livewire::test(ActivityManager::class)
         ->call('openCreateFlyout')
         ->set('title', 'Test Activity')
-        ->set('category', 'studio')
         ->set('serviceId', $this->service->id)
         ->set('basePrice', '50.00')
         ->set('isActive', true)
@@ -27,7 +26,6 @@ it('can create an activity with a category', function () {
 
     $this->assertDatabaseHas('activities', [
         'title' => 'Test Activity',
-        'category' => 'studio',
         'service_id' => $this->service->id,
     ]);
 });
@@ -43,14 +41,4 @@ it('can filter activities by service group', function () {
         ->set('serviceFilter', $service1->id)
         ->assertSee('Sport Activity')
         ->assertDontSee('Fitness Activity');
-});
-
-it('can filter activities by category', function () {
-    Activity::factory()->create(['title' => 'Court Activity', 'category' => 'court']);
-    Activity::factory()->create(['title' => 'Studio Activity', 'category' => 'studio']);
-
-    Livewire::test(ActivityManager::class)
-        ->set('categoryFilter', 'studio')
-        ->assertSee('Studio Activity')
-        ->assertDontSee('Court Activity');
 });

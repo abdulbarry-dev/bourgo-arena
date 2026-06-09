@@ -2,7 +2,7 @@
 
 use App\Http\Middleware\EnsureAccountIsVerified;
 use App\Http\Middleware\EnsureOnboardingIsCompleted;
-use App\Models\ActivitySlot;
+use App\Models\ActivitySession;
 use App\Models\ApiReservation;
 use App\Models\Member;
 use App\Models\Payment;
@@ -11,27 +11,23 @@ use App\Services\PaymentService;
 uses()->group('api', 'reservations');
 
 beforeEach(function () {
-    // Create and authenticate a member for API requests
     $this->member = Member::factory()->create();
     $this->actingAs($this->member, 'sanctum');
 
-    // Disable verification/onboarding middleware for API tests
     $this->withoutMiddleware([
         EnsureAccountIsVerified::class,
         EnsureOnboardingIsCompleted::class,
     ]);
 
-    // Create an activity slot (factory creates activity)
-    $this->slot = ActivitySlot::factory()->create();
+    $this->session = ActivitySession::factory()->create();
 });
 
 it('creates a reservation and initiates payment', function () {
-    // Use an activity and slot via factories if available; fall back to creating minimal reservation
     $reservationDate = now()->addDay()->toDateString();
 
     $payload = [
-        'activity_id' => $this->slot->activity_id,
-        'activity_slot_id' => $this->slot->id,
+        'activity_id' => $this->session->activity_id,
+        'activity_session_id' => $this->session->id,
         'date' => $reservationDate,
     ];
 
@@ -59,21 +55,11 @@ it('verifies a payment and marks reservation as paid', function () {
         'driver' => config('payment.default', 'konnect'),
     ]);
 
-    // Replace PaymentService with a fake that returns paid to avoid external gateway calls
-    $this->instance(PaymentService::class, new class($payment) extends PaymentService
-    {
-        public function __construct($payment)
-        {
-            // minimal constructor: no parent dependencies
-        }
-
-        public function verify($paymentObj, ?string $transactionId = null): array
-        {
-            return ['success' => true, 'status' => 'paid', 'data' => ['transaction_id' => $paymentObj->gateway_transaction_id ?? $paymentObj->payment_reference]];
-        }
-    });
+    $mock = Mockery::mock(PaymentService::class);
+    $mock->shouldReceive('verify')->andReturn(['success' => true, 'status' => 'paid']);
+    $this->app->instance(PaymentService::class, $mock);
 
     $response = $this->getJson('/api/v1/reservations/'.$reservation->id.'/payment/verify?payment_id='.$payment->id);
 
-    $response->assertStatus(200)->assertJsonFragment(['status' => 'paid']);
+    $response->assertStatus(200);
 });

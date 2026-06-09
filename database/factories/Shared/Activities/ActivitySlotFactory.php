@@ -20,16 +20,8 @@ class ActivitySlotFactory extends Factory
             'starts_at' => '10:00:00',
             'ends_at' => '11:00:00',
             'capacity' => 10,
-            'booked_count' => 0,
             'is_available' => true,
         ];
-    }
-
-    public function full(): static
-    {
-        return $this->state(fn (array $attributes): array => [
-            'booked_count' => $attributes['capacity'] ?? 10,
-        ]);
     }
 
     public function unavailable(): static

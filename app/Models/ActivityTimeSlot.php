@@ -16,7 +16,6 @@ class ActivityTimeSlot extends Model
         'start_time',
         'end_time',
         'max_capacity',
-        'reserved_count',
         'is_available',
     ];
 
@@ -52,10 +51,5 @@ class ActivityTimeSlot extends Model
     public function reservations(): HasMany
     {
         return $this->hasMany(Reservation::class, 'activity_time_slot_id');
-    }
-
-    public function isFullyBooked(): bool
-    {
-        return $this->reserved_count >= $this->max_capacity;
     }
 }

@@ -2,7 +2,7 @@
 
 use App\Livewire\Admin\Reservations\ReservationManager;
 use App\Models\Activity;
-use App\Models\ActivitySlot;
+use App\Models\ActivitySession;
 use App\Models\ApiReservation;
 use App\Models\Member;
 use App\Models\Payment;
@@ -71,13 +71,10 @@ it('allows an admin to create a reservation for a client', function () {
         'base_price' => 80,
         'is_active' => true,
     ]);
-    $slot = ActivitySlot::factory()->create([
+    $session = ActivitySession::factory()->create([
         'activity_id' => $activity->id,
         'starts_at' => '12:00:00',
-        'ends_at' => '13:00:00',
-        'capacity' => 6,
-        'booked_count' => 0,
-        'is_available' => true,
+        'duration_minutes' => 60,
     ]);
 
     $this->actingAs($admin);
@@ -89,19 +86,17 @@ it('allows an admin to create a reservation for a client', function () {
         ->set('createMemberId', $member->id)
         ->set('createActivityId', $activity->id)
         ->set('createDate', now()->addDay()->toDateString())
-        ->set('createActivitySlotId', $slot->id)
+        ->set('createActivitySessionId', $session->id)
         ->call('createReservation')
         ->assertHasNoErrors();
 
     $this->assertDatabaseHas('api_reservations', [
         'member_id' => $member->id,
         'activity_id' => $activity->id,
-        'activity_slot_id' => $slot->id,
+        'activity_session_id' => $session->id,
         'status' => 'confirmed',
         'payment_status' => 'pending',
     ]);
-
-    $this->assertEquals(1, $slot->fresh()->booked_count);
 });
 
 it('shows reservation member and payment history details', function () {
@@ -114,18 +109,16 @@ it('shows reservation member and payment history details', function () {
         'onboarding_completed_at' => now(),
     ]);
     $activity = Activity::factory()->create(['title' => 'Stade Padel 1']);
-    $slot = ActivitySlot::factory()->create([
+    $session = ActivitySession::factory()->create([
         'activity_id' => $activity->id,
         'starts_at' => '10:00:00',
-        'ends_at' => '11:00:00',
-        'capacity' => 4,
-        'booked_count' => 1,
+        'duration_minutes' => 60,
     ]);
 
     $reservation = ApiReservation::factory()
         ->for($member)
         ->forActivity($activity)
-        ->forSlot($slot)
+        ->forSession($session)
         ->create([
             'date' => now()->addDay()->toDateString(),
             'payment_status' => 'paid',
@@ -157,13 +150,12 @@ it('can verify payments from the detail flyout', function () {
     $admin = User::factory()->create(['role' => UserRole::Admin]);
     $member = Member::factory()->create();
     $activity = Activity::factory()->create();
-    $slot = ActivitySlot::factory()->create(['activity_id' => $activity->id, 'starts_at' => '10:00:00', 'ends_at' => '11:00:00', 'capacity' => 4, 'booked_count' => 1]);
+    $session = ActivitySession::factory()->create(['activity_id' => $activity->id, 'starts_at' => '10:00:00', 'duration_minutes' => 60]);
 
-    $reservation = ApiReservation::factory()->for($member)->forActivity($activity)->forSlot($slot)->create(['date' => now()->addDay()->toDateString(), 'payment_status' => 'pending', 'status' => 'confirmed']);
+    $reservation = ApiReservation::factory()->for($member)->forActivity($activity)->forSession($session)->create(['date' => now()->addDay()->toDateString(), 'payment_status' => 'pending', 'status' => 'confirmed']);
 
     $payment = Payment::factory()->create(['member_id' => $member->id, 'reservation_id' => $reservation->id, 'status' => 'pending', 'amount' => $reservation->price, 'payment_reference' => 'PAY-VERIFY-001']);
 
-    // Mock PaymentService verify to avoid external calls and update the payment record
     $serviceMock = Mockery::mock(PaymentService::class);
     $serviceMock->shouldReceive('verify')->andReturnUsing(function ($p, $tx = null) {
         $p->update(['status' => 'paid', 'verified_at' => now()]);

@@ -7,7 +7,7 @@ use App\Models\User;
 use App\Services\ReservationService;
 use Illuminate\Validation\ValidationException;
 
-test('createReservation locks slot capacity and calculates deposit', function () {
+test('createReservation creates a reservation and calculates deposit', function () {
     $user = User::factory()->create();
     $activity = Activity::factory()->create(['base_price' => 123.450]);
 
@@ -17,7 +17,6 @@ test('createReservation locks slot capacity and calculates deposit', function ()
         'start_time' => '10:00:00',
         'end_time' => '11:00:00',
         'max_capacity' => 2,
-        'reserved_count' => 0,
         'is_available' => true,
     ]);
 
@@ -33,14 +32,11 @@ test('createReservation locks slot capacity and calculates deposit', function ()
     expect($reservation->payment_status)->toBe('not_initiated');
     expect((float) $reservation->deposit_amount)->toBe(12.345);
     expect((float) $reservation->full_amount)->toBe(123.45);
-
-    $slot->refresh();
-    expect($slot->reserved_count)->toBe(1);
-    expect($slot->is_available)->toBeTrue();
 });
 
-test('createReservation prevents duplicate reservation for same user and slot', function () {
+test('createReservation prevents duplicate reservation for same slot', function () {
     $user = User::factory()->create();
+    $otherUser = User::factory()->create();
     $activity = Activity::factory()->create(['base_price' => 90]);
 
     $slot = ActivityTimeSlot::query()->create([
@@ -49,19 +45,18 @@ test('createReservation prevents duplicate reservation for same user and slot', 
         'start_time' => '12:00:00',
         'end_time' => '13:00:00',
         'max_capacity' => 5,
-        'reserved_count' => 0,
         'is_available' => true,
     ]);
 
     $service = app(ReservationService::class);
 
-    $service->createReservation($user, $activity->id, $slot->id, true, 'konnect');
+    $service->createReservation($otherUser, $activity->id, $slot->id, true, 'konnect');
 
     expect(fn () => $service->createReservation($user, $activity->id, $slot->id, true, 'konnect'))
         ->toThrow(ValidationException::class);
 });
 
-test('cancelReservation updates status and decrements slot count', function () {
+test('cancelReservation updates status', function () {
     $user = User::factory()->create();
     $activity = Activity::factory()->create(['base_price' => 70]);
 
@@ -71,8 +66,7 @@ test('cancelReservation updates status and decrements slot count', function () {
         'start_time' => '14:00:00',
         'end_time' => '15:00:00',
         'max_capacity' => 2,
-        'reserved_count' => 1,
-        'is_available' => false,
+        'is_available' => true,
     ]);
 
     $reservation = Reservation::query()->create([
@@ -91,8 +85,4 @@ test('cancelReservation updates status and decrements slot count', function () {
 
     expect($updated->reservation_status)->toBe('cancelled');
     expect($updated->cancellation_reason)->toBe('schedule conflict');
-
-    $slot->refresh();
-    expect($slot->reserved_count)->toBe(0);
-    expect($slot->is_available)->toBeTrue();
 });

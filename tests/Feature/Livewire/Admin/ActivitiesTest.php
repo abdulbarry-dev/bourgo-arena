@@ -1,10 +1,9 @@
 <?php
 
 use App\Livewire\Admin\Activities\ActivityManager;
-use App\Livewire\Admin\Activities\ActivitySlotsManager;
+use App\Livewire\Admin\Activities\ActivitySessionManager;
+use App\Livewire\Admin\Activities\CreateActivitySessionForm;
 use App\Models\Activity;
-use App\Models\ActivitySlot;
-use App\Models\Service;
 use App\Models\User;
 use App\UserRole;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -36,138 +35,65 @@ it('shows read-only court details in the view flyout without slot forms', functi
         ->call('openDetailFlyout', $activity->id)
         ->assertSee('Court Alpha')
         ->assertSee('Indoor padel court')
-        ->assertSee('Manage Slots')
+        ->assertSee('Manage Sessions')
         ->assertDontSee('Save Slot')
         ->assertDontSee('Add Slot');
 });
 
-it('renders the dedicated slots management page for an activity', function () {
+it('renders the dedicated sessions management page for an activity', function () {
     $admin = User::factory()->create(['role' => UserRole::Admin]);
     $activity = Activity::factory()->create(['title' => 'Court Beta']);
 
     $this->actingAs($admin)
-        ->get(route('admin.activities.slots', $activity))
+        ->get(route('admin.activities.sessions', $activity))
         ->assertOk()
-        ->assertSee('Manage Slots')
         ->assertSee('Court Beta')
-        ->assertSee('Add Slot');
+        ->assertSee('New Session');
 });
 
-it('opens the activity edit modal from the slots page', function () {
+it('can open session create modal from the sessions page', function () {
     $admin = User::factory()->create(['role' => UserRole::Admin]);
     $activity = Activity::factory()->create([
         'title' => 'Court Gamma',
         'base_price' => 60,
-        'description' => 'Initial description',
-        'features' => ['lights', 'covered'],
         'is_active' => true,
     ]);
 
     $this->actingAs($admin);
 
-    Livewire::test(ActivitySlotsManager::class, ['activity' => $activity])
-        ->call('openEditActivityModal')
-        ->assertSet('showActivityModal', true)
-        ->assertSee('Edit Activity')
-        ->assertSee('Court Gamma');
-
-    Livewire::test(ActivitySlotsManager::class, ['activity' => $activity])
-        ->call('openEditActivityModal')
-        ->set('activityTitle', 'Court Gamma Updated')
-        ->set('activityCategory', 'studio')
-        ->set('activityBasePrice', '72.50')
-        ->set('activityDescription', 'Updated description')
-        ->call('saveActivity')
-        ->assertHasNoErrors();
-
-    $this->assertDatabaseHas('activities', [
-        'id' => $activity->id,
-        'title' => 'Court Gamma Updated',
-        'category' => 'studio',
-        'base_price' => 72.5,
-        'description' => 'Updated description',
-    ]);
+    Livewire::test(ActivitySessionManager::class, ['activity' => $activity])
+        ->assertSee('Weekly Activity Schedule')
+        ->assertSee('Court Gamma')
+        ->assertSee('New Session')
+        ->assertSee($activity->title);
 });
 
-it('can create an activity and manage slots on the slots page', function () {
+it('can create a session via the create form component', function () {
     $admin = User::factory()->create(['role' => UserRole::Admin]);
-    $service = Service::factory()->create();
+    $activity = Activity::factory()->create([
+        'title' => 'Court Alpha',
+        'is_active' => true,
+    ]);
 
     $this->actingAs($admin);
 
-    Livewire::test(ActivityManager::class)
-        ->set('serviceId', $service->id)
-        ->set('title', 'Stade Padel 1')
-        ->set('category', 'court')
-        ->set('basePrice', '75.000')
-        ->set('featuresInput', 'covered court, lights')
-        ->set('description', 'Main padel court')
-        ->set('isActive', true)
+    Livewire::test(CreateActivitySessionForm::class)
+        ->set('activity_id', $activity->id)
+        ->set('day_of_week', 1)
+        ->set('starts_at', '09:00')
+        ->set('duration_minutes', 60)
         ->call('save')
         ->assertHasNoErrors();
 
-    $activity = Activity::query()->where('title', 'Stade Padel 1')->firstOrFail();
-
-    Livewire::test(ActivitySlotsManager::class, ['activity' => $activity])
-        ->call('openCreateSlotModal')
-        ->set('slotStartsAt', '10:00')
-        ->set('slotEndsAt', '11:00')
-        ->set('slotCapacity', 4)
-        ->set('slotIsAvailable', true)
-        ->call('saveSlot')
-        ->assertHasNoErrors();
-
-    $this->assertDatabaseHas('activity_slots', [
+    $this->assertDatabaseHas('activity_sessions', [
         'activity_id' => $activity->id,
-        'capacity' => 4,
-        'starts_at' => '10:00:00',
-        'ends_at' => '11:00:00',
-        'is_available' => true,
-    ]);
-
-    expect(ActivitySlot::query()->where('activity_id', $activity->id)->count())->toBe(1);
-
-    $slot = ActivitySlot::query()->where('activity_id', $activity->id)->first();
-
-    Livewire::test(ActivitySlotsManager::class, ['activity' => $activity])
-        ->call('toggleSlotAvailability', $slot->id)
-        ->assertHasNoErrors();
-
-    $this->assertDatabaseHas('activity_slots', [
-        'id' => $slot->id,
-        'is_available' => false,
-    ]);
-
-    Livewire::test(ActivitySlotsManager::class, ['activity' => $activity])
-        ->call('deleteSlot', $slot->id)
-        ->assertHasNoErrors();
-
-    $this->assertDatabaseMissing('activity_slots', ['id' => $slot->id]);
-
-    Livewire::test(ActivitySlotsManager::class, ['activity' => $activity])
-        ->call('openCreateSlotModal')
-        ->set('slotStartsAt', '12:00')
-        ->set('slotEndsAt', '13:00')
-        ->set('slotCapacity', 2)
-        ->set('slotIsAvailable', true)
-        ->call('saveSlot')
-        ->assertHasNoErrors();
-
-    $slot = ActivitySlot::query()->where('activity_id', $activity->id)->first();
-
-    Livewire::test(ActivitySlotsManager::class, ['activity' => $activity])
-        ->call('openEditSlotModal', $slot->id)
-        ->set('slotCapacity', 6)
-        ->call('saveSlot')
-        ->assertHasNoErrors();
-
-    $this->assertDatabaseHas('activity_slots', [
-        'id' => $slot->id,
-        'capacity' => 6,
+        'day_of_week' => 1,
+        'starts_at' => '09:00:00',
+        'duration_minutes' => 60,
     ]);
 });
 
-it('allows managers to access the activities manager and slots page', function () {
+it('allows managers to access the activities manager and sessions page', function () {
     $manager = User::factory()->create(['role' => UserRole::Manager]);
     $activity = Activity::factory()->create(['title' => 'Stade Padel 2']);
 
@@ -177,24 +103,7 @@ it('allows managers to access the activities manager and slots page', function (
         ->assertSee('Activities & Courts');
 
     $this->actingAs($manager)
-        ->get(route('admin.activities.slots', $activity))
+        ->get(route('admin.activities.sessions', $activity))
         ->assertOk()
-        ->assertSee('Manage Slots');
-
-    Livewire::test(ActivitySlotsManager::class, ['activity' => $activity])
-        ->call('openCreateSlotModal')
-        ->set('slotStartsAt', '12:00')
-        ->set('slotEndsAt', '13:00')
-        ->set('slotCapacity', 6)
-        ->set('slotIsAvailable', true)
-        ->call('saveSlot')
-        ->assertHasNoErrors();
-
-    $this->assertDatabaseHas('activity_slots', [
-        'activity_id' => $activity->id,
-        'capacity' => 6,
-        'starts_at' => '12:00:00',
-        'ends_at' => '13:00:00',
-        'is_available' => true,
-    ]);
+        ->assertSee($activity->title);
 });

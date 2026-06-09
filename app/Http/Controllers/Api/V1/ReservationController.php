@@ -26,33 +26,42 @@ class ReservationController extends Controller
         protected PaymentService $paymentService
     ) {}
 
-    /**
-     * Display a listing of the member's reservations.
-     *
-     * @return AnonymousResourceCollection<ApiReservationResource>
-     */
-    public function index(Request $request): AnonymousResourceCollection
+    public function ongoing(Request $request): AnonymousResourceCollection
     {
         $reservations = $request->user()->reservations()
-            ->with(['activity', 'slot'])
-            ->orderBy('date', 'desc')
+            ->with(['activity', 'session'])
+            ->where('status', 'confirmed')
+            ->where('date', '>=', now()->toDateString())
+            ->orderBy('date', 'asc')
+            ->orderBy('id', 'asc')
             ->paginate(10);
 
         return $this->paginated($reservations, ApiReservationResource::class);
     }
 
-    /**
-     * Store a new reservation.
-     */
+    public function history(Request $request): AnonymousResourceCollection
+    {
+        $reservations = $request->user()->reservations()
+            ->with(['activity', 'session'])
+            ->where(function ($query) {
+                $query->where('status', '!=', 'confirmed')
+                    ->orWhere('date', '<', now()->toDateString());
+            })
+            ->orderBy('date', 'desc')
+            ->orderBy('id', 'desc')
+            ->paginate(10);
+
+        return $this->paginated($reservations, ApiReservationResource::class);
+    }
+
     public function store(StoreReservationRequest $request): JsonResponse
     {
         $dto = StoreReservationDTO::fromRequest($request->validated());
 
-        $this->reservationService->assertNoActiveReservationForSlot($request->user(), $dto->activitySlotId, $dto->date);
+        $this->reservationService->assertNoActiveReservationForSession($request->user(), $dto->activitySessionId, $dto->date);
 
         $reservation = $this->reservationService->makeActivityReservation($request->user(), $dto);
 
-        // Create deposit payment (10%) and initiate checkout
         $depositAmount = round($reservation->price * 0.10, 3);
 
         $paymentDto = new PaymentInitiateDTO(
@@ -81,7 +90,7 @@ class ReservationController extends Controller
         }
 
         if (! empty($result['success'])) {
-            return (new ApiReservationResource($reservation->load(['activity', 'slot'])))->additional([
+            return (new ApiReservationResource($reservation->load(['activity', 'session'])))->additional([
                 'success' => true,
                 'message' => 'Reservation created successfully',
                 'payment' => [
@@ -97,14 +106,11 @@ class ReservationController extends Controller
         return $this->error('Payment initiation failed', 400);
     }
 
-    /**
-     * Initiate a payment for an existing reservation (deposit or due amount).
-     */
     public function initiatePayment(Request $request, ApiReservation $reservation)
     {
         $this->authorize('view', $reservation);
 
-        $amount = $reservation->price; // default to full price unless caller specifies
+        $amount = $reservation->price;
         if ($request->filled('amount')) {
             $amount = (float) $request->input('amount');
         }
@@ -149,9 +155,6 @@ class ReservationController extends Controller
         return $this->error('Payment initiation failed', 400);
     }
 
-    /**
-     * Verify a payment for a reservation and mark reservation as paid when appropriate.
-     */
     public function verifyPayment(Request $request, ApiReservation $reservation)
     {
         $this->authorize('view', $reservation);
@@ -162,20 +165,19 @@ class ReservationController extends Controller
         $result = $this->paymentService->verify($payment);
 
         if (! empty($result['success']) && $result['status'] === 'paid') {
-            // Update reservation status if payment was successful
-            // This is usually handled by webhook but we check here too for better UX
             $reservation->update(['payment_status' => 'paid']);
         }
 
         return $this->success($result, 'Payment verification completed');
     }
 
-    /**
-     * Cancel a reservation.
-     */
     public function destroy(ApiReservation $reservation): JsonResponse
     {
         $this->authorize('delete', $reservation);
+
+        if ($reservation->payment_status === 'paid') {
+            return $this->error(__('Paid reservations cannot be cancelled. Please contact an administrator.'), 403);
+        }
 
         $this->reservationService->cancelActivityReservation($reservation);
 

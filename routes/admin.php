@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\Admin\PaymentAuditController;
 use App\Livewire\Admin\Activities\ActivityManager;
-use App\Livewire\Admin\Activities\ActivitySlotsManager;
+use App\Livewire\Admin\Activities\ActivitySessionManager;
 use App\Livewire\Admin\Courses\CourseManager;
 use App\Livewire\Admin\CourseSessions\CourseSessionManager;
 use App\Livewire\Admin\Events\EventBracketManager;
@@ -56,8 +56,8 @@ Route::middleware('role:admin,manager')->group(function () {
     Route::get('/activities', ActivityManager::class)
         ->name('admin.activities.index');
 
-    Route::get('/activities/{activity}/slots', ActivitySlotsManager::class)
-        ->name('admin.activities.slots');
+    Route::get('/activities/{activity}/sessions', ActivitySessionManager::class)
+        ->name('admin.activities.sessions');
 });
 
 // -------------------------------------------------------------

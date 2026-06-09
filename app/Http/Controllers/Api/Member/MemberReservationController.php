@@ -38,6 +38,10 @@ class MemberReservationController extends Controller
     {
         $reservation = $request->user()->reservations()->findOrFail($id);
 
+        if ($reservation->payment_status === 'paid') {
+            return $this->error(__('Paid reservations cannot be cancelled. Please contact an administrator.'), 403);
+        }
+
         $reservationService->cancelActivityReservation($reservation);
 
         return $this->success(

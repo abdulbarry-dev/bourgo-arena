@@ -3,7 +3,7 @@
 namespace Database\Seeders\Api;
 
 use App\Models\Activity;
-use App\Models\ActivitySlot;
+use App\Models\ActivitySession;
 use App\Models\ApiReservation;
 use App\Models\LoyaltyPoint;
 use App\Models\Member;
@@ -13,7 +13,6 @@ use App\Models\Subscription;
 use App\Models\User;
 use App\UserRole;
 use Database\Seeders\Dashboard\Activities\ActivitySeeder;
-use Database\Seeders\Dashboard\Activities\ActivitySlotSeeder;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -137,7 +136,6 @@ class MobileUserSeeder extends Seeder
             // Ensure activities exist
             if (Activity::count() === 0) {
                 $this->call(ActivitySeeder::class);
-                $this->call(ActivitySlotSeeder::class);
             }
 
             $activities = Activity::all();
@@ -146,31 +144,29 @@ class MobileUserSeeder extends Seeder
             // Create some extra slots to have enough for everyone
             foreach ($activities as $activity) {
                 for ($h = 7; $h <= 9; $h++) {
-                    ActivitySlot::updateOrCreate(
-                        ['activity_id' => $activity->id, 'starts_at' => sprintf('%02d:00:00', $h)],
-                        ['ends_at' => sprintf('%02d:00:00', $h + 1), 'capacity' => 10, 'booked_count' => 0, 'is_available' => true]
+                    ActivitySession::updateOrCreate(
+                        ['activity_id' => $activity->id, 'starts_at' => sprintf('%02d:00:00', $h), 'day_of_week' => 0],
+                        ['starts_at_date' => now(), 'ends_at_date' => now()->addMonth(), 'duration_minutes' => 60, 'is_cancelled' => false]
                     );
                 }
             }
-            $allSlots = ActivitySlot::all()->shuffle();
-            $slotIndex = 0;
+            $allSessions = ActivitySession::all()->shuffle();
+            $sessionIndex = 0;
 
             // Past Reservations (History) for Main Member
             for ($i = 1; $i <= 3; $i++) {
-                if (! isset($allSlots[$slotIndex])) {
+                if (! isset($allSessions[$sessionIndex])) {
                     break;
                 }
-                $slot = $allSlots[$slotIndex++];
+                $session = $allSessions[$sessionIndex++];
                 $date = now()->subDays($i * 5);
 
                 ApiReservation::create([
                     'member_id' => $member->id,
-                    'activity_id' => $slot->activity_id,
-                    'activity_slot_id' => $slot->id,
+                    'activity_id' => $session->activity_id,
+                    'activity_session_id' => $session->id,
                     'date' => $date->toDateString(),
-                    'starts_at' => $slot->starts_at,
-                    'ends_at' => $slot->ends_at,
-                    'price' => $slot->activity->base_price,
+                    'price' => $session->activity->base_price,
                     'status' => 'confirmed',
                     'payment_status' => 'paid',
                     'qr_code' => 'seed-history-'.$i,
@@ -179,20 +175,18 @@ class MobileUserSeeder extends Seeder
 
             // Upcoming Reservations for Main Member
             for ($i = 1; $i <= 2; $i++) {
-                if (! isset($allSlots[$slotIndex])) {
+                if (! isset($allSessions[$sessionIndex])) {
                     break;
                 }
-                $slot = $allSlots[$slotIndex++];
+                $session = $allSessions[$sessionIndex++];
                 $date = now()->addDays($i * 2);
 
                 ApiReservation::create([
                     'member_id' => $member->id,
-                    'activity_id' => $slot->activity_id,
-                    'activity_slot_id' => $slot->id,
+                    'activity_id' => $session->activity_id,
+                    'activity_session_id' => $session->id,
                     'date' => $date->toDateString(),
-                    'starts_at' => $slot->starts_at,
-                    'ends_at' => $slot->ends_at,
-                    'price' => $slot->activity->base_price,
+                    'price' => $session->activity->base_price,
                     'status' => 'confirmed',
                     'payment_status' => 'paid',
                     'qr_code' => 'seed-upcoming-'.$i,
@@ -201,18 +195,16 @@ class MobileUserSeeder extends Seeder
 
             // Reservations for Children
             foreach ($children as $child) {
-                if (! isset($allSlots[$slotIndex])) {
+                if (! isset($allSessions[$sessionIndex])) {
                     break;
                 }
-                $slot = $allSlots[$slotIndex++];
+                $session = $allSessions[$sessionIndex++];
                 ApiReservation::create([
                     'member_id' => $child->id,
-                    'activity_id' => $slot->activity_id,
-                    'activity_slot_id' => $slot->id,
+                    'activity_id' => $session->activity_id,
+                    'activity_session_id' => $session->id,
                     'date' => now()->addDays(3)->toDateString(),
-                    'starts_at' => $slot->starts_at,
-                    'ends_at' => $slot->ends_at,
-                    'price' => $slot->activity->base_price,
+                    'price' => $session->activity->base_price,
                     'status' => 'confirmed',
                     'payment_status' => 'paid',
                     'qr_code' => 'seed-child-'.$child->id,
@@ -220,16 +212,14 @@ class MobileUserSeeder extends Seeder
             }
 
             // Cancelled Reservation for Main Member
-            if (isset($allSlots[$slotIndex])) {
-                $slot = $allSlots[$slotIndex++];
+            if (isset($allSessions[$sessionIndex])) {
+                $session = $allSessions[$sessionIndex++];
                 ApiReservation::create([
                     'member_id' => $member->id,
-                    'activity_id' => $slot->activity_id,
-                    'activity_slot_id' => $slot->id,
+                    'activity_id' => $session->activity_id,
+                    'activity_session_id' => $session->id,
                     'date' => now()->subDays(10)->toDateString(),
-                    'starts_at' => $slot->starts_at,
-                    'ends_at' => $slot->ends_at,
-                    'price' => $slot->activity->base_price,
+                    'price' => $session->activity->base_price,
                     'status' => 'cancelled',
                     'payment_status' => 'refunded',
                     'cancelled_at' => now()->subDays(11),
@@ -334,5 +324,8 @@ class MobileUserSeeder extends Seeder
                 'created_at' => now()->subHours(1),
             ]);
         }
+
+        // Seed payments for the demo user across all three gateways
+        $this->call(MobileUserPaymentSeeder::class);
     }
 }

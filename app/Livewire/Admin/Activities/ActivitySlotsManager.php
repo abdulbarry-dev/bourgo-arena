@@ -24,9 +24,9 @@ class ActivitySlotsManager extends Component
 
     public string $activityTitle = '';
 
-    public string $activityCategory = 'court';
-
     public string $activityBasePrice = '';
+
+    public ?int $activityCapacity = null;
 
     public ?string $activityDescription = null;
 
@@ -59,8 +59,8 @@ class ActivitySlotsManager extends Component
 
         $this->editingActivityId = $this->activity->id;
         $this->activityTitle = $this->activity->title;
-        $this->activityCategory = $this->activity->category ?? 'court';
         $this->activityBasePrice = number_format((float) $this->activity->base_price, 2, '.', '');
+        $this->activityCapacity = $this->activity->capacity;
         $this->activityDescription = $this->activity->description;
         $this->activityFeaturesInput = implode(', ', $this->activity->features ?? []);
         $this->activityIsActive = $this->activity->is_active;
@@ -121,7 +121,6 @@ class ActivitySlotsManager extends Component
                 'starts_at' => $starts,
                 'ends_at' => $ends,
                 'capacity' => $validated['slotCapacity'],
-                'booked_count' => 0,
                 'is_available' => $validated['slotIsAvailable'],
             ]);
 
@@ -184,8 +183,8 @@ class ActivitySlotsManager extends Component
 
         $this->activity->update([
             'title' => $validated['activityTitle'],
-            'category' => $validated['activityCategory'],
             'base_price' => $validated['activityBasePrice'],
+            'capacity' => $validated['activityCapacity'],
             'description' => $validated['activityDescription'] ?: null,
             'features' => $this->normalizeFeatures($validated['activityFeaturesInput']),
             'is_active' => $validated['activityIsActive'],
@@ -200,7 +199,6 @@ class ActivitySlotsManager extends Component
     public function paginatedSlots(): LengthAwarePaginator
     {
         return $this->activity->slots()
-            ->withCount('reservations')
             ->orderBy('starts_at')
             ->paginate(10);
     }
@@ -226,14 +224,13 @@ class ActivitySlotsManager extends Component
         $this->reset([
             'editingActivityId',
             'activityTitle',
-            'activityCategory',
             'activityBasePrice',
+            'activityCapacity',
             'activityDescription',
             'activityFeaturesInput',
             'activityIsActive',
         ]);
 
-        $this->activityCategory = 'court';
         $this->activityIsActive = true;
     }
 
@@ -257,8 +254,8 @@ class ActivitySlotsManager extends Component
     {
         return [
             'activityTitle' => ['required', 'string', 'max:255'],
-            'activityCategory' => ['required', 'string'],
             'activityBasePrice' => ['required', 'numeric', 'min:0'],
+            'activityCapacity' => ['nullable', 'integer', 'min:1'],
             'activityDescription' => ['nullable', 'string'],
             'activityFeaturesInput' => ['nullable', 'string'],
             'activityIsActive' => ['boolean'],

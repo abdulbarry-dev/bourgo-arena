@@ -30,7 +30,6 @@
                             />
                         </div>
                         <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-zinc-600 dark:text-zinc-400">
-                            <span>{{ ucfirst($activity->category) }}</span>
                             <span>{{ number_format((float) $activity->base_price, 2) }} {{ $activity->currency }}</span>
                             <span>{{ $activity->slots_count }} {{ __('slots') }}</span>
                         </div>
@@ -69,13 +68,13 @@
                 @foreach ($this->paginatedSlots as $slot)
                     <tr wire:key="activity-slot-{{ $slot->id }}" class="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/70">
                         <td class="px-4 py-4 text-zinc-700 dark:text-zinc-300">{{ substr($slot->starts_at, 0, 5) }} - {{ substr($slot->ends_at, 0, 5) }}</td>
-                        <td class="px-4 py-4 text-zinc-700 dark:text-zinc-300">{{ $slot->booked_count }} / {{ $slot->capacity }}</td>
+                        <td class="px-4 py-4 text-zinc-700 dark:text-zinc-300">{{ $slot->capacity }}</td>
                         <td class="px-4 py-4 text-zinc-700 dark:text-zinc-300">{{ $slot->reservations_count }}</td>
                         <td class="px-4 py-4">
                             <x-ui.dashboard.status-badge
-                                :status="$slot->is_available && ! $slot->isFullyBooked() ? 'available' : 'unavailable'"
-                                :label="$slot->is_available && ! $slot->isFullyBooked() ? __('Available') : __('Unavailable')"
-                                :color="$slot->is_available && ! $slot->isFullyBooked() ? 'green' : 'red'"
+                                :status="$slot->is_available ? 'available' : 'unavailable'"
+                                :label="$slot->is_available ? __('Available') : __('Unavailable')"
+                                :color="$slot->is_available ? 'green' : 'red'"
                             />
                         </td>
                         <td class="px-4 py-4 text-right">
@@ -126,19 +125,19 @@
                 <flux:field>
                     <flux:label>{{ __('Capacity') }}</flux:label>
                     <flux:input wire:model="slotCapacity" type="number" min="1" required />
-                    <flux:error name="slotCapacity" />
+                    <div class="min-h-[20px]"><flux:error name="slotCapacity" /></div>
                 </flux:field>
 
-                <div class="grid gap-4 sm:grid-cols-2">
+                <div class="grid gap-4 sm:grid-cols-2 items-start">
                     <flux:field>
                         <flux:label>{{ __('Starts At') }}</flux:label>
                         <flux:input wire:model="slotStartsAt" type="time" required />
-                        <flux:error name="slotStartsAt" />
+                        <div class="min-h-[20px]"><flux:error name="slotStartsAt" /></div>
                     </flux:field>
                     <flux:field>
                         <flux:label>{{ __('Ends At') }}</flux:label>
                         <flux:input wire:model="slotEndsAt" type="time" required />
-                        <flux:error name="slotEndsAt" />
+                        <div class="min-h-[20px]"><flux:error name="slotEndsAt" /></div>
                     </flux:field>
                 </div>
             </div>
@@ -164,30 +163,26 @@
                     <flux:field>
                         <flux:label>{{ __('Activity Title') }}</flux:label>
                         <flux:input wire:model="activityTitle" required />
-                        <flux:error name="activityTitle" />
-                    </flux:field>
-
-                    <flux:field>
-                        <flux:label>{{ __('Category') }}</flux:label>
-                        <flux:select wire:model="activityCategory" required>
-                            <option value="padel">{{ __('Padel') }}</option>
-                            <option value="basket">{{ __('Basket') }}</option>
-                            <option value="football">{{ __('Football') }}</option>
-                            <option value="tennis">{{ __('Tennis') }}</option>
-                        </flux:select>
-                        <flux:error name="activityCategory" />
+                        <div class="min-h-[20px]"><flux:error name="activityTitle" /></div>
                     </flux:field>
 
                     <flux:field>
                         <flux:label>{{ __('Base Price') }}</flux:label>
                         <flux:input wire:model="activityBasePrice" type="text" inputmode="decimal" placeholder="{{ __('50.000') }}" required suffix="TND" />
-                        <flux:error name="activityBasePrice" />
+                        <div class="min-h-[20px]"><flux:error name="activityBasePrice" /></div>
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>{{ __('Max Capacity') }}</flux:label>
+                        <flux:input wire:model="activityCapacity" type="number" min="1" placeholder="{{ __('e.g. 10') }}" />
+                        <flux:description>{{ __('Informational maximum number of participants.') }}</flux:description>
+                        <div class="min-h-[20px]"><flux:error name="activityCapacity" /></div>
                     </flux:field>
 
                     <flux:field>
                         <flux:label>{{ __('Description') }}</flux:label>
                         <flux:textarea wire:model="activityDescription" rows="3" />
-                        <flux:error name="activityDescription" />
+                        <div class="min-h-[20px]"><flux:error name="activityDescription" /></div>
                     </flux:field>
 
                     <flux:field>

@@ -24,10 +24,10 @@ class ActivityService
     }
 
     /**
-     * Return available slots optionally scoped to an activity.
+     * Return available slots optionally scoped to an activity and date.
      */
-    public function getAvailableSlots(?Activity $activity = null): Collection
+    public function getAvailableSessions(?Activity $activity = null, ?string $date = null): Collection
     {
-        return $this->activityRepository->getAvailableSlots($activity);
+        return $this->activityRepository->getAvailableSessions($activity, $date);
     }
 }
