@@ -8,6 +8,8 @@ use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 beforeEach(function () {
+    $this->withoutMiddleware(['tunisia_geo']);
+
     /** @var TestCase $this */
     $this->member = Member::factory()->active()->create([
         'loyalty_points' => 123,

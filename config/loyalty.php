@@ -20,4 +20,20 @@ return [
     ],
 
     'balance_history_limit' => 20,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Points to TND Conversion
+    |--------------------------------------------------------------------------
+    |
+    | Administrators can control the loyalty points payment system through
+    | these configuration values. Points are converted to TND at the defined
+    | rate. The minimum and maximum caps prevent abuse.
+    |
+    */
+    'points_to_tnd' => [
+        'rate' => 100,
+        'minimum_payment_points' => 100,
+        'maximum_per_transaction' => 10000,
+    ],
 ];
