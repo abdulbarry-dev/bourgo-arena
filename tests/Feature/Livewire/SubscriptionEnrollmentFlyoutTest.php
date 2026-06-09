@@ -32,7 +32,6 @@ test('manager can enroll pending member and activate access', function () {
         ->set('memberId', $member->id)
         ->set('planId', $plan->id)
         ->set('startsAt', '2026-04-02')
-        ->set('paymentMethod', 'cash')
         ->call('enroll')
         ->assertHasNoErrors()
         ->assertDispatched('subscription-created', memberId: $member->id);
@@ -60,22 +59,6 @@ test('manager can enroll pending member and activate access', function () {
     Queue::assertPushed(SendSubscriptionNotification::class, fn (SendSubscriptionNotification $job): bool => $job->subscriptionId === $subscription->id && $job->notificationType === 'enrolled');
 });
 
-test('gateway payment method requires payment reference', function () {
-    $this->actingAs(User::factory()->manager()->create());
-
-    $member = Member::factory()->create(['status' => 'pending']);
-    $plan = Plan::factory()->create(['is_archived' => false]);
-
-    Livewire::test(SubscriptionEnrollmentFlyout::class)
-        ->set('memberId', $member->id)
-        ->set('planId', $plan->id)
-        ->set('startsAt', '2026-04-01')
-        ->set('paymentMethod', 'tpe')
-        ->set('paymentReference', null)
-        ->call('enroll')
-        ->assertHasErrors(['paymentReference']);
-});
-
 test('archived plans are rejected by enrollment validation', function () {
     $this->actingAs(User::factory()->manager()->create());
 
@@ -86,7 +69,6 @@ test('archived plans are rejected by enrollment validation', function () {
         ->set('memberId', $member->id)
         ->set('planId', $archivedPlan->id)
         ->set('startsAt', '2026-04-01')
-        ->set('paymentMethod', 'cash')
         ->call('enroll')
         ->assertHasErrors(['planId']);
 });
@@ -101,29 +83,43 @@ test('member role cannot enroll subscriptions', function () {
         ->set('memberId', $member->id)
         ->set('planId', $plan->id)
         ->set('startsAt', '2026-04-01')
-        ->set('paymentMethod', 'cash')
         ->call('enroll')
         ->assertForbidden();
 });
 
-test('cannot enroll member who already has active subscription', function () {
+test('same plan enrollment extends existing subscription', function () {
+    Storage::fake('local');
+    config(['payment.receipts.disk' => 'local']);
+    Queue::fake();
+    Notification::fake();
+
     $this->actingAs(User::factory()->manager()->create());
 
     $member = Member::factory()->create(['status' => 'active']);
-    $plan = Plan::factory()->create(['is_archived' => false]);
+    $plan = Plan::factory()->create([
+        'duration_days' => 30,
+        'price' => 150.000,
+        'is_archived' => false,
+    ]);
 
-    Subscription::factory()->create([
+    $endsAt = now()->addDays(10)->toDateString();
+
+    $existingSubscription = Subscription::factory()->create([
         'member_id' => $member->id,
-        'status' => 'active',
-        'ends_at' => now()->addDays(20)->toDateString(),
         'plan_id' => $plan->id,
+        'status' => 'active',
+        'starts_at' => now()->subDays(20)->toDateString(),
+        'ends_at' => $endsAt,
     ]);
 
     Livewire::test(SubscriptionEnrollmentFlyout::class)
         ->set('memberId', $member->id)
         ->set('planId', $plan->id)
-        ->set('startsAt', '2026-04-01')
-        ->set('paymentMethod', 'cash')
+        ->set('startsAt', now()->toDateString())
         ->call('enroll')
-        ->assertHasErrors(['planId']);
+        ->assertHasNoErrors()
+        ->assertDispatched('subscription-created', memberId: $member->id);
+
+    $updatedSubscription = $existingSubscription->fresh();
+    expect($updatedSubscription->ends_at->toDateString())->toBe(now()->addDays(40)->toDateString());
 });

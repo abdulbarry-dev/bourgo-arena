@@ -19,7 +19,7 @@
                 @else
                     <flux:input value="{{ __('No members available') }}" disabled />
                 @endif
-                <flux:error name="memberId" />
+                <div class="min-h-[20px]"><flux:error name="memberId" /></div>
             </flux:field>
 
             @if ($this->selectedMember !== null)
@@ -34,7 +34,7 @@
                 </div>
             @endif
 
-            <div class="grid gap-4 md:grid-cols-2">
+            <div class="grid gap-4 md:grid-cols-2 items-start">
                 <flux:field>
                     <flux:label>{{ __('Plan') }}</flux:label>
                     @if ($this->plans->isNotEmpty())
@@ -48,33 +48,14 @@
                     @else
                         <flux:input value="{{ __('No plans available') }}" disabled />
                     @endif
-                    <flux:error name="planId" />
+                    <div class="min-h-[20px]"><flux:error name="planId" /></div>
                 </flux:field>
 
                 <flux:field>
                     <flux:label>{{ __('Start Date') }}</flux:label>
                     <flux:input wire:model="startsAt" type="date" />
-                    <flux:error name="startsAt" />
+                    <div class="min-h-[20px]"><flux:error name="startsAt" /></div>
                 </flux:field>
-            </div>
-
-            <div class="grid gap-4 md:grid-cols-2">
-                <flux:field>
-                    <flux:label>{{ __('Payment Method') }}</flux:label>
-                    <flux:select wire:model.live="paymentMethod">
-                        <flux:select.option value="cash">{{ __('Cash') }}</flux:select.option>
-                        <flux:select.option value="tpe">{{ __('TPE') }}</flux:select.option>
-                    </flux:select>
-                    <flux:error name="paymentMethod" />
-                </flux:field>
-
-                @if ($paymentMethod === 'tpe')
-                    <flux:field>
-                        <flux:label>{{ __('Payment Reference') }}</flux:label>
-                        <flux:input wire:model="paymentReference" type="text" placeholder="{{ __('Gateway transaction ID') }}" required />
-                        <flux:error name="paymentReference" />
-                    </flux:field>
-                @endif
             </div>
 
             @if ($this->selectedPlan !== null)
@@ -91,7 +72,7 @@
                 </div>
             @endif
 
-            <flux:error name="enroll" />
+            <div class="min-h-[20px]"><flux:error name="enroll" /></div>
         </div>
 
         <div class="flex items-center justify-end gap-2 px-6 py-4 border-t border-zinc-200 dark:border-zinc-700">

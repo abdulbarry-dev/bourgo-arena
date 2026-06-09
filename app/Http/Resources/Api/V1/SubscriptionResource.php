@@ -12,28 +12,53 @@ class SubscriptionResource extends JsonResource
      *
      * @return array{
      *     id: int,
-     *     plan_name: string,
-     *     plan_description: string|null,
+     *     plan: array{
+     *         id: int,
+     *         name: string,
+     *         description: string|null,
+     *         price: float,
+     *         has_all_courses: bool
+     *     },
+     *     service: array{
+     *         id: int|null,
+     *         name: string|null,
+     *         slug: string|null,
+     *         image_url: string|null
+     *     }|null,
      *     status: string,
      *     starts_at: string|null,
      *     ends_at: string|null,
      *     days_remaining: int,
      *     payment_method: string|null,
-     *     amount_paid: float
+     *     amount_paid: float,
+     *     is_active: bool
      * }
      */
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
-            'plan_name' => collect($this->plan)->get('name'),
-            'plan_description' => collect($this->plan)->get('description'),
+            'plan' => [
+                'id' => $this->plan_id,
+                'name' => $this->plan?->name,
+                'description' => $this->plan?->description,
+                'price' => (float) $this->plan?->price,
+                'has_all_courses' => (bool) $this->plan?->has_all_courses,
+            ],
+            'service' => [
+                'id' => $this->plan?->service?->id,
+                'name' => $this->plan?->service?->name,
+                'slug' => $this->plan?->service?->slug,
+                'image_url' => $this->plan?->service?->image_url,
+            ],
             'status' => $this->status,
             'starts_at' => $this->starts_at?->format('Y-m-d'),
             'ends_at' => $this->ends_at?->format('Y-m-d'),
             'days_remaining' => $this->daysRemaining(),
             'payment_method' => $this->payment_method,
             'amount_paid' => (float) $this->amount_paid,
+            'is_active' => $this->isActive(),
+            'receipt_url' => $this->receipt_path ? asset('storage/'.$this->receipt_path) : null,
         ];
     }
 }

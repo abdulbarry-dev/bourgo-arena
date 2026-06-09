@@ -25,12 +25,14 @@ class Plan extends Model
         'name',
         'has_all_courses',
         'price',
+        'level',
         'duration_days',
         'is_archived',
     ];
 
     protected $casts = [
         'price' => 'decimal:3',
+        'level' => 'integer',
         'has_all_courses' => 'boolean',
         'is_archived' => 'boolean',
     ];

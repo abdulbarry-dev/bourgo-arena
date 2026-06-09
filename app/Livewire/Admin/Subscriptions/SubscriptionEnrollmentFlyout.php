@@ -5,16 +5,15 @@ namespace App\Livewire\Admin\Subscriptions;
 use App\Jobs\SendSubscriptionNotification;
 use App\Jobs\SendSubscriptionReceiptEmail;
 use App\Models\Member;
+use App\Models\Payment;
 use App\Models\Plan;
 use App\Models\Subscription;
-use App\Services\LoyaltyCalculatorService;
-use App\Services\ReceiptGenerator;
-use Carbon\CarbonImmutable;
+use App\Services\PaymentAuditService;
+use App\Services\SubscriptionService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -34,10 +33,8 @@ class SubscriptionEnrollmentFlyout extends Component
         $this->resetValidation();
         $this->reset([
             'planId',
-            'paymentReference',
         ]);
         $this->memberId = $memberId;
-        $this->paymentMethod = 'cash';
         $this->startsAt = now()->toDateString();
 
         // Pre-select the first eligible member if memberId is null
@@ -66,10 +63,6 @@ class SubscriptionEnrollmentFlyout extends Component
     public ?int $planId = null;
 
     public string $startsAt = '';
-
-    public string $paymentMethod = 'cash';
-
-    public ?string $paymentReference = null;
 
     public bool $isProcessing = false;
 
@@ -107,14 +100,7 @@ class SubscriptionEnrollmentFlyout extends Component
         session(['members.selected_member_id' => $this->memberId]);
     }
 
-    public function updatedPaymentMethod(): void
-    {
-        if ($this->paymentMethod === 'cash') {
-            $this->paymentReference = null;
-        }
-    }
-
-    public function enroll(): void
+    public function enroll(SubscriptionService $service): void
     {
         $this->authorize('create', Subscription::class);
 
@@ -122,12 +108,6 @@ class SubscriptionEnrollmentFlyout extends Component
 
         try {
             $validated = $this->validate($this->rules(), $this->messages());
-
-            if (! config("payment.methods.{$validated['paymentMethod']}", false)) {
-                $this->addError('paymentMethod', __('The selected payment method is not enabled.'));
-
-                return;
-            }
 
             $member = Member::query()
                 ->whereKey($validated['memberId'])
@@ -150,83 +130,46 @@ class SubscriptionEnrollmentFlyout extends Component
                 return;
             }
 
-            // Business Rule 1: Check for existing active subscriptions in the same service
-            $existingActiveSubscriptionInSameService = Subscription::query()
-                ->active()
-                ->where('member_id', $member->id)
-                ->whereHas('plan', fn (Builder $query) => $query->where('service_id', $plan->service_id))
-                ->first();
+            // Use service for validation
+            $validationResult = $service->validateEnrollment($member, $plan);
+            if ($validationResult !== true) {
+                $this->addError('planId', $validationResult);
+                $this->isProcessing = false;
 
-            if ($existingActiveSubscriptionInSameService) {
-                // If it's an upgrade (new plan has higher duration)
-                if ($plan->duration_days > $existingActiveSubscriptionInSameService->plan->duration_days) {
-                    // Upgrade mechanism: extend duration
-                    $newEndDate = CarbonImmutable::parse($existingActiveSubscriptionInSameService->ends_at)
-                        ->addDays($plan->duration_days)
-                        ->toDateString();
-
-                    $existingActiveSubscriptionInSameService->update([
-                        'plan_id' => $plan->id, // Update to the new plan
-                        'ends_at' => $newEndDate,
-                        // Recalculate days_remaining based on the new end date
-                        'days_remaining' => CarbonImmutable::now()->diffInDays($newEndDate, false),
-                    ]);
-
-                    $this->dispatch('subscription-upgraded', memberId: $member->id, subscriptionId: $existingActiveSubscriptionInSameService->id);
-                    $this->dispatch('toast', message: __('Subscription upgraded successfully, duration extended.'), type: 'success');
-                    $this->isProcessing = false;
-                    $this->show = false; // Close the flyout after successful upgrade
-
-                    return;
-
-                } else {
-                    // Block enrollment: member cannot hold multiple active subscriptions in same service
-                    $this->addError('planId', __('This member already has an active subscription in this service. Please wait for it to expire or upgrade to a higher duration plan.'));
-                    $this->isProcessing = false;
-
-                    return;
-                }
+                return;
             }
 
-            // Process enrollment
-            $subscription = DB::transaction(function () use ($validated, $member, $plan): Subscription {
-                $subscription = Subscription::query()->create([
-                    'member_id' => $member->id,
-                    'plan_id' => $plan->id,
-                    'status' => 'active',
-                    'starts_at' => $validated['startsAt'],
-                    'ends_at' => Subscription::calculateEndDate($validated['startsAt'], (int) $plan->duration_days),
-                    'suspended_at' => null,
-                    'days_remaining' => null,
-                    'resumed_at' => null,
-                    'payment_method' => $validated['paymentMethod'],
-                    'payment_reference' => $validated['paymentReference'],
-                    'amount_paid' => $plan->price,
-                    'receipt_path' => null,
-                    'enrolled_by' => Auth::id(),
-                ]);
+            // Use service for enrollment
+            $subscription = $service->enroll($member, $plan, [
+                'status' => 'active',
+                'starts_at' => $validated['startsAt'],
+                'payment_method' => 'cash',
+                'payment_reference' => null,
+                'enrolled_by' => Auth::id(),
+                'enrolled_by_name' => Auth::user()?->name ?? 'System',
+            ]);
 
-                $receiptPath = app(ReceiptGenerator::class)->generate([
-                    'member_name' => $member->name,
-                    'plan_name' => $plan->name,
-                    'amount_paid' => (float) $plan->price,
-                    'payment_method' => $validated['paymentMethod'],
-                    'payment_reference' => $validated['paymentReference'],
-                    'paid_at' => now()->toDateTimeString(),
-                    'enrolled_by' => Auth::user()?->name ?? 'System',
-                    'subscription_id' => $subscription->id,
-                ]);
+            $payment = Payment::create([
+                'member_id' => $member->id,
+                'subscription_id' => $subscription->id,
+                'type' => 'subscription',
+                'amount' => $plan->price,
+                'status' => 'paid',
+                'driver' => 'manual',
+                'gateway' => 'manual_admin',
+                'payment_reference' => 'cash_'.now()->timestamp,
+            ]);
 
-                $subscription->update(['receipt_path' => $receiptPath]);
+            app(PaymentAuditService::class)->log($payment, [
+                'payment_gateway' => 'manual_admin',
+                'transaction_status' => 'success',
+                'transaction_id' => 'manual_'.$payment->id.'_'.time(),
+            ]);
 
-                if ($member->status === 'pending') {
-                    $member->update(['status' => 'active']);
-                }
+            // Check if it was an upgrade by comparing plan_id (service handles the actual update)
+            // Or just check if the ID already existed. But for simplicity, we just dispatch appropriate events.
 
-                return $subscription->fresh();
-            });
-
-            app(LoyaltyCalculatorService::class)->creditFixedMonthlyRenewal($subscription);
+            $this->show = false;
 
             SendSubscriptionReceiptEmail::dispatch($subscription->id);
             SendSubscriptionNotification::dispatch(
@@ -240,8 +183,6 @@ class SubscriptionEnrollmentFlyout extends Component
                 ],
             );
 
-            $this->show = false; // Close the flyout before dispatching events for better perceived responsiveness
-
             $this->dispatch('subscription-created', memberId: $member->id, subscriptionId: $subscription->id);
             $this->dispatch('toast', message: 'Subscription enrolled successfully', type: 'success');
         } catch (ValidationException $exception) {
@@ -252,8 +193,6 @@ class SubscriptionEnrollmentFlyout extends Component
             $this->addError('enroll', __('Enrollment could not be completed right now. Please try again.'));
         } finally {
             $this->isProcessing = false;
-            // No need to set $this->show = false here anymore, it's done before dispatches for success.
-            // If there are errors, we want the flyout to remain open.
         }
     }
 
@@ -321,16 +260,6 @@ class SubscriptionEnrollmentFlyout extends Component
                 'required',
                 'date_format:Y-m-d',
             ],
-            'paymentMethod' => [
-                'required',
-                Rule::in(['cash', 'tpe']),
-            ],
-            'paymentReference' => [
-                Rule::requiredIf($this->paymentMethod === 'tpe'),
-                'nullable',
-                'string',
-                'max:255',
-            ],
         ];
     }
 
@@ -343,7 +272,6 @@ class SubscriptionEnrollmentFlyout extends Component
             'memberId.required' => __('Select a member before enrollment.'),
             'planId.required' => __('Select a subscription plan.'),
             'startsAt.required' => __('Select a start date.'),
-            'paymentReference.required' => __('Payment reference is required for online gateway methods.'),
         ];
     }
 

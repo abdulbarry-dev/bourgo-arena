@@ -61,6 +61,11 @@ class Subscription extends Model
         return $this->belongsTo(User::class, 'enrolled_by');
     }
 
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class, 'subscription_id');
+    }
+
     public function auditLogs(): HasMany
     {
         return $this->hasMany(SubscriptionAuditLog::class)->orderByDesc('performed_at');
