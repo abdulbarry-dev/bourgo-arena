@@ -98,26 +98,26 @@ test('dashboard shows date inputs when custom range selected', function () {
         ->assertSee('2026-06-09');
 });
 
-test('dashboard export dropdown visible for admin', function () {
+test('dashboard shows export buttons for admin', function () {
     $user = User::factory()->admin()->create();
     $this->actingAs($user);
 
     $response = $this->get(route('dashboard'));
 
     $response->assertOk()
-        ->assertSee(__('Export'))
-        ->assertSee(__('Export PDF'))
-        ->assertSee(__('Export CSV'));
+        ->assertSee(__('Export CSV'))
+        ->assertSee(__('Export PDF'));
 });
 
-test('dashboard does not show export dropdown for managers', function () {
+test('dashboard does not show export buttons for managers', function () {
     $user = User::factory()->manager()->create();
     $this->actingAs($user);
 
     $response = $this->get(route('dashboard'));
 
     $response->assertOk()
-        ->assertDontSee(__('Export'));
+        ->assertDontSee(__('Export CSV'))
+        ->assertDontSee(__('Export PDF'));
 });
 
 test('verified managers can visit the dashboard', function () {

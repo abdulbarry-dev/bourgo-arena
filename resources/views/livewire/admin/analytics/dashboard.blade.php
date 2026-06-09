@@ -15,40 +15,40 @@
             :subtitle="__('Track revenue, subscriptions, members, occupancy, and the operational signals that matter.')"
         >
             <x-slot name="actions">
-                <flux:select wire:model.live="preset" class="min-w-[150px]">
-                    <flux:select.option value="30_days">{{ __('Last 30 Days') }}</flux:select.option>
-                    <flux:select.option value="90_days">{{ __('Last 90 Days') }}</flux:select.option>
-                    <flux:select.option value="12_months">{{ __('Last 12 Months') }}</flux:select.option>
-                    <flux:select.option value="custom">{{ __('Custom Range') }}</flux:select.option>
-                </flux:select>
+                <div class="flex flex-wrap items-center gap-2">
+                    <flux:select wire:model.live="preset" class="min-w-[150px]">
+                        <flux:select.option value="30_days">{{ __('Last 30 Days') }}</flux:select.option>
+                        <flux:select.option value="90_days">{{ __('Last 90 Days') }}</flux:select.option>
+                        <flux:select.option value="12_months">{{ __('Last 12 Months') }}</flux:select.option>
+                        <flux:select.option value="custom">{{ __('Custom Range') }}</flux:select.option>
+                    </flux:select>
 
-                @if($preset === 'custom')
-                    <flux:input type="date" wire:model.live="from" class="min-w-[140px]" />
-                    <flux:input type="date" wire:model.live="to" class="min-w-[140px]" />
-                @endif
+                    @if($preset === 'custom')
+                        <flux:input type="date" wire:model.live="from" class="min-w-[140px]" />
+                        <flux:input type="date" wire:model.live="to" class="min-w-[140px]" />
+                    @else
+                        <span class="hidden text-sm text-zinc-500 dark:text-zinc-400 sm:inline">
+                            {{ \Carbon\Carbon::parse($from)->format('M d, Y') }} &mdash; {{ \Carbon\Carbon::parse($to)->format('M d, Y') }}
+                        </span>
+                    @endif
 
-                @can('exportReports')
-                    <flux:dropdown align="end">
-                        <flux:button variant="primary" icon="arrow-down-tray" size="sm">
-                            {{ __('Export') }}
+                    @can('exportReports')
+                        <flux:button
+                            variant="outline"
+                            icon="arrow-down-tray"
+                            :href="route('admin.analytics.export.csv', ['from' => $from, 'to' => $to])"
+                        >
+                            {{ __('Export CSV') }}
                         </flux:button>
-
-                        <flux:menu>
-                            <flux:menu.item
-                                :href="route('admin.analytics.export.pdf', ['from' => $from, 'to' => $to])"
-                                icon="document-text"
-                            >
-                                {{ __('Export PDF') }}
-                            </flux:menu.item>
-                            <flux:menu.item
-                                :href="route('admin.analytics.export.csv', ['from' => $from, 'to' => $to])"
-                                icon="table-cells"
-                            >
-                                {{ __('Export CSV') }}
-                            </flux:menu.item>
-                        </flux:menu>
-                    </flux:dropdown>
-                @endcan
+                        <flux:button
+                            variant="primary"
+                            icon="arrow-down-tray"
+                            :href="route('admin.analytics.export.pdf', ['from' => $from, 'to' => $to])"
+                        >
+                            {{ __('Export PDF') }}
+                        </flux:button>
+                    @endcan
+                </div>
             </x-slot>
         </x-ui.dashboard.page-header>
 
