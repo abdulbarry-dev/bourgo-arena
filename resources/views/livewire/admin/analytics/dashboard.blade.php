@@ -53,6 +53,8 @@
         @can('exportReports')
             <x-ui.confirm-modal
                 wire:model.self="showExportConfirmModal"
+                x-on:show-export-modal.window="$wire.showExportConfirmModal = true"
+                x-on:hide-export-modal.window="$wire.showExportConfirmModal = false"
                 :title="$exportFormat === 'pdf'
                     ? __('Export Analytics PDF')
                     : __('Export Analytics CSV')"
