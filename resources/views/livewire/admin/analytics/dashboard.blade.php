@@ -52,7 +52,7 @@
 
         @can('exportReports')
             <x-ui.confirm-modal
-                wire:model="showExportConfirmModal"
+                wire:model.self="showExportConfirmModal"
                 :title="$exportFormat === 'pdf'
                     ? __('Export Analytics PDF')
                     : __('Export Analytics CSV')"
@@ -182,11 +182,12 @@
                         {{ ($revenueTrend['change'] ?? 0) >= 0 ? '+' : '' }}{{ $revenueTrend['change'] ?? 0 }}%
                     </span>
                 </div>
-                <div class="relative h-56" wire:ignore
+                <div class="relative h-56" wire:key="revenue-trend-chart"
                      x-data="{
                          chart: null,
                          init() {
                              this.$nextTick(() => {
+                                 if (this.chart) this.chart.destroy();
                                  const data = {{ Js::from($revenueTrend) }};
                                  if (data.values && data.values.length > 0) {
                                      this.chart = window.createLineChart(this.$refs.canvas, data);
@@ -213,11 +214,12 @@
                 <div class="mb-3">
                     <h4 class="font-semibold text-zinc-900 dark:text-white">{{ __('Subscription Health') }}</h4>
                 </div>
-                <div class="relative h-56" wire:ignore
+                <div class="relative h-56" wire:key="subscription-health-chart"
                      x-data="{
                          chart: null,
                          init() {
                              this.$nextTick(() => {
+                                 if (this.chart) this.chart.destroy();
                                  const data = {{ Js::from($subscriptionDistribution) }};
                                  if (data.values && data.values.some(v => v > 0)) {
                                      this.chart = window.createDoughnutChart(this.$refs.canvas, data);
@@ -244,11 +246,12 @@
                 <div class="mb-3">
                     <h4 class="font-semibold text-zinc-900 dark:text-white">{{ __('Member Growth') }}</h4>
                 </div>
-                <div class="relative h-56" wire:ignore
+                <div class="relative h-56" wire:key="member-growth-chart"
                      x-data="{
                          chart: null,
                          init() {
                              this.$nextTick(() => {
+                                 if (this.chart) this.chart.destroy();
                                  const data = {{ Js::from($memberGrowth) }};
                                  if (data.values && data.values.some(v => v > 0)) {
                                      this.chart = window.createBarChart(this.$refs.canvas, data);
@@ -277,11 +280,12 @@
                 <div class="mb-3">
                     <h4 class="font-semibold text-zinc-900 dark:text-white">{{ __('Revenue by Payment Method') }}</h4>
                 </div>
-                <div class="relative h-64" wire:ignore
+                <div class="relative h-64" wire:key="revenue-by-method-chart"
                      x-data="{
                          chart: null,
                          init() {
                              this.$nextTick(() => {
+                                 if (this.chart) this.chart.destroy();
                                  const data = {{ Js::from($revenueByMethod) }};
                                  if (data.values && data.values.some(v => v > 0)) {
                                      this.chart = window.createPieChart(this.$refs.canvas, data);
@@ -308,11 +312,12 @@
                 <div class="mb-3">
                     <h4 class="font-semibold text-zinc-900 dark:text-white">{{ __('Plan Distribution') }}</h4>
                 </div>
-                <div class="relative h-64" wire:ignore
+                <div class="relative h-64" wire:key="plan-distribution-chart"
                      x-data="{
                          chart: null,
                          init() {
                              this.$nextTick(() => {
+                                 if (this.chart) this.chart.destroy();
                                  const data = {{ Js::from($planDistribution) }};
                                  if (data.values && data.values.some(v => v > 0)) {
                                      this.chart = window.createBarChart(this.$refs.canvas, data, { orientation: 'horizontal' });
