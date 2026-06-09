@@ -75,7 +75,11 @@
                                                 <div class="text-xs text-zinc-500">{{ $transaction->created_at?->format('M d, Y') }}</div>
                                             </div>
                                         </div>
-                                        <div class="text-sm font-bold text-emerald-600 dark:text-emerald-400">+{{ $transaction->points }}</div>
+                                        @php
+    $points = (int) $transaction->points;
+    $colorClass = $points > 0 ? 'text-emerald-600 dark:text-emerald-400' : ($points < 0 ? 'text-red-600 dark:text-red-400' : 'text-zinc-500');
+@endphp
+<div class="text-sm font-bold {{ $colorClass }}">{{ $points > 0 ? '+' : '' }}{{ $points }}</div>
                                     </div>
                                 @empty
                                     <flux:text variant="subtle" size="sm">{{ __('No transactions.') }}</flux:text>

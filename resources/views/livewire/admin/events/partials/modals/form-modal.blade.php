@@ -150,15 +150,15 @@
                 </div>
             @endif
             
-            <flux:error name="uploadQueue" />
-            <flux:error name="uploadQueue.*" />
+            <div class="min-h-[20px]"><flux:error name="uploadQueue" /></div>
+            <div class="min-h-[20px]"><flux:error name="uploadQueue.*" /></div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <flux:field class="md:col-span-2">
                 <flux:label>{{ __('Event Name') }}</flux:label>
                 <flux:input wire:model="name" placeholder="{{ __('Summer Padel Tournament') }}" required />
-                <flux:error name="name" />
+                <div class="min-h-[20px]"><flux:error name="name" /></div>
             </flux:field>
 
             <flux:field class="md:col-span-2">
@@ -175,13 +175,13 @@
                         <flux:text variant="subtle">{{ __('No services available. Please create a service first.') }}</flux:text>
                     </div>
                 @endif
-                <flux:error name="service_id" />
+                <div class="min-h-[20px]"><flux:error name="service_id" /></div>
             </flux:field>
 
             <flux:field class="md:col-span-2">
                 <flux:label>{{ __('Description') }}</flux:label>
                 <flux:textarea wire:model="description" rows="3" />
-                <flux:error name="description" />
+                <div class="min-h-[20px]"><flux:error name="description" /></div>
             </flux:field>
 
             <flux:field>
@@ -191,29 +191,29 @@
                     <flux:select.option value="2v2">{{ __('2v2') }}</flux:select.option>
                     <flux:select.option value="5v5">{{ __('5v5 (Football)') }}</flux:select.option>
                 </flux:select>
-                <flux:error name="format" />
+                <div class="min-h-[20px]"><flux:error name="format" /></div>
             </flux:field>
 
             <flux:field>
                 <flux:label>{{ __('Max Participants') }}</flux:label>
                 <flux:input type="number" wire:model="max_participants" min="2" required />
-                <flux:error name="max_participants" />
+                <div class="min-h-[20px]"><flux:error name="max_participants" /></div>
             </flux:field>
 
             <flux:field>
                 <flux:label>{{ __('Registration Deadline') }}</flux:label>
                 <flux:input type="datetime-local" wire:model="registration_deadline" />
-                <flux:error name="registration_deadline" />
+                <div class="min-h-[20px]"><flux:error name="registration_deadline" /></div>
             </flux:field>
             <flux:field>
                 <flux:label>{{ __('Start Date') }}</flux:label>
                 <flux:input type="datetime-local" wire:model="start_date" />
-                <flux:error name="start_date" />
+                <div class="min-h-[20px]"><flux:error name="start_date" /></div>
             </flux:field>
             <flux:field>
                 <flux:label>{{ __('End Date') }}</flux:label>
                 <flux:input type="datetime-local" wire:model="end_date" />
-                <flux:error name="end_date" />
+                <div class="min-h-[20px]"><flux:error name="end_date" /></div>
             </flux:field>
             
             <div class="md:col-span-2 pt-2">

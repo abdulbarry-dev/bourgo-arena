@@ -122,13 +122,13 @@
                             </flux:select.option>
                         @endif
                     </flux:select>
-                    <flux:error name="winnerId" />
+                    <div class="min-h-[20px]"><flux:error name="winnerId" /></div>
                 </flux:field>
 
                 <flux:field>
                     <flux:label>{{ __('Score (Optional)') }}</flux:label>
                     <flux:input wire:model="matchScore" placeholder="e.g. 21-15, 21-18" />
-                    <flux:error name="matchScore" />
+                    <div class="min-h-[20px]"><flux:error name="matchScore" /></div>
                 </flux:field>
 
                 <div class="flex gap-2">

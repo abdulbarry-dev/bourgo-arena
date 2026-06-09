@@ -20,7 +20,7 @@ it('renders the event manager component', function () {
 
 it('can create a new event', function () {
     $admin = User::factory()->create(['role' => UserRole::Admin]);
-    $service = \App\Models\Service::factory()->create(['slug' => 'padel']);
+    $service = Service::factory()->create(['slug' => 'padel']);
 
     $this->actingAs($admin);
 

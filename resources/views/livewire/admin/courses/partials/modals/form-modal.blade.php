@@ -9,7 +9,7 @@
                 <flux:field>
                     <flux:label>{{ __('Course Name') }}</flux:label>
                     <flux:input wire:model="name" placeholder="{{ __('Advanced Yoga') }}" required />
-                    <flux:error name="name" />
+                    <div class="min-h-[20px]"><flux:error name="name" /></div>
                 </flux:field>
 
                 <flux:field>
@@ -19,7 +19,7 @@
                             <flux:select.option value="{{ $service->id }}">{{ $service->name }}</flux:select.option>
                         @endforeach
                     </flux:select>
-                    <flux:error name="serviceId" />
+                    <div class="min-h-[20px]"><flux:error name="serviceId" /></div>
                 </flux:field>
 
                 {{-- Modern Unified Media Section --}}
@@ -166,14 +166,14 @@
                         </div>
                     @endif
                     
-                    <flux:error name="uploadQueue" />
-                    <flux:error name="uploadQueue.*" />
+                    <div class="min-h-[20px]"><flux:error name="uploadQueue" /></div>
+                    <div class="min-h-[20px]"><flux:error name="uploadQueue.*" /></div>
                 </div>
 
                 <flux:field>
                     <flux:label>{{ __('Description') }}</flux:label>
                     <flux:textarea wire:model="description" rows="3" />
-                    <flux:error name="description" />
+                    <div class="min-h-[20px]"><flux:error name="description" /></div>
                 </flux:field>
 
                 <flux:field>
@@ -183,7 +183,7 @@
                         <flux:select.option value="inactive">{{ __('Inactive') }}</flux:select.option>
                         <flux:select.option value="archived">{{ __('Archived') }}</flux:select.option>
                     </flux:select>
-                    <flux:error name="status" />
+                    <div class="min-h-[20px]"><flux:error name="status" /></div>
                 </flux:field>
             </div>
         </div>

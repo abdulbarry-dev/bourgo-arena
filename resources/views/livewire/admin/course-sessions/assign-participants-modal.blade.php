@@ -18,7 +18,7 @@
                                             <flux:select.option value="{{ $member->id }}">{{ trim($member->name) }}</flux:select.option>
                                         @endforeach
                                     </flux:select>
-                                    <flux:error name="memberIdToEnroll" />
+                                    <div class="min-h-[20px]"><flux:error name="memberIdToEnroll" /></div>
                                 </flux:field>
                                 
                                 <flux:button

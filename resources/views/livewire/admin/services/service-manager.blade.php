@@ -233,7 +233,7 @@
                     <flux:field>
                         <flux:label>{{ __('Service Name') }}</flux:label>
                         <flux:input wire:model="name" placeholder="{{ __('Premium Gym') }}" required />
-                        <flux:error name="name" />
+                        <div class="min-h-[20px]"><flux:error name="name" /></div>
                     </flux:field>
 
                     {{-- Modern Unified Media Section --}}
@@ -380,14 +380,14 @@
                             </div>
                         @endif
                         
-                        <flux:error name="uploadQueue" />
-                        <flux:error name="uploadQueue.*" />
+                        <div class="min-h-[20px]"><flux:error name="uploadQueue" /></div>
+                        <div class="min-h-[20px]"><flux:error name="uploadQueue.*" /></div>
                     </div>
 
                     <flux:field>
                         <flux:label>{{ __('Description') }}</flux:label>
                         <flux:textarea wire:model="description" rows="3" />
-                        <flux:error name="description" />
+                        <div class="min-h-[20px]"><flux:error name="description" /></div>
                     </flux:field>
                 </div>
             </div>

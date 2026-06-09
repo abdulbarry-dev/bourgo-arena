@@ -10,7 +10,7 @@
                 <flux:field class="sm:col-span-2">
                     <flux:label>{{ __('Full Name') }}</flux:label>
                     <flux:input wire:model="name" type="text" autocomplete="name" required />
-                    <flux:error name="name" />
+                    <div class="min-h-[20px]"><flux:error name="name" /></div>
                 </flux:field>
                 
                 <flux:field>
@@ -21,7 +21,7 @@
                         autocomplete="email" 
                         :required="!$member?->isChild()" 
                     />
-                    <flux:error name="email" />
+                    <div class="min-h-[20px]"><flux:error name="email" /></div>
                 </flux:field>
                 
                 <flux:field>
@@ -33,13 +33,13 @@
                         autocomplete="tel" 
                         :required="!$member?->isChild()" 
                     />
-                    <flux:error name="phone" />
+                    <div class="min-h-[20px]"><flux:error name="phone" /></div>
                 </flux:field>
                 
                 <flux:field>
                     <flux:label>{{ __('Date of Birth') }}</flux:label>
                     <flux:input wire:model="dateOfBirth" type="date" required />
-                    <flux:error name="dateOfBirth" />
+                    <div class="min-h-[20px]"><flux:error name="dateOfBirth" /></div>
                 </flux:field>
                 
                 <flux:field>
@@ -48,7 +48,7 @@
                         <option value="male">{{ __('Male') }}</option>
                         <option value="female">{{ __('Female') }}</option>
                     </flux:select>
-                    <flux:error name="gender" />
+                    <div class="min-h-[20px]"><flux:error name="gender" /></div>
                 </flux:field>
                 
                 <flux:input wire:model="emergencyContact" label="{{ __('Emergency Contact') }}" type="text" autocomplete="off" class="sm:col-span-2" />
@@ -64,7 +64,7 @@
                 <flux:switch wire:model.live="isFamilyAccount" />
             </div>
 
-            <flux:error name="update" />
+            <div class="min-h-[20px]"><flux:error name="update" /></div>
 
             <div class="flex items-center gap-2 pt-2">
                 <flux:spacer />

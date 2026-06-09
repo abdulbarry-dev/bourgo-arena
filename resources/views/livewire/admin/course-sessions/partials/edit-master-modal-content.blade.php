@@ -16,26 +16,26 @@
                     <flux:select.option value="5">{{ __('Saturday') }}</flux:select.option>
                     <flux:select.option value="6">{{ __('Sunday') }}</flux:select.option>
                 </flux:select>
-                <flux:error name="sessionDayOfWeek" />
+                <div class="min-h-[20px]"><flux:error name="sessionDayOfWeek" /></div>
             </flux:field>
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 items-start gap-4">
                 <flux:field>
                     <flux:label>{{ __('Start Time') }}</flux:label>
                     <flux:input type="time" wire:model="sessionStartsAt" required />
-                    <flux:error name="sessionStartsAt" />
+                    <div class="min-h-[20px]"><flux:error name="sessionStartsAt" /></div>
                 </flux:field>
                 <flux:field>
                     <flux:label>{{ __('Duration') }}</flux:label>
                     <flux:input type="number" wire:model="sessionDurationMinutes" min="15" suffix="min" required />
-                    <flux:error name="sessionDurationMinutes" />
+                    <div class="min-h-[20px]"><flux:error name="sessionDurationMinutes" /></div>
                 </flux:field>
             </div>
 
             <flux:field>
                 <flux:label>{{ __('Maximum Capacity') }}</flux:label>
                 <flux:input type="number" wire:model="sessionCapacity" min="1" required icon="users" />
-                <flux:error name="sessionCapacity" />
+                <div class="min-h-[20px]"><flux:error name="sessionCapacity" /></div>
             </flux:field>
         </div>
 

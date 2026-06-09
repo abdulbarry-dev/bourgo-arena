@@ -10,7 +10,7 @@
         <flux:field>
             <flux:label>{{ __('Plan Name') }}</flux:label>
             <flux:input wire:model="name" required />
-            <flux:error name="name" />
+            <div class="min-h-[20px]"><flux:error name="name" /></div>
         </flux:field>
 
         <flux:field>
@@ -27,19 +27,19 @@
                     <flux:text variant="subtle">{{ __('No services available. Please create a service first.') }}</flux:text>
                 </div>
             @endif
-            <flux:error name="serviceId" />
+            <div class="min-h-[20px]"><flux:error name="serviceId" /></div>
         </flux:field>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+        <div class="grid grid-cols-1 md:grid-cols-2 items-start gap-4 w-full">
             <flux:field>
                 <flux:label>{{ __('Price (TND)') }}</flux:label>
                 <flux:input wire:model="price" type="text" inputmode="decimal" placeholder="129.000" required />
-                <flux:error name="price" />
+                <div class="min-h-[20px]"><flux:error name="price" /></div>
             </flux:field>
             <flux:field>
                 <flux:label>{{ __('Duration (Days)') }}</flux:label>
                 <flux:input wire:model="durationDays" type="number" min="1" step="1" required />
-                <flux:error name="durationDays" />
+                <div class="min-h-[20px]"><flux:error name="durationDays" /></div>
             </flux:field>
         </div>
         
@@ -63,7 +63,7 @@
                             @endif
                         @endforeach
                     </flux:select>
-                    <flux:error name="selectedCourses" />
+                    <div class="min-h-[20px]"><flux:error name="selectedCourses" /></div>
                 </flux:field>
 
                 @if(count($selectedCourses) > 0)
@@ -91,7 +91,7 @@
 
 
 
-        <flux:error name="save" />
+        <div class="min-h-[20px]"><flux:error name="save" /></div>
 
         <div class="flex items-center gap-2 pt-2">
             <flux:spacer />

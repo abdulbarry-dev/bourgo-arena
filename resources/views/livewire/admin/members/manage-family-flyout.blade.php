@@ -51,7 +51,7 @@
                 @endif
             </div>
 
-            <flux:error name="save" />
+            <div class="min-h-[20px]"><flux:error name="save" /></div>
 
             <div class="flex items-center gap-2 pt-2">
                 <flux:spacer />

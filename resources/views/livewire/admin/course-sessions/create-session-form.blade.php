@@ -14,7 +14,7 @@
                             <flux:select.option value="{{ $course->id }}">{{ __($course->name) }}</flux:select.select.option>
                         @endforeach
                     </flux:select>
-                    <flux:error name="course_id" />
+                    <div class="min-h-[20px]"><flux:error name="course_id" /></div>
                 </flux:field>
 
                 <flux:field>
@@ -28,26 +28,26 @@
                         <flux:radio value="5" :label="__('Sat')" />
                         <flux:radio value="6" :label="__('Sun')" />
                     </flux:radio.group>
-                    <flux:error name="day_of_week" />
+                    <div class="min-h-[20px]"><flux:error name="day_of_week" /></div>
                 </flux:field>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 items-start gap-4">
                     <flux:field>
                         <flux:label>{{ __('Starts At') }}</flux:label>
                         <flux:input type="time" wire:model="starts_at" required />
-                        <flux:error name="starts_at" />
+                        <div class="min-h-[20px]"><flux:error name="starts_at" /></div>
                     </flux:field>
                     <flux:field>
                         <flux:label>{{ __('Duration') }}</flux:label>
                         <flux:input type="number" wire:model="duration_minutes" min="1" suffix="min" required />
-                        <flux:error name="duration_minutes" />
+                        <div class="min-h-[20px]"><flux:error name="duration_minutes" /></div>
                     </flux:field>
                 </div>
 
                 <flux:field>
                     <flux:label>{{ __('Total Capacity') }}</flux:label>
                     <flux:input type="number" wire:model="capacity" min="1" required icon="users" placeholder="20" />
-                    <flux:error name="capacity" />
+                    <div class="min-h-[20px]"><flux:error name="capacity" /></div>
                 </flux:field>
             </div>
 
