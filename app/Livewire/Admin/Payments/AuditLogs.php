@@ -122,6 +122,32 @@ class AuditLogs extends Component
             ->first();
     }
 
+    public function exportPayload(int $id): StreamedResponse
+    {
+        $transaction = PaymentTransaction::findOrFail($id);
+
+        $payload = [
+            'transaction_id' => $transaction->transaction_id,
+            'payment_gateway' => $transaction->payment_gateway,
+            'amount' => (float) $transaction->amount,
+            'transaction_status' => $transaction->transaction_status,
+            'external_gateway_reference' => $transaction->external_gateway_reference,
+            'request_payload' => $transaction->request_payload,
+            'response_payload' => $transaction->response_payload,
+            'ip_address' => $transaction->ip_address,
+            'user_agent' => $transaction->user_agent,
+            'created_at' => $transaction->created_at?->toIso8601String(),
+        ];
+
+        $json = json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        return response()->streamDownload(
+            function () use ($json): void { echo $json; },
+            "payload-{$transaction->transaction_id}.json",
+            ['Content-Type' => 'application/json']
+        );
+    }
+
     public function confirmExport()
     {
         if ($this->exportFormat === 'pdf') {

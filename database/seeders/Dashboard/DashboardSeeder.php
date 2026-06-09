@@ -13,6 +13,7 @@ use Database\Seeders\Dashboard\Events\EventMatchSeeder;
 use Database\Seeders\Dashboard\Events\EventParticipantSeeder;
 use Database\Seeders\Dashboard\Events\EventSeeder;
 use Database\Seeders\Dashboard\Members\MemberSeeder;
+use Database\Seeders\Dashboard\Payments\PaymentTransactionSeeder;
 use Database\Seeders\Dashboard\Users\AdminUserSeeder;
 use Database\Seeders\Dashboard\Users\ManagerUserSeeder;
 use Illuminate\Database\Seeder;
@@ -41,6 +42,7 @@ class DashboardSeeder extends Seeder
             EventParticipantSeeder::class,
             EventParticipantSeeder::class,
             EventMatchSeeder::class,
+            PaymentTransactionSeeder::class,
         ]);
     }
 }

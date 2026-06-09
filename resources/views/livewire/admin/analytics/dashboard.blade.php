@@ -2,13 +2,8 @@
 
 <x-ui.dashboard.page-wrapper>
     <div class="space-y-6" wire:key="analytics-dashboard">
-        <div wire:loading.block wire:target="from,to,setPreset"
-             class="fixed inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-sm dark:bg-zinc-900/60">
-            <div class="flex flex-col items-center gap-3">
-                <flux:icon.arrow-path class="size-8 animate-spin text-zinc-400" />
-                <span class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Updating analytics...') }}</span>
-            </div>
-        </div>
+        <div wire:loading wire:target="from,to,setPreset"
+             class="fixed left-0 top-0 z-[100] h-0.5 w-full animate-pulse bg-indigo-500"></div>
 
         <x-ui.dashboard.page-header
             :title="__('Analytics')"
@@ -50,26 +45,29 @@
                             <span wire:loading.remove wire:target="openExportConfirmModal,confirmExport">{{ __('Export PDF') }}</span>
                             <span wire:loading wire:target="openExportConfirmModal,confirmExport">{{ __('Exporting...') }}</span>
                         </flux:button>
-                            <x-ui.confirm-modal
-                                wire:model.self="showExportConfirmModal"
-                                :title="$exportFormat === 'pdf'
-                                    ? __('Export Analytics PDF')
-                                    : __('Export Analytics CSV')"
-                                :description="$exportFormat === 'pdf'
-                                    ? __('This will generate a PDF report of the analytics dashboard for the selected date range.')
-                                    : __('This will generate a CSV file of the analytics data for the selected date range.')"
-                                cancel-action="closeExportConfirmModal"
-                                confirm-action="confirmExport"
-                                :confirm-text="$exportFormat === 'pdf' ? __('Export PDF') : __('Export CSV')"
-                                confirm-icon="arrow-down-tray"
-                                loading-target="confirmExport"
-                            />
-                        @endcan
-                    </div>
-                </x-slot>
-            </x-ui.dashboard.page-header>
+                    @endcan
+                </div>
+            </x-slot>
+        </x-ui.dashboard.page-header>
 
-            <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        @can('exportReports')
+            <x-ui.confirm-modal
+                wire:model="showExportConfirmModal"
+                :title="$exportFormat === 'pdf'
+                    ? __('Export Analytics PDF')
+                    : __('Export Analytics CSV')"
+                :description="$exportFormat === 'pdf'
+                    ? __('This will generate a PDF report of the analytics dashboard for the selected date range.')
+                    : __('This will generate a CSV file of the analytics data for the selected date range.')"
+                cancel-action="closeExportConfirmModal"
+                confirm-action="confirmExport"
+                :confirm-text="$exportFormat === 'pdf' ? __('Export PDF') : __('Export CSV')"
+                confirm-icon="arrow-down-tray"
+                loading-target="confirmExport"
+            />
+        @endcan
+
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <x-ui.dashboard.panel padding="p-5">
                     <div class="flex items-center justify-between">
                         <div>

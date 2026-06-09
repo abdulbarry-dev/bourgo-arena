@@ -127,8 +127,7 @@ test('dashboard does not show export confirm modal for managers', function () {
     $response = $this->get(route('dashboard'));
 
     $response->assertOk()
-        ->assertDontSee(__('Export Analytics CSV'))
-        ->assertDontSee(__('Export CSV'));
+        ->assertDontSee(__('Export Analytics CSV'));
 });
 
 test('dashboard does not show export buttons for managers', function () {

@@ -146,6 +146,10 @@
                                             <flux:menu.item icon="eye" wire:click="openDetail({{ $log->id }})">
                                                 {{ __('View Details') }}
                                             </flux:menu.item>
+                                            <flux:menu.separator />
+                                            <flux:menu.item icon="arrow-down-tray" wire:click="exportPayload({{ $log->id }})">
+                                                {{ __('Export Payloads') }}
+                                            </flux:menu.item>
                                         </flux:menu>
                                     </flux:dropdown>
                                 </x-ui.dashboard.row-actions>
@@ -360,32 +364,6 @@
                         </div>
                     </div>
                 @endif
-
-                {{-- Payloads --}}
-                <div class="space-y-4">
-                    <div class="flex items-center gap-2">
-                        <flux:heading size="sm" class="uppercase tracking-widest text-zinc-500">{{ __('Payloads') }}</flux:heading>
-                        <flux:separator class="flex-1" variant="subtle" />
-                    </div>
-
-                    <div class="grid gap-4 md:grid-cols-2">
-                        <div class="rounded-2xl border border-zinc-200 bg-zinc-50 p-5 dark:border-zinc-700 dark:bg-zinc-900/50">
-                            <div class="flex items-center gap-2 mb-3">
-                                <flux:icon name="arrow-up" variant="mini" class="size-4 text-zinc-400" />
-                                <flux:heading size="xs">{{ __('Request Payload') }}</flux:heading>
-                            </div>
-                            <pre class="overflow-x-auto text-xs leading-6 text-zinc-700 dark:text-zinc-200 whitespace-pre-wrap">{{ json_encode($this->selectedTransaction->request_payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</pre>
-                        </div>
-
-                        <div class="rounded-2xl border border-zinc-200 bg-zinc-50 p-5 dark:border-zinc-700 dark:bg-zinc-900/50">
-                            <div class="flex items-center gap-2 mb-3">
-                                <flux:icon name="arrow-down" variant="mini" class="size-4 text-zinc-400" />
-                                <flux:heading size="xs">{{ __('Response Payload') }}</flux:heading>
-                            </div>
-                            <pre class="overflow-x-auto text-xs leading-6 text-zinc-700 dark:text-zinc-200 whitespace-pre-wrap">{{ json_encode($this->selectedTransaction->response_payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</pre>
-                        </div>
-                    </div>
-                </div>
 
                 {{-- Metadata --}}
                 <div class="space-y-4">

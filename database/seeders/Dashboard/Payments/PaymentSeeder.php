@@ -12,54 +12,138 @@ class PaymentSeeder extends Seeder
 {
     public function run(): void
     {
+        if (Payment::count() > 10) {
+            return;
+        }
+
         $subscriptions = Subscription::query()->whereIn('payment_reference', [
-            'SUB-2026-0001',
-            'SUB-2026-0002',
-            'SUB-2026-0003',
-            'SUB-2026-0005',
-            'SUB-2026-0006',
-            'SUB-2026-0008',
+            'SUB-2026-0001', 'SUB-2026-0002', 'SUB-2026-0003',
+            'SUB-2026-0005', 'SUB-2026-0006', 'SUB-2026-0008',
         ])->get()->keyBy('payment_reference');
 
-        $reservations = ApiReservation::query()->with('member')->get()->keyBy(function (ApiReservation $reservation): string {
-            return $reservation->member?->email.'-'.$reservation->date->toDateString().'-'.$reservation->starts_at;
-        });
+        $reservations = ApiReservation::query()->with('member')->get();
 
+        // --- Konnect payments (existing logic) ---
         $paymentRows = [
-            ['reference' => 'PAY-2026-0001', 'member_email' => 'amira.elmansouri@example.com', 'subscription_reference' => 'SUB-2026-0001', 'type' => 'subscription', 'amount' => 89.000, 'status' => 'paid', 'verified_at' => now()->subDays(20)],
-            ['reference' => 'PAY-2026-0002', 'member_email' => 'othman.bennis@example.com', 'subscription_reference' => 'SUB-2026-0002', 'type' => 'subscription', 'amount' => 129.000, 'status' => 'paid', 'verified_at' => now()->subDays(11)],
-            ['reference' => 'PAY-2026-0003', 'member_email' => 'lina.chafik@example.com', 'subscription_reference' => 'SUB-2026-0003', 'type' => 'subscription', 'amount' => 349.000, 'status' => 'cancelled', 'verified_at' => now()->subDays(39)],
-            ['reference' => 'PAY-2026-0004', 'member_email' => 'amira.elmansouri@example.com', 'reservation_key' => 'amira.elmansouri@example.com-'.now()->addDays(1)->toDateString().'-10:00:00', 'type' => 'reservation', 'amount' => 35.000, 'status' => 'paid', 'verified_at' => now()->subDays(1)],
-            ['reference' => 'PAY-2026-0005', 'member_email' => 'nadia.rachid@example.com', 'reservation_key' => 'nadia.rachid@example.com-'.now()->addDays(4)->toDateString().'-17:00:00', 'type' => 'reservation', 'amount' => 28.000, 'status' => 'cancelled', 'verified_at' => now()->subDays(2)],
-            ['reference' => 'PAY-2026-0006', 'member_email' => 'mehdi.amrani@example.com', 'subscription_reference' => 'SUB-2026-0008', 'type' => 'subscription', 'amount' => 1199.000, 'status' => 'initiated', 'verified_at' => null],
+            ['ref' => 'PAY-2026-0001', 'email' => 'amira.elmansouri@example.com', 'sub_ref' => 'SUB-2026-0001', 'res' => null, 'type' => 'subscription', 'amount' => 89.000, 'status' => 'paid', 'verified' => now()->subDays(20)],
+            ['ref' => 'PAY-2026-0002', 'email' => 'othman.bennis@example.com', 'sub_ref' => 'SUB-2026-0002', 'res' => null, 'type' => 'subscription', 'amount' => 129.000, 'status' => 'paid', 'verified' => now()->subDays(11)],
+            ['ref' => 'PAY-2026-0003', 'email' => 'lina.chafik@example.com', 'sub_ref' => 'SUB-2026-0003', 'res' => null, 'type' => 'subscription', 'amount' => 349.000, 'status' => 'cancelled', 'verified' => now()->subDays(39)],
+            ['ref' => 'PAY-2026-0004', 'email' => 'amira.elmansouri@example.com', 'sub_ref' => null, 'res' => $reservations->first(), 'type' => 'reservation', 'amount' => 35.000, 'status' => 'paid', 'verified' => now()->subDays(1)],
+            ['ref' => 'PAY-2026-0005', 'email' => 'nadia.rachid@example.com', 'sub_ref' => null, 'res' => $reservations->skip(1)->first(), 'type' => 'reservation', 'amount' => 28.000, 'status' => 'cancelled', 'verified' => now()->subDays(2)],
+            ['ref' => 'PAY-2026-0006', 'email' => 'mehdi.amrani@example.com', 'sub_ref' => 'SUB-2026-0008', 'res' => null, 'type' => 'subscription', 'amount' => 1199.000, 'status' => 'initiated', 'verified' => null],
         ];
 
-        foreach ($paymentRows as $paymentRow) {
-            $member = Member::query()->where('email', $paymentRow['member_email'])->first();
-            $subscription = isset($paymentRow['subscription_reference']) ? ($subscriptions[$paymentRow['subscription_reference']] ?? null) : null;
-            $reservation = isset($paymentRow['reservation_key']) ? ($reservations[$paymentRow['reservation_key']] ?? null) : null;
-
-            if ($member === null) {
+        foreach ($paymentRows as $row) {
+            $member = Member::where('email', $row['email'])->first();
+            if (! $member) {
                 continue;
             }
 
-            Payment::query()->updateOrCreate(
-                ['payment_reference' => $paymentRow['reference']],
+            $sub = $row['sub_ref'] ? ($subscriptions[$row['sub_ref']] ?? null) : null;
+
+            Payment::updateOrCreate(
+                ['payment_reference' => $row['ref']],
                 [
                     'member_id' => $member->id,
-                    'reservation_id' => $reservation?->id,
-                    'subscription_id' => $subscription?->id,
+                    'reservation_id' => $row['res']?->id,
+                    'subscription_id' => $sub?->id,
                     'driver' => 'konnect',
                     'gateway' => 'konnect',
-                    'type' => $paymentRow['type'],
-                    'amount' => $paymentRow['amount'],
-                    'currency' => 'TND',
-                    'status' => $paymentRow['status'],
-                    'gateway_transaction_id' => 'gw-'.$paymentRow['reference'],
+                    'type' => $row['type'],
+                    'amount' => $row['amount'],
+                    'status' => $row['status'],
+                    'gateway_transaction_id' => 'gw-' . $row['ref'],
                     'metadata' => ['source' => 'seed'],
-                    'verified_at' => $paymentRow['verified_at'],
-                ],
+                    'verified_at' => $row['verified'],
+                ]
             );
+        }
+
+        // --- Loyalty payments (driver = loyalty) ---
+        $allMembers = Member::where('status', 'active')->get();
+        if ($allMembers->isEmpty()) {
+            return;
+        }
+
+        $loyaltyRows = [];
+
+        // Paid subscriptions (5)
+        foreach ([
+            ['amount' => 129.000, 'days' => 30],
+            ['amount' => 89.000, 'days' => 25],
+            ['amount' => 349.000, 'days' => 18],
+            ['amount' => 75.000, 'days' => 10],
+            ['amount' => 1199.000, 'days' => 5],
+        ] as $r) {
+            $loyaltyRows[] = ['type' => 'subscription', 'amount' => $r['amount'], 'status' => 'paid', 'days' => $r['days']];
+        }
+
+        // Pending subscriptions (3)
+        foreach ([
+            ['amount' => 89.000, 'days' => 12],
+            ['amount' => 129.000, 'days' => 7],
+            ['amount' => 349.000, 'days' => 2],
+        ] as $r) {
+            $loyaltyRows[] = ['type' => 'subscription', 'amount' => $r['amount'], 'status' => 'pending', 'days' => $r['days']];
+        }
+
+        // Failed subscriptions (2)
+        foreach ([
+            ['amount' => 200.000, 'days' => 20],
+            ['amount' => 89.000, 'days' => 8],
+        ] as $r) {
+            $loyaltyRows[] = ['type' => 'subscription', 'amount' => $r['amount'], 'status' => 'failed', 'days' => $r['days']];
+        }
+
+        // Paid reservations (4)
+        foreach ([
+            ['amount' => 35.000, 'days' => 28],
+            ['amount' => 25.000, 'days' => 22],
+            ['amount' => 50.000, 'days' => 15],
+            ['amount' => 30.000, 'days' => 6],
+        ] as $r) {
+            $loyaltyRows[] = ['type' => 'reservation', 'amount' => $r['amount'], 'status' => 'paid', 'days' => $r['days']];
+        }
+
+        // Pending reservations (3)
+        foreach ([
+            ['amount' => 15.000, 'days' => 14],
+            ['amount' => 45.000, 'days' => 9],
+            ['amount' => 25.000, 'days' => 3],
+        ] as $r) {
+            $loyaltyRows[] = ['type' => 'reservation', 'amount' => $r['amount'], 'status' => 'pending', 'days' => $r['days']];
+        }
+
+        // Failed reservations (3)
+        foreach ([
+            ['amount' => 20.000, 'days' => 35],
+            ['amount' => 40.000, 'days' => 16],
+            ['amount' => 10.000, 'days' => 4],
+        ] as $r) {
+            $loyaltyRows[] = ['type' => 'reservation', 'amount' => $r['amount'], 'status' => 'failed', 'days' => $r['days']];
+        }
+
+        foreach ($loyaltyRows as $idx => $row) {
+            $member = $allMembers->random();
+            $createdAt = now()->subDays($row['days']);
+
+            Payment::create([
+                'member_id' => $member->id,
+                'driver' => 'loyalty',
+                'gateway' => 'loyalty_points',
+                'type' => $row['type'],
+                'amount' => $row['amount'],
+                'status' => $row['status'],
+                'payment_reference' => 'LOY-' . str_pad((string) (100 + $idx), 5, '0', STR_PAD_LEFT),
+                'metadata' => [
+                    'source' => 'loyalty_seed',
+                    'conversion_rate' => 100,
+                    'points_used' => (int) ($row['amount'] * 100),
+                ],
+                'verified_at' => $row['status'] === 'paid' ? $createdAt : null,
+                'created_at' => $createdAt,
+                'updated_at' => $createdAt,
+            ]);
         }
     }
 }

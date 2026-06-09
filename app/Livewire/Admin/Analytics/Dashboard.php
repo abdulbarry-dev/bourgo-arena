@@ -2,10 +2,13 @@
 
 namespace App\Livewire\Admin\Analytics;
 
+use App\Models\RevenueSnapshot;
 use App\Services\AnalyticsService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 #[Layout('layouts.app')]
 class Dashboard extends Component
@@ -16,10 +19,10 @@ class Dashboard extends Component
     #[Url(as: 'to')]
     public string $to = '';
 
-    public bool $loading = true;
-
     public bool $showExportConfirmModal = false;
     public string $exportFormat = 'csv';
+
+    private bool $isApplyingPreset = false;
 
     public array $kpiData = [];
     public array $revenueTrend = [];
@@ -46,16 +49,22 @@ class Dashboard extends Component
 
     public function updatedFrom(): void
     {
-        $this->loadData();
+        if (! $this->isApplyingPreset) {
+            $this->loadData();
+        }
     }
 
     public function updatedTo(): void
     {
-        $this->loadData();
+        if (! $this->isApplyingPreset) {
+            $this->loadData();
+        }
     }
 
     public function setPreset(string $preset): void
     {
+        $this->isApplyingPreset = true;
+
         $days = match ($preset) {
             '90d' => 90,
             '12m' => 365,
@@ -64,6 +73,10 @@ class Dashboard extends Component
 
         $this->from = now()->subDays($days)->toDateString();
         $this->to = now()->toDateString();
+
+        $this->loadData();
+
+        $this->isApplyingPreset = false;
     }
 
     public function openExportConfirmModal(string $format): void
@@ -81,21 +94,60 @@ class Dashboard extends Component
         $this->showExportConfirmModal = false;
     }
 
-    public function confirmExport(): void
+    public function confirmExport()
     {
         $this->showExportConfirmModal = false;
 
-        $route = $this->exportFormat === 'pdf'
-            ? 'admin.analytics.export.pdf'
-            : 'admin.analytics.export.csv';
+        if ($this->exportFormat === 'pdf') {
+            return $this->exportPdf();
+        }
 
-        $this->redirectRoute($route, ['from' => $this->from, 'to' => $this->to]);
+        return $this->exportCsv();
+    }
+
+    private function exportPdf(): StreamedResponse
+    {
+        $snapshots = RevenueSnapshot::whereBetween('date', [$this->from, $this->to])
+            ->orderBy('date')
+            ->get();
+
+        $pdf = Pdf::loadView('pdf.analytics-report', [
+            'snapshots' => $snapshots,
+            'startDate' => $this->from,
+            'endDate' => $this->to,
+        ])->setPaper('a4', 'landscape');
+
+        return response()->streamDownload(function () use ($pdf): void {
+            echo $pdf->output();
+        }, "analytics-{$this->from}-{$this->to}.pdf");
+    }
+
+    private function exportCsv(): StreamedResponse
+    {
+        $snapshots = RevenueSnapshot::whereBetween('date', [$this->from, $this->to])
+            ->orderBy('date')
+            ->get();
+
+        return response()->streamDownload(function () use ($snapshots): void {
+            $f = fopen('php://output', 'w');
+            fputcsv($f, ['Date', 'Revenue', 'Active Subs', 'Expired Subs', 'Churn Rate']);
+
+            foreach ($snapshots as $s) {
+                fputcsv($f, [
+                    $s->date->toDateString(),
+                    $s->total_revenue,
+                    $s->active_subscriptions,
+                    $s->expired_subscriptions,
+                    $s->churn_rate,
+                ]);
+            }
+
+            fclose($f);
+        }, "analytics-{$this->from}-{$this->to}.csv", ['Content-Type' => 'text/csv']);
     }
 
     public function loadData(): void
     {
-        $this->loading = true;
-
         $service = app(AnalyticsService::class);
 
         $this->kpiData = $service->getKpiData();
@@ -108,8 +160,6 @@ class Dashboard extends Component
         $this->upcomingEvents = $service->getUpcomingEvents(5);
         $this->expiringSubs = $service->getExpiringSubscriptions(7);
         $this->reservationMetrics = $service->getReservationMetrics(from: $this->from, to: $this->to);
-
-        $this->loading = false;
     }
 
     public function render()
