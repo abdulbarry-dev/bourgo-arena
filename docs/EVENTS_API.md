@@ -15,6 +15,10 @@ All endpoints are relative to `/api/v1/`.
 
 Public endpoints return only **published** events (those with a `registration_deadline` in the future). Draft events are excluded.
 
+### Authenticated Responses
+
+When a request is authenticated (valid Sanctum token), list/show endpoints include an additional `is_registered` boolean field indicating whether the current user is registered for that event. For unauthenticated requests, this field is omitted entirely.
+
 ---
 
 ## Event Status Lifecycle
@@ -119,12 +123,79 @@ Retrieve a paginated list of published events, optionally filtered by sport type
 | `format` | string | Tournament format: `1v1`, `2v2`, or `5v5` |
 | `max_participants` | int | Maximum capacity (powers of 2: 8, 16, 32) |
 | `participants_count` | int | Current number of registered participants (non-cancelled) |
+| `is_registered` | bool | **Only when authenticated.** Whether the current user is registered for this event |
 | `registration_deadline` | string\|null | ISO 8601 datetime when registration closes |
 | `start_date` | string\|null | ISO 8601 datetime when the event begins |
 | `end_date` | string\|null | ISO 8601 datetime when the event ends |
 | `requires_check_in` | bool | Whether participants must check in on event day |
 | `status` | string | Computed status (see status lifecycle above) |
 | `created_at` | string\|null | ISO 8601 datetime when the event was created |
+
+### Authenticated Response (200)
+
+When the request includes a valid Sanctum token, each event object includes the `is_registered` field:
+
+```json
+{
+    "data": [
+        {
+            "id": "1",
+            "name": "Friday Night Showdown Championship",
+            "description": "A fast-paced weekly tournament open to all skill levels.",
+            "images": [
+                "https://picsum.photos/seed/abc123/800/600",
+                "https://picsum.photos/seed/def456/800/600"
+            ],
+            "image_url": "https://picsum.photos/seed/abc123/800/600",
+            "format": "1v1",
+            "max_participants": 16,
+            "participants_count": 12,
+            "is_registered": true,
+            "registration_deadline": "2026-06-15T18:00:00.000000Z",
+            "start_date": "2026-06-16T19:00:00.000000Z",
+            "end_date": "2026-06-16T22:00:00.000000Z",
+            "requires_check_in": true,
+            "status": "open",
+            "created_at": "2026-06-10T08:00:00.000000Z"
+        },
+        {
+            "id": "2",
+            "name": "Doubles Cup Championship",
+            "description": "Partner-based tournament with group stages.",
+            "images": [
+                "https://picsum.photos/seed/ghi789/800/600",
+                "https://picsum.photos/seed/jkl012/800/600",
+                "https://picsum.photos/seed/mno345/800/600"
+            ],
+            "image_url": "https://picsum.photos/seed/ghi789/800/600",
+            "format": "2v2",
+            "max_participants": 32,
+            "participants_count": 30,
+            "is_registered": false,
+            "registration_deadline": "2026-06-20T12:00:00.000000Z",
+            "start_date": "2026-06-22T10:00:00.000000Z",
+            "end_date": "2026-06-22T18:00:00.000000Z",
+            "requires_check_in": false,
+            "status": "open",
+            "created_at": "2026-06-10T08:00:00.000000Z"
+        }
+    ],
+    "links": {
+        "first": "http://localhost/api/v1/events?page=1",
+        "last": "http://localhost/api/v1/events?page=3",
+        "prev": null,
+        "next": "http://localhost/api/v1/events?page=2"
+    },
+    "meta": {
+        "current_page": 1,
+        "from": 1,
+        "last_page": 3,
+        "per_page": 15,
+        "to": 15,
+        "total": 42
+    }
+}
+```
 
 ### Filtered by Sport
 
@@ -159,6 +230,35 @@ Retrieve full details for a single event. Draft events return 404.
         "format": "1v1",
         "max_participants": 16,
         "participants_count": 12,
+        "registration_deadline": "2026-06-15T18:00:00.000000Z",
+        "start_date": "2026-06-16T19:00:00.000000Z",
+        "end_date": "2026-06-16T22:00:00.000000Z",
+        "requires_check_in": true,
+        "status": "open",
+        "created_at": "2026-06-10T08:00:00.000000Z"
+    }
+}
+```
+
+### Authenticated Response (200)
+
+When the request includes a valid Sanctum token, the event object includes the `is_registered` field:
+
+```json
+{
+    "data": {
+        "id": "1",
+        "name": "Friday Night Showdown Championship",
+        "description": "A fast-paced weekly tournament open to all skill levels.",
+        "images": [
+            "https://picsum.photos/seed/abc123/800/600",
+            "https://picsum.photos/seed/def456/800/600"
+        ],
+        "image_url": "https://picsum.photos/seed/abc123/800/600",
+        "format": "1v1",
+        "max_participants": 16,
+        "participants_count": 12,
+        "is_registered": true,
         "registration_deadline": "2026-06-15T18:00:00.000000Z",
         "start_date": "2026-06-16T19:00:00.000000Z",
         "end_date": "2026-06-16T22:00:00.000000Z",

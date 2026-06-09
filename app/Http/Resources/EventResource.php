@@ -47,6 +47,10 @@ class EventResource extends JsonResource
             'format' => $this->format,
             'max_participants' => $this->max_participants,
             'participants_count' => $this->whenCounted('participants'),
+            'is_registered' => $this->when(
+                $request->user(),
+                fn () => $this->participants()->where('user_id', $request->user()->id)->exists()
+            ),
             'registration_deadline' => $this->registration_deadline,
             'start_date' => $this->start_date,
             'end_date' => $this->end_date,
