@@ -2,49 +2,73 @@ name: Deploy to Laravel Cloud
 
 on:
   push:
-    branches:
-      - main
+    branches: [develop, main]
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  test:
     runs-on: ubuntu-latest
-    environment: production
-    
+    environment: Testing
+
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
           tools: composer:v2
+          coverage: xdebug
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
 
-      - name: Install PHP Dependencies
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
-
-      - name: Install JS Dependencies
+      - name: Install Node Dependencies
         run: npm ci
 
-      - name: Build Frontend Assets
+      - name: Add Flux Credentials
+        run: composer config http-basic.composer.fluxui.dev "${{ secrets.FLUX_USERNAME }}" "${{ secrets.FLUX_LICENSE_KEY }}"
+
+      - name: Install PHP Dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Prepare Environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Build Frontend
         run: npm run build
+
+      - name: Lint
+        run: vendor/bin/pint --test
+
+      - name: Run Tests
+        run: php artisan test --compact
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
+
+    steps:
+      - uses: actions/checkout@v6
 
       - name: Install Laravel Cloud CLI
         run: composer global require laravel/cloud-cli
 
       - name: Deploy to Laravel Cloud
         run: |
-          # Ensure global composer bin is in PATH
           export PATH=$PATH:$(composer global config bin-dir --absolute)
-          
-          # Deploying to Laravel Cloud
-          cloud deploy --app=${{ secrets.LARAVEL_CLOUD_APP_ID }} --environment=production --commit=${{ github.sha }} --wait -n
+          cloud deploy \
+            --app=${{ secrets.LARAVEL_CLOUD_APP_ID }} \
+            --environment=${{ github.ref_name == 'main' && 'production' || 'staging' }} \
+            --commit=${{ github.sha }} \
+            --wait \
+            -n
         env:
           LARAVEL_CLOUD_TOKEN: ${{ secrets.LARAVEL_CLOUD_TOKEN }}
 
