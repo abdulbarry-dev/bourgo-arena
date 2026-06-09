@@ -46,4 +46,14 @@ return [
         'project_id' => env('FCM_PROJECT_ID'),
     ],
 
+    'play_integrity' => [
+        'project_number' => env('PLAY_INTEGRITY_PROJECT_NUMBER'),
+        'service_account_json' => env('PLAY_INTEGRITY_SERVICE_ACCOUNT_JSON'),
+    ],
+
+    'app_attest' => [
+        'team_id' => env('APP_ATTEST_TEAM_ID'),
+        'bundle_id' => env('APP_ATTEST_BUNDLE_ID'),
+    ],
+
 ];

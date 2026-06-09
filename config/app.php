@@ -123,4 +123,21 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Device Token Configuration
+    |--------------------------------------------------------------------------
+    */
+
+    'device_token_ttl' => env('DEVICE_TOKEN_TTL', 30),
+
+    'min_app_version' => [
+        'android' => env('MIN_ANDROID_VERSION', '1.0.0'),
+        'ios' => env('MIN_IOS_VERSION', '1.0.0'),
+    ],
+
+    'dev_integrity_bypass_token' => env('DEV_INTEGRITY_BYPASS_TOKEN', 'dev-bypass'),
+
+    'api_web_platform_enabled' => env('API_WEB_PLATFORM_ENABLED', true),
+
 ];

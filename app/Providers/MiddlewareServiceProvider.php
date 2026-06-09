@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Http\Middleware\EnsureAccountIsVerified;
+use App\Http\Middleware\EnsureApiAccess;
 use App\Http\Middleware\EnsureEmailVerifiedOrIsStaff;
 use App\Http\Middleware\EnsureOnboardingIsCompleted;
 use App\Http\Middleware\EnsureUserHasCourseAccess;
@@ -61,6 +62,7 @@ class MiddlewareServiceProvider extends ServiceProvider
     protected static function registerMiddlewareAliases(Middleware $middleware): void
     {
         $middleware->alias([
+            'api.access' => EnsureApiAccess::class,
             'role' => EnsureUserHasRole::class,
             'verified' => EnsureEmailVerifiedOrIsStaff::class,
             'verified.account' => EnsureAccountIsVerified::class,

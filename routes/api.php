@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\ActivityController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CourseBookingController;
 use App\Http\Controllers\Api\V1\CourseController;
+use App\Http\Controllers\Api\V1\DeviceRegistrationController;
 use App\Http\Controllers\Api\V1\DeviceTokenController;
 use App\Http\Controllers\Api\V1\FamilyController;
 use App\Http\Controllers\Api\V1\LoyaltyController;
@@ -23,136 +24,155 @@ use App\Http\Controllers\Api\V1\UserPaymentController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
-    // --- Public / Guest Accessible Endpoints ---
-    Route::get('search', [SearchController::class, 'index'])->name('api.v1.search.index');
+    // --- Device Registration (no auth required, but rate-limited) ---
+    Route::post('device/register', [DeviceRegistrationController::class, 'register'])
+        ->middleware('throttle:3,1')
+        ->name('api.v1.device.register');
 
-    Route::get('services', [ServiceController::class, 'index'])->name('api.v1.services.index');
-    Route::get('services/{service}', [ServiceController::class, 'show'])->name('api.v1.services.show');
+    // All other routes require a valid API token (device token or Sanctum token)
+    Route::middleware('api.access')->group(function () {
+        // --- Device Management ---
+        Route::post('device/refresh', [DeviceRegistrationController::class, 'refresh'])
+            ->name('api.v1.device.refresh');
 
-    Route::get('plans', [PlanController::class, 'index'])->name('api.v1.plans.index');
-    Route::get('plans/{plan}', [PlanController::class, 'show'])->name('api.v1.plans.show');
+        Route::post('device/link', [DeviceRegistrationController::class, 'link'])
+            ->name('api.v1.device.link');
 
-    Route::get('activities', [ActivityController::class, 'index'])->name('api.v1.activities.index');
-    Route::get('activities/{activity}', [ActivityController::class, 'show'])->name('api.v1.activities.show');
-    Route::get('activities/{activity}/slots', [ActivityController::class, 'slots'])->name('api.v1.activities.slots');
-    Route::get('reservations/slots', [ActivityController::class, 'slots'])->name('api.v1.reservations.slots');
+        Route::post('device/logout', [DeviceRegistrationController::class, 'logout'])
+            ->name('api.v1.device.logout');
 
-    Route::get('courses', [CourseController::class, 'index'])->name('api.v1.courses.index');
-    Route::get('courses/{course}', [CourseController::class, 'show'])->name('api.v1.courses.show');
+        // --- Public / Guest Accessible Endpoints ---
+        Route::get('search', [SearchController::class, 'index'])->name('api.v1.search.index');
 
-    Route::get('events', [EventController::class, 'index'])->name('api.v1.events.index');
-    Route::get('events/{event}', [EventController::class, 'show'])->name('api.v1.events.show');
-    Route::get('events/{event}/bracket', [EventController::class, 'bracket'])->name('api.v1.events.bracket');
+        Route::get('services', [ServiceController::class, 'index'])->name('api.v1.services.index');
+        Route::get('services/{service}', [ServiceController::class, 'show'])->name('api.v1.services.show');
 
-    Route::get('tiers', [TierController::class, 'index'])->name('api.v1.tiers.index');
+        Route::get('plans', [PlanController::class, 'index'])->name('api.v1.plans.index');
+        Route::get('plans/{plan}', [PlanController::class, 'show'])->name('api.v1.plans.show');
 
-    // --- Authentication Endpoints ---
-    Route::prefix('auth')->group(function () {
-        Route::post('login', [AuthController::class, 'login'])->middleware('throttle:api.auth')->name('api.v1.auth.login');
-        Route::post('register', [AuthController::class, 'register'])->middleware('throttle:api.auth')->name('api.v1.auth.register');
-        Route::post('send-otp', [AuthController::class, 'sendOtp'])->middleware('throttle:api.otp')->name('api.v1.auth.send-otp');
-        Route::post('verify-otp', [AuthController::class, 'verifyOtp'])->middleware('throttle:api.otp')->name('api.v1.auth.verify-otp');
-        Route::post('forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:api.otp')->name('api.v1.auth.forgot-password');
-        Route::post('reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:api.otp')->name('api.v1.auth.reset-password');
+        Route::get('activities', [ActivityController::class, 'index'])->name('api.v1.activities.index');
+        Route::get('activities/{activity}', [ActivityController::class, 'show'])->name('api.v1.activities.show');
+        Route::get('activities/{activity}/slots', [ActivityController::class, 'slots'])->name('api.v1.activities.slots');
+        Route::get('reservations/slots', [ActivityController::class, 'slots'])->name('api.v1.reservations.slots');
 
+        Route::get('courses', [CourseController::class, 'index'])->name('api.v1.courses.index');
+        Route::get('courses/{course}', [CourseController::class, 'show'])->name('api.v1.courses.show');
+
+        Route::get('events', [EventController::class, 'index'])->name('api.v1.events.index');
+        Route::get('events/{event}', [EventController::class, 'show'])->name('api.v1.events.show');
+        Route::get('events/{event}/bracket', [EventController::class, 'bracket'])->name('api.v1.events.bracket');
+
+        Route::get('tiers', [TierController::class, 'index'])->name('api.v1.tiers.index');
+
+        // --- Authentication Endpoints ---
+        Route::prefix('auth')->group(function () {
+            Route::post('login', [AuthController::class, 'login'])->middleware('throttle:api.auth')->name('api.v1.auth.login');
+            Route::post('register', [AuthController::class, 'register'])->middleware('throttle:api.auth')->name('api.v1.auth.register');
+            Route::post('send-otp', [AuthController::class, 'sendOtp'])->middleware('throttle:api.otp')->name('api.v1.auth.send-otp');
+            Route::post('verify-otp', [AuthController::class, 'verifyOtp'])->middleware('throttle:api.otp')->name('api.v1.auth.verify-otp');
+            Route::post('forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:api.otp')->name('api.v1.auth.forgot-password');
+            Route::post('reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:api.otp')->name('api.v1.auth.reset-password');
+
+            Route::middleware('auth:sanctum')->group(function () {
+                Route::post('logout', [AuthController::class, 'logout'])->name('api.v1.auth.logout');
+                Route::post('skip-additional-verification', [AuthController::class, 'skipAdditionalVerification'])->name('api.v1.auth.skip-additional-verification');
+                Route::post('request-family-otp', [AuthController::class, 'requestFamilyOtp'])->middleware('throttle:api.otp')->name('api.v1.auth.request-family-otp');
+                Route::post('complete-registration', [AuthController::class, 'completeRegistration'])->middleware(['verified.account', 'throttle:api.auth'])->name('api.v1.auth.complete-registration');
+                Route::post('delete-account', [AuthController::class, 'deleteAccount'])->name('api.v1.auth.delete-account');
+            });
+        });
+
+        // --- User Verification Endpoints ---
+        Route::middleware('auth:sanctum')->prefix('user')->group(function () {
+            Route::get('verification-status', [AuthController::class, 'verificationStatus'])->name('api.v1.user.verification-status');
+            Route::post('verify-email', [AuthController::class, 'verifyEmail'])->name('api.v1.auth.verify-email');
+            Route::post('verify-phone', [AuthController::class, 'verifyPhone'])->name('api.v1.auth.verify-phone');
+        });
+
+        // --- Notification Endpoints ---
         Route::middleware('auth:sanctum')->group(function () {
-            Route::post('logout', [AuthController::class, 'logout'])->name('api.v1.auth.logout');
-            Route::post('skip-additional-verification', [AuthController::class, 'skipAdditionalVerification'])->name('api.v1.auth.skip-additional-verification');
-            Route::post('request-family-otp', [AuthController::class, 'requestFamilyOtp'])->middleware('throttle:api.otp')->name('api.v1.auth.request-family-otp');
-            Route::post('complete-registration', [AuthController::class, 'completeRegistration'])->middleware(['verified.account', 'throttle:api.auth'])->name('api.v1.auth.complete-registration');
-            Route::post('delete-account', [AuthController::class, 'deleteAccount'])->name('api.v1.auth.delete-account');
+            Route::get('notifications', [NotificationController::class, 'index'])->name('api.v1.notifications.index');
+            Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('api.v1.notifications.mark-all-read');
+        });
+
+        // --- Protected Member Endpoints ---
+        Route::middleware(['auth:sanctum', 'verified.account', 'onboarding.completed'])->group(function () {
+            Route::get('member/profile', [MemberController::class, 'profile'])->name('api.v1.member.profile');
+            Route::put('member/profile', [MemberController::class, 'updateProfile'])->name('api.v1.member.update-profile');
+            Route::post('member/profile/avatar', [MemberController::class, 'uploadAvatar'])->name('api.v1.member.upload-avatar');
+            Route::delete('member/profile/avatar', [MemberController::class, 'deleteAvatar'])->name('api.v1.member.delete-avatar');
+
+            Route::prefix('user')->group(function () {
+                Route::get('profile', [MemberController::class, 'profile'])->name('api.v1.user.profile');
+                Route::put('profile', [MemberController::class, 'updateProfile'])->name('api.v1.user.update-profile');
+                Route::post('profile/avatar', [MemberController::class, 'uploadAvatar'])->name('api.v1.user.upload-avatar');
+                Route::delete('profile/avatar', [MemberController::class, 'deleteAvatar'])->name('api.v1.user.delete-avatar');
+                Route::put('password', [AuthController::class, 'updatePassword'])->middleware('throttle:api.password')->name('api.v1.user.update-password');
+                Route::get('payments', [UserPaymentController::class, 'index'])->name('api.v1.user.payments.index');
+            });
+
+            Route::get('reservations/ongoing', [ReservationController::class, 'ongoing'])->name('api.v1.reservations.ongoing');
+            Route::get('reservations/history', [ReservationController::class, 'history'])->name('api.v1.reservations.history');
+            Route::post('reservations', [ReservationController::class, 'store'])->name('api.v1.reservations.store');
+            Route::delete('reservations/{reservation}', [ReservationController::class, 'destroy'])->name('api.v1.reservations.destroy');
+            Route::post('reservations/{reservation}/payment/initiate', [ReservationController::class, 'initiatePayment'])->name('api.v1.reservations.payment.initiate');
+            Route::get('reservations/{reservation}/payment/verify', [ReservationController::class, 'verifyPayment'])->name('api.v1.reservations.payment.verify');
+
+            Route::get('member/tier', [TierController::class, 'show'])->name('api.v1.member.tier');
+
+            Route::get('courses/{course}/sessions', [CourseController::class, 'sessions'])
+                ->middleware('course.access')
+                ->name('api.v1.courses.sessions');
+
+            Route::get('courses/{course}/sessions/{session}/booking', [CourseBookingController::class, 'show'])
+                ->middleware('course.access')
+                ->name('api.v1.courses.sessions.booking.show');
+
+            Route::post('courses/{course}/sessions/{session}/book', [CourseBookingController::class, 'store'])
+                ->middleware('course.access')
+                ->name('api.v1.courses.sessions.book');
+
+            Route::prefix('family')->group(function () {
+                Route::get('children', [FamilyController::class, 'index'])->name('api.v1.family.children.index');
+                Route::get('members', [FamilyController::class, 'index'])->name('api.v1.family.members.index');
+                Route::post('children', [FamilyController::class, 'store'])->name('api.v1.family.children.store');
+                Route::post('members', [FamilyController::class, 'store'])->name('api.v1.family.members.store');
+                Route::post('enable-feature', [FamilyController::class, 'enableFamilyFeature'])->name('api.v1.family.enable-feature');
+                Route::post('disable-feature', [FamilyController::class, 'disableFamilyFeature'])->name('api.v1.family.disable-feature');
+                Route::put('children/{member}', [FamilyController::class, 'update'])->name('api.v1.family.children.update');
+                Route::put('members/{member}', [FamilyController::class, 'update'])->name('api.v1.family.members.update');
+                Route::delete('children/{member}', [FamilyController::class, 'destroy'])->name('api.v1.family.children.destroy');
+                Route::delete('members/{member}', [FamilyController::class, 'destroy'])->name('api.v1.family.members.destroy');
+            });
+
+            Route::post('device-token', [DeviceTokenController::class, 'store'])->name('api.v1.device-token.store');
+
+            Route::get('member/subscription', [SubscriptionController::class, 'active'])->name('api.v1.member.subscription');
+            Route::get('member/subscriptions/history', [SubscriptionController::class, 'history'])->name('api.v1.member.subscriptions.history');
+            Route::post('subscriptions', [SubscriptionController::class, 'store'])->name('api.v1.subscriptions.store');
+            Route::post('subscriptions/{subscription}/cancel', [SubscriptionController::class, 'cancel'])->name('api.v1.subscriptions.cancel');
+
+            Route::get('user/events', [EventParticipantController::class, 'myEvents'])->name('api.v1.user.events');
+            Route::post('events/{event}/register', [EventParticipantController::class, 'register'])->name('api.v1.events.register');
+            Route::post('events/{event}/withdraw', [EventParticipantController::class, 'withdraw'])->name('api.v1.events.withdraw');
+            Route::post('events/{event}/check-in', [EventParticipantController::class, 'checkIn'])->name('api.v1.events.check-in');
+
+            // General Payment Endpoints
+            Route::prefix('payments')->middleware('tunisia_geo')->group(function () {
+                Route::post('initiate', [PaymentController::class, 'initiate'])->middleware('throttle:payments')->name('api.v1.payments.initiate');
+                Route::post('verify', [PaymentController::class, 'verify'])->name('api.v1.payments.verify');
+            });
+
+            // Loyalty Payment Endpoints
+            Route::prefix('loyalty')->middleware('tunisia_geo')->group(function () {
+                Route::post('pay', [LoyaltyPaymentController::class, 'initiate'])->name('api.v1.loyalty.pay');
+                Route::get('payments', [LoyaltyPaymentController::class, 'history'])->name('api.v1.loyalty.payments');
+                Route::get('balance', [LoyaltyController::class, 'balance'])->name('api.v1.loyalty.balance');
+            });
         });
     });
 
-    // --- User Verification Endpoints ---
-    Route::middleware('auth:sanctum')->prefix('user')->group(function () {
-        Route::get('verification-status', [AuthController::class, 'verificationStatus'])->name('api.v1.user.verification-status');
-        Route::post('verify-email', [AuthController::class, 'verifyEmail'])->name('api.v1.auth.verify-email');
-        Route::post('verify-phone', [AuthController::class, 'verifyPhone'])->name('api.v1.auth.verify-phone');
-    });
-
-    // --- Notification Endpoints ---
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::get('notifications', [NotificationController::class, 'index'])->name('api.v1.notifications.index');
-        Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('api.v1.notifications.mark-all-read');
-    });
-
-    // --- Protected Member Endpoints ---
-    Route::middleware(['auth:sanctum', 'verified.account', 'onboarding.completed'])->group(function () {
-        Route::get('member/profile', [MemberController::class, 'profile'])->name('api.v1.member.profile');
-        Route::put('member/profile', [MemberController::class, 'updateProfile'])->name('api.v1.member.update-profile');
-        Route::post('member/profile/avatar', [MemberController::class, 'uploadAvatar'])->name('api.v1.member.upload-avatar');
-        Route::delete('member/profile/avatar', [MemberController::class, 'deleteAvatar'])->name('api.v1.member.delete-avatar');
-
-        Route::prefix('user')->group(function () {
-            Route::get('profile', [MemberController::class, 'profile'])->name('api.v1.user.profile');
-            Route::put('profile', [MemberController::class, 'updateProfile'])->name('api.v1.user.update-profile');
-            Route::post('profile/avatar', [MemberController::class, 'uploadAvatar'])->name('api.v1.user.upload-avatar');
-            Route::delete('profile/avatar', [MemberController::class, 'deleteAvatar'])->name('api.v1.user.delete-avatar');
-            Route::put('password', [AuthController::class, 'updatePassword'])->middleware('throttle:api.password')->name('api.v1.user.update-password');
-            Route::get('payments', [UserPaymentController::class, 'index'])->name('api.v1.user.payments.index');
-        });
-
-        Route::get('reservations/ongoing', [ReservationController::class, 'ongoing'])->name('api.v1.reservations.ongoing');
-        Route::get('reservations/history', [ReservationController::class, 'history'])->name('api.v1.reservations.history');
-        Route::post('reservations', [ReservationController::class, 'store'])->name('api.v1.reservations.store');
-        Route::delete('reservations/{reservation}', [ReservationController::class, 'destroy'])->name('api.v1.reservations.destroy');
-        Route::post('reservations/{reservation}/payment/initiate', [ReservationController::class, 'initiatePayment'])->name('api.v1.reservations.payment.initiate');
-        Route::get('reservations/{reservation}/payment/verify', [ReservationController::class, 'verifyPayment'])->name('api.v1.reservations.payment.verify');
-
-        Route::get('member/tier', [TierController::class, 'show'])->name('api.v1.member.tier');
-
-        Route::get('courses/{course}/sessions', [CourseController::class, 'sessions'])
-            ->middleware('course.access')
-            ->name('api.v1.courses.sessions');
-
-        Route::get('courses/{course}/sessions/{session}/booking', [CourseBookingController::class, 'show'])
-            ->middleware('course.access')
-            ->name('api.v1.courses.sessions.booking.show');
-
-        Route::post('courses/{course}/sessions/{session}/book', [CourseBookingController::class, 'store'])
-            ->middleware('course.access')
-            ->name('api.v1.courses.sessions.book');
-
-        Route::prefix('family')->group(function () {
-            Route::get('children', [FamilyController::class, 'index'])->name('api.v1.family.children.index');
-            Route::get('members', [FamilyController::class, 'index'])->name('api.v1.family.members.index');
-            Route::post('children', [FamilyController::class, 'store'])->name('api.v1.family.children.store');
-            Route::post('members', [FamilyController::class, 'store'])->name('api.v1.family.members.store');
-            Route::post('enable-feature', [FamilyController::class, 'enableFamilyFeature'])->name('api.v1.family.enable-feature');
-            Route::post('disable-feature', [FamilyController::class, 'disableFamilyFeature'])->name('api.v1.family.disable-feature');
-            Route::put('children/{member}', [FamilyController::class, 'update'])->name('api.v1.family.children.update');
-            Route::put('members/{member}', [FamilyController::class, 'update'])->name('api.v1.family.members.update');
-            Route::delete('children/{member}', [FamilyController::class, 'destroy'])->name('api.v1.family.children.destroy');
-            Route::delete('members/{member}', [FamilyController::class, 'destroy'])->name('api.v1.family.members.destroy');
-        });
-
-        Route::post('device-token', [DeviceTokenController::class, 'store'])->name('api.v1.device-token.store');
-
-        Route::get('member/subscription', [SubscriptionController::class, 'active'])->name('api.v1.member.subscription');
-        Route::get('member/subscriptions/history', [SubscriptionController::class, 'history'])->name('api.v1.member.subscriptions.history');
-        Route::post('subscriptions', [SubscriptionController::class, 'store'])->name('api.v1.subscriptions.store');
-        Route::post('subscriptions/{subscription}/cancel', [SubscriptionController::class, 'cancel'])->name('api.v1.subscriptions.cancel');
-
-        Route::get('user/events', [EventParticipantController::class, 'myEvents'])->name('api.v1.user.events');
-        Route::post('events/{event}/register', [EventParticipantController::class, 'register'])->name('api.v1.events.register');
-        Route::post('events/{event}/withdraw', [EventParticipantController::class, 'withdraw'])->name('api.v1.events.withdraw');
-        Route::post('events/{event}/check-in', [EventParticipantController::class, 'checkIn'])->name('api.v1.events.check-in');
-
-        // General Payment Endpoints
-        Route::prefix('payments')->middleware('tunisia_geo')->group(function () {
-            Route::post('initiate', [PaymentController::class, 'initiate'])->middleware('throttle:payments')->name('api.v1.payments.initiate');
-            Route::post('verify', [PaymentController::class, 'verify'])->name('api.v1.payments.verify');
-        });
-
-        // Loyalty Payment Endpoints
-        Route::prefix('loyalty')->middleware('tunisia_geo')->group(function () {
-            Route::post('pay', [LoyaltyPaymentController::class, 'initiate'])->name('api.v1.loyalty.pay');
-            Route::get('payments', [LoyaltyPaymentController::class, 'history'])->name('api.v1.loyalty.payments');
-            Route::get('balance', [LoyaltyController::class, 'balance'])->name('api.v1.loyalty.balance');
-        });
-    });
-
+    // Payment Webhooks (called by third-party providers, no API token required)
     Route::prefix('payments')->middleware('tunisia_geo')->group(function () {
         Route::post('webhook/{provider}', [PaymentController::class, 'webhook'])->name('api.v1.payments.webhook');
     });

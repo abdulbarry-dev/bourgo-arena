@@ -27,20 +27,17 @@ https://yourdomain.com/api/v1/
 
 ## Authentication
 
-All protected endpoints require a **Sanctum bearer token** in the `Authorization` header:
+The Bourgo Arena API uses a multi-layered authentication system:
 
-```
-Authorization: Bearer <your_sanctum_token>
-```
+1.  **Device Access Token**: Required for all mobile API requests (including guest access). Issued via `v1/device/register`.
+2.  **User Session Token (Sanctum)**: Issued after user login/registration.
 
-Obtain a token via:
-```
-POST /auth/login         → { phone, password }
-POST /auth/verify-otp    → { phone, otp_code }
-POST /auth/register      → { name, phone, password, password_confirmation }
-```
+These layers are enforced by the `EnsureApiAccess` middleware.
 
-**Middleware requirements** for protected endpoints:
+> **IMPORTANT**: See the [Flutter Integration Guide](./FLUTTER_INTEGRATION_GUIDE.md) for detailed implementation details, required headers (`X-Device-ID`), and code examples for Flutter.
+
+### Protected Endpoints
+Protected endpoints require both a valid **Device Token** (via `EnsureApiAccess`) and an authenticated **User Session** (via `auth:sanctum`):
 
 | Middleware | Required For |
 |-----------|-------------|
