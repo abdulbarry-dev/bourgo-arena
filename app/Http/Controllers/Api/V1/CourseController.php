@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\V1\CourseResource;
 use App\Http\Resources\Api\V1\CourseSessionResource;
 use App\Models\Course;
-use App\Services\CourseService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -44,14 +43,22 @@ class CourseController extends Controller
      *
      * @return AnonymousResourceCollection<CourseSessionResource>
      */
-    public function sessions(Course $course, CourseService $service): AnonymousResourceCollection
+    public function sessions(Request $request, Course $course): AnonymousResourceCollection
     {
         abort_if(! $course->isActive(), 404, 'Course not found or inactive.');
+
+        $member = $request->user();
 
         $sessions = $course->sessions()
             ->where('is_cancelled', false)
             ->whereNotNull('ends_at_date')
             ->where('ends_at_date', '>=', now()->toDateString())
+            ->where('starts_at_date', '<=', now()->addDays(7)->toDateString())
+            ->withCount('bookings')
+            ->with(['bookings' => function ($query) use ($member) {
+                $query->where('member_id', $member->id)
+                    ->where('status', '!=', 'cancelled');
+            }])
             ->orderBy('starts_at_date')
             ->paginate();
 

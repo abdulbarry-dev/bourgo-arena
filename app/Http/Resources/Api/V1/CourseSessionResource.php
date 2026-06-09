@@ -19,7 +19,8 @@ class CourseSessionResource extends JsonResource
      *     day_of_week: int,
      *     capacity: int,
      *     enrolled: int,
-     *     image_url: string|null
+     *     image_url: string|null,
+     *     is_booked: bool
      * }
      */
     public function toArray(Request $request): array
@@ -36,6 +37,9 @@ class CourseSessionResource extends JsonResource
             'capacity' => $this->capacity,
             'enrolled' => $this->bookings_count ?? 0,
             'image_url' => $this->course->image_url,
+            'is_booked' => $this->relationLoaded('bookings')
+                ? $this->bookings->isNotEmpty()
+                : false,
         ];
     }
 }
