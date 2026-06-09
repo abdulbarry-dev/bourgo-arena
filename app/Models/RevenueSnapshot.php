@@ -18,6 +18,9 @@ class RevenueSnapshot extends Model
             'churn_rate' => 'decimal:2',
             'revenue_by_method' => 'array',
             'plan_metrics' => 'array',
+            'member_metrics' => 'array',
+            'event_metrics' => 'array',
+            'activity_metrics' => 'array',
         ];
     }
 }

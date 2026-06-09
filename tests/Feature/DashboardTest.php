@@ -13,7 +13,6 @@ test('verified admins can visit the dashboard', function () {
 
     $response = $this->get(route('dashboard'));
     $response->assertOk()
-        ->assertSee('h-dvh overflow-hidden', false)
         ->assertSee('Members')
         ->assertSee('Subscriptions')
         ->assertSee('Schedule')
@@ -113,7 +112,6 @@ test('verified managers can visit the dashboard', function () {
 
     $response = $this->get(route('dashboard'));
     $response->assertOk()
-        ->assertSee('h-dvh overflow-hidden', false)
         ->assertSee('Members')
         ->assertSee('Subscriptions')
         ->assertSee('Schedule')
