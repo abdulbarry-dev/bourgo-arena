@@ -55,7 +55,7 @@
                     @endif
 
                     @if(auth()->user()?->isAdmin())
-                        <flux:sidebar.item icon="magnifying-glass" :href="route('admin.payments.audit')" :current="request()->routeIs('admin.payments.audit*')" wire:navigate>
+                        <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.payments.audit')" :current="request()->routeIs('admin.payments.audit*')" wire:navigate>
                             {{ __('Payments Audit') }}
                         </flux:sidebar.item>
                     @endif
