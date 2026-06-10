@@ -47,7 +47,6 @@
                                 'group relative rounded-lg border p-4 transition',
                                 'border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-sm dark:border-zinc-700 dark:bg-zinc-900/60 dark:hover:border-zinc-600' => ! $isDisabled,
                                 'border-dashed border-zinc-200 bg-zinc-50/50 opacity-50 grayscale dark:border-zinc-700 dark:bg-zinc-900/30' => $isDisabled,
-                                'pointer-events-none' => $isDisabled,
                             ])>
                                 <div class="mb-3 flex items-start justify-between">
                                     <div class="flex items-center gap-2.5">
@@ -87,22 +86,37 @@
 
                                 <div class="flex flex-wrap items-center gap-3">
                                     <label class="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
-                                        <flux:switch wire:click="toggleTypeChannel({{ $type->id }}, 'push')" :checked="$type->push_enabled" size="sm" />
+                                        @if ($isDisabled)
+                                            <flux:switch :checked="$type->push_enabled" size="sm" disabled class="opacity-40" />
+                                        @else
+                                            <flux:switch wire:click="toggleTypeChannel({{ $type->id }}, 'push')" :checked="$type->push_enabled" size="sm" />
+                                        @endif
                                         {{ __('Push') }}
                                     </label>
                                     <label class="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
-                                        <flux:switch wire:click="toggleTypeChannel({{ $type->id }}, 'email')" :checked="$type->email_enabled" size="sm" />
+                                        @if ($isDisabled)
+                                            <flux:switch :checked="$type->email_enabled" size="sm" disabled class="opacity-40" />
+                                        @else
+                                            <flux:switch wire:click="toggleTypeChannel({{ $type->id }}, 'email')" :checked="$type->email_enabled" size="sm" />
+                                        @endif
                                         {{ __('Email') }}
                                     </label>
                                     <label class="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
-                                        <flux:switch wire:click="toggleTypeChannel({{ $type->id }}, 'sms')" :checked="$type->sms_enabled" size="sm" />
+                                        @if ($isDisabled)
+                                            <flux:switch :checked="$type->sms_enabled" size="sm" disabled class="opacity-40" />
+                                        @else
+                                            <flux:switch wire:click="toggleTypeChannel({{ $type->id }}, 'sms')" :checked="$type->sms_enabled" size="sm" />
+                                        @endif
                                         {{ __('SMS') }}
                                     </label>
 
                                     @if ($isDisabled)
-                                        <span class="ml-auto inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                                        <button wire:click="toggleTypeActive({{ $type->id }})" type="button"
+                                            class="ml-auto inline-flex cursor-pointer items-center gap-1 rounded-full bg-zinc-200 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-zinc-600 transition hover:bg-emerald-100 hover:text-emerald-700 dark:bg-zinc-700 dark:text-zinc-400 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400"
+                                            title="{{ __('Click to enable') }}"
+                                        >
                                             {{ __('Disabled') }}
-                                        </span>
+                                        </button>
                                     @else
                                         <flux:switch wire:click="toggleTypeActive({{ $type->id }})" :checked="$type->is_active" size="sm" class="ml-auto" />
                                     @endif

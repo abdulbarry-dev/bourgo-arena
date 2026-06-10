@@ -8,9 +8,12 @@
         {{-- Type Selection --}}
         <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
             <flux:select wire:model.live="composeTypeId" :label="__('Notification Type')" placeholder="{{ __('Select a type...') }}" required>
-                @foreach ($types->where('is_active', true) as $type)
-                    <flux:select.option value="{{ $type->id }}">
+                @foreach ($types as $type)
+                    <flux:select.option value="{{ $type->id }}" :disabled="!$type->is_active">
                         {{ $type->name }} ({{ ucfirst($type->category) }})
+                        @if (!$type->is_active)
+                            — {{ __('Disabled') }}
+                        @endif
                     </flux:select.option>
                 @endforeach
             </flux:select>
@@ -69,10 +72,16 @@
         <div>
             <flux:label>{{ __('Audience') }}</flux:label>
             <div class="mt-2 space-y-3">
-                <flux:radio.group wire:model.live="composeAudience" class="flex gap-4">
-                    <flux:radio value="all" :label="__('All Members')" />
-                    <flux:radio value="specific" :label="__('Specific Members')" />
-                </flux:radio.group>
+                <div class="flex gap-4">
+                    <label class="flex cursor-pointer items-center gap-2">
+                        <input type="radio" wire:model.live="composeAudience" value="all" class="size-4 text-indigo-600 focus:ring-indigo-500 dark:bg-zinc-800 dark:border-zinc-600 dark:focus:ring-indigo-400">
+                        <span class="text-sm text-zinc-700 dark:text-zinc-300">{{ __('All Members') }}</span>
+                    </label>
+                    <label class="flex cursor-pointer items-center gap-2">
+                        <input type="radio" wire:model.live="composeAudience" value="specific" class="size-4 text-indigo-600 focus:ring-indigo-500 dark:bg-zinc-800 dark:border-zinc-600 dark:focus:ring-indigo-400">
+                        <span class="text-sm text-zinc-700 dark:text-zinc-300">{{ __('Specific Members') }}</span>
+                    </label>
+                </div>
 
                 @if ($composeAudience === 'specific')
                     <div class="rounded-lg border border-zinc-200 p-3 dark:border-zinc-700">
