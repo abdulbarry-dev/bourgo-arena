@@ -13,8 +13,6 @@
     <form wire:submit="saveType" class="mt-6 flex flex-col gap-6">
         <flux:input wire:model="typeName" :label="__('Name')" :placeholder="__('e.g. Event Reminder')" required />
 
-        <flux:input wire:model="typeSlug" :label="__('Slug')" :placeholder="__('event_reminder')" required />
-
         <div>
             <flux:field>
                 <flux:label>{{ __('Description') }}</flux:label>
@@ -29,8 +27,22 @@
                 <flux:select.option value="promotions">{{ __('Promotions') }}</flux:select.option>
                 <flux:select.option value="system">{{ __('System') }}</flux:select.option>
             </flux:select>
+        </div>
 
-            <flux:input wire:model="typeIcon" :label="__('Icon')" :placeholder="__('bell, gift, star...')" />
+        <div>
+            <flux:label>{{ __('Icon') }}</flux:label>
+            <div class="mt-2 grid grid-cols-7 gap-2">
+                @foreach ($this->availableIcons as $icon)
+                    <button
+                        type="button"
+                        wire:click="selectIcon('{{ $icon }}')"
+                        class="flex items-center justify-center rounded-lg border p-2.5 transition-all duration-150 {{ $typeIcon === $icon ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200 dark:border-indigo-400 dark:bg-indigo-900/30 dark:ring-indigo-700' : 'border-zinc-200 bg-white hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:border-zinc-600' }}"
+                        title="{{ Str::headline($icon) }}"
+                    >
+                        <flux:icon :name="$icon" class="size-5" />
+                    </button>
+                @endforeach
+            </div>
         </div>
 
         <div>
@@ -50,11 +62,6 @@
                 </label>
             </div>
         </div>
-
-        <label class="flex items-center gap-2">
-            <flux:checkbox wire:model="typeIsActive" />
-            <span class="text-sm text-zinc-700 dark:text-zinc-300">{{ __('Active') }}</span>
-        </label>
 
         <div class="flex">
             <flux:spacer />

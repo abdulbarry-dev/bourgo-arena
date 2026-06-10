@@ -29,8 +29,6 @@ class Dashboard extends Component
 
     public string $typeName = '';
 
-    public string $typeSlug = '';
-
     public string $typeDescription = '';
 
     public string $typeCategory = 'system';
@@ -42,8 +40,6 @@ class Dashboard extends Component
     public bool $typeEmailEnabled = true;
 
     public bool $typeSmsEnabled = false;
-
-    public bool $typeIsActive = true;
 
     public ?NotificationType $deletingType = null;
 
@@ -79,14 +75,12 @@ class Dashboard extends Component
         $type = NotificationType::findOrFail($typeId);
         $this->editingType = $type;
         $this->typeName = $type->name;
-        $this->typeSlug = $type->slug;
         $this->typeDescription = $type->description ?? '';
         $this->typeCategory = $type->category;
         $this->typeIcon = $type->icon;
         $this->typePushEnabled = $type->push_enabled;
         $this->typeEmailEnabled = $type->email_enabled;
         $this->typeSmsEnabled = $type->sms_enabled;
-        $this->typeIsActive = $type->is_active;
         $this->typeFlyoutMode = 'edit';
         $this->dispatch('modal-show', name: 'type-form-flyout');
     }
@@ -95,18 +89,15 @@ class Dashboard extends Component
     {
         $this->validate([
             'typeName' => 'required|string|max:255',
-            'typeSlug' => 'required|string|max:255|unique:notification_types,slug,'.($this->editingType?->id ?? 'NULL'),
             'typeDescription' => 'nullable|string|max:1000',
             'typeCategory' => 'required|in:billing,events,promotions,system',
             'typeIcon' => 'required|string|max:255',
             'typePushEnabled' => 'boolean',
             'typeEmailEnabled' => 'boolean',
             'typeSmsEnabled' => 'boolean',
-            'typeIsActive' => 'boolean',
         ]);
 
         $data = [
-            'slug' => $this->typeSlug,
             'name' => $this->typeName,
             'description' => $this->typeDescription ?: null,
             'category' => $this->typeCategory,
@@ -114,7 +105,6 @@ class Dashboard extends Component
             'push_enabled' => $this->typePushEnabled,
             'email_enabled' => $this->typeEmailEnabled,
             'sms_enabled' => $this->typeSmsEnabled,
-            'is_active' => $this->typeIsActive,
         ];
 
         if ($this->typeFlyoutMode === 'edit' && $this->editingType) {
@@ -198,6 +188,11 @@ class Dashboard extends Component
         }
 
         $type->update(['is_active' => ! $type->is_active]);
+    }
+
+    public function selectIcon(string $icon): void
+    {
+        $this->typeIcon = $icon;
     }
 
     // ─── Compose ─────────────────────────────────────────
@@ -329,6 +324,23 @@ class Dashboard extends Component
         $this->composeBody = '';
     }
 
+    public function getAvailableIconsProperty(): array
+    {
+        return [
+            'bell', 'bell-alert', 'bell-slash', 'megaphone',
+            'chat-bubble-left-right', 'chat-bubble-bottom-center',
+            'envelope', 'envelope-open',
+            'device-phone-mobile', 'gift', 'sparkles', 'star',
+            'calendar', 'calendar-date-range',
+            'banknotes', 'credit-card', 'receipt-refund',
+            'exclamation-triangle', 'exclamation-circle',
+            'information-circle', 'check-circle',
+            'cog-6-tooth', 'users', 'trophy', 'tag', 'bolt',
+            'paper-airplane', 'rectangle-group', 'rss',
+            'globe-alt', 'ticket',
+        ];
+    }
+
     public function render()
     {
         $this->authorize('access-dashboard-module', 'notifications');
@@ -382,8 +394,8 @@ class Dashboard extends Component
     private function resetTypeForm(): void
     {
         $this->reset([
-            'typeName', 'typeSlug', 'typeDescription', 'typeCategory',
-            'typeIcon', 'typePushEnabled', 'typeEmailEnabled', 'typeSmsEnabled', 'typeIsActive',
+            'typeName', 'typeDescription', 'typeCategory',
+            'typeIcon', 'typePushEnabled', 'typeEmailEnabled', 'typeSmsEnabled',
             'editingType',
         ]);
         $this->typeCategory = 'system';
@@ -391,6 +403,5 @@ class Dashboard extends Component
         $this->typePushEnabled = true;
         $this->typeEmailEnabled = true;
         $this->typeSmsEnabled = false;
-        $this->typeIsActive = true;
     }
 }

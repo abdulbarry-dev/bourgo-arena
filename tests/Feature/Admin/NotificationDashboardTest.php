@@ -46,7 +46,6 @@ it('shows the notification dashboard component with stats', function () {
 
 it('displays notification types in the grid', function () {
     NotificationType::factory()->create([
-        'slug' => 'test_type',
         'name' => 'Test Notification Type',
         'category' => 'system',
     ]);
@@ -58,10 +57,10 @@ it('displays notification types in the grid', function () {
 });
 
 it('groups types by category in the correct order', function () {
-    NotificationType::factory()->create(['slug' => 'sys_a', 'name' => 'System Alpha', 'category' => 'system']);
-    NotificationType::factory()->create(['slug' => 'bil_a', 'name' => 'Billing Alpha', 'category' => 'billing']);
-    NotificationType::factory()->create(['slug' => 'eve_a', 'name' => 'Events Alpha', 'category' => 'events']);
-    NotificationType::factory()->create(['slug' => 'pro_a', 'name' => 'Promo Alpha', 'category' => 'promotions']);
+    NotificationType::factory()->create(['name' => 'System Alpha', 'category' => 'system']);
+    NotificationType::factory()->create(['name' => 'Billing Alpha', 'category' => 'billing']);
+    NotificationType::factory()->create(['name' => 'Events Alpha', 'category' => 'events']);
+    NotificationType::factory()->create(['name' => 'Promo Alpha', 'category' => 'promotions']);
 
     $this->actingAs($this->admin);
 
@@ -137,10 +136,8 @@ it('creates a new notification type', function () {
     Livewire::test(Dashboard::class)
         ->call('openCreateTypeFlyout')
         ->assertSet('typeName', '')
-        ->assertSet('typeSlug', '')
         ->assertSet('typeCategory', 'system')
         ->set('typeName', 'My Custom Type')
-        ->set('typeSlug', 'my_custom_type')
         ->set('typeCategory', 'promotions')
         ->set('typePushEnabled', true)
         ->set('typeEmailEnabled', true)
@@ -148,7 +145,6 @@ it('creates a new notification type', function () {
         ->call('saveType');
 
     $this->assertDatabaseHas('notification_types', [
-        'slug' => 'my_custom_type',
         'name' => 'My Custom Type',
         'category' => 'promotions',
     ]);
@@ -160,29 +156,14 @@ it('creates a type with nullable description as null', function () {
     Livewire::test(Dashboard::class)
         ->call('openCreateTypeFlyout')
         ->set('typeName', 'No Desc Type')
-        ->set('typeSlug', 'no_desc_type')
         ->set('typeCategory', 'system')
         ->set('typeDescription', '')
         ->call('saveType');
 
     $this->assertDatabaseHas('notification_types', [
-        'slug' => 'no_desc_type',
+        'name' => 'No Desc Type',
         'description' => null,
     ]);
-});
-
-it('prevents creating a type with a duplicate slug', function () {
-    NotificationType::factory()->create(['slug' => 'existing_slug']);
-
-    $this->actingAs($this->admin);
-
-    Livewire::test(Dashboard::class)
-        ->call('openCreateTypeFlyout')
-        ->set('typeName', 'Duplicate Slug')
-        ->set('typeSlug', 'existing_slug')
-        ->set('typeCategory', 'system')
-        ->call('saveType')
-        ->assertHasErrors('typeSlug');
 });
 
 it('prevents creating a type with an invalid category', function () {
@@ -191,7 +172,6 @@ it('prevents creating a type with an invalid category', function () {
     Livewire::test(Dashboard::class)
         ->call('openCreateTypeFlyout')
         ->set('typeName', 'Bad Category')
-        ->set('typeSlug', 'bad_category')
         ->set('typeCategory', 'invalid_category')
         ->call('saveType')
         ->assertHasErrors('typeCategory');
@@ -203,7 +183,6 @@ it('prevents creating a type with a name exceeding 255 characters', function () 
     Livewire::test(Dashboard::class)
         ->call('openCreateTypeFlyout')
         ->set('typeName', str_repeat('a', 256))
-        ->set('typeSlug', 'long_name')
         ->set('typeCategory', 'system')
         ->call('saveType')
         ->assertHasErrors('typeName');
@@ -211,7 +190,6 @@ it('prevents creating a type with a name exceeding 255 characters', function () 
 
 it('edits an existing notification type', function () {
     $type = NotificationType::factory()->create([
-        'slug' => 'editable_type',
         'name' => 'Original Name',
     ]);
 
@@ -229,23 +207,22 @@ it('edits an existing notification type', function () {
     ]);
 });
 
-it('allows editing a type without changing its slug', function () {
+it('preserves slug when editing a type', function () {
     $type = NotificationType::factory()->create([
-        'slug' => 'keep_slug',
         'name' => 'Original',
     ]);
+    $originalSlug = $type->slug;
 
     $this->actingAs($this->admin);
 
     Livewire::test(Dashboard::class)
         ->call('openEditTypeFlyout', $type->id)
         ->set('typeName', 'Updated Name')
-        // slug kept as 'keep_slug' — should not trigger unique conflict
         ->call('saveType');
 
     $this->assertDatabaseHas('notification_types', [
         'id' => $type->id,
-        'slug' => 'keep_slug',
+        'slug' => $originalSlug,
         'name' => 'Updated Name',
     ]);
 });
@@ -271,7 +248,6 @@ it('gracefully handles toggling active status on a non-existent type', function 
 
 it('deletes a notification type', function () {
     $type = NotificationType::factory()->create([
-        'slug' => 'deletable_type',
         'name' => 'To Delete',
     ]);
 
@@ -376,7 +352,6 @@ it('toggles active status on a notification type', function () {
 
 it('resets type form when opening create after edit', function () {
     $type = NotificationType::factory()->create([
-        'slug' => 'reset_test',
         'name' => 'Reset Me',
     ]);
 
@@ -387,7 +362,6 @@ it('resets type form when opening create after edit', function () {
         ->assertSet('typeName', 'Reset Me')
         ->call('openCreateTypeFlyout')
         ->assertSet('typeName', '')
-        ->assertSet('typeSlug', '')
         ->assertSet('typeCategory', 'system');
 });
 
@@ -409,8 +383,7 @@ it('validates the notification type form', function () {
     Livewire::test(Dashboard::class)
         ->call('openCreateTypeFlyout')
         ->call('saveType')
-        ->assertHasErrors('typeName')
-        ->assertHasErrors('typeSlug');
+        ->assertHasErrors('typeName');
 });
 
 it('validates compose channels array does not accept invalid values', function () {
