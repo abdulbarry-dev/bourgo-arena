@@ -91,7 +91,7 @@
                         {{-- Existing Stored Images --}}
                         @foreach($images as $index => $path)
                             <div wire:key="stored-img-{{ $index }}-{{ md5($path) }}" class="group relative aspect-square overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-800 ring-1 ring-zinc-200/50 dark:ring-white/5 shadow-sm">
-                                <img src="{{ Str::startsWith($path, ['http', '/storage']) ? $path : asset('storage/' . $path) }}" class="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110" alt="">
+                                <img src="{{ Str::startsWith($path, ['http', '/storage']) ? $path : asset('storage/' . $path) }}" onerror="this.remove()" class="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110" alt="">
                                 
                                 <div class="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500">
                                     <div class="absolute top-2 right-2 scale-90 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-500 delay-75">
@@ -111,7 +111,7 @@
                         {{-- New Pending Uploads --}}
                         @foreach($newImages as $index => $image)
                             <div wire:key="pending-img-{{ $index }}-{{ $image->getClientOriginalName() }}" class="group relative aspect-square overflow-hidden rounded-2xl bg-blue-50 dark:bg-blue-500/5 ring-2 ring-blue-500/20 shadow-sm">
-                                <img src="{{ $image->temporaryUrl() }}" class="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110" alt="">
+                                <img src="{{ $image->temporaryUrl() }}" onerror="this.remove()" class="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110" alt="">
                                 
                                 <div class="absolute inset-0 bg-linear-to-t from-blue-900/90 via-blue-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500">
                                     <div class="absolute top-2 right-2 scale-90 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-500 delay-75">

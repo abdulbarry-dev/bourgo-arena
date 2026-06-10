@@ -29,7 +29,7 @@
                              x-transition:leave-start="opacity-100"
                              x-transition:leave-end="opacity-0"
                              class="absolute inset-0 h-full w-full">
-                            <img :src="img" class="h-full w-full object-cover opacity-80" alt="">
+                            <img :src="img" x-on:error="$el.remove()" class="h-full w-full object-cover opacity-80" alt="">
                         </div>
                     </template>
 

@@ -29,6 +29,7 @@
     <img
         src="{{ $member->avatar_url }}"
         alt="{{ $member->name }}"
+        onerror="this.remove()"
         {{ $attributes->class([$sizeClasses, $roundedClass, 'shrink-0 object-cover ring-2 ring-white dark:ring-zinc-900']) }}
     />
 @else
