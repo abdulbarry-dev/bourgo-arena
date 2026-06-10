@@ -54,6 +54,8 @@
             <x-ui.confirm-modal
                 wire:model.self="showExportConfirmModal"
                 name="export-confirm-modal"
+                x-on:show-export-modal.window="window.dispatchEvent(new CustomEvent('modal-show', { detail: { name: 'export-confirm-modal' } }))"
+                x-on:hide-export-modal.window="window.dispatchEvent(new CustomEvent('modal-close', { detail: { name: 'export-confirm-modal' } }))"
                 :title="$exportFormat === 'pdf'
                     ? __('Export Analytics PDF')
                     : __('Export Analytics CSV')"
