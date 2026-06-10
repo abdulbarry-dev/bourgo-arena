@@ -86,19 +86,19 @@ class Dashboard extends Component
         }
 
         $this->exportFormat = $format;
-        $this->dispatch('show-export-modal');
+        $this->modal('export-confirm-modal')->show();
     }
 
     public function closeExportConfirmModal(): void
     {
         $this->showExportConfirmModal = false;
-        $this->dispatch('hide-export-modal');
+        $this->modal('export-confirm-modal')->close();
     }
 
     public function confirmExport()
     {
         $this->showExportConfirmModal = false;
-        $this->dispatch('hide-export-modal');
+        $this->modal('export-confirm-modal')->close();
 
         if ($this->exportFormat === 'pdf') {
             return $this->exportPdf();
