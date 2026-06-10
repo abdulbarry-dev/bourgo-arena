@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Admin\Subscriptions;
 
-use App\Jobs\SendSubscriptionNotification;
 use App\Models\Plan;
 use App\Models\Subscription;
 use Illuminate\Database\Eloquent\Builder;
@@ -11,7 +10,6 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
-use Livewire\Attributes\On;
 use Livewire\Attributes\Session;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -34,8 +32,6 @@ class ExpiringSubscriptionsView extends Component
     #[Session]
     public string $daysWindow = '7';
 
-    public int $touchedCount = 0;
-
     /**
      * @var array<string, string>
      */
@@ -51,12 +47,6 @@ class ExpiringSubscriptionsView extends Component
         $this->authorize('viewAny', Subscription::class);
 
         $this->plans = Plan::query()->orderBy('name')->get();
-    }
-
-    #[On('subscription-updated')]
-    public function refreshList(): void
-    {
-        // Handled by computed property refresh
     }
 
     #[Computed]
@@ -83,75 +73,6 @@ class ExpiringSubscriptionsView extends Component
     public function updatedDaysWindow(): void
     {
         $this->resetPage();
-    }
-
-    public function sendReminder(int $subscriptionId): void
-    {
-        $this->authorize('viewAny', Subscription::class);
-
-        $subscription = $this->filteredQuery()
-            ->with(['member', 'plan'])
-            ->find($subscriptionId);
-
-        if ($subscription === null) {
-            $this->addError('subscriptionId', __('Subscription is not eligible for an expiry reminder.'));
-
-            return;
-        }
-
-        SendSubscriptionNotification::dispatch(
-            $subscription->id,
-            'expiry-reminder',
-            $subscription->member_id,
-            [
-                'push_intent' => true,
-                'push_status' => 'pending-infrastructure',
-                'trigger' => 'expiring_subscription_reminder',
-            ],
-        );
-
-        $this->touchedCount++;
-
-        $this->dispatch('reminder-sent', subscriptionId: $subscription->id);
-        $this->dispatch('toast', message: 'Expiry reminder queued', type: 'success');
-    }
-
-    public function sendReminderToAll(): void
-    {
-        $this->authorize('viewAny', Subscription::class);
-
-        $subscriptions = $this->filteredQuery()
-            ->with(['member', 'plan'])
-            ->orderBy('ends_at')
-            ->get();
-
-        $count = 0;
-
-        foreach ($subscriptions as $subscription) {
-            SendSubscriptionNotification::dispatch(
-                $subscription->id,
-                'expiry-reminder',
-                $subscription->member_id,
-                [
-                    'push_intent' => true,
-                    'push_status' => 'pending-infrastructure',
-                    'trigger' => 'expiring_subscription_bulk_reminder',
-                ],
-            );
-
-            $count++;
-        }
-
-        $this->touchedCount += $count;
-
-        if ($count === 0) {
-            $this->dispatch('toast', message: 'No expiring subscriptions to remind', type: 'info');
-
-            return;
-        }
-
-        $this->dispatch('reminders-sent', count: $count);
-        $this->dispatch('toast', message: __('Queued :count reminder notifications', ['count' => $count]), type: 'success');
     }
 
     private function filteredQuery(): Builder

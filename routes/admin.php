@@ -13,7 +13,6 @@ use App\Livewire\Admin\Payments\AuditLogs;
 use App\Livewire\Admin\Reservations\ReservationManager;
 use App\Livewire\Admin\Search\SearchResults;
 use App\Livewire\Admin\Services\ServiceManager;
-use App\Models\Subscription;
 use Illuminate\Support\Facades\Route;
 
 // -------------------------------------------------------------
@@ -35,20 +34,6 @@ Route::middleware('role:admin,manager')->group(function () {
 
     Route::view('/subscriptions/expiring', 'livewire.admin.subscriptions.expiring')
         ->name('admin.subscriptions.expiring');
-
-    Route::get('/subscriptions/{subscription}', function (Subscription $subscription) {
-        $subscription->load([
-            'member',
-            'plan',
-            'auditLogs' => function ($query): void {
-                $query->with('performedBy')->limit(8);
-            },
-        ]);
-
-        return view('livewire.admin.subscriptions.detail', [
-            'subscription' => $subscription,
-        ]);
-    })->name('admin.subscriptions.show');
 
     Route::get('/course-sessions', CourseSessionManager::class)
         ->name('admin.course-sessions.index');
