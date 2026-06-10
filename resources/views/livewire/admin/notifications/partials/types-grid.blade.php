@@ -15,12 +15,14 @@
             'events' => __('Events'),
             'promotions' => __('Promotions'),
             'system' => __('System'),
+            'custom' => __('Custom'),
         ];
         $categoryIcons = [
             'billing' => 'credit-card',
             'events' => 'calendar',
             'promotions' => 'gift',
             'system' => 'cog',
+            'custom' => 'tag',
         ];
         $visibleCategories = $types->pluck('category')->unique()->values();
     @endphp

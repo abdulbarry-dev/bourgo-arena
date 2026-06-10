@@ -177,22 +177,6 @@ it('prevents creating a type with an empty category', function () {
         ->assertHasErrors('typeCategory');
 });
 
-it('creates a type with a custom category', function () {
-    $this->actingAs($this->admin);
-
-    Livewire::test(Dashboard::class)
-        ->call('openCreateTypeFlyout')
-        ->set('typeName', 'Maintenance Alert')
-        ->set('typeCategory', '__custom')
-        ->set('typeCustomCategory', 'maintenance')
-        ->call('saveType');
-
-    $this->assertDatabaseHas('notification_types', [
-        'name' => 'Maintenance Alert',
-        'category' => 'maintenance',
-    ]);
-});
-
 it('prevents creating a type with a name exceeding 255 characters', function () {
     $this->actingAs($this->admin);
 
@@ -378,8 +362,7 @@ it('resets type form when opening create after edit', function () {
         ->assertSet('typeName', 'Reset Me')
         ->call('openCreateTypeFlyout')
         ->assertSet('typeName', '')
-        ->assertSet('typeCategory', 'system')
-        ->assertSet('addingCustomCategory', false);
+        ->assertSet('typeCategory', 'system');
 });
 
 // ─── Validation ──────────────────────────────────────────

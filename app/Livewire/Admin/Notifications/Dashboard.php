@@ -33,10 +33,6 @@ class Dashboard extends Component
 
     public string $typeCategory = 'system';
 
-    public string $typeCustomCategory = '';
-
-    public bool $addingCustomCategory = false;
-
     public string $typeIcon = 'bell';
 
     public bool $typePushEnabled = true;
@@ -80,18 +76,7 @@ class Dashboard extends Component
         $this->editingType = $type;
         $this->typeName = $type->name;
         $this->typeDescription = $type->description ?? '';
-
-        $predefinedCategories = ['billing', 'events', 'promotions', 'system'];
-        if (in_array($type->category, $predefinedCategories)) {
-            $this->typeCategory = $type->category;
-            $this->addingCustomCategory = false;
-            $this->typeCustomCategory = '';
-        } else {
-            $this->typeCategory = '__custom';
-            $this->typeCustomCategory = $type->category;
-            $this->addingCustomCategory = true;
-        }
-
+        $this->typeCategory = $type->category;
         $this->typeIcon = $type->icon;
         $this->typePushEnabled = $type->push_enabled;
         $this->typeEmailEnabled = $type->email_enabled;
@@ -102,7 +87,7 @@ class Dashboard extends Component
 
     public function saveType(): void
     {
-        $rules = [
+        $this->validate([
             'typeName' => 'required|string|max:255',
             'typeDescription' => 'nullable|string|max:1000',
             'typeCategory' => 'required|string|max:255',
@@ -110,20 +95,12 @@ class Dashboard extends Component
             'typePushEnabled' => 'boolean',
             'typeEmailEnabled' => 'boolean',
             'typeSmsEnabled' => 'boolean',
-        ];
-
-        if ($this->addingCustomCategory) {
-            $rules['typeCustomCategory'] = 'required|string|max:255';
-        }
-
-        $this->validate($rules);
-
-        $category = $this->addingCustomCategory ? $this->typeCustomCategory : $this->typeCategory;
+        ]);
 
         $data = [
             'name' => $this->typeName,
             'description' => $this->typeDescription ?: null,
-            'category' => $category,
+            'category' => $this->typeCategory,
             'icon' => $this->typeIcon,
             'push_enabled' => $this->typePushEnabled,
             'email_enabled' => $this->typeEmailEnabled,
@@ -216,15 +193,6 @@ class Dashboard extends Component
     public function selectIcon(string $icon): void
     {
         $this->typeIcon = $icon;
-    }
-
-    public function updatedTypeCategory(string $value): void
-    {
-        $this->addingCustomCategory = ($value === '__custom');
-
-        if ($this->addingCustomCategory) {
-            $this->typeCustomCategory = '';
-        }
     }
 
     // ─── Compose ─────────────────────────────────────────
@@ -427,7 +395,6 @@ class Dashboard extends Component
     {
         $this->reset([
             'typeName', 'typeDescription', 'typeCategory',
-            'typeCustomCategory', 'addingCustomCategory',
             'typeIcon', 'typePushEnabled', 'typeEmailEnabled', 'typeSmsEnabled',
             'editingType',
         ]);

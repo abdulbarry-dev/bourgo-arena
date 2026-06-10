@@ -31,17 +31,10 @@
                     <flux:select.option value="events">{{ __('Events') }}</flux:select.option>
                     <flux:select.option value="promotions">{{ __('Promotions') }}</flux:select.option>
                     <flux:select.option value="system">{{ __('System') }}</flux:select.option>
-                    <flux:select.option value="__custom">{{ __('Custom...') }}</flux:select.option>
+                    <flux:select.option value="custom">{{ __('Custom') }}</flux:select.option>
                 </flux:select>
                 <div class="min-h-[20px]"><flux:error name="typeCategory" /></div>
             </flux:field>
-
-            @if ($addingCustomCategory)
-                <flux:field>
-                    <flux:input wire:model="typeCustomCategory" :placeholder="__('e.g. maintenance')" required />
-                    <div class="min-h-[20px]"><flux:error name="typeCustomCategory" /></div>
-                </flux:field>
-            @endif
         </div>
 
         <div>
