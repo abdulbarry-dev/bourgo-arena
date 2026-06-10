@@ -8,12 +8,9 @@
         {{-- Type Selection --}}
         <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
             <flux:select wire:model.live="composeTypeId" :label="__('Notification Type')" placeholder="{{ __('Select a type...') }}" required>
-                @foreach ($types as $type)
-                    <flux:select.option value="{{ $type->id }}" :disabled="!$type->is_active">
+                @foreach ($types->where('is_active', true) as $type)
+                    <flux:select.option value="{{ $type->id }}">
                         {{ $type->name }} ({{ ucfirst($type->category) }})
-                        @if (!$type->is_active)
-                            — {{ __('Disabled') }}
-                        @endif
                     </flux:select.option>
                 @endforeach
             </flux:select>
