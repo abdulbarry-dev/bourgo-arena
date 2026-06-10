@@ -7,7 +7,6 @@ use App\Models\MemberDeviceToken;
 use App\Models\NotificationLog;
 use App\Models\NotificationType;
 use App\Services\Admin\NotificationDispatchService;
-use Flux\Flux;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -69,7 +68,7 @@ class Dashboard extends Component
     {
         $this->resetTypeForm();
         $this->typeFlyoutMode = 'create';
-        Flux::modal('type-form-flyout')->show();
+        $this->dispatch('modal-show', name: 'type-form-flyout');
     }
 
     public function openEditTypeFlyout(int $typeId): void
@@ -86,7 +85,7 @@ class Dashboard extends Component
         $this->typeSmsEnabled = $type->sms_enabled;
         $this->typeIsActive = $type->is_active;
         $this->typeFlyoutMode = 'edit';
-        Flux::modal('type-form-flyout')->show();
+        $this->dispatch('modal-show', name: 'type-form-flyout');
     }
 
     public function saveType(): void
@@ -124,13 +123,13 @@ class Dashboard extends Component
         }
 
         $this->editingType = null;
-        Flux::modal('type-form-flyout')->close();
+        $this->dispatch('modal-close', name: 'type-form-flyout');
     }
 
     public function confirmDeleteType(int $typeId): void
     {
         $this->deletingType = NotificationType::findOrFail($typeId);
-        Flux::modal('confirm-delete-type')->show();
+        $this->dispatch('modal-show', name: 'confirm-delete-type');
     }
 
     public function deleteType(): void
@@ -139,6 +138,7 @@ class Dashboard extends Component
             $this->deletingType->delete();
             $this->deletingType = null;
             $this->dispatch('toast', message: __('Notification type deleted successfully.'), type: 'success');
+            $this->dispatch('modal-close', name: 'confirm-delete-type');
         }
     }
 
@@ -265,7 +265,7 @@ class Dashboard extends Component
             'composeBody' => 'required|string',
         ]);
 
-        Flux::modal('confirm-send-notification')->show();
+        $this->dispatch('modal-show', name: 'confirm-send-notification');
     }
 
     public function sendNotification(NotificationDispatchService $dispatchService): void
@@ -292,6 +292,7 @@ class Dashboard extends Component
 
         $this->resetCompose();
         $this->dispatch('toast', message: __('Notification queued for :count log entries.', ['count' => $logCount]), type: 'success');
+        $this->dispatch('modal-close', name: 'confirm-send-notification');
     }
 
     public function resetCompose(): void
