@@ -1,5 +1,7 @@
 <?php
 
+use App\Jobs\SendEmailNotification;
+use App\Jobs\SendSmsNotification;
 use App\Livewire\Admin\Notifications\Dashboard;
 use App\Models\Member;
 use App\Models\MemberDeviceToken;
@@ -8,6 +10,7 @@ use App\Models\NotificationType;
 use App\Models\User;
 use App\UserRole;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Bus;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -981,4 +984,66 @@ it('retryLog processes a failed push notification synchronously', function () {
     // Push with no device token — job silently returns, status stays 'queued'
     // (that's correct: no token means no device to push to)
     expect($log->status)->toBe('queued');
+});
+
+// ─── Integration — channel-specific job dispatch ───
+
+it('compose with email channel dispatches SendEmailNotification job', function () {
+    Bus::fake();
+    $type = NotificationType::factory()->create(['email_enabled' => true]);
+    Member::factory()->count(2)->create(['is_archived' => false]);
+
+    $this->actingAs($this->admin);
+
+    Livewire::test(Dashboard::class)
+        ->set('composeTypeId', $type->id)
+        ->set('composeChannels', ['email'])
+        ->set('composeSubject', 'Email Only')
+        ->set('composeBody', 'Email body')
+        ->call('confirmSend')
+        ->call('sendNotification');
+
+    Bus::assertDispatched(SendEmailNotification::class);
+    Bus::assertNotDispatched(SendSmsNotification::class);
+});
+
+it('compose with sms channel dispatches SendSmsNotification job', function () {
+    Bus::fake();
+    $type = NotificationType::factory()->create(['sms_enabled' => true]);
+    Member::factory()->count(2)->create(['is_archived' => false]);
+
+    $this->actingAs($this->admin);
+
+    Livewire::test(Dashboard::class)
+        ->set('composeTypeId', $type->id)
+        ->set('composeChannels', ['sms'])
+        ->set('composeSubject', 'SMS Only')
+        ->set('composeBody', 'SMS body')
+        ->call('confirmSend')
+        ->call('sendNotification');
+
+    Bus::assertDispatched(SendSmsNotification::class);
+    Bus::assertNotDispatched(SendEmailNotification::class);
+});
+
+it('compose with both email and sms dispatches both jobs', function () {
+    Bus::fake();
+    $type = NotificationType::factory()->create([
+        'email_enabled' => true,
+        'sms_enabled' => true,
+    ]);
+    Member::factory()->count(2)->create(['is_archived' => false]);
+
+    $this->actingAs($this->admin);
+
+    Livewire::test(Dashboard::class)
+        ->set('composeTypeId', $type->id)
+        ->set('composeChannels', ['email', 'sms'])
+        ->set('composeSubject', 'Both Channels')
+        ->set('composeBody', 'Both body')
+        ->call('confirmSend')
+        ->call('sendNotification');
+
+    Bus::assertDispatched(SendEmailNotification::class);
+    Bus::assertDispatched(SendSmsNotification::class);
 });
