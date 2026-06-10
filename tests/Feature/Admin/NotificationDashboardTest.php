@@ -147,6 +147,43 @@ it('creates a new notification type', function () {
     $this->assertDatabaseHas('notification_types', [
         'name' => 'My Custom Type',
         'category' => 'promotions',
+        'is_active' => true,
+    ]);
+});
+
+it('creates a type as inactive when all channels are off', function () {
+    $this->actingAs($this->admin);
+
+    Livewire::test(Dashboard::class)
+        ->call('openCreateTypeFlyout')
+        ->set('typeName', 'Inactive Type')
+        ->set('typeCategory', 'system')
+        ->set('typePushEnabled', false)
+        ->set('typeEmailEnabled', false)
+        ->set('typeSmsEnabled', false)
+        ->call('saveType');
+
+    $this->assertDatabaseHas('notification_types', [
+        'name' => 'Inactive Type',
+        'is_active' => false,
+    ]);
+});
+
+it('creates a type as active when at least one channel is on', function () {
+    $this->actingAs($this->admin);
+
+    Livewire::test(Dashboard::class)
+        ->call('openCreateTypeFlyout')
+        ->set('typeName', 'Active Type')
+        ->set('typeCategory', 'system')
+        ->set('typePushEnabled', false)
+        ->set('typeEmailEnabled', true)
+        ->set('typeSmsEnabled', false)
+        ->call('saveType');
+
+    $this->assertDatabaseHas('notification_types', [
+        'name' => 'Active Type',
+        'is_active' => true,
     ]);
 });
 

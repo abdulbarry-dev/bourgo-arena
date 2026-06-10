@@ -80,6 +80,15 @@
                     <span class="text-sm text-zinc-700 dark:text-zinc-300">{{ __('SMS') }}</span>
                 </label>
             </div>
+
+            @if (!$typePushEnabled && !$typeEmailEnabled && !$typeSmsEnabled)
+                <div class="mt-3 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800/50 dark:bg-amber-900/20">
+                    <flux:icon.exclamation-triangle class="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                    <p class="text-sm text-amber-700 dark:text-amber-400">
+                        {{ __('This type will be created as inactive. Enable at least one channel to make it active.') }}
+                    </p>
+                </div>
+            @endif
         </div>
 
         <div class="flex">

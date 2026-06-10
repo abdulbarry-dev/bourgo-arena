@@ -105,6 +105,7 @@ class Dashboard extends Component
             'push_enabled' => $this->typePushEnabled,
             'email_enabled' => $this->typeEmailEnabled,
             'sms_enabled' => $this->typeSmsEnabled,
+            'is_active' => $this->typePushEnabled || $this->typeEmailEnabled || $this->typeSmsEnabled,
         ];
 
         if ($this->typeFlyoutMode === 'edit' && $this->editingType) {
