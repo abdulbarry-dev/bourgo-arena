@@ -29,7 +29,7 @@ class MemberTable extends Component
 
     public string $hasValidSubscription = 'all';
 
-    public int $perPage = 7;
+    public int $perPage = 10;
 
     public bool $selectionEnabled = false;
 
