@@ -38,7 +38,6 @@
 
             @if ($addingCustomCategory)
                 <flux:field>
-                    <flux:label>{{ __('Category Name') }}</flux:label>
                     <flux:input wire:model="typeCustomCategory" :placeholder="__('e.g. maintenance')" required />
                     <div class="min-h-[20px]"><flux:error name="typeCustomCategory" /></div>
                 </flux:field>
