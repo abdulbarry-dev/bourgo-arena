@@ -30,7 +30,6 @@
                 >
                     <flux:icon.magnifying-glass class="size-4 shrink-0 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300" />
                     <span class="flex-1 text-left in-data-flux-sidebar-collapsed-desktop:hidden">{{ __('Search') }}</span>
-                    <kbd class="hidden rounded border border-zinc-200 bg-white px-1 py-0.5 text-[9px] font-medium text-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 lg:inline-flex in-data-flux-sidebar-collapsed-desktop:hidden">⌘K</kbd>
                 </button>
 
                 <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
