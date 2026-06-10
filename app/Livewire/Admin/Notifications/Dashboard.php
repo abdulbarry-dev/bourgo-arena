@@ -154,6 +154,15 @@ class Dashboard extends Component
 
         if (in_array($column, ['push_enabled', 'email_enabled', 'sms_enabled'])) {
             $type->update([$column => ! $type->{$column}]);
+            $type->refresh();
+
+            $hasActiveChannel = $type->push_enabled || $type->email_enabled || $type->sms_enabled;
+
+            if (! $hasActiveChannel) {
+                $type->update(['is_active' => false]);
+            } elseif (optional($type)->is_active === false) {
+                $type->update(['is_active' => true]);
+            }
         }
     }
 
