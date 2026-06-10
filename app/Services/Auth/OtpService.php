@@ -158,9 +158,7 @@ class OtpService
             return false;
         }
 
-        // Note: otp_codes table currently doesn't store hashed codes in its schema or casts.
-        // For simplicity and backward compatibility with my previous turn, I'll check literal if it doesn't look like a hash.
-        $isMatch = (strlen($otpCode->code) === 6 && $otpCode->code === $code) || Hash::check($code, $otpCode->code);
+        $isMatch = Hash::check($code, $otpCode->code);
 
         if (! $isMatch) {
             return false;

@@ -49,10 +49,7 @@ class SmsChannel
         }
 
         try {
-            $twilio = app(Client::class, [
-                'username' => $sid,
-                'password' => $token,
-            ]);
+            $twilio = $this->createClient($sid, $token);
 
             $twilio->messages->create($to, [
                 'from' => $from,
@@ -63,5 +60,13 @@ class SmsChannel
         } catch (\Exception $e) {
             Log::error("Failed to send SMS OTP to {$to} via Twilio: ".$e->getMessage());
         }
+    }
+
+    protected function createClient(string $sid, string $token): Client
+    {
+        return app(Client::class, [
+            'username' => $sid,
+            'password' => $token,
+        ]);
     }
 }

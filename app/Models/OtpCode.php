@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Database\Factories\Shared\Auth\OtpCodeFactory;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -23,6 +24,7 @@ class OtpCode extends Model
     protected $casts = [
         'expires_at' => 'datetime',
         'used_at' => 'datetime',
+        'code' => 'hashed',
     ];
 
     public function isExpired(): bool

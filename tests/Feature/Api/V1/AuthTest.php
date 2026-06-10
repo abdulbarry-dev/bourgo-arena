@@ -2,6 +2,7 @@
 
 use App\Models\Member;
 use App\Notifications\SendOtpCode;
+use App\Services\Auth\AuthService;
 use App\Services\Auth\OtpService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -293,4 +294,17 @@ test('forgot password returns success even if user not found', function () {
     ]);
 
     $response->assertSuccessful();
+});
+
+test('resetPasswordByOtp updates password hash', function () {
+    $member = Member::factory()->create([
+        'password' => Hash::make('old-password'),
+    ]);
+    $authService = app(AuthService::class);
+
+    $authService->resetPasswordByOtp($member, 'new-secure-password');
+    $member->refresh();
+
+    expect(Hash::check('new-secure-password', $member->password))->toBeTrue();
+    expect(Hash::check('old-password', $member->password))->toBeFalse();
 });
