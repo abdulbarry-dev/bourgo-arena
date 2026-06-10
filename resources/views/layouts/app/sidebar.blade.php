@@ -58,6 +58,10 @@
                         <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.payments.audit')" :current="request()->routeIs('admin.payments.audit*')" wire:navigate>
                             {{ __('Payments Audit') }}
                         </flux:sidebar.item>
+
+                        <flux:sidebar.item icon="bell" :href="route('admin.notifications')" :current="request()->routeIs('admin.notifications*')" wire:navigate>
+                            {{ __('Notifications') }}
+                        </flux:sidebar.item>
                     @endif
 
                     @if(auth()->user()?->can('access-dashboard-module', 'subscriptions'))

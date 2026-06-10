@@ -10,14 +10,23 @@ use Livewire\Component;
 class Dashboard extends Component
 {
     public array $kpiData = [];
+
     public array $revenueTrend = [];
+
     public array $subscriptionDistribution = [];
+
     public array $memberGrowth = [];
+
     public array $revenueByMethod = [];
+
     public array $planDistribution = [];
+
     public array $recentMembers = [];
+
     public array $upcomingEvents = [];
+
     public array $expiringSubs = [];
+
     public array $reservationMetrics = [];
 
     public function mount(): void

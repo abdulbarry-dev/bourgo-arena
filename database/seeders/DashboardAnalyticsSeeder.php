@@ -144,7 +144,7 @@ class DashboardAnalyticsSeeder extends Seeder
                 $namePool = $isMale ? $maleNames : $femaleNames;
                 $firstName = $namePool[array_rand($namePool)];
                 $lastName = $lastNames[array_rand($lastNames)];
-                $fullName = $firstName . ' ' . $lastName;
+                $fullName = $firstName.' '.$lastName;
 
                 $daysAgo = match (true) {
                     $dist['status'] === 'active' && $dist['state'] === 'active' => rand(0, 60),
@@ -155,11 +155,11 @@ class DashboardAnalyticsSeeder extends Seeder
 
                 $member = Member::create([
                     'name' => $fullName,
-                    'email' => strtolower($firstName . '.' . $lastName . $memberIndex) . '@example.com',
-                    'phone' => '5000' . str_pad((string) (10000 + $memberIndex), 5, '0', STR_PAD_LEFT),
+                    'email' => strtolower($firstName.'.'.$lastName.$memberIndex).'@example.com',
+                    'phone' => '5000'.str_pad((string) (10000 + $memberIndex), 5, '0', STR_PAD_LEFT),
                     'date_of_birth' => now()->subYears(rand(18, 65))->subDays(rand(0, 364))->toDateString(),
                     'gender' => $isMale ? 'male' : 'female',
-                    'emergency_contact' => '9000' . str_pad((string) (10000 + $memberIndex), 5, '0', STR_PAD_LEFT),
+                    'emergency_contact' => '9000'.str_pad((string) (10000 + $memberIndex), 5, '0', STR_PAD_LEFT),
                     'status' => $dist['status'],
                     'state' => $dist['state'],
                     'rgpd_consented_at' => now()->subDays($daysAgo),
@@ -184,18 +184,18 @@ class DashboardAnalyticsSeeder extends Seeder
             ->where('state', 'active')
             ->whereNull('parent_id')
             ->take(5)
-           ->get();
+            ->get();
 
         foreach ($activeParents as $parent) {
             $parent->update(['is_family_account' => true]);
 
             $childCount = rand(1, 2);
             for ($i = 0; $i < $childCount; $i++) {
-                $childName = fake()->firstName() . ' ' . explode(' ', $parent->name)[1];
+                $childName = fake()->firstName().' '.explode(' ', $parent->name)[1];
                 Member::create([
                     'name' => $childName,
-                    'email' => 'child.' . strtolower(str_replace(' ', '.', $childName)) . $memberIndex . '@example.com',
-                    'phone' => '5000' . str_pad((string) (10000 + $memberIndex), 5, '0', STR_PAD_LEFT),
+                    'email' => 'child.'.strtolower(str_replace(' ', '.', $childName)).$memberIndex.'@example.com',
+                    'phone' => '5000'.str_pad((string) (10000 + $memberIndex), 5, '0', STR_PAD_LEFT),
                     'parent_id' => $parent->id,
                     'date_of_birth' => now()->subYears(rand(5, 17))->toDateString(),
                     'gender' => $i % 2 === 0 ? 'male' : 'female',
@@ -309,7 +309,7 @@ class DashboardAnalyticsSeeder extends Seeder
                 'type' => $types[array_rand($types)],
                 'amount' => round(rand(1000, 50000) / 100, 3),
                 'status' => 'completed',
-                'payment_reference' => 'pay_' . Str::random(12),
+                'payment_reference' => 'pay_'.Str::random(12),
                 'verified_at' => now()->subDays($daysAgo),
                 'created_at' => now()->subDays($daysAgo),
             ]);

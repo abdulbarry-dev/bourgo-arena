@@ -52,7 +52,7 @@ class PaymentSeeder extends Seeder
                     'type' => $row['type'],
                     'amount' => $row['amount'],
                     'status' => $row['status'],
-                    'gateway_transaction_id' => 'gw-' . $row['ref'],
+                    'gateway_transaction_id' => 'gw-'.$row['ref'],
                     'metadata' => ['source' => 'seed'],
                     'verified_at' => $row['verified'],
                 ]
@@ -134,7 +134,7 @@ class PaymentSeeder extends Seeder
                 'type' => $row['type'],
                 'amount' => $row['amount'],
                 'status' => $row['status'],
-                'payment_reference' => 'LOY-' . str_pad((string) (100 + $idx), 5, '0', STR_PAD_LEFT),
+                'payment_reference' => 'LOY-'.str_pad((string) (100 + $idx), 5, '0', STR_PAD_LEFT),
                 'metadata' => [
                     'source' => 'loyalty_seed',
                     'conversion_rate' => 100,

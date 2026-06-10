@@ -142,7 +142,9 @@ class AuditLogs extends Component
         $json = json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
         return response()->streamDownload(
-            function () use ($json): void { echo $json; },
+            function () use ($json): void {
+                echo $json;
+            },
             "payload-{$transaction->transaction_id}.json",
             ['Content-Type' => 'application/json']
         );

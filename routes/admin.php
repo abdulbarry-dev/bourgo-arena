@@ -9,6 +9,7 @@ use App\Livewire\Admin\Events\EventBracketManager;
 use App\Livewire\Admin\Events\EventManager;
 use App\Livewire\Admin\Events\EventParticipants;
 use App\Livewire\Admin\Managers\Index;
+use App\Livewire\Admin\Notifications\Dashboard as NotificationDashboard;
 use App\Livewire\Admin\Payments\AuditLogs;
 use App\Livewire\Admin\Reservations\ReservationManager;
 use App\Livewire\Admin\Search\SearchResults;
@@ -77,4 +78,7 @@ Route::prefix('admin')->middleware('role:admin')->group(function () {
 
     Route::get('/services', ServiceManager::class)
         ->name('admin.services.index');
+
+    Route::get('/notifications', NotificationDashboard::class)
+        ->name('admin.notifications');
 });
