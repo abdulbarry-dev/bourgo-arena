@@ -4,24 +4,29 @@
         <flux:text variant="subtle" class="mt-0.5">{{ __('Send a notification to your members.') }}</flux:text>
     </div>
 
-    <form wire:submit="confirmSend" class="space-y-5 p-6">
+    <form wire:submit="confirmSend" class="space-y-4 p-6">
         {{-- Type Selection --}}
-        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-            <flux:select wire:model.live="composeTypeId" :label="__('Notification Type')" placeholder="{{ __('Select a type...') }}" required>
-                @foreach ($types->where('is_active', true) as $type)
-                    <flux:select.option value="{{ $type->id }}">
-                        {{ $type->name }} ({{ ucfirst($type->category) }})
-                    </flux:select.option>
-                @endforeach
-            </flux:select>
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <flux:field>
+                <flux:label>{{ __('Notification Type') }}</flux:label>
+                <flux:select wire:model.live="composeTypeId" placeholder="{{ __('Select a type...') }}" required>
+                    @foreach ($types->where('is_active', true) as $type)
+                        <flux:select.option value="{{ $type->id }}">
+                            {{ $type->name }} ({{ ucfirst($type->category) }})
+                        </flux:select.option>
+                    @endforeach
+                </flux:select>
+                <div class="min-h-[20px]"><flux:error name="composeTypeId" /></div>
+            </flux:field>
 
             <div>
                 <flux:label>{{ __('Member Count') }}</flux:label>
                 <div class="mt-1.5 flex h-10 items-center rounded-lg border border-zinc-200 bg-zinc-50 px-3 text-sm text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900/60 dark:text-zinc-400">
                     <flux:icon.users class="mr-2 size-4 text-zinc-400" />
                     {{ number_format($this->composeMemberCount) }} {{ __('recipients') }}
-                </div>
             </div>
+            <div class="min-h-[20px]"><flux:error name="composeChannels" /></div>
+        </div>
         </div>
 
         {{-- Channel Selection --}}
@@ -124,13 +129,18 @@
         </div>
 
         {{-- Subject & Body --}}
-        <flux:input wire:model="composeSubject" :label="__('Subject')" :placeholder="__('Notification subject line...')" required />
+        <flux:field>
+            <flux:label>{{ __('Subject') }}</flux:label>
+            <flux:input wire:model="composeSubject" :placeholder="__('Notification subject line...')" required />
+            <div class="min-h-[20px]"><flux:error name="composeSubject" /></div>
+        </flux:field>
 
         <div>
             <flux:field>
                 <flux:label>{{ __('Message Body') }}</flux:label>
                 <flux:textarea wire:model="composeBody" :placeholder="__('Write your message...')" rows="5" required />
-                <p class="mt-1 text-xs text-zinc-400">{{ __('You can use') }} <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">@{{ name }}</code> {{ __('and') }} <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">@{{ email }}</code> {{ __('as placeholders. For SMS, messages are truncated to 160 characters.') }}</p>
+                <div class="min-h-[20px]"><flux:error name="composeBody" /></div>
+                <p class="text-xs text-zinc-400">{{ __('You can use') }} <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">@{{ name }}</code> {{ __('and') }} <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">@{{ email }}</code> {{ __('as placeholders. For SMS, messages are truncated to 160 characters.') }}</p>
             </flux:field>
         </div>
 

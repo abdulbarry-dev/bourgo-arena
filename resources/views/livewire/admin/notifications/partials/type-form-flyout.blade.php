@@ -10,27 +10,38 @@
         </flux:subheading>
     </div>
 
-    <form wire:submit="saveType" class="mt-6 flex flex-col gap-6">
-        <flux:input wire:model="typeName" :label="__('Name')" :placeholder="__('e.g. Event Reminder')" required />
+    <form wire:submit="saveType" class="mt-6 flex flex-col gap-4">
+        <flux:field>
+            <flux:label>{{ __('Name') }}</flux:label>
+            <flux:input wire:model="typeName" :placeholder="__('e.g. Event Reminder')" required />
+            <div class="min-h-[20px]"><flux:error name="typeName" /></div>
+        </flux:field>
 
-        <div>
-            <flux:field>
-                <flux:label>{{ __('Description') }}</flux:label>
-                <flux:textarea wire:model="typeDescription" :placeholder="__('Describe when this notification type is used...')" rows="3" />
-            </flux:field>
-        </div>
+        <flux:field>
+            <flux:label>{{ __('Description') }}</flux:label>
+            <flux:textarea wire:model="typeDescription" :placeholder="__('Describe when this notification type is used...')" rows="3" />
+            <div class="min-h-[20px]"><flux:error name="typeDescription" /></div>
+        </flux:field>
 
         <div class="grid grid-cols-2 gap-4">
-            <flux:select wire:model="typeCategory" :label="__('Category')" required>
-                <flux:select.option value="billing">{{ __('Billing') }}</flux:select.option>
-                <flux:select.option value="events">{{ __('Events') }}</flux:select.option>
-                <flux:select.option value="promotions">{{ __('Promotions') }}</flux:select.option>
-                <flux:select.option value="system">{{ __('System') }}</flux:select.option>
-                <flux:select.option value="__custom">{{ __('Custom...') }}</flux:select.option>
-            </flux:select>
+            <flux:field>
+                <flux:label>{{ __('Category') }}</flux:label>
+                <flux:select wire:model="typeCategory" required>
+                    <flux:select.option value="billing">{{ __('Billing') }}</flux:select.option>
+                    <flux:select.option value="events">{{ __('Events') }}</flux:select.option>
+                    <flux:select.option value="promotions">{{ __('Promotions') }}</flux:select.option>
+                    <flux:select.option value="system">{{ __('System') }}</flux:select.option>
+                    <flux:select.option value="__custom">{{ __('Custom...') }}</flux:select.option>
+                </flux:select>
+                <div class="min-h-[20px]"><flux:error name="typeCategory" /></div>
+            </flux:field>
 
             @if ($addingCustomCategory)
-                <flux:input wire:model="typeCustomCategory" :label="__('Category Name')" :placeholder="__('e.g. maintenance')" required />
+                <flux:field>
+                    <flux:label>{{ __('Category Name') }}</flux:label>
+                    <flux:input wire:model="typeCustomCategory" :placeholder="__('e.g. maintenance')" required />
+                    <div class="min-h-[20px]"><flux:error name="typeCustomCategory" /></div>
+                </flux:field>
             @endif
         </div>
 
