@@ -928,3 +928,47 @@ it('NotificationLog factory can create failed logs', function () {
     expect($log->status)->toBe('failed');
     expect($log->metadata)->toHaveKey('error');
 });
+
+it('retryLog processes a failed email notification synchronously', function () {
+    $member = Member::factory()->create(['email' => 'test@example.com']);
+    $log = NotificationLog::factory()->create([
+        'member_id' => $member->id,
+        'channel' => 'email',
+        'status' => 'failed',
+        'subject' => 'Retry test',
+        'body' => 'Test body',
+    ]);
+
+    $this->actingAs($this->admin);
+
+    Mail::fake();
+
+    Livewire::test(Dashboard::class)
+        ->call('retryLog', $log->id);
+
+    $log->refresh();
+    // Status becomes 'sent' since we mocked Mail
+    expect($log->status)->toBe('sent');
+    expect($log->sent_at)->not->toBeNull();
+});
+
+it('retryLog processes a failed push notification synchronously', function () {
+    $member = Member::factory()->create();
+    $log = NotificationLog::factory()->create([
+        'member_id' => $member->id,
+        'channel' => 'push',
+        'status' => 'failed',
+        'subject' => 'Push retry',
+        'body' => 'Test push body',
+    ]);
+
+    $this->actingAs($this->admin);
+
+    Livewire::test(Dashboard::class)
+        ->call('retryLog', $log->id);
+
+    $log->refresh();
+    // Push with no device token — job silently returns, status stays 'queued'
+    // (that's correct: no token means no device to push to)
+    expect($log->status)->toBe('queued');
+});

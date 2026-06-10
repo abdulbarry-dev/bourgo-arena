@@ -159,10 +159,10 @@ class Dashboard extends Component
         };
 
         if ($job !== null) {
-            dispatch($job);
+            app()->call([$job, 'handle']);
         }
 
-        $this->dispatch('toast', message: __('Notification re-queued for delivery.'), type: 'success');
+        $this->dispatch('toast', message: __('Notification retry processed.'), type: 'success');
     }
 
     public function toggleTypeChannel(int $typeId, string $channel): void
