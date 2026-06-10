@@ -81,9 +81,7 @@
 
         <div class="flex">
             <flux:spacer />
-            <flux:modal.close>
-                <flux:button type="button" variant="ghost">{{ __('Cancel') }}</flux:button>
-            </flux:modal.close>
+            <flux:button type="button" variant="ghost" wire:click="$dispatch('modal-close', { name: 'type-form-flyout' })">{{ __('Cancel') }}</flux:button>
             <flux:button type="submit" variant="primary">
                 {{ $typeFlyoutMode === 'create' ? __('Create Type') : __('Update Type') }}
             </flux:button>

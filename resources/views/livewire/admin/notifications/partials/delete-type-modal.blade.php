@@ -7,9 +7,7 @@
 
         <div class="flex gap-2">
             <flux:spacer />
-            <flux:modal.close>
-                <flux:button type="button" variant="ghost">{{ __('Cancel') }}</flux:button>
-            </flux:modal.close>
+            <flux:button type="button" variant="ghost" wire:click="$dispatch('modal-close', { name: 'confirm-delete-type' })">{{ __('Cancel') }}</flux:button>
             <flux:button type="submit" variant="danger">{{ __('Delete') }}</flux:button>
         </div>
     </form>
