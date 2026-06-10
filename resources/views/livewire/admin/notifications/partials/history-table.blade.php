@@ -15,6 +15,21 @@
         </div>
     </div>
 
+    {{-- Worker status banner --}}
+    @if ($staleCount > 0)
+        <div class="flex items-center justify-between border-b border-amber-200 bg-amber-50 px-6 py-2.5 dark:border-amber-800 dark:bg-amber-950/30">
+            <div class="flex items-center gap-2 text-xs text-amber-700 dark:text-amber-400">
+                <flux:icon.exclamation-circle class="size-3.5" />
+                {{ __(':count notifications still queued — the queue worker may not be running. Notifications will not be delivered until a worker processes them.', ['count' => $staleCount]) }}
+            </div>
+        </div>
+    @elseif ($totalQueued > 0)
+        <div class="flex items-center gap-2 border-b border-zinc-200 bg-zinc-50 px-6 py-2.5 text-xs text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900/60 dark:text-zinc-400">
+            <flux:icon.clock class="size-3.5" />
+            {{ __(':count notifications awaiting worker delivery.', ['count' => $totalQueued]) }}
+        </div>
+    @endif
+
     <x-ui.dashboard.table-shell :has-rows="$logs->count() > 0">
         <x-slot name="empty">
             <x-ui.dashboard.empty-state
@@ -33,7 +48,8 @@
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{{ __('Channel') }}</th>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{{ __('Subject') }}</th>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{{ __('Status') }}</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{{ __('Sent At') }}</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{{ __('Timestamp') }}</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{{ __('Actions') }}</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-zinc-100 bg-white dark:divide-zinc-800 dark:bg-zinc-900/40">
@@ -85,8 +101,24 @@
                         <td class="whitespace-nowrap px-6 py-3.5 text-xs text-zinc-500 dark:text-zinc-400">
                             @if ($log->sent_at)
                                 {{ $log->sent_at->diffForHumans() }}
+                            @elseif ($log->status === 'queued' && $log->created_at->diffInMinutes(now()) > 5)
+                                <span class="text-amber-600 dark:text-amber-400" title="{{ __('Created at') }} {{ $log->created_at->format('Y-m-d H:i') }}">
+                                    {{ __('Stale') }} — {{ $log->created_at->diffForHumans() }}
+                                </span>
                             @else
                                 <span class="italic">{{ __('Pending') }}</span>
+                            @endif
+                        </td>
+                        <td class="whitespace-nowrap px-6 py-3.5">
+                            @if (in_array($log->status, ['queued', 'failed']))
+                                <button
+                                    wire:click="retryLog({{ $log->id }})"
+                                    type="button"
+                                    class="rounded p-1 text-zinc-400 transition hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-900/20 dark:hover:text-amber-400"
+                                    title="{{ __('Retry delivery') }}"
+                                >
+                                    <flux:icon.arrow-path class="size-3.5" />
+                                </button>
                             @endif
                         </td>
                     </tr>

@@ -2,6 +2,9 @@
 
 namespace App\Livewire\Admin\Notifications;
 
+use App\Jobs\SendEmailNotification;
+use App\Jobs\SendPushNotification;
+use App\Jobs\SendSmsNotification;
 use App\Models\Member;
 use App\Models\MemberDeviceToken;
 use App\Models\NotificationLog;
@@ -140,6 +143,26 @@ class Dashboard extends Component
             $this->dispatch('toast', message: __('Notification type deleted successfully.'), type: 'success');
             $this->dispatch('modal-close', name: 'confirm-delete-type');
         }
+    }
+
+    public function retryLog(int $logId): void
+    {
+        $log = NotificationLog::findOrFail($logId);
+
+        $log->update(['status' => 'queued', 'sent_at' => null]);
+
+        $job = match ($log->channel) {
+            'push' => new SendPushNotification($log->id, $log->member_id),
+            'email' => new SendEmailNotification($log->id),
+            'sms' => new SendSmsNotification($log->id, $log->member_id),
+            default => null,
+        };
+
+        if ($job !== null) {
+            dispatch($job);
+        }
+
+        $this->dispatch('toast', message: __('Notification re-queued for delivery.'), type: 'success');
     }
 
     public function toggleTypeChannel(int $typeId, string $channel): void
@@ -321,6 +344,11 @@ class Dashboard extends Component
         $totalAll = $totalSent + $totalFailed + $totalQueued;
         $successRate = $totalAll > 0 ? round(($totalSent / $totalAll) * 100) : 100;
 
+        $staleCount = NotificationLog::query()
+            ->where('status', 'queued')
+            ->where('created_at', '<', now()->subMinutes(5))
+            ->count();
+
         $logsQuery = NotificationLog::query()
             ->with('notificationType')
             ->orderByDesc('created_at');
@@ -344,6 +372,7 @@ class Dashboard extends Component
             'totalFailed' => $totalFailed,
             'totalQueued' => $totalQueued,
             'successRate' => $successRate,
+            'staleCount' => $staleCount,
             'logs' => $logs,
             'registeredDevices' => $registeredDevices,
             'categories' => $categories,
