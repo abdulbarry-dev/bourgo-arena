@@ -337,8 +337,11 @@
             </x-ui.dashboard.panel>
 
             <x-ui.dashboard.panel padding="p-0" class="overflow-hidden flex flex-col">
-                <div class="border-b border-zinc-200 px-5 py-3.5 dark:border-zinc-700">
+                <div class="flex items-center justify-between border-b border-zinc-200 px-5 py-3.5 dark:border-zinc-700">
                     <h4 class="text-sm font-semibold text-zinc-900 dark:text-white">{{ __('Upcoming Events') }}</h4>
+                    <a href="{{ route('admin.events.index') }}" wire:navigate class="text-xs font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">
+                        {{ __('View all') }} &rarr;
+                    </a>
                 </div>
                 @if (!empty($upcomingEvents))
                     <div class="analytics-scroll flex-1 divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -366,11 +369,6 @@
                             </div>
                         @endforeach
                     </div>
-                    <div class="border-t border-zinc-200 px-5 py-3 dark:border-zinc-700">
-                        <flux:button class="w-full" variant="outline" size="sm" :href="route('admin.events.index')" wire:navigate>
-                            {{ __('View All Events') }}
-                        </flux:button>
-                    </div>
                 @else
                     <div class="flex flex-col items-center justify-center px-5 py-10 text-center">
                         <flux:icon.calendar class="mx-auto mb-2 size-8 text-zinc-300 dark:text-zinc-600" />
@@ -380,8 +378,11 @@
             </x-ui.dashboard.panel>
 
             <x-ui.dashboard.panel padding="p-0" class="overflow-hidden flex flex-col">
-                <div class="border-b border-zinc-200 px-5 py-3.5 dark:border-zinc-700">
+                <div class="flex items-center justify-between border-b border-zinc-200 px-5 py-3.5 dark:border-zinc-700">
                     <h4 class="text-sm font-semibold text-zinc-900 dark:text-white">{{ __('Expiring Subscriptions') }}</h4>
+                    <a href="{{ route('admin.subscriptions.expiring') }}" wire:navigate class="text-xs font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">
+                        {{ __('View all') }} &rarr;
+                    </a>
                 </div>
                 @if (!empty($expiringSubs))
                     <div class="analytics-scroll flex-1 divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -397,11 +398,6 @@
                                 <x-ui.dashboard.status-badge :status="$urgencyColor" :label="$sub['days_remaining'] . 'd'" size="sm" />
                             </div>
                         @endforeach
-                    </div>
-                    <div class="border-t border-zinc-200 px-5 py-3 dark:border-zinc-700">
-                        <flux:button class="w-full" variant="outline" size="sm" :href="route('admin.subscriptions.expiring')" wire:navigate>
-                            {{ __('View Expiring') }}
-                        </flux:button>
                     </div>
                 @else
                     <div class="flex flex-col items-center justify-center px-5 py-10 text-center">
