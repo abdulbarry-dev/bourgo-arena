@@ -146,7 +146,12 @@ class Dashboard extends Component
 
     public function toggleTypeChannel(int $typeId, string $channel): void
     {
-        $type = NotificationType::findOrFail($typeId);
+        $type = NotificationType::find($typeId);
+
+        if ($type === null) {
+            return;
+        }
+
         $column = $channel.'_enabled';
 
         if (in_array($column, ['push_enabled', 'email_enabled', 'sms_enabled'])) {
@@ -156,7 +161,12 @@ class Dashboard extends Component
 
     public function toggleTypeActive(int $typeId): void
     {
-        $type = NotificationType::findOrFail($typeId);
+        $type = NotificationType::find($typeId);
+
+        if ($type === null) {
+            return;
+        }
+
         $type->update(['is_active' => ! $type->is_active]);
     }
 
