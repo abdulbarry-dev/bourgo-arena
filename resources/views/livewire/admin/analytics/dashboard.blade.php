@@ -1,74 +1,11 @@
 @vite('resources/js/app.js')
 
 <x-ui.dashboard.page-wrapper>
-    <div class="space-y-6" wire:key="analytics-dashboard">
-        <div wire:loading wire:target="from,to,setPreset"
-             class="fixed left-0 top-0 z-[100] h-0.5 w-full animate-pulse bg-indigo-500"></div>
-
+    <div class="space-y-6">
         <x-ui.dashboard.page-header
             :title="__('Analytics')"
             :subtitle="__('Track revenue, subscriptions, members, occupancy, and the operational signals that matter.')"
-        >
-            <x-slot name="actions">
-                <div class="flex flex-wrap items-center gap-2">
-                    <flux:input type="date" wire:model.live="from" class="min-w-[140px]" />
-                    <flux:input type="date" wire:model.live="to" class="min-w-[140px]" />
-
-                    <flux:button wire:click="setPreset('30d')" size="sm" variant="outline" squared>
-                        30d
-                    </flux:button>
-                    <flux:button wire:click="setPreset('90d')" size="sm" variant="outline" squared>
-                        90d
-                    </flux:button>
-                    <flux:button wire:click="setPreset('12m')" size="sm" variant="outline" squared>
-                        12m
-                    </flux:button>
-
-                    @can('exportReports')
-                        <flux:button
-                            variant="outline"
-                            icon="arrow-down-tray"
-                            wire:click="openExportConfirmModal('csv')"
-                            wire:loading.attr="disabled"
-                            wire:target="openExportConfirmModal,confirmExport"
-                        >
-                            <span wire:loading.remove wire:target="openExportConfirmModal,confirmExport">{{ __('Export CSV') }}</span>
-                            <span wire:loading wire:target="openExportConfirmModal,confirmExport">{{ __('Exporting...') }}</span>
-                        </flux:button>
-                        <flux:button
-                            variant="primary"
-                            icon="arrow-down-tray"
-                            wire:click="openExportConfirmModal('pdf')"
-                            wire:loading.attr="disabled"
-                            wire:target="openExportConfirmModal,confirmExport"
-                        >
-                            <span wire:loading.remove wire:target="openExportConfirmModal,confirmExport">{{ __('Export PDF') }}</span>
-                            <span wire:loading wire:target="openExportConfirmModal,confirmExport">{{ __('Exporting...') }}</span>
-                        </flux:button>
-                    @endcan
-                </div>
-            </x-slot>
-        </x-ui.dashboard.page-header>
-
-        @can('exportReports')
-            <x-ui.confirm-modal
-                wire:model.self="showExportConfirmModal"
-                name="export-confirm-modal"
-                x-on:show-export-modal.window="window.dispatchEvent(new CustomEvent('modal-show', { detail: { name: 'export-confirm-modal' } }))"
-                x-on:hide-export-modal.window="window.dispatchEvent(new CustomEvent('modal-close', { detail: { name: 'export-confirm-modal' } }))"
-                :title="$exportFormat === 'pdf'
-                    ? __('Export Analytics PDF')
-                    : __('Export Analytics CSV')"
-                :description="$exportFormat === 'pdf'
-                    ? __('This will generate a PDF report of the analytics dashboard for the selected date range.')
-                    : __('This will generate a CSV file of the analytics data for the selected date range.')"
-                cancel-action="closeExportConfirmModal"
-                confirm-action="confirmExport"
-                :confirm-text="$exportFormat === 'pdf' ? __('Export PDF') : __('Export CSV')"
-                confirm-icon="arrow-down-tray"
-                loading-target="confirmExport"
-            />
-        @endcan
+        />
 
         <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <x-ui.dashboard.panel padding="p-5">
