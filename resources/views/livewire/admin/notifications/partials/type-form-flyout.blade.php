@@ -26,17 +26,33 @@
                 <flux:select.option value="events">{{ __('Events') }}</flux:select.option>
                 <flux:select.option value="promotions">{{ __('Promotions') }}</flux:select.option>
                 <flux:select.option value="system">{{ __('System') }}</flux:select.option>
+                <flux:select.option value="__custom">{{ __('Custom...') }}</flux:select.option>
             </flux:select>
+
+            @if ($addingCustomCategory)
+                <flux:input wire:model="typeCustomCategory" :label="__('Category Name')" :placeholder="__('e.g. maintenance')" required />
+            @endif
         </div>
 
         <div>
             <flux:label>{{ __('Icon') }}</flux:label>
-            <div class="mt-2 grid grid-cols-7 gap-2">
+            {{-- Preview chip --}}
+            <div class="mt-2 flex items-center gap-2">
+                <div class="flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 dark:border-indigo-700 dark:bg-indigo-900/30">
+                    <flux:icon :name="$typeIcon" class="size-5 text-indigo-600 dark:text-indigo-400" />
+                    <span class="text-sm font-medium text-indigo-700 dark:text-indigo-300">{{ Str::headline($typeIcon) }}</span>
+                </div>
+                <button type="button" wire:click="selectIcon('bell')" class="text-xs text-zinc-400 underline transition hover:text-zinc-600 dark:hover:text-zinc-300">
+                    {{ __('Reset') }}
+                </button>
+            </div>
+            {{-- Icon grid --}}
+            <div class="mt-3 grid max-h-[260px] grid-cols-8 gap-1.5 overflow-y-auto rounded-lg border border-zinc-200 p-2 dark:border-zinc-700">
                 @foreach ($this->availableIcons as $icon)
                     <button
                         type="button"
                         wire:click="selectIcon('{{ $icon }}')"
-                        class="flex items-center justify-center rounded-lg border p-2.5 transition-all duration-150 {{ $typeIcon === $icon ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200 dark:border-indigo-400 dark:bg-indigo-900/30 dark:ring-indigo-700' : 'border-zinc-200 bg-white hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:border-zinc-600' }}"
+                        class="flex items-center justify-center rounded-md p-1.5 transition-all duration-150 {{ $typeIcon === $icon ? 'bg-indigo-100 ring-1 ring-indigo-400 dark:bg-indigo-900/40 dark:ring-indigo-600' : 'hover:bg-zinc-100 dark:hover:bg-zinc-700/50' }}"
                         title="{{ Str::headline($icon) }}"
                     >
                         <flux:icon :name="$icon" class="size-5" />

@@ -166,15 +166,31 @@ it('creates a type with nullable description as null', function () {
     ]);
 });
 
-it('prevents creating a type with an invalid category', function () {
+it('prevents creating a type with an empty category', function () {
     $this->actingAs($this->admin);
 
     Livewire::test(Dashboard::class)
         ->call('openCreateTypeFlyout')
-        ->set('typeName', 'Bad Category')
-        ->set('typeCategory', 'invalid_category')
+        ->set('typeName', 'No Category')
+        ->set('typeCategory', '')
         ->call('saveType')
         ->assertHasErrors('typeCategory');
+});
+
+it('creates a type with a custom category', function () {
+    $this->actingAs($this->admin);
+
+    Livewire::test(Dashboard::class)
+        ->call('openCreateTypeFlyout')
+        ->set('typeName', 'Maintenance Alert')
+        ->set('typeCategory', '__custom')
+        ->set('typeCustomCategory', 'maintenance')
+        ->call('saveType');
+
+    $this->assertDatabaseHas('notification_types', [
+        'name' => 'Maintenance Alert',
+        'category' => 'maintenance',
+    ]);
 });
 
 it('prevents creating a type with a name exceeding 255 characters', function () {
@@ -362,7 +378,8 @@ it('resets type form when opening create after edit', function () {
         ->assertSet('typeName', 'Reset Me')
         ->call('openCreateTypeFlyout')
         ->assertSet('typeName', '')
-        ->assertSet('typeCategory', 'system');
+        ->assertSet('typeCategory', 'system')
+        ->assertSet('addingCustomCategory', false);
 });
 
 // ─── Validation ──────────────────────────────────────────
@@ -869,7 +886,7 @@ it('NotificationType factory creates a valid type', function () {
 
     expect($type->slug)->not->toBeEmpty();
     expect($type->name)->not->toBeEmpty();
-    expect(['billing', 'events', 'promotions', 'system'])->toContain($type->category);
+    expect($type->category)->not->toBeEmpty();
     expect($type->is_active)->toBeTrue();
 });
 

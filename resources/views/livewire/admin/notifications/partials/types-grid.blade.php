@@ -22,17 +22,18 @@
             'promotions' => 'gift',
             'system' => 'cog',
         ];
+        $visibleCategories = $types->pluck('category')->unique()->values();
     @endphp
 
     <div class="divide-y divide-zinc-100 dark:divide-zinc-800">
-        @foreach (['billing', 'events', 'promotions', 'system'] as $category)
+        @foreach ($visibleCategories as $category)
             @php
                 $categoryTypes = $types->where('category', $category);
             @endphp
             @if ($categoryTypes->isNotEmpty())
                 <div class="px-6 py-4">
                     <div class="mb-3 flex items-center gap-2">
-                        <flux:icon :name="$categoryIcons[$category]" class="size-4 text-zinc-400" />
+                        <flux:icon :name="$categoryIcons[$category] ?? 'tag'" class="size-4 text-zinc-400" />
                         <span class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                             {{ $categoryLabels[$category] ?? $category }}
                         </span>
