@@ -69,16 +69,10 @@
         <div>
             <flux:label>{{ __('Audience') }}</flux:label>
             <div class="mt-2 space-y-3">
-                <div class="flex gap-4">
-                    <label class="flex items-center gap-2">
-                        <flux:radio wire:model.live="composeAudience" value="all" />
-                        <span class="text-sm text-zinc-700 dark:text-zinc-300">{{ __('All Members') }}</span>
-                    </label>
-                    <label class="flex items-center gap-2">
-                        <flux:radio wire:model.live="composeAudience" value="specific" />
-                        <span class="text-sm text-zinc-700 dark:text-zinc-300">{{ __('Specific Members') }}</span>
-                    </label>
-                </div>
+                <flux:radio.group wire:model.live="composeAudience" class="flex gap-4">
+                    <flux:radio value="all" :label="__('All Members')" />
+                    <flux:radio value="specific" :label="__('Specific Members')" />
+                </flux:radio.group>
 
                 @if ($composeAudience === 'specific')
                     <div class="rounded-lg border border-zinc-200 p-3 dark:border-zinc-700">

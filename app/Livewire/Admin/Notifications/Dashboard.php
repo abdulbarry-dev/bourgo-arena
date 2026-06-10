@@ -21,8 +21,6 @@ class Dashboard extends Component
     use AuthorizesRequests, WithPagination;
 
     // ─── Type CRUD ───────────────────────────────────────
-    public bool $showTypeFlyout = false;
-
     public string $typeFlyoutMode = 'create';
 
     public ?NotificationType $editingType = null;
@@ -71,7 +69,7 @@ class Dashboard extends Component
     {
         $this->resetTypeForm();
         $this->typeFlyoutMode = 'create';
-        $this->showTypeFlyout = true;
+        Flux::modal('type-form-flyout')->show();
     }
 
     public function openEditTypeFlyout(int $typeId): void
@@ -88,7 +86,7 @@ class Dashboard extends Component
         $this->typeSmsEnabled = $type->sms_enabled;
         $this->typeIsActive = $type->is_active;
         $this->typeFlyoutMode = 'edit';
-        $this->showTypeFlyout = true;
+        Flux::modal('type-form-flyout')->show();
     }
 
     public function saveType(): void
@@ -125,8 +123,8 @@ class Dashboard extends Component
             $this->dispatch('toast', message: __('Notification type created successfully.'), type: 'success');
         }
 
-        $this->showTypeFlyout = false;
         $this->editingType = null;
+        Flux::modal('type-form-flyout')->close();
     }
 
     public function confirmDeleteType(int $typeId): void

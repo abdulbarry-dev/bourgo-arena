@@ -1,4 +1,4 @@
-<flux:modal wire:model="showTypeFlyout" variant="flyout" class="space-y-6">
+<flux:modal name="type-form-flyout" variant="flyout" class="space-y-6">
     <div>
         <flux:heading size="lg">
             {{ $typeFlyoutMode === 'create' ? __('Create Notification Type') : __('Edit Notification Type') }}

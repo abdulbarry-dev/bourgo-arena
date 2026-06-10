@@ -136,7 +136,9 @@ it('creates a new notification type', function () {
 
     Livewire::test(Dashboard::class)
         ->call('openCreateTypeFlyout')
-        ->assertSet('showTypeFlyout', true)
+        ->assertSet('typeName', '')
+        ->assertSet('typeSlug', '')
+        ->assertSet('typeCategory', 'system')
         ->set('typeName', 'My Custom Type')
         ->set('typeSlug', 'my_custom_type')
         ->set('typeCategory', 'promotions')
@@ -217,7 +219,6 @@ it('edits an existing notification type', function () {
 
     Livewire::test(Dashboard::class)
         ->call('openEditTypeFlyout', $type->id)
-        ->assertSet('showTypeFlyout', true)
         ->assertSet('typeName', 'Original Name')
         ->set('typeName', 'Updated Name')
         ->call('saveType');

@@ -40,27 +40,49 @@
                     </div>
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
                         @foreach ($categoryTypes as $type)
-                            <div class="group relative rounded-lg border border-zinc-200 bg-white p-4 transition hover:border-zinc-300 hover:shadow-sm dark:border-zinc-700 dark:bg-zinc-900/60 dark:hover:border-zinc-600">
+                            @php
+                                $isDisabled = ! $type->is_active;
+                            @endphp
+                            <div @class([
+                                'group relative rounded-lg border p-4 transition',
+                                'border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-sm dark:border-zinc-700 dark:bg-zinc-900/60 dark:hover:border-zinc-600' => ! $isDisabled,
+                                'border-dashed border-zinc-200 bg-zinc-50/50 opacity-50 grayscale dark:border-zinc-700 dark:bg-zinc-900/30' => $isDisabled,
+                                'pointer-events-none' => $isDisabled,
+                            ])>
                                 <div class="mb-3 flex items-start justify-between">
                                     <div class="flex items-center gap-2.5">
-                                        <div class="flex size-9 items-center justify-center rounded-lg bg-zinc-50 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+                                        <div @class([
+                                            'flex size-9 items-center justify-center rounded-lg',
+                                            'bg-zinc-50 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400' => ! $isDisabled,
+                                            'bg-zinc-100 text-zinc-400 dark:bg-zinc-800/50 dark:text-zinc-500' => $isDisabled,
+                                        ])>
                                             <flux:icon :name="$type->icon" class="size-4" />
                                         </div>
                                         <div>
-                                            <p class="text-sm font-medium text-zinc-900 dark:text-white">{{ $type->name }}</p>
+                                            <p @class([
+                                                'text-sm font-medium',
+                                                'text-zinc-900 dark:text-white' => ! $isDisabled,
+                                                'text-zinc-400 line-through dark:text-zinc-500' => $isDisabled,
+                                            ])>{{ $type->name }}</p>
                                             @if ($type->description)
-                                                <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">{{ Str::limit($type->description, 60) }}</p>
+                                                <p @class([
+                                                    'mt-0.5 text-xs',
+                                                    'text-zinc-500 dark:text-zinc-400' => ! $isDisabled,
+                                                    'text-zinc-400 dark:text-zinc-500' => $isDisabled,
+                                                ])>{{ Str::limit($type->description, 60) }}</p>
                                             @endif
                                         </div>
                                     </div>
-                                    <div class="flex items-center gap-1 opacity-0 transition group-hover:opacity-100">
-                                        <button wire:click="openEditTypeFlyout({{ $type->id }})" class="rounded p-1 text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300" title="{{ __('Edit') }}">
-                                            <flux:icon.pencil-square class="size-3.5" />
-                                        </button>
-                                        <button wire:click="confirmDeleteType({{ $type->id }})" class="rounded p-1 text-zinc-400 transition hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20" title="{{ __('Delete') }}">
-                                            <flux:icon.trash class="size-3.5" />
-                                        </button>
-                                    </div>
+                                    @unless ($isDisabled)
+                                        <div class="flex items-center gap-1 opacity-0 transition group-hover:opacity-100">
+                                            <button wire:click="openEditTypeFlyout({{ $type->id }})" class="rounded p-1 text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300" title="{{ __('Edit') }}">
+                                                <flux:icon.pencil-square class="size-3.5" />
+                                            </button>
+                                            <button wire:click="confirmDeleteType({{ $type->id }})" class="rounded p-1 text-zinc-400 transition hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20" title="{{ __('Delete') }}">
+                                                <flux:icon.trash class="size-3.5" />
+                                            </button>
+                                        </div>
+                                    @endunless
                                 </div>
 
                                 <div class="flex flex-wrap items-center gap-3">
@@ -77,7 +99,13 @@
                                         {{ __('SMS') }}
                                     </label>
 
-                                    <flux:switch wire:click="toggleTypeActive({{ $type->id }})" :checked="$type->is_active" size="sm" class="ml-auto" />
+                                    @if ($isDisabled)
+                                        <span class="ml-auto inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                                            {{ __('Disabled') }}
+                                        </span>
+                                    @else
+                                        <flux:switch wire:click="toggleTypeActive({{ $type->id }})" :checked="$type->is_active" size="sm" class="ml-auto" />
+                                    @endif
                                 </div>
                             </div>
                         @endforeach
