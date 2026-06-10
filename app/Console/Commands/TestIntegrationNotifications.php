@@ -39,7 +39,7 @@ class TestIntegrationNotifications extends Command
 
             Mail::mailer('resend')->send($mail);
 
-            $this->info("   ✅ Email sent successfully via Resend");
+            $this->info('   ✅ Email sent successfully via Resend');
         } catch (\Throwable $e) {
             $this->error("   ❌ Email failed: {$e->getMessage()}");
             Log::error('Email integration test failed', ['error' => $e->getMessage(), 'email' => $email]);
@@ -54,7 +54,7 @@ class TestIntegrationNotifications extends Command
             Notification::route(SmsChannel::class, $phone)
                 ->notify(new SendOtpCode($code, 'sms'));
 
-            $this->info("   ✅ SMS sent successfully via Twilio");
+            $this->info('   ✅ SMS sent successfully via Twilio');
         } catch (\Throwable $e) {
             $this->error("   ❌ SMS failed: {$e->getMessage()}");
             Log::error('SMS integration test failed', ['error' => $e->getMessage(), 'phone' => $phone]);
