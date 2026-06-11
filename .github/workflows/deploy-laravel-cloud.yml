@@ -4,6 +4,13 @@ on:
   push:
     branches: [develop, main]
   workflow_dispatch:
+    inputs:
+      seed:
+        description: 'Run seeders after deployment (staging only)'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['false', 'true']
 
 jobs:
   test:
@@ -54,6 +61,11 @@ jobs:
     environment:
       name: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
 
+    env:
+      LARAVEL_CLOUD_TOKEN: ${{ secrets.LARAVEL_CLOUD_TOKEN }}
+      CLOUD_APP_ID: ${{ secrets.LARAVEL_CLOUD_APP_ID }}
+      CLOUD_ENV: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
+
     steps:
       - uses: actions/checkout@v6
 
@@ -64,18 +76,37 @@ jobs:
         run: |
           export PATH=$PATH:$(composer global config bin-dir --absolute)
           cloud deploy \
-            --app=${{ secrets.LARAVEL_CLOUD_APP_ID }} \
-            --environment=${{ github.ref_name == 'main' && 'production' || 'staging' }} \
+            --app=${{ env.CLOUD_APP_ID }} \
+            --environment=${{ env.CLOUD_ENV }} \
             --commit=${{ github.sha }} \
             --wait \
             -n
-        env:
-          LARAVEL_CLOUD_TOKEN: ${{ secrets.LARAVEL_CLOUD_TOKEN }}
+
+      - name: Run Migrations
+        run: |
+          export PATH=$PATH:$(composer global config bin-dir --absolute)
+          cloud run \
+            --app=${{ env.CLOUD_APP_ID }} \
+            --environment=${{ env.CLOUD_ENV }} \
+            -n \
+            -- php artisan migrate --force
+
+      # ── Staging-only seeding ──────────────────────────────────────────────
+      # Runs automatically on every staging push, or manually via workflow_dispatch
+      # with seed=true. Never runs on production to protect live data.
+      - name: Seed Staging Dataset
+        if: env.CLOUD_ENV == 'staging' && (github.event_name == 'push' || inputs.seed == 'true')
+        run: |
+          export PATH=$PATH:$(composer global config bin-dir --absolute)
+          cloud run \
+            --app=${{ env.CLOUD_APP_ID }} \
+            --environment=staging \
+            -n \
+            -- php artisan db:seed --class=FullApplicationSeeder --force
+        continue-on-error: true
 
       - name: Monitor Deployment
         if: always()
         run: |
           export PATH=$PATH:$(composer global config bin-dir --absolute)
           cloud deploy:monitor -n
-        env:
-          LARAVEL_CLOUD_TOKEN: ${{ secrets.LARAVEL_CLOUD_TOKEN }}

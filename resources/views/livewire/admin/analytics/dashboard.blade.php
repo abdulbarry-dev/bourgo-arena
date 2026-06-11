@@ -35,6 +35,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Revenue (MTD)') }}</p>
+                            <p class="text-xs text-zinc-400 dark:text-zinc-500">{{ __('Excludes loyalty points redemptions') }}</p>
                             <h3 class="mt-2 text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
                                 {{ number_format($kpiData['revenue_mtd'] ?? 0, 3) }}<span class="text-lg font-normal text-zinc-400"> TND</span>
                         </h3>
@@ -242,14 +243,35 @@
             <x-ui.dashboard.panel>
                 <div class="mb-3">
                     <h4 class="font-semibold text-zinc-900 dark:text-white">{{ __('Revenue by Payment Method') }}</h4>
+                    <p class="text-xs text-zinc-400 dark:text-zinc-500">{{ __('Loyalty points redemptions are not included') }}</p>
                 </div>
+                @php
+                    $chartData = $revenueByMethod;
+                    if (isset($chartData['labels'])) {
+                        $cleanedLabels = [];
+                        $cleanedValues = [];
+                        foreach ($chartData['labels'] as $i => $label) {
+                            if ($label === 'loyalty_points') {
+                                continue;
+                            }
+                            $cleanedLabels[] = match ($label) {
+                                'konnect' => 'Konnect',
+                                'cash' => 'Cash / Manual',
+                                null, '' => 'Other',
+                                default => $label,
+                            };
+                            $cleanedValues[] = $chartData['values'][$i] ?? 0;
+                        }
+                        $chartData = ['labels' => $cleanedLabels, 'values' => $cleanedValues];
+                    }
+                @endphp
                 <div class="relative h-64" wire:key="revenue-by-method-chart"
                      x-data="{
                          chart: null,
                          init() {
                              this.$nextTick(() => {
                                  if (this.chart) this.chart.destroy();
-                                 const data = {{ Js::from($revenueByMethod) }};
+                                 const data = {{ Js::from($chartData) }};
                                  if (data.values && data.values.some(v => v > 0)) {
                                      this.chart = window.createPieChart(this.$refs.canvas, data);
                                  }
@@ -260,7 +282,7 @@
                          }
                      }"
                      x-on:livewire:navigating.window="destroy()">
-                    @if (!empty($revenueByMethod['values']) && collect($revenueByMethod['values'])->sum() > 0)
+                    @if (!empty($chartData['values']) && collect($chartData['values'])->sum() > 0)
                         <canvas x-ref="canvas"></canvas>
                     @else
                         <div class="flex h-full flex-col items-center justify-center text-center">

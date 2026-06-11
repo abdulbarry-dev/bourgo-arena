@@ -22,23 +22,29 @@ class AnalyticsService
         $endOfLastMonth = $now->copy()->subMonth()->endOfMonth();
 
         $revenueMtd = Payment::whereIn('status', ['completed', 'paid', 'confirmed'])
+            ->where('driver', '!=', 'loyalty')
             ->where('created_at', '>=', $startOfMonth)
             ->sum('amount')
             + Subscription::whereDate('created_at', '>=', $startOfMonth)
                 ->whereIn('status', ['active', 'expired'])
+                ->where('payment_method', '!=', 'loyalty_points')
                 ->sum('amount_paid')
             + ApiReservation::whereDate('created_at', '>=', $startOfMonth)
                 ->where('status', 'confirmed')
+                ->whereDoesntHave('payments', fn ($q) => $q->where('driver', 'loyalty'))
                 ->sum('price');
 
         $revenueLastMonth = Payment::whereIn('status', ['completed', 'paid', 'confirmed'])
+            ->where('driver', '!=', 'loyalty')
             ->whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])
             ->sum('amount')
             + Subscription::whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])
                 ->whereIn('status', ['active', 'expired'])
+                ->where('payment_method', '!=', 'loyalty_points')
                 ->sum('amount_paid')
             + ApiReservation::whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])
                 ->where('status', 'confirmed')
+                ->whereDoesntHave('payments', fn ($q) => $q->where('driver', 'loyalty'))
                 ->sum('price');
 
         $activeSubs = Subscription::where('status', 'active')
@@ -111,18 +117,38 @@ class AnalyticsService
 
     public function getSubscriptionDistribution(): array
     {
-        $active = Subscription::where('status', 'active')
-            ->where(function ($q) {
-                $q->whereNull('ends_at')->orWhere('ends_at', '>', now());
-            })
-            ->count();
+        $allStatuses = [
+            'Active' => [
+                'count' => Subscription::where('status', 'active')
+                    ->where(fn ($q) => $q->whereNull('ends_at')->orWhere('ends_at', '>', now()))
+                    ->count(),
+                'colorKey' => 'emerald',
+            ],
+            'Expired' => [
+                'count' => Subscription::where('status', 'expired')->count(),
+                'colorKey' => 'rose',
+            ],
+            'Suspended' => [
+                'count' => Subscription::where('status', 'suspended')->count(),
+                'colorKey' => 'amber',
+            ],
+            'Pending' => [
+                'count' => Subscription::where('status', 'pending')->count(),
+                'colorKey' => 'indigo',
+            ],
+            'Cancelled' => [
+                'count' => Subscription::where('status', 'cancelled')->count(),
+                'colorKey' => 'zinc',
+            ],
+        ];
 
-        $expired = Subscription::where('status', 'expired')->count();
-        $suspended = Subscription::where('status', 'suspended')->count();
+        // Only include statuses that have at least one subscription
+        $filtered = array_filter($allStatuses, fn ($s) => $s['count'] > 0);
 
         return [
-            'labels' => ['Active', 'Expired', 'Suspended'],
-            'values' => [$active, $expired, $suspended],
+            'labels' => array_keys($filtered),
+            'values' => array_column(array_values($filtered), 'count'),
+            'colorKeys' => array_column(array_values($filtered), 'colorKey'),
         ];
     }
 
@@ -186,8 +212,11 @@ class AnalyticsService
             }
         }
 
+        unset($aggregated['loyalty_points']);
+
         if (empty($aggregated)) {
             $paymentsQuery = Payment::where('status', 'completed')
+                ->where('driver', '!=', 'loyalty')
                 ->select('gateway', DB::raw('SUM(amount) as total'))
                 ->groupBy('gateway');
 

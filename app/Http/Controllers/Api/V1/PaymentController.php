@@ -64,7 +64,7 @@ class PaymentController extends Controller
 
         $payment = $paymentService->findByIdentifiers($dto->paymentReference, $dto->gatewayTransactionId);
 
-        if ($payment === null) {
+        if ($payment === null || (int) $payment->member_id !== (int) $request->user()->id) {
             return response()->json(['success' => false, 'error' => 'payment_not_found'], 404);
         }
 

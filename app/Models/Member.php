@@ -217,6 +217,11 @@ class Member extends Authenticatable
         return $this->hasMany(ApiReservation::class);
     }
 
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class);
+    }
+
     public function hasAccessToCourse(Course $course): bool
     {
         return $this->validSubscriptions()

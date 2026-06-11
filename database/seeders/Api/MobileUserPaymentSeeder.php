@@ -248,7 +248,7 @@ class MobileUserPaymentSeeder extends Seeder
                 'member_id' => $member->id,
                 'points' => -$pointsSub,
                 'transaction_type' => 'payment',
-                'source_type' => Subscription::class,
+                'source_type' => 'subscription',
                 'source_id' => $subscription->id,
                 'created_at' => now()->subDays(19),
             ]
@@ -258,7 +258,7 @@ class MobileUserPaymentSeeder extends Seeder
             [
                 'member_id' => $member->id,
                 'action' => 'payment',
-                'source_type' => Subscription::class,
+                'source_type' => 'subscription',
                 'source_id' => $subscription->id,
                 'points_changed' => -$pointsSub,
             ],
@@ -301,7 +301,7 @@ class MobileUserPaymentSeeder extends Seeder
                 'member_id' => $member->id,
                 'points' => -$pointsRes,
                 'transaction_type' => 'payment',
-                'source_type' => ApiReservation::class,
+                'source_type' => 'reservation',
                 'source_id' => $reservation->id,
                 'created_at' => now()->subDays(12),
             ]
@@ -311,7 +311,7 @@ class MobileUserPaymentSeeder extends Seeder
             [
                 'member_id' => $member->id,
                 'action' => 'payment',
-                'source_type' => ApiReservation::class,
+                'source_type' => 'reservation',
                 'source_id' => $reservation->id,
                 'points_changed' => -$pointsRes,
             ],

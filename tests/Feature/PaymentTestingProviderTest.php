@@ -74,6 +74,35 @@ test('it can verify a payment using the test provider', function () {
         ]);
 });
 
+test('it returns 404 when verifying another member\'s payment', function () {
+    $otherMember = Member::factory()->create([
+        'email_verified_at' => now(),
+        'phone_verified_at' => now(),
+        'onboarding_completed_at' => now(),
+        'status' => 'active',
+    ]);
+
+    $payment = Payment::create([
+        'member_id' => $otherMember->id,
+        'amount' => 100,
+        'driver' => 'test',
+        'status' => 'initiated',
+        'payment_reference' => 'test_other_member_ref',
+        'gateway_transaction_id' => 'test_other_member_ref',
+    ]);
+
+    $response = $this->actingAs($this->member, 'sanctum')
+        ->postJson('/api/v1/payments/verify', [
+            'payment_reference' => 'test_other_member_ref',
+        ]);
+
+    $response->assertStatus(404)
+        ->assertJson([
+            'success' => false,
+            'error' => 'payment_not_found',
+        ]);
+});
+
 test('it fails verification if reference contains fail', function () {
     // Create a payment record manually to avoid 404
     $payment = Payment::create([

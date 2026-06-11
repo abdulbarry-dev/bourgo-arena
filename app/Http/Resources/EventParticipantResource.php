@@ -16,7 +16,9 @@ class EventParticipantResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'event_id' => $this->event_id,
+            // Cast to string to match EventResource's `id` contract and the
+            // mobile client's String `event_id` field.
+            'event_id' => (string) $this->event_id,
             'user' => [
                 'id' => $this->user->id,
                 'name' => $this->user->name,

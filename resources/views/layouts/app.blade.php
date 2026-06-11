@@ -1,6 +1,6 @@
 <x-layouts::app.sidebar :title="$title ?? null">
     @php
-        $isLockedDashboardPage = request()->routeIs('admin.events.index');
+        $isLockedDashboardPage = false;
     @endphp
 
     <flux:main @class([

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api\V1;
 
 use App\DTOs\PaymentInitiateDTO;
+use App\Models\Member;
 use Illuminate\Foundation\Http\FormRequest;
 
 class InitiatePaymentRequest extends FormRequest
@@ -28,7 +29,7 @@ class InitiatePaymentRequest extends FormRequest
     public function toDTO(): PaymentInitiateDTO
     {
         return new PaymentInitiateDTO(
-            memberId: $this->validated('member_id'),
+            memberId: $this->user() instanceof Member ? $this->user()->id : $this->validated('member_id'),
             reservationId: $this->validated('reservation_id'),
             subscriptionId: $this->validated('subscription_id'),
             amount: $this->validated('amount'),

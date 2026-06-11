@@ -143,6 +143,17 @@ Route::prefix('v1')->group(function () {
                 Route::put('members/{member}', [FamilyController::class, 'update'])->name('api.v1.family.members.update');
                 Route::delete('children/{member}', [FamilyController::class, 'destroy'])->name('api.v1.family.children.destroy');
                 Route::delete('members/{member}', [FamilyController::class, 'destroy'])->name('api.v1.family.members.destroy');
+
+                Route::get('children/{member}/profile', [FamilyController::class, 'childProfile'])->name('api.v1.family.children.profile');
+                Route::post('children/{member}/subscriptions', [FamilyController::class, 'buyChildSubscription'])->name('api.v1.family.children.subscriptions.store');
+                Route::get('children/{member}/subscriptions', [FamilyController::class, 'childSubscriptions'])->name('api.v1.family.children.subscriptions.index');
+                Route::get('children/{member}/bookings', [FamilyController::class, 'childBookings'])->name('api.v1.family.children.bookings.index');
+                Route::get('children/{member}/sessions', [FamilyController::class, 'childAvailableSessions'])->name('api.v1.family.children.sessions.index');
+                Route::post('children/{member}/sessions/{session}/book', [FamilyController::class, 'bookForChild'])->name('api.v1.family.children.book.store');
+                Route::post('children/{member}/bookings/{booking}/complete', [FamilyController::class, 'completeChildBooking'])->name('api.v1.family.children.bookings.complete');
+                Route::get('children/{member}/reservations', [FamilyController::class, 'childReservations'])->name('api.v1.family.children.reservations.index');
+                Route::get('children/{member}/schedule', [FamilyController::class, 'childSchedule'])->name('api.v1.family.children.schedule');
+                Route::get('children/{member}/completed', [FamilyController::class, 'childCompleted'])->name('api.v1.family.children.completed');
             });
 
             Route::post('device-token', [DeviceTokenController::class, 'store'])->name('api.v1.device-token.store');

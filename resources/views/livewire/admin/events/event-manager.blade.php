@@ -84,12 +84,14 @@
                             ->map(fn($p) => Str::startsWith($p, ['http', '/storage']) ? $p : asset('storage/'.$p))
                             ->toArray();
                     @endphp
-                    <div class="relative overflow-hidden rounded-xl mb-4 group/carousel" x-data="{ 
-                        active: 0, 
+                    <div class="relative overflow-hidden rounded-xl mb-4 group/carousel" x-data="{
+                        active: 0,
                         images: {{ json_encode($carouselImages) }},
+                        _timer: null,
                         next() { if(this.images.length) this.active = (this.active + 1) % this.images.length },
                         prev() { if(this.images.length) this.active = (this.active - 1 + this.images.length) % this.images.length },
-                        init() { if(this.images.length > 1) setInterval(() => this.next(), 5000) }
+                        init() { if(this.images.length > 1) this._timer = setInterval(() => this.next(), 5000) },
+                        destroy() { if(this._timer) clearInterval(this._timer) }
                     }">
                         @if(!empty($carouselImages))
                             <div class="relative aspect-video w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">

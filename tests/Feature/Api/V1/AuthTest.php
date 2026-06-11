@@ -1,5 +1,8 @@
 <?php
 
+use App\Models\Booking;
+use App\Models\Course;
+use App\Models\CourseSession;
 use App\Models\Member;
 use App\Notifications\SendOtpCode;
 use App\Services\Auth\AuthService;
@@ -31,6 +34,7 @@ test('valid login returns token for active member', function () {
             'data' => [
                 'token',
                 'state',
+                'upcoming_schedule',
                 'user' => [
                     'id',
                     'name',
@@ -38,7 +42,8 @@ test('valid login returns token for active member', function () {
                 ],
             ],
         ])
-        ->assertJsonPath('data.state', 'active');
+        ->assertJsonPath('data.state', 'active')
+        ->assertJsonPath('data.upcoming_schedule', []);
 });
 
 test('wrong password returns 401', function () {
@@ -93,6 +98,7 @@ test('member can register successfully and gets pending_verification state', fun
             'success' => true,
             'data' => [
                 'state' => 'pending_verification',
+                'upcoming_schedule' => [],
             ],
         ])
         ->assertJsonStructure([
@@ -307,4 +313,44 @@ test('resetPasswordByOtp updates password hash', function () {
 
     expect(Hash::check('new-secure-password', $member->password))->toBeTrue();
     expect(Hash::check('old-password', $member->password))->toBeFalse();
+});
+
+test('login response includes upcoming course bookings in schedule', function () {
+    $course = Course::factory()->create(['name' => 'Tennis', 'status' => 'active']);
+    $session = CourseSession::factory()->create([
+        'course_id' => $course->id,
+        'starts_at' => '14:00:00',
+        'duration_minutes' => 60,
+        'day_of_week' => now()->addDays(2)->dayOfWeek,
+        'starts_at_date' => now()->subDays(3),
+        'ends_at_date' => now()->addDays(10),
+        'is_cancelled' => false,
+    ]);
+
+    $member = Member::factory()->create([
+        'email' => 'booked@example.com',
+        'password' => Hash::make('password123'),
+        'state' => 'active',
+        'email_verified_at' => now(),
+        'phone_verified_at' => now(),
+        'onboarding_completed_at' => now(),
+    ]);
+
+    Booking::create([
+        'member_id' => $member->id,
+        'course_session_id' => $session->id,
+        'date' => now()->addDays(2)->toDateString(),
+        'status' => 'confirmed',
+    ]);
+
+    $response = $this->postJson(route('api.v1.auth.login'), [
+        'email' => 'booked@example.com',
+        'password' => 'password123',
+    ]);
+
+    $response->assertSuccessful()
+        ->assertJsonCount(1, 'data.upcoming_schedule')
+        ->assertJsonPath('data.upcoming_schedule.0.type', 'course')
+        ->assertJsonPath('data.upcoming_schedule.0.name', 'Tennis')
+        ->assertJsonPath('data.upcoming_schedule.0.status', 'confirmed');
 });

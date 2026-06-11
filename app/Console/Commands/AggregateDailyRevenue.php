@@ -26,7 +26,9 @@ class AggregateDailyRevenue extends Command
 
         $this->info("Aggregating revenue for {$dateStr}...");
 
-        $totalRevenue = Subscription::whereDate('created_at', $date)->sum('amount_paid');
+        $totalRevenue = Subscription::whereDate('created_at', $date)
+            ->where('payment_method', '!=', 'loyalty_points')
+            ->sum('amount_paid');
         $activeSubs = Subscription::where('status', 'active')->count();
         $expiredSubs = Subscription::where('status', 'expired')->count();
 
@@ -35,6 +37,7 @@ class AggregateDailyRevenue extends Command
             : 0;
 
         $revenueByMethod = Subscription::whereDate('created_at', $date)
+            ->where('payment_method', '!=', 'loyalty_points')
             ->select('payment_method', DB::raw('SUM(amount_paid) as total'))
             ->groupBy('payment_method')
             ->pluck('total', 'payment_method')
@@ -83,6 +86,7 @@ class AggregateDailyRevenue extends Command
             'active_activities' => Activity::where('is_active', true)->count(),
             'reservations_today' => ApiReservation::whereDate('created_at', $date)->count(),
             'revenue_from_reservations' => ApiReservation::whereDate('created_at', $date)
+                ->whereDoesntHave('payments', fn ($q) => $q->where('driver', 'loyalty'))
                 ->sum('price'),
         ];
 

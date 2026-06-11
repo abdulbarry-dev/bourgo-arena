@@ -11,12 +11,14 @@
                     ->toArray();
             @endphp
             <div class="relative -mx-6 -mt-6 overflow-hidden bg-zinc-900 aspect-video group/viewer" 
-                 x-data="{ 
-                    active: 0, 
+                 x-data="{
+                    active: 0,
                     images: {{ json_encode($carouselImages) }},
+                    _timer: null,
                     next() { if(this.images.length) this.active = (this.active + 1) % this.images.length },
                     prev() { if(this.images.length) this.active = (this.active - 1 + this.images.length) % this.images.length },
-                    init() { if(this.images.length > 1) setInterval(() => this.next(), 5000) }
+                    init() { if(this.images.length > 1) this._timer = setInterval(() => this.next(), 5000) },
+                    destroy() { if(this._timer) clearInterval(this._timer) }
                  }">
                 
                 @if(!empty($carouselImages))
@@ -157,7 +159,9 @@
 
             {{-- Actions --}}
             <div class="flex gap-2 pt-6">
-                <flux:button variant="ghost" wire:click="closeViewModal" class="flex-1">{{ __('Close') }}</flux:button>
+                <flux:modal.close>
+                <flux:button variant="ghost" class="flex-1">{{ __('Close') }}</flux:button>
+            </flux:modal.close>
                 <flux:button variant="primary" icon="users" href="{{ route('admin.events.participants', $eventToView->id) }}" class="flex-1">{{ __('Manage Participants') }}</flux:button>
                 <flux:dropdown>
                     <flux:button variant="ghost" icon="ellipsis-horizontal" class="!px-2" />

@@ -205,9 +205,7 @@ test('pay subscription with sufficient points', function () {
     $subscription = Subscription::factory()->create([
         'member_id' => $member->id,
         'plan_id' => $plan->id,
-        'status' => 'active',
-        'starts_at' => now()->toDateString(),
-        'ends_at' => now()->addDays(30)->toDateString(),
+        'status' => 'pending',
     ]);
 
     $service = app(LoyaltyPaymentService::class);
@@ -215,7 +213,8 @@ test('pay subscription with sufficient points', function () {
 
     expect($payment->driver)->toBe('loyalty');
     expect((float) $payment->amount)->toBe(50.000);
-    expect($member->fresh()->loyalty_points)->toBe(5000);
+    // 10000 - 5000 (payment) + 250 (loyalty credit for subscription renewal) = 5250
+    expect($member->fresh()->loyalty_points)->toBe(5250);
 });
 
 test('exact balance payment succeeds with zero remaining', function () {

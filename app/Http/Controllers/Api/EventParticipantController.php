@@ -13,7 +13,7 @@ class EventParticipantController extends Controller
 {
     public function myEvents(Request $request)
     {
-        $participants = EventParticipant::with('event')
+        $participants = EventParticipant::with(['event', 'user'])
             ->where('user_id', $request->user()->id)
             ->latest()
             ->get();
@@ -27,28 +27,33 @@ class EventParticipantController extends Controller
             return response()->json(['message' => 'Event is not open for registration'], 422);
         }
 
-        $existing = EventParticipant::where('event_id', $event->id)
-            ->where('user_id', $request->user()->id)
-            ->first();
+        return DB::transaction(function () use ($request, $event) {
+            $event = Event::lockForUpdate()->findOrFail($event->id);
 
-        if ($existing) {
-            return response()->json(['message' => 'Already registered'], 422);
-        }
+            $existing = EventParticipant::where('event_id', $event->id)
+                ->where('user_id', $request->user()->id)
+                ->lockForUpdate()
+                ->first();
 
-        $currentCount = $event->participants()->count();
-        $status = $currentCount >= $event->max_participants ? 'waitlisted' : 'pending';
+            if ($existing) {
+                return response()->json(['message' => 'Already registered'], 422);
+            }
 
-        $participant = EventParticipant::create([
-            'event_id' => $event->id,
-            'user_id' => $request->user()->id,
-            'status' => $status,
-        ]);
+            $currentCount = $event->participants()->count();
+            $status = $currentCount >= $event->max_participants ? 'waitlisted' : 'pending';
 
-        return response()->json([
-            'message' => 'Successfully registered',
-            'status' => $status,
-            'data' => new EventParticipantResource($participant->load('user')),
-        ], 201);
+            $participant = EventParticipant::create([
+                'event_id' => $event->id,
+                'user_id' => $request->user()->id,
+                'status' => $status,
+            ]);
+
+            return response()->json([
+                'message' => 'Successfully registered',
+                'status' => $status,
+                'data' => new EventParticipantResource($participant->load('user')),
+            ], 201);
+        });
     }
 
     public function withdraw(Request $request, Event $event)

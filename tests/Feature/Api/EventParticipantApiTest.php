@@ -48,6 +48,45 @@ it('waitlists user if event is full', function () {
         ->assertJsonPath('status', 'waitlisted');
 });
 
+it('blocks duplicate registration within the same transaction', function () {
+    $user = User::factory()->create();
+    $event = Event::factory()->open()->create([
+        'max_participants' => 16,
+    ]);
+
+    Sanctum::actingAs($user);
+
+    $this->postJson("/api/v1/events/{$event->id}/register")->assertStatus(201);
+    $this->postJson("/api/v1/events/{$event->id}/register")->assertStatus(422)
+        ->assertJsonPath('message', 'Already registered');
+
+    $this->assertDatabaseCount('event_participants', 1);
+});
+
+it('waitlists exactly at max_participants boundary', function () {
+    $user = User::factory()->create();
+    $event = Event::factory()->open()->create([
+        'max_participants' => 2,
+    ]);
+
+    EventParticipant::factory()->count(2)->create([
+        'event_id' => $event->id,
+        'status' => 'approved',
+    ]);
+
+    Sanctum::actingAs($user);
+
+    $response = $this->postJson("/api/v1/events/{$event->id}/register");
+
+    $response->assertStatus(201)->assertJsonPath('status', 'waitlisted');
+
+    $this->assertDatabaseHas('event_participants', [
+        'event_id' => $event->id,
+        'user_id' => $user->id,
+        'status' => 'waitlisted',
+    ]);
+});
+
 it('allows an authenticated user to withdraw and auto-promotes waitlist', function () {
     $user = User::factory()->create();
     $waitlistedUser = User::factory()->create();

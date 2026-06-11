@@ -128,7 +128,13 @@ export function createDoughnutChart(canvas, data, options = {}) {
         getColor('rose'),
         getColor('violet'),
         getColor('amber'),
+        getColor('zinc'),
     ];
+
+    // colorKeys are resolved at chart-creation time so dark mode is respected
+    const resolvedColors = data.colorKeys
+        ? data.colorKeys.map(key => getColor(key))
+        : (data.colors || defaultColors);
 
     const config = {
         type: 'doughnut',
@@ -136,7 +142,7 @@ export function createDoughnutChart(canvas, data, options = {}) {
             labels: data.labels,
             datasets: [{
                 data: data.values,
-                backgroundColor: data.colors || defaultColors,
+                backgroundColor: resolvedColors,
                 borderColor: isDark() ? '#27272a' : '#ffffff',
                 borderWidth: 3,
                 hoverOffset: 8,

@@ -19,7 +19,7 @@ class AuthOrchestrationService
     /**
      * Handle login flow and return payload for controller to return.
      *
-     * @return array{token: string, state: string, user: Member, code?: string, verification_status?: mixed, required_action?: string, cta?: string}
+     * @return array{token: string, state: string, user: Member, code?: string, verification_status?: mixed, required_action?: string, cta?: string, upcoming_schedule?: array}
      *
      * @throws ValidationException
      */
@@ -37,6 +37,9 @@ class AuthOrchestrationService
         $state = $member->status ?? $member->state;
         $verificationStatus = $member->getVerificationStatus();
 
+        $member->load(['children', 'validSubscriptions.plan.service']);
+        $upcomingSchedule = app(AuthDashboardService::class)->buildUpcomingSchedule($member);
+
         if ($member->scheduled_for_deletion_at && $member->scheduled_for_deletion_at->isFuture()) {
             $identifier = $member->phone ?? $member->email;
             $this->otpService->generate($identifier);
@@ -49,6 +52,7 @@ class AuthOrchestrationService
                 'code' => 'ACCOUNT_DELETION_PENDING',
                 'user' => $member,
                 'verification_status' => $verificationStatus,
+                'upcoming_schedule' => $upcomingSchedule,
             ];
         }
 
@@ -63,6 +67,7 @@ class AuthOrchestrationService
                 'code' => $code,
                 'user' => $member,
                 'verification_status' => $verificationStatus,
+                'upcoming_schedule' => $upcomingSchedule,
             ];
         }
 
@@ -75,6 +80,7 @@ class AuthOrchestrationService
                 'code' => 'ADDITIONAL_VERIFICATION_REQUIRED',
                 'user' => $member,
                 'verification_status' => $verificationStatus,
+                'upcoming_schedule' => $upcomingSchedule,
             ];
         }
 
@@ -89,6 +95,7 @@ class AuthOrchestrationService
                 'cta' => __('Complete Setup'),
                 'user' => $member,
                 'verification_status' => $verificationStatus,
+                'upcoming_schedule' => $upcomingSchedule,
             ];
         }
 
@@ -99,6 +106,7 @@ class AuthOrchestrationService
             'state' => $state,
             'user' => $member,
             'verification_status' => $verificationStatus,
+            'upcoming_schedule' => $upcomingSchedule,
         ];
     }
 
@@ -140,12 +148,19 @@ class AuthOrchestrationService
 
         $token = $user->createToken('auth_token', $abilities)->plainTextToken;
 
-        return [
+        $response = [
             'valid' => true,
             'token' => $token,
             'state' => $state,
             'user' => $user,
             'verification_status' => $user instanceof Member ? $user->getVerificationStatus() : null,
         ];
+
+        if ($user instanceof Member) {
+            $user->load(['children', 'validSubscriptions.plan.service']);
+            $response['upcoming_schedule'] = app(AuthDashboardService::class)->buildUpcomingSchedule($user);
+        }
+
+        return $response;
     }
 }

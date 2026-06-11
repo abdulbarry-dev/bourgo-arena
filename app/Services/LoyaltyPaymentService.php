@@ -11,6 +11,7 @@ use App\Models\Payment;
 use App\Models\Subscription;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class LoyaltyPaymentService
@@ -68,9 +69,9 @@ class LoyaltyPaymentService
                 'member_id' => $member->id,
                 'points' => -$pointsNeeded,
                 'transaction_type' => 'payment',
-                'source_type' => $type === 'reservation' ? ApiReservation::class : Subscription::class,
+                'source_type' => $item->getMorphClass(),
                 'source_id' => $id,
-                'idempotency_key' => 'loyalty_payment:'.$type.':'.$id.':'.$member->id.'_'.now()->timestamp,
+                'idempotency_key' => 'loyalty_payment:'.$type.':'.$id.':'.$member->id,
             ]);
 
             LoyaltyAuditLog::create([
@@ -79,7 +80,7 @@ class LoyaltyPaymentService
                 'points_changed' => -$pointsNeeded,
                 'balance_before' => $balanceBefore,
                 'balance_after' => $balanceAfter,
-                'source_type' => $type === 'reservation' ? ApiReservation::class : Subscription::class,
+                'source_type' => $item->getMorphClass(),
                 'source_id' => $id,
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
@@ -102,7 +103,7 @@ class LoyaltyPaymentService
                 'type' => $type,
                 'amount' => $amountTnd,
                 'status' => 'paid',
-                'payment_reference' => 'loyalty_'.$member->id.'_'.$id.'_'.time(),
+                'payment_reference' => 'loyalty_'.Str::random(32),
                 'ip_address' => $request->ip(),
                 'country_code' => $geo->countryCode,
                 'city' => $geo->city,
@@ -170,6 +171,23 @@ class LoyaltyPaymentService
             throw ValidationException::withMessages([
                 'subscription_id' => [__('This subscription has been cancelled.')],
             ]);
+        }
+
+        if ($subscription->status === 'active') {
+            throw ValidationException::withMessages([
+                'subscription_id' => [__('This subscription is already active.')],
+            ])->errorBag('already_paid');
+        }
+
+        $alreadyPaidViaLoyalty = $subscription->payments()
+            ->where('driver', 'loyalty')
+            ->where('status', 'paid')
+            ->exists();
+
+        if ($alreadyPaidViaLoyalty) {
+            throw ValidationException::withMessages([
+                'subscription_id' => [__('This subscription has already been paid.')],
+            ])->errorBag('already_paid');
         }
 
         return $subscription;

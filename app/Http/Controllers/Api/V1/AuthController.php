@@ -80,12 +80,15 @@ class AuthController extends Controller
 
         $token = $member->createToken('auth_token', ['verification'])->plainTextToken;
 
+        $member->load(['children', 'validSubscriptions.plan.service']);
+
         return $this->success(
             [
                 'token' => $token,
                 'user' => new MemberResource($member),
                 'state' => 'pending_verification',
                 'verification_status' => $member->getVerificationStatus(),
+                'upcoming_schedule' => [],
             ],
             __('Registration successful. Please verify your email/phone.'),
             201

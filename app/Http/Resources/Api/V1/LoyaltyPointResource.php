@@ -30,10 +30,19 @@ class LoyaltyPointResource extends JsonResource
             'points_amount' => abs($points),
             'is_debit' => $points < 0,
             'transaction_type' => (string) $this->transaction_type,
-            'source_type' => $this->source_type,
+            'source_type' => $this->normalizeSourceType($this->source_type),
             'source_id' => $this->source_id,
             'idempotency_key' => $this->idempotency_key,
             'created_at' => $this->created_at?->toISOString() ?? now()->toISOString(),
         ];
+    }
+
+    private function normalizeSourceType(?string $type): ?string
+    {
+        return match ($type) {
+            'App\\Models\\Subscription', 'subscription' => 'subscription',
+            'App\\Models\\ApiReservation', 'reservation' => 'reservation',
+            default => null,
+        };
     }
 }

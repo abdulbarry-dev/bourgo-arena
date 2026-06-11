@@ -140,7 +140,6 @@ class EventManager extends Component
 
     public function closeViewModal()
     {
-        Flux::modal('view-event-modal')->close();
         $this->eventToView = null;
     }
 

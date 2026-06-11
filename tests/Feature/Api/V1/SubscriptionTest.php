@@ -47,7 +47,7 @@ it('blocks initiation if there is already a pending subscription for the exact s
 
     $plan = Plan::factory()->create();
 
-    // Create existing pending subscription
+    // Create a fresh pending subscription (not stale — within timeout window)
     Subscription::factory()->create([
         'member_id' => $member->id,
         'plan_id' => $plan->id,
@@ -251,16 +251,12 @@ it('blocks when pending subscription has active initiated payment within timeout
         'status' => 'pending',
     ]);
 
-    DB::table('subscriptions')->where('id', $subscription->id)->update([
-        'created_at' => now()->subMinutes(31),
-    ]);
-
+    // Fresh initiated payment — subscription is not stale
     Payment::factory()->create([
         'member_id' => $member->id,
         'subscription_id' => $subscription->id,
         'type' => 'subscription',
         'status' => 'initiated',
-        'updated_at' => now()->subMinutes(5),
     ]);
 
     $response = $this->actingAs($member, 'sanctum')->postJson(route('api.v1.subscriptions.store'), [

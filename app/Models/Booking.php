@@ -15,11 +15,13 @@ class Booking extends Model
         'status',
         'waitlist_position',
         'cancelled_at',
+        'completed_at',
     ];
 
     protected $casts = [
         'date' => 'date',
         'cancelled_at' => 'datetime',
+        'completed_at' => 'datetime',
     ];
 
     public function member(): BelongsTo

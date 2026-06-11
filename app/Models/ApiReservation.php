@@ -24,11 +24,13 @@ class ApiReservation extends Model
         'payment_status',
         'qr_code',
         'cancelled_at',
+        'completed_at',
     ];
 
     protected $casts = [
         'date' => 'date',
         'cancelled_at' => 'datetime',
+        'completed_at' => 'datetime',
         'price' => 'decimal:2',
     ];
 
