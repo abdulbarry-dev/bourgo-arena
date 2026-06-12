@@ -49,23 +49,23 @@ jobs:
 
       - name: Inject Test Environment Variables
         run: |
-          echo "APP_ENV=testing" >> .env
-          echo "DB_CONNECTION=${{ secrets.DB_CONNECTION }}" >> .env
-          echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
-          echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
-          echo "DB_DATABASE=${{ secrets.DB_DATABASE }}" >> .env
-          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
-          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
-          echo "RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}" >> .env
-          echo "KONNECT_API_KEY=${{ secrets.KONNECT_API_KEY }}" >> .env
-          echo "KONNECT_API_SECRET=${{ secrets.KONNECT_API_SECRET }}" >> .env
-          echo "KONNECT_SANDBOX=${{ secrets.KONNECT_SANDBOX }}" >> .env
-          echo "TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}" >> .env
-          echo "TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}" >> .env
-          echo "TWILIO_FROM_NUMBER=${{ secrets.TWILIO_FROM_NUMBER }}" >> .env
-          echo "FIREBASE_PROJECT=${{ secrets.FIREBASE_PROJECT }}" >> .env
-          echo "DEV_INTEGRITY_BYPASS_TOKEN=${{ secrets.DEV_INTEGRITY_BYPASS_TOKEN }}" >> .env
-          echo "API_WEB_PLATFORM_ENABLED=${{ secrets.API_WEB_PLATFORM_ENABLED }}" >> .env
+          sed -i "s|^APP_ENV=.*|APP_ENV=testing|" .env
+          sed -i "s|^DB_CONNECTION=.*|DB_CONNECTION=${{ secrets.DB_CONNECTION }}|" .env
+          sed -i "s|^DB_HOST=.*|DB_HOST=${{ secrets.DB_HOST }}|" .env
+          sed -i "s|^DB_PORT=.*|DB_PORT=${{ secrets.DB_PORT }}|" .env
+          sed -i "s|^DB_DATABASE=.*|DB_DATABASE=${{ secrets.DB_DATABASE }}|" .env
+          sed -i "s|^DB_USERNAME=.*|DB_USERNAME=${{ secrets.DB_USERNAME }}|" .env
+          sed -i "s|^DB_PASSWORD=.*|DB_PASSWORD=${{ secrets.DB_PASSWORD }}|" .env
+          sed -i "s|^RESEND_API_KEY=.*|RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}|" .env
+          sed -i "s|^KONNECT_API_KEY=.*|KONNECT_API_KEY=${{ secrets.KONNECT_API_KEY }}|" .env
+          sed -i "s|^KONNECT_API_SECRET=.*|KONNECT_API_SECRET=${{ secrets.KONNECT_API_SECRET }}|" .env
+          sed -i "s|^KONNECT_SANDBOX=.*|KONNECT_SANDBOX=${{ secrets.KONNECT_SANDBOX }}|" .env
+          sed -i "s|^TWILIO_ACCOUNT_SID=.*|TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}|" .env
+          sed -i "s|^TWILIO_AUTH_TOKEN=.*|TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}|" .env
+          sed -i "s|^TWILIO_FROM_NUMBER=.*|TWILIO_FROM_NUMBER=${{ secrets.TWILIO_FROM_NUMBER }}|" .env
+          sed -i "s|^FIREBASE_PROJECT=.*|FIREBASE_PROJECT=${{ secrets.FIREBASE_PROJECT }}|" .env
+          sed -i "s|^DEV_INTEGRITY_BYPASS_TOKEN=.*|DEV_INTEGRITY_BYPASS_TOKEN=${{ secrets.DEV_INTEGRITY_BYPASS_TOKEN }}|" .env
+          sed -i "s|^API_WEB_PLATFORM_ENABLED=.*|API_WEB_PLATFORM_ENABLED=${{ secrets.API_WEB_PLATFORM_ENABLED }}|" .env
 
       - name: Generate Application Key
         run: php artisan key:generate
