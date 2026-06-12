@@ -41,14 +41,31 @@ jobs:
       - name: Install Node Dependencies
         run: npm i
 
-      - name: Add Flux Credentials Loaded From ENV
-        run: composer config http-basic.composer.fluxui.dev "${{ secrets.FLUX_USERNAME }}" "${{ secrets.FLUX_LICENSE_KEY }}"
-
       - name: Install Dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
       - name: Copy Environment File
         run: cp .env.example .env
+
+      - name: Inject Test Environment Variables
+        run: |
+          echo "APP_ENV=testing" >> .env
+          echo "DB_CONNECTION=${{ secrets.DB_CONNECTION }}" >> .env
+          echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
+          echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
+          echo "DB_DATABASE=${{ secrets.DB_DATABASE }}" >> .env
+          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+          echo "RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}" >> .env
+          echo "KONNECT_API_KEY=${{ secrets.KONNECT_API_KEY }}" >> .env
+          echo "KONNECT_API_SECRET=${{ secrets.KONNECT_API_SECRET }}" >> .env
+          echo "KONNECT_SANDBOX=${{ secrets.KONNECT_SANDBOX }}" >> .env
+          echo "TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}" >> .env
+          echo "TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}" >> .env
+          echo "TWILIO_FROM_NUMBER=${{ secrets.TWILIO_FROM_NUMBER }}" >> .env
+          echo "FIREBASE_PROJECT=${{ secrets.FIREBASE_PROJECT }}" >> .env
+          echo "DEV_INTEGRITY_BYPASS_TOKEN=${{ secrets.DEV_INTEGRITY_BYPASS_TOKEN }}" >> .env
+          echo "API_WEB_PLATFORM_ENABLED=${{ secrets.API_WEB_PLATFORM_ENABLED }}" >> .env
 
       - name: Generate Application Key
         run: php artisan key:generate

@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use Database\Seeders\Api\MobileApplicationSeeder;
+use Database\Seeders\Dashboard\Users\AdminUserSeeder;
+use Database\Seeders\Dashboard\Users\ManagerUserSeeder;
 use Database\Seeders\Staging\StressSeeder;
 use Illuminate\Database\Seeder;
 
@@ -20,8 +22,12 @@ class DatabaseSeeder extends Seeder
         $env = app()->environment();
 
         if ($env === 'production') {
-            // Production: only the mobile demo account + notification types.
-            $this->call(MobileApplicationSeeder::class);
+            // Production: staff accounts + mobile demo account + notification types.
+            $this->call([
+                AdminUserSeeder::class,
+                ManagerUserSeeder::class,
+                MobileApplicationSeeder::class,
+            ]);
 
             return;
         }

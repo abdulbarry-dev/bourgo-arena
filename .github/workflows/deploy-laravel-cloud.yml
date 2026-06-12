@@ -35,9 +35,6 @@ jobs:
       - name: Install Node Dependencies
         run: npm ci
 
-      - name: Add Flux Credentials
-        run: composer config http-basic.composer.fluxui.dev "${{ secrets.FLUX_USERNAME }}" "${{ secrets.FLUX_LICENSE_KEY }}"
-
       - name: Install PHP Dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
@@ -91,7 +88,19 @@ jobs:
             -n \
             -- php artisan migrate --force
 
-      # ── Staging-only seeding ──────────────────────────────────────────────
+      # ── Production-safe seeding ───────────────────────────────────────────
+      # Creates/updates staff accounts (updateOrCreate so it's idempotent).
+      - name: Seed Staff Accounts (Production)
+        if: env.CLOUD_ENV == 'production'
+        run: |
+          export PATH=$PATH:$(composer global config bin-dir --absolute)
+          cloud run \
+            --app=${{ env.CLOUD_APP_ID }} \
+            --environment=production \
+            -n \
+            -- php artisan db:seed --class=DatabaseSeeder --force
+
+      # ── Staging-only full seeding ─────────────────────────────────────────
       # Runs automatically on every staging push, or manually via workflow_dispatch
       # with seed=true. Never runs on production to protect live data.
       - name: Seed Staging Dataset
