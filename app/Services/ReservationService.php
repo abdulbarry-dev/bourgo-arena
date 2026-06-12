@@ -70,29 +70,21 @@ class ReservationService
             return;
         }
 
-        if ($this->isStaleReservation($reservation)) {
-            $reservation->payments()
-                ->whereIn('status', ['pending', 'initiated'])
-                ->get()
-                ->each(function (Payment $payment): void {
-                    $payment->update([
-                        'status' => 'failed',
-                        'metadata' => array_merge($payment->metadata ?? [], [
-                            'cancelled_reason' => 'stale_reservation',
-                        ]),
-                    ]);
-                });
+        $reservation->payments()
+            ->whereIn('status', ['pending', 'initiated'])
+            ->get()
+            ->each(function (Payment $payment): void {
+                $payment->update([
+                    'status' => 'failed',
+                    'metadata' => array_merge($payment->metadata ?? [], [
+                        'cancelled_reason' => 'stale_reservation',
+                    ]),
+                ]);
+            });
 
-            $reservation->update([
-                'status' => 'cancelled',
-                'cancelled_at' => now(),
-            ]);
-
-            return;
-        }
-
-        throw ValidationException::withMessages([
-            'activity_session_id' => ['You already have an active reservation for this session.'],
+        $reservation->update([
+            'status' => 'cancelled',
+            'cancelled_at' => now(),
         ]);
     }
 

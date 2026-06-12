@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Course;
+use App\Models\CourseSession;
 use App\Models\Member;
 use App\Models\Plan;
 use App\Models\Subscription;
@@ -15,16 +16,15 @@ test('guest cannot access course sessions', function () {
         ->assertStatus(401);
 });
 
-test('member without subscription cannot access course sessions', function () {
+test('member without subscription can browse course sessions', function () {
     $member = Member::factory()->create(['state' => 'active', 'onboarding_completed_at' => now(), 'email_verified_at' => now()]);
     Sanctum::actingAs($member);
 
     $this->getJson(route('api.v1.courses.sessions', $this->course))
-        ->assertStatus(403)
-        ->assertJsonPath('message', 'Access denied. Your current plan does not include access to the schedule for this course.');
+        ->assertSuccessful();
 });
 
-test('member with unrelated subscription cannot access course sessions', function () {
+test('member with unrelated subscription can browse course sessions', function () {
     $member = Member::factory()->create(['state' => 'active', 'onboarding_completed_at' => now(), 'email_verified_at' => now()]);
     Sanctum::actingAs($member);
 
@@ -39,7 +39,7 @@ test('member with unrelated subscription cannot access course sessions', functio
     ]);
 
     $this->getJson(route('api.v1.courses.sessions', $this->course))
-        ->assertStatus(403);
+        ->assertSuccessful();
 });
 
 test('member with specific course in plan can access course sessions', function () {
@@ -77,7 +77,7 @@ test('member with full access plan can access any course sessions', function () 
         ->assertSuccessful();
 });
 
-test('member with expired subscription cannot access course sessions', function () {
+test('member with expired subscription can browse course sessions', function () {
     $member = Member::factory()->create(['state' => 'active', 'onboarding_completed_at' => now(), 'email_verified_at' => now()]);
     Sanctum::actingAs($member);
 
@@ -91,5 +91,29 @@ test('member with expired subscription cannot access course sessions', function 
     ]);
 
     $this->getJson(route('api.v1.courses.sessions', $this->course))
-        ->assertStatus(403);
+        ->assertSuccessful();
+});
+
+test('member without subscription cannot access session booking details', function () {
+    $member = Member::factory()->create(['state' => 'active', 'onboarding_completed_at' => now(), 'email_verified_at' => now()]);
+    Sanctum::actingAs($member);
+
+    $session = CourseSession::factory()->create(['course_id' => $this->course->id]);
+
+    $this->getJson(route('api.v1.courses.sessions.booking.show', [$this->course, $session]))
+        ->assertStatus(403)
+        ->assertJsonPath('message', 'Access denied. Your current plan does not include access to the schedule for this course.');
+});
+
+test('member without subscription cannot book a session', function () {
+    $member = Member::factory()->create(['state' => 'active', 'onboarding_completed_at' => now(), 'email_verified_at' => now()]);
+    Sanctum::actingAs($member);
+
+    $session = CourseSession::factory()->create(['course_id' => $this->course->id]);
+
+    $this->postJson(route('api.v1.courses.sessions.book', [$this->course, $session]), [
+        'date' => now()->addDay()->toDateString(),
+    ])
+        ->assertStatus(403)
+        ->assertJsonPath('message', 'Access denied. Your current plan does not include access to the schedule for this course.');
 });

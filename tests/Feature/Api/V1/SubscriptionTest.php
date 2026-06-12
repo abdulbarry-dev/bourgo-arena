@@ -37,7 +37,7 @@ it('can initiate a subscription to a plan as pending', function () {
     ]);
 });
 
-it('blocks initiation if there is already a pending subscription for the exact same plan', function () {
+it('cancels existing pending subscription and creates a new one for the same plan', function () {
     $member = Member::factory()->create([
         'email_verified_at' => now(),
         'phone_verified_at' => now(),
@@ -47,8 +47,7 @@ it('blocks initiation if there is already a pending subscription for the exact s
 
     $plan = Plan::factory()->create();
 
-    // Create a fresh pending subscription (not stale — within timeout window)
-    Subscription::factory()->create([
+    $oldSubscription = Subscription::factory()->create([
         'member_id' => $member->id,
         'plan_id' => $plan->id,
         'status' => 'pending',
@@ -58,8 +57,15 @@ it('blocks initiation if there is already a pending subscription for the exact s
         'plan_id' => $plan->id,
     ]);
 
-    $response->assertStatus(422)
-        ->assertJsonPath('message', 'You already have a pending payment for this exact plan. Please complete it before trying again.');
+    $response->assertStatus(201)
+        ->assertJsonPath('message', 'Subscription initiated successfully. Please proceed to payment.')
+        ->assertJsonPath('data.status', 'pending');
+
+    // Old pending subscription should be cancelled
+    $this->assertDatabaseHas('subscriptions', [
+        'id' => $oldSubscription->id,
+        'status' => 'cancelled',
+    ]);
 });
 
 it('activates a pending subscription when payment is paid', function () {
@@ -251,7 +257,7 @@ it('blocks when pending subscription has active initiated payment within timeout
         'status' => 'pending',
     ]);
 
-    // Fresh initiated payment — subscription is not stale
+    // Fresh initiated payment — subscription would not be stale under old logic
     Payment::factory()->create([
         'member_id' => $member->id,
         'subscription_id' => $subscription->id,
@@ -263,8 +269,13 @@ it('blocks when pending subscription has active initiated payment within timeout
         'plan_id' => $plan->id,
     ]);
 
-    $response->assertStatus(422)
-        ->assertJsonPath('message', 'You already have a pending payment for this exact plan. Please complete it before trying again.');
+    $response->assertStatus(201);
+
+    // Old pending subscription should now be cancelled
+    $this->assertDatabaseHas('subscriptions', [
+        'id' => $subscription->id,
+        'status' => 'cancelled',
+    ]);
 });
 
 it('allows member to cancel own pending subscription', function () {

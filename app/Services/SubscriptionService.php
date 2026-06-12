@@ -21,21 +21,12 @@ class SubscriptionService
      */
     public function validateEnrollment(Member $member, Plan $plan): bool|string
     {
-        $pendingSubscription = Subscription::query()
+        Subscription::query()
             ->where('status', 'pending')
             ->where('member_id', $member->id)
             ->where('plan_id', $plan->id)
-            ->first();
-
-        if ($pendingSubscription) {
-            if ($this->isStalePending($pendingSubscription)) {
-                $this->cancelPending($pendingSubscription);
-
-                return true;
-            }
-
-            return __('You already have a pending payment for this exact plan. Please complete it before trying again.');
-        }
+            ->get()
+            ->each(fn (Subscription $pending) => $this->cancelPending($pending));
         $activeSubs = $member->validSubscriptions()
             ->with(['plan.courses'])
             ->whereHas('plan', fn (Builder $query) => $query->where('service_id', $plan->service_id))

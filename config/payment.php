@@ -90,7 +90,7 @@ return [
     */
 
     'subscription' => [
-        'pending_timeout_minutes' => (int) env('PENDING_PAYMENT_TIMEOUT_MINUTES', 30),
+        'pending_timeout_minutes' => (int) env('PENDING_PAYMENT_TIMEOUT_MINUTES', 5),
     ],
 
     'webhooks' => [

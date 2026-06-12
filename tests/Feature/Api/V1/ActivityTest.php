@@ -160,7 +160,7 @@ test('auto-cancels stale reservation when creating new one for same session', fu
     expect($newReservation)->not->toBeNull();
 });
 
-test('blocks new reservation when existing has active payment within timeout', function () {
+test('cancels existing reservation and creates a new one', function () {
     $member = Member::factory()->active()->create();
 
     $session = ActivitySession::factory()->create();
@@ -190,6 +190,10 @@ test('blocks new reservation when existing has active payment within timeout', f
         'date' => $date,
     ]);
 
-    $response->assertStatus(422)
-        ->assertJsonPath('errors.activity_session_id.0', 'You already have an active reservation for this session.');
+    $response->assertStatus(201);
+
+    $this->assertDatabaseHas('api_reservations', [
+        'id' => $reservation->id,
+        'status' => 'cancelled',
+    ]);
 });

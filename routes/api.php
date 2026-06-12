@@ -121,7 +121,6 @@ Route::prefix('v1')->group(function () {
             Route::get('member/tier', [TierController::class, 'show'])->name('api.v1.member.tier');
 
             Route::get('courses/{course}/sessions', [CourseController::class, 'sessions'])
-                ->middleware('course.access')
                 ->name('api.v1.courses.sessions');
 
             Route::get('courses/{course}/sessions/{session}/booking', [CourseBookingController::class, 'show'])

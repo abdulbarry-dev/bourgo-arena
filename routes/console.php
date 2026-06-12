@@ -11,3 +11,4 @@ Artisan::command('inspire', function () {
 Schedule::command('analytics:aggregate-revenue')->dailyAt('03:00');
 Schedule::command('app:cleanup-unverified-accounts')->daily();
 Schedule::command('app:process-account-deletions')->hourly();
+Schedule::command('app:cleanup-expired-pending-payments')->everyMinute();
