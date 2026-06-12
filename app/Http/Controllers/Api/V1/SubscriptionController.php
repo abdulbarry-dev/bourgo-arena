@@ -67,6 +67,10 @@ class SubscriptionController extends Controller
         $plan = Plan::findOrFail($request->integer('plan_id'));
         $member = $request->user();
 
+        if ($plan->is_child_only && $member->parent_id === null) {
+            return $this->error(__('This plan is for children only and must be purchased through the family account.'), 422);
+        }
+
         // Use service for validation
         $validationResult = $service->validateEnrollment($member, $plan);
         if ($validationResult !== true) {

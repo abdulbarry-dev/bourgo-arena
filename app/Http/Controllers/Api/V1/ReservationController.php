@@ -9,12 +9,14 @@ use App\Http\Requests\Api\V1\StoreReservationRequest;
 use App\Http\Resources\Api\ApiReservationResource;
 use App\Models\ApiReservation;
 use App\Services\LoyaltyCalculatorService;
+use App\Services\LoyaltyPaymentService;
 use App\Services\PaymentService;
 use App\Services\ReservationService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Validation\ValidationException;
 
 class ReservationController extends Controller
 {
@@ -23,7 +25,8 @@ class ReservationController extends Controller
     public function __construct(
         protected ReservationService $reservationService,
         protected LoyaltyCalculatorService $loyaltyCalculatorService,
-        protected PaymentService $paymentService
+        protected PaymentService $paymentService,
+        protected LoyaltyPaymentService $loyaltyPaymentService
     ) {}
 
     public function ongoing(Request $request): AnonymousResourceCollection
@@ -43,6 +46,7 @@ class ReservationController extends Controller
     {
         $reservations = $request->user()->reservations()
             ->with(['activity', 'session'])
+            ->whereIn('payment_status', ['paid', 'refunded'])
             ->where(function ($query) {
                 $query->where('status', '!=', 'confirmed')
                     ->orWhere('date', '<', now()->toDateString());
@@ -62,6 +66,15 @@ class ReservationController extends Controller
 
         $reservation = $this->reservationService->makeActivityReservation($request->user(), $dto);
 
+        if ($dto->paymentMethod === 'loyalty') {
+            return $this->handleLoyaltyPayment($request, $reservation);
+        }
+
+        return $this->handleKonnectPayment($request, $reservation);
+    }
+
+    private function handleKonnectPayment(Request $request, ApiReservation $reservation): JsonResponse
+    {
         $depositAmount = round($reservation->price * 0.10, 3);
 
         $paymentDto = new PaymentInitiateDTO(
@@ -92,7 +105,7 @@ class ReservationController extends Controller
         if (! empty($result['success'])) {
             return (new ApiReservationResource($reservation->load(['activity', 'session'])))->additional([
                 'success' => true,
-                'message' => 'Reservation created successfully',
+                'message' => 'Reservation created. Please complete payment.',
                 'payment' => [
                     'id' => $payment->id,
                     'payment_url' => $result['payment_url'] ?? null,
@@ -106,22 +119,44 @@ class ReservationController extends Controller
         return $this->error('Payment initiation failed', 400);
     }
 
+    private function handleLoyaltyPayment(Request $request, ApiReservation $reservation): JsonResponse
+    {
+        try {
+            $payment = $this->loyaltyPaymentService->pay(
+                $request->user(),
+                'reservation',
+                $reservation->id,
+                $request,
+            );
+
+            return (new ApiReservationResource($reservation->fresh()->load(['activity', 'session'])))->additional([
+                'success' => true,
+                'message' => 'Reservation created and paid with loyalty points.',
+                'payment' => [
+                    'id' => $payment->id,
+                    'payment_reference' => $payment->payment_reference,
+                ],
+            ])->response()->setStatusCode(201);
+        } catch (ValidationException $e) {
+            $this->reservationService->cancelActivityReservation($reservation);
+
+            return $this->error($e->getMessage(), 422);
+        }
+    }
+
     public function initiatePayment(Request $request, ApiReservation $reservation)
     {
         $this->authorize('view', $reservation);
 
-        $amount = $reservation->price;
-        if ($request->filled('amount')) {
-            $amount = (float) $request->input('amount');
-        }
+        $amount = round($reservation->price * 0.10, 3);
 
         $dto = new PaymentInitiateDTO(
             memberId: $request->user()->id,
             reservationId: $reservation->id,
             subscriptionId: null,
             amount: $amount,
-            description: 'Reservation payment for reservation #'.$reservation->id,
-            type: 'reservation',
+            description: 'Reservation deposit for activity #'.$reservation->activity_id,
+            type: 'reservation_deposit',
             paymentReference: null,
             metadata: null
         );
@@ -165,7 +200,10 @@ class ReservationController extends Controller
         $result = $this->paymentService->verify($payment);
 
         if (! empty($result['success']) && $result['status'] === 'paid') {
-            $reservation->update(['payment_status' => 'paid']);
+            $reservation->update([
+                'payment_status' => 'paid',
+                'status' => 'confirmed'
+            ]);
         }
 
         return $this->success($result, 'Payment verification completed');

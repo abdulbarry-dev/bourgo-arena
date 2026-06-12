@@ -28,6 +28,7 @@ class Plan extends Model
         'level',
         'duration_days',
         'is_archived',
+        'is_child_only',
     ];
 
     protected $casts = [
@@ -35,6 +36,7 @@ class Plan extends Model
         'level' => 'integer',
         'has_all_courses' => 'boolean',
         'is_archived' => 'boolean',
+        'is_child_only' => 'boolean',
     ];
 
     protected static function boot(): void

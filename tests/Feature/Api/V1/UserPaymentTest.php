@@ -16,7 +16,7 @@ it('can list user payments', function () {
     $payment = Payment::factory()->create([
         'member_id' => $member->id,
         'amount' => 100.50,
-        'status' => 'completed',
+        'status' => 'paid',
     ]);
 
     $otherMember = Member::factory()->create();
@@ -24,7 +24,7 @@ it('can list user payments', function () {
     Payment::factory()->create([
         'member_id' => $otherMember->id,
         'amount' => 50.00,
-        'status' => 'completed',
+        'status' => 'paid',
     ]);
 
     $response = $this->actingAs($member, 'sanctum')->getJson(route('api.v1.user.payments.index'));
@@ -45,7 +45,7 @@ it('excludes loyalty payments from index', function () {
         'member_id' => $member->id,
         'driver' => 'konnect',
         'amount' => 100.00,
-        'status' => 'completed',
+        'status' => 'paid',
     ]);
 
     Payment::factory()->create([

@@ -63,6 +63,7 @@ test('member with multiple active subscriptions gets all detailed subscriptions'
             'data' => [
                 '*' => [
                     'id',
+                    'member_id',
                     'plan' => ['id', 'name', 'description', 'price', 'has_all_courses'],
                     'service' => ['id', 'name', 'slug', 'image_url'],
                     'status',
@@ -107,4 +108,63 @@ test('member can view subscription history', function () {
             ],
             'meta' => ['current_page', 'last_page', 'per_page', 'total'],
         ]);
+});
+
+test('adult cannot purchase a child-only plan via self-service', function () {
+    $member = Member::factory()->create([
+        'email_verified_at' => now(),
+        'onboarding_completed_at' => now(),
+        'state' => 'active',
+        'parent_id' => null,
+    ]);
+
+    $plan = Plan::factory()->childOnly()->create();
+
+    $response = $this->actingAs($member, 'sanctum')
+        ->postJson(route('api.v1.subscriptions.store'), [
+            'plan_id' => $plan->id,
+        ]);
+
+    $response->assertStatus(422)
+        ->assertJson([
+            'success' => false,
+            'message' => 'This plan is for children only and must be purchased through the family account.',
+        ]);
+});
+
+test('child member can purchase child-only plan', function () {
+    $parent = Member::factory()->create();
+    $child = Member::factory()->create([
+        'email_verified_at' => now(),
+        'onboarding_completed_at' => now(),
+        'state' => 'active',
+        'parent_id' => $parent->id,
+    ]);
+
+    $plan = Plan::factory()->childOnly()->create();
+
+    $response = $this->actingAs($child, 'sanctum')
+        ->postJson(route('api.v1.subscriptions.store'), [
+            'plan_id' => $plan->id,
+        ]);
+
+    $response->assertStatus(201);
+});
+
+test('adult can still purchase non-child-only plans', function () {
+    $member = Member::factory()->create([
+        'email_verified_at' => now(),
+        'onboarding_completed_at' => now(),
+        'state' => 'active',
+        'parent_id' => null,
+    ]);
+
+    $plan = Plan::factory()->create(['is_child_only' => false]);
+
+    $response = $this->actingAs($member, 'sanctum')
+        ->postJson(route('api.v1.subscriptions.store'), [
+            'plan_id' => $plan->id,
+        ]);
+
+    $response->assertStatus(201);
 });

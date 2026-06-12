@@ -65,8 +65,8 @@ class BulkCatalogSeeder extends Seeder
             ['name' => 'Basketball Monthly', 'price' => 59.000, 'duration_days' => 30, 'slug' => 'basketball-court'],
             ['name' => 'Basketball Season', 'price' => 299.000, 'duration_days' => 180, 'slug' => 'basketball-court'],
             // Kids
-            ['name' => 'Kids Monthly', 'price' => 55.000, 'duration_days' => 30, 'slug' => 'kids-zone'],
-            ['name' => 'Kids Quarterly', 'price' => 145.000, 'duration_days' => 90, 'has_all_courses' => true, 'slug' => 'kids-zone'],
+            ['name' => 'Kids Monthly', 'price' => 55.000, 'duration_days' => 30, 'is_child_only' => true, 'slug' => 'kids-zone'],
+            ['name' => 'Kids Quarterly', 'price' => 145.000, 'duration_days' => 90, 'has_all_courses' => true, 'is_child_only' => true, 'slug' => 'kids-zone'],
             // Premium bundles
             ['name' => 'All Access Monthly', 'price' => 249.000, 'duration_days' => 30, 'has_all_courses' => true, 'slug' => 'fitness-gym'],
             ['name' => 'All Access Annual', 'price' => 2499.000, 'duration_days' => 365, 'has_all_courses' => true, 'slug' => 'fitness-gym'],

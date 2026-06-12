@@ -5,6 +5,7 @@ use App\Models\Booking;
 use App\Models\Course;
 use App\Models\CourseSession;
 use App\Models\Member;
+use App\Models\Plan;
 use App\Models\Subscription;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -78,8 +79,11 @@ it('can list upcoming course sessions', function () {
         'onboarding_completed_at' => now(),
     ]);
 
+    $plan = Plan::factory()->withAllCourses()->create();
+
     Subscription::factory()->create([
         'member_id' => $member->id,
+        'plan_id' => $plan->id,
         'status' => 'active',
     ]);
 
@@ -132,8 +136,11 @@ it('excludes sessions starting beyond 7 days', function () {
         'onboarding_completed_at' => now(),
     ]);
 
+    $plan = Plan::factory()->withAllCourses()->create();
+
     Subscription::factory()->create([
         'member_id' => $member->id,
+        'plan_id' => $plan->id,
         'status' => 'active',
     ]);
 
@@ -184,8 +191,11 @@ it('includes session spanning the 7-day window', function () {
         'onboarding_completed_at' => now(),
     ]);
 
+    $plan = Plan::factory()->withAllCourses()->create();
+
     Subscription::factory()->create([
         'member_id' => $member->id,
+        'plan_id' => $plan->id,
         'status' => 'active',
     ]);
 
@@ -232,8 +242,11 @@ it('includes enrolled count in session response', function () {
         'status' => 'confirmed',
     ]);
 
+    $plan = Plan::factory()->withAllCourses()->create();
+
     Subscription::factory()->create([
         'member_id' => $member->id,
+        'plan_id' => $plan->id,
         'status' => 'active',
     ]);
 
@@ -278,8 +291,11 @@ it('member can book a course session', function () {
         'onboarding_completed_at' => now(),
     ]);
 
+    $plan = Plan::factory()->withAllCourses()->create();
+
     Subscription::factory()->create([
         'member_id' => $member->id,
+        'plan_id' => $plan->id,
         'status' => 'active',
     ]);
 
@@ -333,8 +349,11 @@ it('cannot book a cancelled session', function () {
         'onboarding_completed_at' => now(),
     ]);
 
+    $plan = Plan::factory()->withAllCourses()->create();
+
     Subscription::factory()->create([
         'member_id' => $member->id,
+        'plan_id' => $plan->id,
         'status' => 'active',
     ]);
 
@@ -383,8 +402,11 @@ it('cannot book a past session', function () {
         'onboarding_completed_at' => now(),
     ]);
 
+    $plan = Plan::factory()->withAllCourses()->create();
+
     Subscription::factory()->create([
         'member_id' => $member->id,
+        'plan_id' => $plan->id,
         'status' => 'active',
     ]);
 
@@ -433,8 +455,11 @@ it('cannot double-book same session date', function () {
         'onboarding_completed_at' => now(),
     ]);
 
+    $plan = Plan::factory()->withAllCourses()->create();
+
     Subscription::factory()->create([
         'member_id' => $member->id,
+        'plan_id' => $plan->id,
         'status' => 'active',
     ]);
 
@@ -505,8 +530,11 @@ it('cannot book when at capacity', function () {
         'onboarding_completed_at' => now(),
     ]);
 
+    $plan = Plan::factory()->withAllCourses()->create();
+
     Subscription::factory()->create([
         'member_id' => $member->id,
+        'plan_id' => $plan->id,
         'status' => 'active',
     ]);
 

@@ -21,8 +21,17 @@ class CourseController extends Controller
      */
     public function index(Request $request): AnonymousResourceCollection
     {
-        $courses = Course::active()
-            ->orderBy('name')
+        $query = Course::active();
+
+        $member = $request->user();
+        if ($member !== null) {
+            $accessibleIds = $member->accessibleCourseIds();
+            if ($accessibleIds !== null) {
+                $query->whereIn('id', $accessibleIds);
+            }
+        }
+
+        $courses = $query->orderBy('name')
             ->paginate($request->integer('per_page', 15));
 
         return $this->paginated($courses, CourseResource::class);
@@ -34,6 +43,11 @@ class CourseController extends Controller
     public function show(Course $course): CourseResource
     {
         abort_if(! $course->isActive(), 404, 'Course not found or inactive.');
+
+        $user = request()->user();
+        if ($user !== null) {
+            abort_unless($user->hasAccessToCourse($course), 404);
+        }
 
         return new CourseResource($course);
     }
@@ -48,6 +62,10 @@ class CourseController extends Controller
         abort_if(! $course->isActive(), 404, 'Course not found or inactive.');
 
         $member = $request->user();
+
+        if ($member !== null) {
+            abort_unless($member->hasAccessToCourse($course), 404);
+        }
 
         $sessions = $course->sessions()
             ->where('is_cancelled', false)

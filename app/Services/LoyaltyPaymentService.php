@@ -223,7 +223,10 @@ class LoyaltyPaymentService
     private function markItemPaid(string $type, ApiReservation|Subscription $item): void
     {
         if ($type === 'reservation' && $item instanceof ApiReservation) {
-            $item->update(['payment_status' => 'paid']);
+            $item->update([
+                'payment_status' => 'paid',
+                'status' => 'confirmed',
+            ]);
         }
 
         if ($type === 'subscription' && $item instanceof Subscription) {

@@ -28,6 +28,7 @@ class StoreReservationRequest extends FormRequest
                 Rule::exists('activity_sessions', 'id')->where(fn ($query) => $query->where('activity_id', $this->integer('activity_id'))),
             ],
             'date' => ['required', 'date', 'after_or_equal:today'],
+            'payment_method' => ['sometimes', 'string', 'in:konnect,loyalty'],
         ];
     }
 }

@@ -9,6 +9,7 @@ use App\Models\Plan;
 use App\Models\Subscription;
 use App\Repositories\FamilyRepository;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
@@ -108,11 +109,14 @@ class FamilyChildService
     {
         $this->assertOwnership($parent, $child);
 
-        return CourseSession::query()
+        $accessibleIds = $child->accessibleCourseIds();
+
+        $sessions = CourseSession::query()
             ->where('is_cancelled', false)
             ->whereNotNull('ends_at_date')
             ->where('ends_at_date', '>=', now()->toDateString())
             ->where('starts_at_date', '<=', now()->addDays(7)->toDateString())
+            ->when($accessibleIds !== null, fn (Builder $q) => $q->whereIn('course_id', $accessibleIds))
             ->with('course')
             ->withCount('bookings')
             ->with(['bookings' => function ($query) use ($child): void {
@@ -121,6 +125,8 @@ class FamilyChildService
             }])
             ->orderBy('starts_at_date')
             ->paginate($perPage);
+
+        return $sessions;
     }
 
     /**

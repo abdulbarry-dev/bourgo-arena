@@ -8,6 +8,7 @@ class StoreReservationDTO
         public readonly int $activityId,
         public readonly int $activitySessionId,
         public readonly string $date,
+        public readonly string $paymentMethod = 'konnect',
     ) {}
 
     public static function fromRequest(array $data): self
@@ -16,6 +17,7 @@ class StoreReservationDTO
             activityId: (int) $data['activity_id'],
             activitySessionId: (int) $data['activity_session_id'],
             date: $data['date'],
+            paymentMethod: $data['payment_method'] ?? 'konnect',
         );
     }
 
@@ -25,6 +27,7 @@ class StoreReservationDTO
             'activity_id' => $this->activityId,
             'activity_session_id' => $this->activitySessionId,
             'date' => $this->date,
+            'payment_method' => $this->paymentMethod,
         ];
     }
 }

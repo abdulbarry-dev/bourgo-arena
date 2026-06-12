@@ -34,7 +34,10 @@ class ProcessSuccessfulPayment
         if (in_array($payment->type, ['reservation', 'reservation_deposit']) && $payment->reservation_id) {
             $reservation = ApiReservation::find($payment->reservation_id);
             if ($reservation) {
-                $reservation->update(['payment_status' => 'paid']);
+                $reservation->update([
+                    'payment_status' => 'paid',
+                    'status' => 'confirmed',
+                ]);
             }
         }
     }

@@ -12,6 +12,7 @@ class SubscriptionResource extends JsonResource
      *
      * @return array{
      *     id: int,
+     *     member_id: int,
      *     plan: array{
      *         id: int,
      *         name: string,
@@ -38,6 +39,7 @@ class SubscriptionResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'member_id' => $this->member_id,
             'plan' => [
                 'id' => $this->plan_id,
                 'name' => $this->plan?->name,

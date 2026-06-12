@@ -46,7 +46,7 @@ class ReservationService
                 'activity_session_id' => $dto->activitySessionId,
                 'date' => $dto->date,
                 'price' => $price,
-                'status' => 'confirmed',
+                'status' => 'pending',
                 'payment_status' => 'pending',
             ]);
 

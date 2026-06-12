@@ -194,7 +194,7 @@ class ReservationManager extends Component
         $reservationService = app(ReservationService::class);
         $reservationService->assertNoActiveReservationForSession($member, $session->id, $validated['createDate']);
 
-        $reservationService->makeActivityReservation(
+        $reservation = $reservationService->makeActivityReservation(
             $member,
             new StoreReservationDTO(
                 activityId: $session->activity_id,
@@ -202,6 +202,8 @@ class ReservationManager extends Component
                 date: $validated['createDate'],
             )
         );
+
+        $reservation->update(['status' => 'confirmed']);
 
         $this->closeCreateModal();
         $this->dispatch('toast', message: __('Reservation created successfully.'), type: 'success');

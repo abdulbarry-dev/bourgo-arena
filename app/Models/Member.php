@@ -242,6 +242,20 @@ class Member extends Authenticatable
             });
     }
 
+    public function accessibleCourseIds(): ?array
+    {
+        $subscriptions = $this->validSubscriptions()
+            ->with('plan.courses')
+            ->get();
+
+        if ($subscriptions->contains(fn (Subscription $sub): bool => $sub->plan?->has_all_courses)) {
+            return null;
+        }
+
+        return $subscriptions->flatMap(fn (Subscription $sub) => $sub->plan?->courses->pluck('id') ?? collect()
+        )->unique()->values()->toArray();
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', 'active');

@@ -154,7 +154,7 @@ test('auto-cancels stale reservation when creating new one for same session', fu
     $newReservation = ApiReservation::where('member_id', $member->id)
         ->where('activity_session_id', $session->id)
         ->whereDate('date', $date)
-        ->where('status', 'confirmed')
+        ->where('status', '!=', 'cancelled')
         ->first();
 
     expect($newReservation)->not->toBeNull();

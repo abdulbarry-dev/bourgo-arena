@@ -46,7 +46,7 @@ test('member can create an activity reservation', function () {
     expect((float) $reservation->price)->toBe(100.00);
     expect($reservation->activity_session_id)->toBe($session->id);
     expect($reservation->date->toDateString())->toBe($reservationDate);
-    expect($reservation->status)->toBe('confirmed');
+    expect($reservation->status)->toBe('pending');
 });
 
 test('member cannot book a session already reserved for the same date', function () {
@@ -176,6 +176,7 @@ test('member can list reservation history', function () {
         ->create([
             'status' => 'confirmed',
             'date' => now()->addDays(2)->toDateString(),
+            'payment_status' => 'paid',
         ]);
 
     ApiReservation::factory()
@@ -183,6 +184,15 @@ test('member can list reservation history', function () {
         ->create([
             'status' => 'confirmed',
             'date' => now()->subDays(2)->toDateString(),
+            'payment_status' => 'paid',
+        ]);
+
+    ApiReservation::factory()
+        ->for($this->member)
+        ->create([
+            'status' => 'cancelled',
+            'date' => now()->subDays(5)->toDateString(),
+            'payment_status' => 'pending',
         ]);
 
     $response = $this->getJson(route('api.v1.reservations.history'));

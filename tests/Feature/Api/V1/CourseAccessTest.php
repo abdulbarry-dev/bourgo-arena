@@ -16,15 +16,15 @@ test('guest cannot access course sessions', function () {
         ->assertStatus(401);
 });
 
-test('member without subscription can browse course sessions', function () {
+test('member without subscription cannot browse course sessions', function () {
     $member = Member::factory()->create(['state' => 'active', 'onboarding_completed_at' => now(), 'email_verified_at' => now()]);
     Sanctum::actingAs($member);
 
     $this->getJson(route('api.v1.courses.sessions', $this->course))
-        ->assertSuccessful();
+        ->assertStatus(404);
 });
 
-test('member with unrelated subscription can browse course sessions', function () {
+test('member with unrelated subscription cannot browse course sessions', function () {
     $member = Member::factory()->create(['state' => 'active', 'onboarding_completed_at' => now(), 'email_verified_at' => now()]);
     Sanctum::actingAs($member);
 
@@ -39,7 +39,7 @@ test('member with unrelated subscription can browse course sessions', function (
     ]);
 
     $this->getJson(route('api.v1.courses.sessions', $this->course))
-        ->assertSuccessful();
+        ->assertStatus(404);
 });
 
 test('member with specific course in plan can access course sessions', function () {
@@ -77,7 +77,7 @@ test('member with full access plan can access any course sessions', function () 
         ->assertSuccessful();
 });
 
-test('member with expired subscription can browse course sessions', function () {
+test('member with expired subscription cannot browse course sessions', function () {
     $member = Member::factory()->create(['state' => 'active', 'onboarding_completed_at' => now(), 'email_verified_at' => now()]);
     Sanctum::actingAs($member);
 
@@ -91,7 +91,7 @@ test('member with expired subscription can browse course sessions', function () 
     ]);
 
     $this->getJson(route('api.v1.courses.sessions', $this->course))
-        ->assertSuccessful();
+        ->assertStatus(404);
 });
 
 test('member without subscription cannot access session booking details', function () {

@@ -22,6 +22,7 @@ class PlanFactory extends Factory
             'duration_days' => fake()->randomElement([30, 60, 90, 365]),
             'has_all_courses' => false,
             'is_archived' => false,
+            'is_child_only' => false,
         ];
     }
 
@@ -29,6 +30,13 @@ class PlanFactory extends Factory
     {
         return $this->state(fn (): array => [
             'is_archived' => true,
+        ]);
+    }
+
+    public function childOnly(): static
+    {
+        return $this->state(fn (): array => [
+            'is_child_only' => true,
         ]);
     }
 

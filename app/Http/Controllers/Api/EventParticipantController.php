@@ -15,6 +15,7 @@ class EventParticipantController extends Controller
     {
         $participants = EventParticipant::with(['event', 'user'])
             ->where('user_id', $request->user()->id)
+            ->where('status', '!=', 'withdrawn')
             ->latest()
             ->get();
 
