@@ -25,7 +25,6 @@ class PaymentResource extends JsonResource
             'payment_reference' => $this->payment_reference,
             'reservation_id' => $this->reservation_id,
             'subscription_id' => $this->subscription_id,
-            'receipt_url' => $this->receipt_url,
             'created_at' => $this->created_at?->toIso8601String(),
         ];
     }

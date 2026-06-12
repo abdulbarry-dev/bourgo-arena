@@ -58,7 +58,6 @@ class SubscriptionResource extends JsonResource
             'payment_method' => $this->payment_method,
             'amount_paid' => (float) $this->amount_paid,
             'is_active' => $this->isActive(),
-            'receipt_url' => $this->receipt_path ? asset('storage/'.$this->receipt_path) : null,
         ];
     }
 }

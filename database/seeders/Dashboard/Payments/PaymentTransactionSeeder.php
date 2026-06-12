@@ -145,7 +145,6 @@ class PaymentTransactionSeeder extends Seeder
                     'status' => 'completed',
                     'status_code' => '00',
                     'message' => 'Transaction approved successfully',
-                    'receipt_url' => 'https://pay.bourgo.tn/receipts/'.strtolower($txnId),
                     'processed_at' => $createdAt->addMinutes(2)->toIso8601String(),
                     'card_last_four' => (string) fake()->numerify('####'),
                 ],
@@ -154,7 +153,6 @@ class PaymentTransactionSeeder extends Seeder
                     'status' => 'pending',
                     'status_code' => '03',
                     'message' => 'Transaction is pending processing',
-                    'receipt_url' => null,
                     'processed_at' => null,
                 ],
                 'failed' => [
@@ -171,7 +169,6 @@ class PaymentTransactionSeeder extends Seeder
                         2 => 'ERR_CARD_DECLINED',
                         default => 'ERR_TIMEOUT',
                     },
-                    'receipt_url' => null,
                     'processed_at' => $createdAt->addSeconds(30)->toIso8601String(),
                 ],
             },

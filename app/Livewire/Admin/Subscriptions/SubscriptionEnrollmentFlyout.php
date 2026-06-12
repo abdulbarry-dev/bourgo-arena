@@ -3,7 +3,6 @@
 namespace App\Livewire\Admin\Subscriptions;
 
 use App\Jobs\SendSubscriptionNotification;
-use App\Jobs\SendSubscriptionReceiptEmail;
 use App\Models\Member;
 use App\Models\Payment;
 use App\Models\Plan;
@@ -171,7 +170,6 @@ class SubscriptionEnrollmentFlyout extends Component
 
             $this->show = false;
 
-            SendSubscriptionReceiptEmail::dispatch($subscription->id);
             SendSubscriptionNotification::dispatch(
                 $subscription->id,
                 'enrolled',

@@ -69,7 +69,6 @@ class SubscriptionSeeder extends Seeder
                 'payment_method' => $subscriptionData['payment_method'],
                 'payment_reference' => $subscriptionData['payment_reference'],
                 'amount_paid' => $subscriptionData['amount_paid'],
-                'receipt_path' => null,
                 'enrolled_by' => $manager->id,
             ];
 

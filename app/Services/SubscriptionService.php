@@ -234,23 +234,10 @@ class SubscriptionService
     }
 
     /**
-     * Finalize an active subscription (generate receipt, update member status, credit loyalty).
+     * Finalize an active subscription (update member status, credit loyalty).
      */
     public function finalizeSubscription(Subscription $subscription, Member $member, Plan $plan, array $data): void
     {
-        $receiptPath = app(ReceiptGenerator::class)->generate([
-            'member_name' => $member->name,
-            'plan_name' => $plan->name,
-            'amount_paid' => (float) $plan->price,
-            'payment_method' => $data['payment_method'],
-            'payment_reference' => $data['payment_reference'] ?? null,
-            'paid_at' => now()->toDateTimeString(),
-            'enrolled_by' => $data['enrolled_by_name'] ?? 'System',
-            'subscription_id' => $subscription->id,
-        ]);
-
-        $subscription->update(['receipt_path' => $receiptPath]);
-
         if ($member->status === 'pending') {
             $member->update(['status' => 'active']);
         }

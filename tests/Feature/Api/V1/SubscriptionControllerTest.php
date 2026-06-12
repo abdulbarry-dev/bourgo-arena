@@ -103,7 +103,7 @@ test('member can view subscription history', function () {
         ->assertJsonCount(3, 'data')
         ->assertJsonStructure([
             'data' => [
-                '*' => ['id', 'plan', 'service', 'status', 'receipt_url'],
+                '*' => ['id', 'plan', 'service', 'status'],
             ],
             'meta' => ['current_page', 'last_page', 'per_page', 'total'],
         ]);

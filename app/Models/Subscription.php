@@ -34,7 +34,6 @@ class Subscription extends Model
         'payment_method',
         'payment_reference',
         'amount_paid',
-        'receipt_path',
         'enrolled_by',
     ];
 

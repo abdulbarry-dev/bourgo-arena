@@ -96,7 +96,6 @@ it('activates a pending subscription when payment is paid', function () {
     PaymentPaid::dispatch($payment);
 
     expect($subscription->fresh()->status)->toBe('active');
-    expect($subscription->fresh()->receipt_path)->not->toBeNull();
 });
 
 it('handles upgrade during activation when payment is paid', function () {

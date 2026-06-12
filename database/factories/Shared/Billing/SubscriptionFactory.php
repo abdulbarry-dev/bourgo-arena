@@ -29,7 +29,6 @@ class SubscriptionFactory extends Factory
             'payment_method' => fake()->randomElement(['cash', 'konnect']),
             'payment_reference' => fake()->optional()->bothify('TXN-####-??'),
             'amount_paid' => fake()->randomFloat(3, 20, 500),
-            'receipt_path' => null,
             'enrolled_by' => User::factory()->manager(),
         ];
     }

@@ -46,15 +46,6 @@ class Payment extends Model
         return ucfirst($this->type);
     }
 
-    public function getReceiptUrlAttribute(): ?string
-    {
-        if ($this->type === 'subscription' && $this->subscription?->receipt_path) {
-            return asset('storage/'.$this->subscription->receipt_path);
-        }
-
-        return null;
-    }
-
     public function member()
     {
         return $this->belongsTo(Member::class);

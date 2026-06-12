@@ -1,7 +1,6 @@
 <?php
 
 use App\Jobs\SendSubscriptionNotification;
-use App\Jobs\SendSubscriptionReceiptEmail;
 use App\Livewire\Admin\Subscriptions\SubscriptionEnrollmentFlyout;
 use App\Models\Member;
 use App\Models\Plan;
@@ -9,12 +8,9 @@ use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
-use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
 test('manager can enroll pending member and activate access', function () {
-    Storage::fake('local');
-    config(['payment.receipts.disk' => 'local']);
     Queue::fake();
     Notification::fake();
 
@@ -48,14 +44,12 @@ test('manager can enroll pending member and activate access', function () {
     expect($subscription->payment_method)->toBe('cash');
     expect($subscription->payment_reference)->toBeNull();
     expect($subscription->amount_paid)->toBe('150.000');
-    expect($subscription->receipt_path)->not->toBeNull();
 
     $this->assertDatabaseHas('members', [
         'id' => $member->id,
         'status' => 'active',
     ]);
 
-    Queue::assertPushed(SendSubscriptionReceiptEmail::class, fn (SendSubscriptionReceiptEmail $job): bool => $job->subscriptionId === $subscription->id);
     Queue::assertPushed(SendSubscriptionNotification::class, fn (SendSubscriptionNotification $job): bool => $job->subscriptionId === $subscription->id && $job->notificationType === 'enrolled');
 });
 
@@ -88,8 +82,6 @@ test('member role cannot enroll subscriptions', function () {
 });
 
 test('same plan enrollment extends existing subscription', function () {
-    Storage::fake('local');
-    config(['payment.receipts.disk' => 'local']);
     Queue::fake();
     Notification::fake();
 
