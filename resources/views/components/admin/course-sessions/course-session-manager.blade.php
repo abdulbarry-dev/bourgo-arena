@@ -117,13 +117,14 @@
                     </div>
                 </div>
 
-                <div class="flex-1 space-y-3 bg-zinc-50/50 p-4 dark:bg-zinc-900/20">
+                <div class="flex-1 space-y-3 bg-zinc-50/50 p-4 dark:bg-zinc-900/20" x-data="{ expanded: false }">
                     @forelse ($daySessions as $session)
                         @php
                             $status = $session->getStatus($date);
                             $bookingsCount = $this->getBookingsCount($session->id, $date);
                             $isFull = $bookingsCount >= $session->capacity;
                             $occupancyRate = ($bookingsCount / $session->capacity) * 100;
+                            $isHidden = $loop->index >= 5;
 
                             $statusConfig = match ($status) {
                                 'canceled' => [
@@ -152,6 +153,10 @@
 
                         <div
                             wire:key="session-{{ $session->id }}-{{ $date->format('Y-m-d') }}"
+                            x-show="expanded || {{ $loop->index < 5 ? 'true' : 'false' }}"
+                            x-transition:enter="transition ease-out duration-300"
+                            x-transition:enter-start="opacity-0 translate-y-2"
+                            x-transition:enter-end="opacity-100 translate-y-0"
                             class="group relative rounded-xl border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md {{ $statusConfig['card'] }}"
                         >
                             {{-- Status Accent Line - Rounded left edge --}}
@@ -268,6 +273,19 @@
                             </flux:button>
                         </div>
                     @endforelse
+
+                    @if ($daySessions->count() > 5)
+                        <div x-show="!expanded" x-cloak>
+                            <button
+                                type="button"
+                                @click="expanded = true"
+                                class="w-full rounded-lg border border-dashed border-zinc-300 py-2.5 text-center text-xs font-semibold text-zinc-500 transition-all hover:border-zinc-400 hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-400 dark:hover:border-zinc-500 dark:hover:bg-zinc-800"
+                            >
+                                <flux:icon name="chevron-down" class="-ml-1 inline-block size-3.5" />
+                                {{ $daySessions->count() - 5 }} {{ __('more') }}
+                            </button>
+                        </div>
+                    @endif
                 </div>
             </x-ui.dashboard.panel>
         @endforeach
