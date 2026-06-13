@@ -9,45 +9,22 @@ use Illuminate\Support\ServiceProvider;
 
 class RateLimitServiceProvider extends ServiceProvider
 {
-    /**
-     * Register services.
-     */
     public function register(): void
     {
         //
     }
 
-    /**
-     * Bootstrap services.
-     */
     public function boot(): void
     {
         $this->configureRateLimiting();
     }
 
-    /**
-     * Configure the rate limiters for the application.
-     */
     protected function configureRateLimiting(): void
     {
-        // TODO: Enable rate limiting on production
-        // Temporarily disabled for development
-        RateLimiter::for('api.auth', fn () => Limit::none());
-        RateLimiter::for('api.otp', fn () => Limit::none());
-        RateLimiter::for('api.password', fn () => Limit::none());
+        RateLimiter::for('api.general', function (Request $request) {
+            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
 
-        if (app()->isProduction()) {
-            $this->configureProductionRateLimiting();
-        }
-    }
-
-    /**
-     * Configure production rate limiters.
-     *
-     * These limits should be enforced only in production.
-     */
-    protected function configureProductionRateLimiting(): void
-    {
         RateLimiter::for('api.auth', function (Request $request) {
             return [
                 Limit::perMinute(10)->by($request->ip())->response(function (Request $request, array $headers) {
@@ -81,6 +58,32 @@ class RateLimitServiceProvider extends ServiceProvider
                 Limit::perMinute(5)->by($request->ip()),
                 Limit::perMinute(5)->by($request->user()?->id ?: $request->ip()),
             ];
+        });
+
+        RateLimiter::for('api.verify', function (Request $request) {
+            return [
+                Limit::perMinute(5)->by($request->ip()),
+                Limit::perMinute(5)->by($request->user()?->id ?: $request->ip()),
+            ];
+        });
+
+        RateLimiter::for('api.data', function (Request $request) {
+            return Limit::perMinute(30)->by($request->user()?->id ?: $request->ip());
+        });
+
+        RateLimiter::for('api.loyalty', function (Request $request) {
+            return Limit::perMinute(10)->by($request->user()?->id ?: $request->ip());
+        });
+
+        RateLimiter::for('payments', function (Request $request) {
+            $perMinute = (int) config('payment.initiate_per_minute', 10);
+            $key = $request->user()?->id ?: $request->ip();
+
+            return Limit::perMinute($perMinute)->by($key);
+        });
+
+        RateLimiter::for('api.webhook', function (Request $request) {
+            return Limit::perMinute(20)->by($request->ip());
         });
     }
 }

@@ -67,18 +67,22 @@ class CourseController extends Controller
             abort_unless($member->hasAccessToCourse($course), 404);
         }
 
-        $sessions = $course->sessions()
+        $sessionsQuery = $course->sessions()
             ->where('is_cancelled', false)
             ->whereNotNull('ends_at_date')
             ->where('ends_at_date', '>=', now()->toDateString())
             ->where('starts_at_date', '<=', now()->addDays(7)->toDateString())
             ->withCount('bookings')
-            ->with(['bookings' => function ($query) use ($member) {
+            ->orderBy('starts_at_date');
+
+        if ($member !== null) {
+            $sessionsQuery->with(['bookings' => function ($query) use ($member) {
                 $query->where('member_id', $member->id)
                     ->where('status', '!=', 'cancelled');
-            }])
-            ->orderBy('starts_at_date')
-            ->paginate();
+            }]);
+        }
+
+        $sessions = $sessionsQuery->paginate();
 
         return $this->paginated($sessions, CourseSessionResource::class);
     }

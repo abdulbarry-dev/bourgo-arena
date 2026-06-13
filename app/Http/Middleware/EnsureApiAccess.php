@@ -25,6 +25,11 @@ class EnsureApiAccess
 
         $token = $request->bearerToken();
 
+        // Bypass for local environment when using the mobile dummy token
+        if (config('app.env') === 'local' && $token === 'local-dummy-token') {
+            return $next($request);
+        }
+
         if (! $token) {
             return response()->json(['message' => 'Unauthenticated'], 401);
         }

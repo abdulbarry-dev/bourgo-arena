@@ -202,7 +202,7 @@ class ReservationController extends Controller
         if (! empty($result['success']) && $result['status'] === 'paid') {
             $reservation->update([
                 'payment_status' => 'paid',
-                'status' => 'confirmed'
+                'status' => 'confirmed',
             ]);
         }
 

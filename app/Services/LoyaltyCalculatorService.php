@@ -8,8 +8,6 @@ use App\Models\LoyaltyPoint;
 use App\Models\Member;
 use App\Models\Subscription;
 use App\Notifications\LoyaltyPointsUpdatedNotification;
-use Illuminate\Database\QueryException;
-use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -222,23 +220,25 @@ class LoyaltyCalculatorService
             $lockedMember = Member::query()->lockForUpdate()->findOrFail($member->id);
             $balanceBefore = (int) ($lockedMember->loyalty_points ?? 0);
 
-            try {
-                LoyaltyPoint::query()->create([
-                    'member_id' => $lockedMember->id,
-                    'points' => $points,
-                    'transaction_type' => $transactionType,
-                    'source_type' => $sourceType,
-                    'source_id' => $sourceId,
-                    'idempotency_key' => $idempotencyKey,
-                    'created_at' => now(),
-                ]);
-            } catch (QueryException $exception) {
-                if ($this->isUniqueViolation($exception)) {
+            if ($idempotencyKey !== null) {
+                $exists = LoyaltyPoint::query()
+                    ->where('idempotency_key', $idempotencyKey)
+                    ->exists();
+
+                if ($exists) {
                     return false;
                 }
-
-                throw $exception;
             }
+
+            LoyaltyPoint::query()->create([
+                'member_id' => $lockedMember->id,
+                'points' => $points,
+                'transaction_type' => $transactionType,
+                'source_type' => $sourceType,
+                'source_id' => $sourceId,
+                'idempotency_key' => $idempotencyKey,
+                'created_at' => now(),
+            ]);
 
             $balanceAfter = $balanceBefore + $points;
 
@@ -262,27 +262,5 @@ class LoyaltyCalculatorService
 
             return true;
         });
-    }
-
-    protected function isUniqueViolation(QueryException $exception): bool
-    {
-        if ($exception instanceof UniqueConstraintViolationException) {
-            return true;
-        }
-
-        if ($exception->getCode() === '23505') {
-            return true;
-        }
-
-        if ($exception->getCode() === '23000') {
-            return str_contains(strtolower($exception->getMessage()), 'unique');
-        }
-
-        $previous = $exception->getPrevious();
-        if ($previous !== null && (string) $previous->getCode() === '23505') {
-            return true;
-        }
-
-        return false;
     }
 }

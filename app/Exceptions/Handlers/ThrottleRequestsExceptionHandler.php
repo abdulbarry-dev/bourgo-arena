@@ -69,6 +69,14 @@ class ThrottleRequestsExceptionHandler
             return __('Too many OTP verification attempts. '.$timeFormat.' A new code will be sent to you. Please check your email or phone.');
         }
 
+        if ($request->is('api/*/user/verify-email') || $request->is('api/*/user/verify-phone')) {
+            return __('Too many verification attempts. '.$timeFormat.' Please try again later.');
+        }
+
+        if ($request->is('api/*/payments/*')) {
+            return __('Too many payment attempts. '.$timeFormat.' Please try again later or contact support if the issue persists.');
+        }
+
         return __('Too many requests. '.$timeFormat);
     }
 }
