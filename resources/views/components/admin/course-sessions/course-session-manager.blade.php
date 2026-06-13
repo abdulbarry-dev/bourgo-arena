@@ -117,7 +117,7 @@
                     </div>
                 </div>
 
-                <div class="flex-1 space-y-3 overflow-y-auto overscroll-contain soft-scrollbar bg-zinc-50/50 px-4 pb-1 pt-4 dark:bg-zinc-900/20" x-data="{ expanded: false }">
+                <div class="flex-1 space-y-3 overflow-y-auto overscroll-contain soft-scrollbar max-h-[420px] md:max-h-[520px] 2xl:max-h-[580px] bg-zinc-50/50 px-4 pb-1 pt-4 dark:bg-zinc-900/20" x-data="{ expanded: false }">
                     @forelse ($daySessions as $session)
                         @php
                             $status = $session->getStatus($date);
