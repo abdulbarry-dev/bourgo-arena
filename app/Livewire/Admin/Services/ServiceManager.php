@@ -255,7 +255,7 @@ class ServiceManager extends Component
             })
             ->withCount(['plans', 'courses', 'events', 'activities'])
             ->orderBy('name')
-            ->paginate(10);
+            ->paginate(6);
     }
 
     public function render(): View

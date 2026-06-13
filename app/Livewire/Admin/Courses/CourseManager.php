@@ -187,7 +187,7 @@ class CourseManager extends Component
 
         $query = $this->applyRelationPresenceFilter($query, 'sessions', $this->hasSessionsFilter);
 
-        return $query->withCount('sessions')->orderBy('name')->paginate(10);
+        return $query->withCount('sessions')->orderBy('name')->paginate(6);
     }
 
     public function updatedServiceId($value)

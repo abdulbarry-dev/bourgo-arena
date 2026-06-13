@@ -278,7 +278,7 @@ class EventManager extends Component
             })
             ->withCount('participants')
             ->latest()
-            ->paginate(10);
+            ->paginate(6);
 
         return view('livewire.admin.events.event-manager', [
             'events' => $events,

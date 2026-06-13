@@ -30,7 +30,7 @@ class PlanTable extends Component
 
     public string $statusFilter = 'active';
 
-    public int $perPage = 10;
+    public int $perPage = 6;
 
     public string $sortBy = 'name';
 

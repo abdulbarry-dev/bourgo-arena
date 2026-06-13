@@ -257,7 +257,7 @@ class ActivityManager extends Component
                 $query->where('is_active', $this->statusFilter === 'active');
             })
             ->orderBy('title')
-            ->paginate(10);
+            ->paginate(6);
 
         return $activities;
     }
