@@ -100,8 +100,6 @@ class CourseManager extends Component
                 break;
             }
         }
-
-        $this->uploadQueue = [];
     }
 
     public function confirmImageDeletion($index, $isNew = false)
