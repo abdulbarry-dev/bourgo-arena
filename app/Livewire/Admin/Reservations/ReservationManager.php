@@ -203,7 +203,10 @@ class ReservationManager extends Component
             )
         );
 
-        $reservation->update(['status' => 'confirmed']);
+        $reservation->update([
+            'status' => 'confirmed',
+            'payment_status' => 'paid',
+        ]);
 
         $this->closeCreateModal();
         $this->dispatch('toast', message: __('Reservation created successfully.'), type: 'success');

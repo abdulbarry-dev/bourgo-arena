@@ -268,7 +268,7 @@
                 </div>
 
                 <div class="mt-5 rounded-2xl border border-dashed border-zinc-200 bg-white p-4 text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900/40">
-                    {{ __('The reservation will be created with a pending payment status and can be verified later from this screen.') }}
+                    {{ __('The reservation will be created directly with a paid payment status.') }}
                 </div>
             </div>
 

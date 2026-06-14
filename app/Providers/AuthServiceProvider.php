@@ -35,9 +35,8 @@ class AuthServiceProvider extends ServiceProvider
 
         Gate::define('access-dashboard-module', function (User $user, string $module) {
             return match ($module) {
-                'dashboard', 'members', 'subscriptions', 'schedule', 'reservations' => $user->isStaff(),
-                'courses', 'events', 'plans', 'managers', 'notifications' => $user->isAdmin(),
-                'activities' => $user->isStaff(),
+                'dashboard', 'members', 'subscriptions', 'schedule', 'reservations', 'activities', 'events', 'notifications' => $user->isStaff(),
+                'courses', 'plans', 'managers' => $user->isAdmin(),
                 default => false,
             };
         });

@@ -4,9 +4,11 @@
             <flux:heading>{{ __('Notification Types') }}</flux:heading>
             <flux:text variant="subtle" class="mt-0.5">{{ __('Configure which channels each notification type uses.') }}</flux:text>
         </div>
+        @if(auth()->user()->isAdmin())
         <flux:button wire:click="openCreateTypeFlyout" variant="primary" icon="plus" size="sm">
             {{ __('Create Type') }}
         </flux:button>
+        @endif
     </div>
 
     @php
@@ -75,7 +77,7 @@
                                             @endif
                                         </div>
                                     </div>
-                                    @unless ($allChannelsOff)
+                                    @if(! $allChannelsOff && auth()->user()->isAdmin())
                                         <div class="flex items-center gap-1 opacity-0 transition group-hover:opacity-100">
                                             <button wire:click="openEditTypeFlyout({{ $type->id }})" class="rounded p-1 text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300" title="{{ __('Edit') }}">
                                                 <flux:icon.pencil-square class="size-3.5" />
@@ -84,22 +86,28 @@
                                                 <flux:icon.trash class="size-3.5" />
                                             </button>
                                         </div>
-                                    @endunless
+                                    @endif
                                 </div>
 
                                 <div class="flex flex-wrap items-center gap-3">
-                                    <label class="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
-                                        <flux:switch wire:click="toggleTypeChannel({{ $type->id }}, 'push')" :checked="$type->push_enabled" size="sm" />
-                                        {{ __('Push') }}
-                                    </label>
-                                    <label class="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
-                                        <flux:switch wire:click="toggleTypeChannel({{ $type->id }}, 'email')" :checked="$type->email_enabled" size="sm" />
-                                        {{ __('Email') }}
-                                    </label>
-                                    <label class="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
-                                        <flux:switch wire:click="toggleTypeChannel({{ $type->id }}, 'sms')" :checked="$type->sms_enabled" size="sm" />
-                                        {{ __('SMS') }}
-                                    </label>
+                                    @if(auth()->user()->isAdmin())
+                                        <label class="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+                                            <flux:switch wire:click="toggleTypeChannel({{ $type->id }}, 'push')" :checked="$type->push_enabled" size="sm" />
+                                            {{ __('Push') }}
+                                        </label>
+                                        <label class="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+                                            <flux:switch wire:click="toggleTypeChannel({{ $type->id }}, 'email')" :checked="$type->email_enabled" size="sm" />
+                                            {{ __('Email') }}
+                                        </label>
+                                        <label class="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+                                            <flux:switch wire:click="toggleTypeChannel({{ $type->id }}, 'sms')" :checked="$type->sms_enabled" size="sm" />
+                                            {{ __('SMS') }}
+                                        </label>
+                                    @else
+                                        @if($type->push_enabled) <span class="text-xs text-zinc-500">{{ __('Push') }}</span> @endif
+                                        @if($type->email_enabled) <span class="text-xs text-zinc-500">{{ __('Email') }}</span> @endif
+                                        @if($type->sms_enabled) <span class="text-xs text-zinc-500">{{ __('SMS') }}</span> @endif
+                                    @endif
 
                                     @if ($allChannelsOff)
                                         <span class="ml-auto inline-flex items-center gap-1 rounded-full bg-zinc-200 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-zinc-500 dark:bg-zinc-700 dark:text-zinc-400">
@@ -116,13 +124,22 @@
     </div>
 
     @if ($types->isEmpty())
-        <x-ui.dashboard.empty-state
-            icon="bell"
-            :title="__('No notification types')"
-            :subtitle="__('Create your first notification type to start managing notifications.')"
-            :button-label="__('Create Type')"
-            button-wire-click="openCreateTypeFlyout"
-            class="py-12"
-        />
+        @if(auth()->user()->isAdmin())
+            <x-ui.dashboard.empty-state
+                icon="bell"
+                :title="__('No notification types')"
+                :subtitle="__('Create your first notification type to start managing notifications.')"
+                :button-label="__('Create Type')"
+                button-wire-click="openCreateTypeFlyout"
+                class="py-12"
+            />
+        @else
+            <x-ui.dashboard.empty-state
+                icon="bell"
+                :title="__('No notification types')"
+                :subtitle="__('No notification types are available.')"
+                class="py-12"
+            />
+        @endif
     @endif
 </x-ui.dashboard.panel>

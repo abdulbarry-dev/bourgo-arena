@@ -37,6 +37,7 @@ class CourseSessionResource extends JsonResource
             'capacity' => $this->capacity,
             'enrolled' => $this->bookings_count ?? 0,
             'image_url' => $this->course->image_url,
+            'status' => $this->getStatus(Carbon::parse($this->starts_at_date ?? now())),
             'is_booked' => $this->relationLoaded('bookings')
                 ? $this->bookings->isNotEmpty()
                 : false,

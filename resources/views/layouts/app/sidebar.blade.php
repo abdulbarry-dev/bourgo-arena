@@ -58,7 +58,9 @@
                         <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.payments.audit')" :current="request()->routeIs('admin.payments.audit*')" wire:navigate>
                             {{ __('Payments Audit') }}
                         </flux:sidebar.item>
+                    @endif
 
+                    @if(auth()->user()?->can('access-dashboard-module', 'notifications'))
                         <flux:sidebar.item icon="bell" :href="route('admin.notifications')" :current="request()->routeIs('admin.notifications*')" wire:navigate>
                             {{ __('Notifications') }}
                         </flux:sidebar.item>
@@ -76,12 +78,15 @@
                     </flux:sidebar.item>
                     @endif
 
+                    @if(auth()->user()?->can('access-dashboard-module', 'events'))
+                        <flux:sidebar.item icon="trophy" :href="route('admin.events.index')" :current="request()->routeIs('admin.events.*')" wire:navigate>
+                            {{ __('Events & Tournaments') }}
+                        </flux:sidebar.item>
+                    @endif
+
                     @if(auth()->user()?->can('access-dashboard-module', 'courses'))
                         <flux:sidebar.item icon="book-open" :href="route('admin.courses.index')" :current="request()->routeIs('admin.courses.*')" wire:navigate>
                             {{ __('Courses') }}
-                        </flux:sidebar.item>
-                        <flux:sidebar.item icon="trophy" :href="route('admin.events.index')" :current="request()->routeIs('admin.events.*')" wire:navigate>
-                            {{ __('Events & Tournaments') }}
                         </flux:sidebar.item>
                         <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.plans')" :current="request()->routeIs('admin.plans*')" wire:navigate>
                             {{ __('Plans') }}

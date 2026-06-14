@@ -3,6 +3,7 @@
         <flux:button variant="primary" icon="plus" x-data x-on:click="$dispatch('open-add-member-flyout')">
             {{ __('Add Member') }}
         </flux:button>
+        @if(auth()->user()->isAdmin())
         <flux:button
             variant="outline"
             wire:click="openExportConfirmModal"
@@ -13,6 +14,7 @@
             <span wire:loading.remove wire:target="openExportConfirmModal,confirmExport">{{ __('Export CSV') }}</span>
             <span wire:loading wire:target="openExportConfirmModal,confirmExport">{{ __('Exporting...') }}</span>
         </flux:button>
+        @endif
     </div>
 
     <x-ui.filter-row>

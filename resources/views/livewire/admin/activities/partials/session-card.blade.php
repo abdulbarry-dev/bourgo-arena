@@ -6,7 +6,7 @@
             'text' => 'text-red-900 dark:text-red-200',
             'badge' => 'red',
         ],
-        'validated' => [
+        'ended' => [
             'card' => 'border-zinc-200 bg-zinc-50/50 dark:border-zinc-700 dark:bg-zinc-800/30',
             'accent' => 'bg-zinc-400',
             'text' => 'text-zinc-600 dark:text-zinc-400',
@@ -55,8 +55,8 @@
             <div class="flex items-center gap-2">
                 @if ($status === 'canceled')
                     <flux:badge size="sm" color="red" inset>{{ __('Canceled') }}</flux:badge>
-                @elseif ($status === 'validated')
-                    <flux:badge size="sm" color="zinc" inset>{{ __('Past') }}</flux:badge>
+                @elseif ($status === 'ended')
+                    <flux:badge size="sm" color="zinc" inset>{{ __('Ended') }}</flux:badge>
                 @elseif ($isReserved)
                     <flux:badge size="sm" color="amber" inset>{{ __('Reserved') }}</flux:badge>
                 @else

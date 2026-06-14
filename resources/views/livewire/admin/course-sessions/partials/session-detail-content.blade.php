@@ -3,7 +3,7 @@
         $status = $data['status'];
         $statusConfig = match ($status) {
             'canceled' => ['color' => 'red', 'label' => __('Canceled')],
-            'validated' => ['color' => 'zinc', 'label' => __('Past')],
+            'ended' => ['color' => 'zinc', 'label' => __('Ended')],
             default => ['color' => 'emerald', 'label' => __('Scheduled')],
         };
         $bookingsCount = count($data['bookings']);

@@ -70,7 +70,7 @@ class AssignParticipantsModal extends Component
 
     public function enrollMember()
     {
-        if ($this->sessionData['status'] === 'validated') {
+        if ($this->sessionData['status'] === 'ended') {
             $this->dispatch('toast', message: __('Cannot enroll members in a completed session.'), type: 'warning');
 
             return;
@@ -143,7 +143,7 @@ class AssignParticipantsModal extends Component
 
     public function removeBooking($bookingId)
     {
-        if ($this->sessionData['status'] === 'validated') {
+        if ($this->sessionData['status'] === 'ended') {
             $this->dispatch('toast', message: __('Cannot modify bookings of a completed session.'), type: 'warning');
 
             return;

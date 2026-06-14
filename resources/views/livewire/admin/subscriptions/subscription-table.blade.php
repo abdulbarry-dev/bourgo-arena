@@ -1,5 +1,6 @@
 <section class="w-full space-y-6">
     <div class="flex flex-wrap items-center justify-end gap-2">
+        @if(auth()->user()->isAdmin())
         <flux:button
             wire:click="openExportConfirmModal('csv')"
             wire:loading.attr="disabled"
@@ -19,6 +20,7 @@
             <span wire:loading.remove wire:target="openExportConfirmModal,confirmExport">{{ __('Export PDF') }}</span>
             <span wire:loading wire:target="openExportConfirmModal,confirmExport">{{ __('Exporting...') }}</span>
         </flux:button>
+        @endif
     </div>
 
     <x-ui.filter-row>

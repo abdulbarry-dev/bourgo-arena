@@ -30,7 +30,8 @@
             :subtitle="__('Track revenue, subscriptions, members, occupancy, and the operational signals that matter.')"
         />
 
-        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4 panel-enter">
+        <div class="grid gap-4 md:grid-cols-2 {{ auth()->user()->isAdmin() ? 'lg:grid-cols-4' : 'lg:grid-cols-3' }} panel-enter">
+            @if(auth()->user()->isAdmin())
                 <x-ui.dashboard.panel padding="p-5">
                     <div class="flex items-center justify-between">
                         <div>
@@ -57,6 +58,7 @@
                     <span class="ml-2 text-zinc-500 dark:text-zinc-400">{{ __('vs last month') }}</span>
                 </div>
             </x-ui.dashboard.panel>
+            @endif
 
             <x-ui.dashboard.panel padding="p-5">
                 <div class="flex items-center justify-between">
@@ -138,7 +140,8 @@
             </x-ui.dashboard.panel>
         </div>
 
-        <div class="grid gap-6 lg:grid-cols-3 panel-enter">
+        <div class="grid gap-6 {{ auth()->user()->isAdmin() ? 'lg:grid-cols-3' : 'lg:grid-cols-2' }} panel-enter">
+            @if(auth()->user()->isAdmin())
             <x-ui.dashboard.panel class="lg:col-span-1">
                 <div class="mb-3 flex items-center justify-between">
                     <h4 class="font-semibold text-zinc-900 dark:text-white">{{ __('Revenue Trend') }}</h4>
@@ -173,6 +176,7 @@
                     @endif
                 </div>
             </x-ui.dashboard.panel>
+            @endif
 
             <x-ui.dashboard.panel class="lg:col-span-1">
                 <div class="mb-3">
@@ -239,7 +243,8 @@
             </x-ui.dashboard.panel>
         </div>
 
-        <div class="grid gap-6 lg:grid-cols-2 panel-enter">
+        <div class="grid gap-6 {{ auth()->user()->isAdmin() ? 'lg:grid-cols-2' : 'lg:grid-cols-1' }} panel-enter">
+            @if(auth()->user()->isAdmin())
             <x-ui.dashboard.panel>
                 <div class="mb-3">
                     <h4 class="font-semibold text-zinc-900 dark:text-white">{{ __('Revenue by Payment Method') }}</h4>
@@ -292,6 +297,7 @@
                     @endif
                 </div>
             </x-ui.dashboard.panel>
+            @endif
 
             <x-ui.dashboard.panel>
                 <div class="mb-3">

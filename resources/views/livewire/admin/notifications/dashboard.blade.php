@@ -8,7 +8,9 @@
     @include('livewire.admin.notifications.partials.stats-cards')
 
     {{-- Notification Types --}}
-    @include('livewire.admin.notifications.partials.types-grid')
+    @if(auth()->user()->isAdmin())
+        @include('livewire.admin.notifications.partials.types-grid')
+    @endif
 
     {{-- Compose & Send --}}
     @include('livewire.admin.notifications.partials.compose')

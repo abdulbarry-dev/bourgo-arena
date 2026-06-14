@@ -67,6 +67,14 @@ Route::prefix('admin')->middleware('role:admin')->group(function () {
     Route::get('/managers', Index::class)
         ->name('admin.managers.index');
 
+    Route::get('/services', ServiceManager::class)
+        ->name('admin.services.index');
+});
+
+// -------------------------------------------------------------
+// Admin & Manager routes with /admin prefix
+// -------------------------------------------------------------
+Route::prefix('admin')->middleware('role:admin,manager')->group(function () {
     Route::get('/events', EventManager::class)
         ->name('admin.events.index');
 
@@ -75,9 +83,6 @@ Route::prefix('admin')->middleware('role:admin')->group(function () {
 
     Route::get('/events/{event}/bracket', EventBracketManager::class)
         ->name('admin.events.bracket');
-
-    Route::get('/services', ServiceManager::class)
-        ->name('admin.services.index');
 
     Route::get('/notifications', NotificationDashboard::class)
         ->name('admin.notifications');

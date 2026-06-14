@@ -17,6 +17,7 @@ class ActivitySessionResource extends JsonResource
             'end_time' => Carbon::parse($this->starts_at)->addMinutes($this->duration_minutes)->format('H:i:s'),
             'duration_minutes' => $this->duration_minutes,
             'capacity' => $this->capacity,
+            'status' => $this->getStatus(Carbon::parse($this->starts_at_date ?? now())),
         ];
     }
 }

@@ -35,10 +35,10 @@ class ActivitySession extends Model
             return 'canceled';
         }
 
-        $endDateTime = $this->getEndDateTime($date);
+        $startDateTime = Carbon::parse($date->toDateString().' '.$this->starts_at);
 
-        if ($endDateTime->isPast()) {
-            return 'validated';
+        if ($startDateTime->isPast()) {
+            return 'ended';
         }
 
         return 'setted';

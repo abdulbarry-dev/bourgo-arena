@@ -116,6 +116,7 @@ class SubscriptionTable extends Component
 
     public function exportCsv()
     {
+        abort_unless(auth()->user()->isAdmin(), 403);
         $subscriptions = $this->filteredSubscriptionsQuery()->get();
 
         $headers = [
@@ -143,6 +144,7 @@ class SubscriptionTable extends Component
 
     public function exportPdf()
     {
+        abort_unless(auth()->user()->isAdmin(), 403);
         $subscriptions = $this->filteredSubscriptionsQuery()->get();
 
         $pdf = Pdf::loadView('pdf.subscriptions', ['subscriptions' => $subscriptions])

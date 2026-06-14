@@ -65,6 +65,7 @@ class Dashboard extends Component
 
     public function openCreateTypeFlyout(): void
     {
+        abort_unless(auth()->user()->isAdmin(), 404);
         $this->resetTypeForm();
         $this->typeFlyoutMode = 'create';
         $this->dispatch('modal-show', name: 'type-form-flyout');
@@ -72,6 +73,7 @@ class Dashboard extends Component
 
     public function openEditTypeFlyout(int $typeId): void
     {
+        abort_unless(auth()->user()->isAdmin(), 404);
         $type = NotificationType::findOrFail($typeId);
         $this->editingType = $type;
         $this->typeName = $type->name;
@@ -87,6 +89,7 @@ class Dashboard extends Component
 
     public function saveType(): void
     {
+        abort_unless(auth()->user()->isAdmin(), 404);
         $this->validate([
             'typeName' => 'required|string|max:255',
             'typeDescription' => 'nullable|string|max:1000',
@@ -122,12 +125,14 @@ class Dashboard extends Component
 
     public function confirmDeleteType(int $typeId): void
     {
+        abort_unless(auth()->user()->isAdmin(), 404);
         $this->deletingType = NotificationType::findOrFail($typeId);
         $this->dispatch('modal-show', name: 'confirm-delete-type');
     }
 
     public function deleteType(): void
     {
+        abort_unless(auth()->user()->isAdmin(), 404);
         if ($this->deletingType) {
             $this->deletingType->delete();
             $this->deletingType = null;
@@ -158,6 +163,7 @@ class Dashboard extends Component
 
     public function toggleTypeChannel(int $typeId, string $channel): void
     {
+        abort_unless(auth()->user()->isAdmin(), 404);
         $type = NotificationType::find($typeId);
 
         if ($type === null) {
@@ -182,6 +188,7 @@ class Dashboard extends Component
 
     public function toggleTypeActive(int $typeId): void
     {
+        abort_unless(auth()->user()->isAdmin(), 404);
         $type = NotificationType::find($typeId);
 
         if ($type === null) {

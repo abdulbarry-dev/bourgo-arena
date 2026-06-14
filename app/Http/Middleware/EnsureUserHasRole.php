@@ -18,7 +18,7 @@ class EnsureUserHasRole
         $user = $request->user();
 
         if (! $user) {
-            abort(Response::HTTP_FORBIDDEN);
+            abort(Response::HTTP_NOT_FOUND);
         }
 
         $allowedRoles = collect($roles)
@@ -31,7 +31,7 @@ class EnsureUserHasRole
         $currentRole = $user->role?->value ?? (string) $user->role;
 
         if (! in_array($currentRole, $allowedRoles, true)) {
-            abort(Response::HTTP_FORBIDDEN);
+            abort(Response::HTTP_NOT_FOUND);
         }
 
         return $next($request);
