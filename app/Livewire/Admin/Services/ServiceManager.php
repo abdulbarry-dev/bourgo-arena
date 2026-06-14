@@ -73,13 +73,6 @@ class ServiceManager extends Component
             }
         }
 
-        // Use a slight delay or dispatch to clear the queue to avoid state conflicts
-        $this->dispatch('clear-upload-queue');
-    }
-
-    #[On('clear-upload-queue')]
-    public function clearUploadQueue()
-    {
         $this->uploadQueue = [];
     }
 

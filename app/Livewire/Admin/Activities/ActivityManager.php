@@ -71,12 +71,6 @@ class ActivityManager extends Component
             }
         }
 
-        $this->dispatch('clear-upload-queue');
-    }
-
-    #[On('clear-upload-queue')]
-    public function clearUploadQueue()
-    {
         $this->uploadQueue = [];
     }
 
