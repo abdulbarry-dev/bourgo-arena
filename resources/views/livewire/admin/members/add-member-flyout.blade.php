@@ -43,7 +43,7 @@
                         <div class="min-h-[20px]"><flux:error name="gender" /></div>
                     </flux:field>
                     
-                    <flux:input wire:model="emergencyContact" label="{{ __('Emergency Contact') }}" type="text" autocomplete="off" class="sm:col-span-2" />
+                    <flux:input wire:model="emergencyContact" label="{{ __('Emergency Contact') }}" type="text" autocomplete="off" class="sm:col-span-2" required />
                 </div>
             </div>
 

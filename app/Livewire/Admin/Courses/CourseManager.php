@@ -28,7 +28,7 @@ class CourseManager extends Component
     #[Validate('required|string|max:255')]
     public $name = '';
 
-    #[Validate('nullable|string|max:1000')]
+    #[Validate('required|string|max:1000')]
     public $description = '';
 
     #[Validate('nullable|image|max:2048')]

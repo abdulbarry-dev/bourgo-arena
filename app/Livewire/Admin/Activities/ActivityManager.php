@@ -304,9 +304,9 @@ class ActivityManager extends Component
             'serviceId' => ['required', 'integer', 'exists:services,id'],
             'title' => ['required', 'string', 'max:255'],
             'basePrice' => ['required', 'numeric', 'min:0'],
-            'capacity' => ['nullable', 'integer', 'min:1'],
-            'description' => ['nullable', 'string'],
-            'featuresInput' => ['nullable', 'string'],
+            'capacity' => ['required', 'integer', 'min:1'],
+            'description' => ['required', 'string'],
+            'featuresInput' => ['required', 'string'],
             'isActive' => ['boolean'],
         ];
     }

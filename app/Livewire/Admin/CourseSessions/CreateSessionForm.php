@@ -30,7 +30,7 @@ class CreateSessionForm extends Component
     #[Validate('required|date')]
     public $starts_at_date;
 
-    #[Validate('nullable|date|after_or_equal:starts_at_date')]
+    #[Validate('required|date|after_or_equal:starts_at_date')]
     public $ends_at_date;
 
     public function mount()

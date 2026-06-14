@@ -92,7 +92,7 @@ class Dashboard extends Component
         abort_unless(auth()->user()->isAdmin(), 404);
         $this->validate([
             'typeName' => 'required|string|max:255',
-            'typeDescription' => 'nullable|string|max:1000',
+            'typeDescription' => 'required|string|max:1000',
             'typeCategory' => 'required|string|max:255',
             'typeIcon' => 'required|string|max:255',
             'typePushEnabled' => 'boolean',

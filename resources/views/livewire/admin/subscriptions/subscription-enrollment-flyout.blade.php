@@ -53,7 +53,7 @@
 
                 <flux:field>
                     <flux:label>{{ __('Start Date') }}</flux:label>
-                    <flux:input wire:model="startsAt" type="date" />
+                    <flux:input wire:model="startsAt" type="date" required />
                     <div class="min-h-[20px]"><flux:error name="startsAt" /></div>
                 </flux:field>
             </div>

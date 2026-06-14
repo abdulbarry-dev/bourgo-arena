@@ -255,9 +255,9 @@ class ActivitySlotsManager extends Component
         return [
             'activityTitle' => ['required', 'string', 'max:255'],
             'activityBasePrice' => ['required', 'numeric', 'min:0'],
-            'activityCapacity' => ['nullable', 'integer', 'min:1'],
-            'activityDescription' => ['nullable', 'string'],
-            'activityFeaturesInput' => ['nullable', 'string'],
+            'activityCapacity' => ['required', 'integer', 'min:1'],
+            'activityDescription' => ['required', 'string'],
+            'activityFeaturesInput' => ['required', 'string'],
             'activityIsActive' => ['boolean'],
         ];
     }

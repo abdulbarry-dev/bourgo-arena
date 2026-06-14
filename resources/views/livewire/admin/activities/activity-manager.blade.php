@@ -258,20 +258,20 @@
 
                     <flux:field>
                         <flux:label>{{ __('Max Capacity') }}</flux:label>
-                        <flux:input wire:model="capacity" type="number" min="1" placeholder="{{ __('e.g. 10') }}" />
+                        <flux:input wire:model="capacity" type="number" min="1" placeholder="{{ __('e.g. 10') }}" required />
                         <flux:description>{{ __('Informational maximum number of participants.') }}</flux:description>
                         <div class="min-h-[20px]"><flux:error name="capacity" /></div>
                     </flux:field>
 
                     <flux:field>
                         <flux:label>{{ __('Description') }}</flux:label>
-                        <flux:textarea wire:model="description" rows="4" />
+                        <flux:textarea wire:model="description" rows="4" required />
                         <div class="min-h-[20px]"><flux:error name="description" /></div>
                     </flux:field>
 
                     <flux:field>
                         <flux:label>{{ __('Features') }}</flux:label>
-                        <flux:textarea wire:model="featuresInput" rows="3" :placeholder="__('Covered court, lights, locker room')" />
+                        <flux:textarea wire:model="featuresInput" rows="3" :placeholder="__('Covered court, lights, locker room')" required />
                     </flux:field>
 
                     {{-- Modern Unified Media Section --}}

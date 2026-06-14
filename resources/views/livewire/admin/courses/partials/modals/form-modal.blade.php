@@ -172,7 +172,7 @@
 
                 <flux:field>
                     <flux:label>{{ __('Description') }}</flux:label>
-                    <flux:textarea wire:model="description" rows="3" />
+                    <flux:textarea wire:model="description" rows="3" required />
                     <div class="min-h-[20px]"><flux:error name="description" /></div>
                 </flux:field>
 

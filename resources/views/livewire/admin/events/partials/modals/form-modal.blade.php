@@ -180,7 +180,7 @@
 
             <flux:field class="md:col-span-2">
                 <flux:label>{{ __('Description') }}</flux:label>
-                <flux:textarea wire:model="description" rows="3" />
+                <flux:textarea wire:model="description" rows="3" required />
                 <div class="min-h-[20px]"><flux:error name="description" /></div>
             </flux:field>
 
@@ -202,17 +202,17 @@
 
             <flux:field>
                 <flux:label>{{ __('Registration Deadline') }}</flux:label>
-                <flux:input type="datetime-local" wire:model="registration_deadline" />
+                <flux:input type="datetime-local" wire:model="registration_deadline" required />
                 <div class="min-h-[20px]"><flux:error name="registration_deadline" /></div>
             </flux:field>
             <flux:field>
                 <flux:label>{{ __('Start Date') }}</flux:label>
-                <flux:input type="datetime-local" wire:model="start_date" />
+                <flux:input type="datetime-local" wire:model="start_date" required />
                 <div class="min-h-[20px]"><flux:error name="start_date" /></div>
             </flux:field>
             <flux:field>
                 <flux:label>{{ __('End Date') }}</flux:label>
-                <flux:input type="datetime-local" wire:model="end_date" />
+                <flux:input type="datetime-local" wire:model="end_date" required />
                 <div class="min-h-[20px]"><flux:error name="end_date" /></div>
             </flux:field>
             

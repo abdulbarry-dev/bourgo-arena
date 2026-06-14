@@ -62,7 +62,7 @@ class EventBracketManager extends Component
     {
         $this->validate([
             'winnerId' => 'required|integer',
-            'matchScore' => 'nullable|string|max:50',
+            'matchScore' => 'required|string|max:50',
         ]);
 
         $match = EventMatch::findOrFail($this->advancingMatchId);

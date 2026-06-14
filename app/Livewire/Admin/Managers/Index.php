@@ -99,7 +99,7 @@ class Index extends Component
         $this->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,'.$this->selectedManager->id,
-            'phone' => 'nullable|string|max:20|unique:users,phone,'.$this->selectedManager->id,
+            'phone' => 'required|string|max:20|unique:users,phone,'.$this->selectedManager->id,
         ]);
 
         $this->selectedManager->update([
@@ -117,7 +117,7 @@ class Index extends Component
         $this->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email',
-            'phone' => 'nullable|string|max:20|unique:users,phone',
+            'phone' => 'required|string|max:20|unique:users,phone',
         ]);
 
         $randomPassword = Str::password(16);

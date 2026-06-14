@@ -19,7 +19,7 @@
 
         <flux:field>
             <flux:label>{{ __('Description') }}</flux:label>
-            <flux:textarea wire:model="typeDescription" :placeholder="__('Describe when this notification type is used...')" rows="3" />
+            <flux:textarea wire:model="typeDescription" :placeholder="__('Describe when this notification type is used...')" rows="3" required />
             <div class="min-h-[20px]"><flux:error name="typeDescription" /></div>
         </flux:field>
 

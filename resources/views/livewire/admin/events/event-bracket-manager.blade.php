@@ -126,8 +126,8 @@
                 </flux:field>
 
                 <flux:field>
-                    <flux:label>{{ __('Score (Optional)') }}</flux:label>
-                    <flux:input wire:model="matchScore" placeholder="e.g. 21-15, 21-18" />
+                    <flux:label>{{ __('Score') }}</flux:label>
+                    <flux:input wire:model="matchScore" placeholder="e.g. 21-15, 21-18" required />
                     <div class="min-h-[20px]"><flux:error name="matchScore" /></div>
                 </flux:field>
 

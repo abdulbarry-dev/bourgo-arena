@@ -7,7 +7,7 @@
     <form wire:submit="{{ $flyoutMode === 'create' ? 'createManager' : 'updateManager' }}" class="mt-6 flex flex-col gap-6">
         <flux:input wire:model="name" :label="__('Name')" :placeholder="__('Jane Doe')" required />
         <flux:input wire:model="email" type="email" :label="__('Email account')" :placeholder="__('jane@example.com')" required />
-        <flux:input wire:model="phone" type="tel" :label="__('Phone number')" :placeholder="__('+1 234 567 8900')" />
+        <flux:input wire:model="phone" type="tel" :label="__('Phone number')" :placeholder="__('+1 234 567 8900')" required />
 
         <div class="flex">
             <flux:spacer />

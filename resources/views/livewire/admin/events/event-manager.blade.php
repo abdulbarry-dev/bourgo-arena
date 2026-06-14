@@ -278,7 +278,7 @@
             
             <flux:field>
                 <flux:label>{{ __('Please type the event name to confirm') }}</flux:label>
-                <flux:input wire:model="deleteConfirmName" placeholder="{{ $eventToDelete?->name }}" />
+                <flux:input wire:model="deleteConfirmName" placeholder="{{ $eventToDelete?->name }}" required />
             </flux:field>
 
             <div class="flex gap-2">

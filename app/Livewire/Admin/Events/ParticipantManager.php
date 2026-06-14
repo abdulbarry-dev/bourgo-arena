@@ -55,7 +55,7 @@ class ParticipantManager extends Component
     {
         $this->validate([
             'newStatus' => 'required|string',
-            'newSeedNumber' => 'nullable|integer|min:1',
+            'newSeedNumber' => 'required|integer|min:1',
         ]);
 
         $participant = EventParticipant::find($this->managingParticipantId);

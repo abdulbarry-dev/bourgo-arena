@@ -200,7 +200,7 @@ class ServiceManager extends Component
     {
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
+            'description' => ['required', 'string'],
         ]);
 
         $imagePaths = $this->images;

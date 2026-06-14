@@ -91,13 +91,13 @@ class EditMemberFlyout extends Component
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => [
-                $this->member->isChild() ? 'nullable' : 'required',
+                $this->member->isChild() ? 'required' : 'required',
                 'email',
                 'max:255',
                 Rule::unique('members', 'email')->ignore($this->memberId)->whereNull('deleted_at'),
             ],
             'phone' => [
-                $this->member->isChild() ? 'nullable' : 'required',
+                $this->member->isChild() ? 'required' : 'required',
                 'string',
                 'max:20',
                 'regex:/^\\+?[0-9]{8,15}$/',
@@ -109,7 +109,7 @@ class EditMemberFlyout extends Component
                 $this->member->isChild() ? 'before:today' : 'before_or_equal:'.now()->subYears(16)->toDateString(),
             ],
             'gender' => ['required', Rule::in(['male', 'female'])],
-            'emergencyContact' => ['nullable', 'string', 'max:255'],
+            'emergencyContact' => ['required', 'string', 'max:255'],
             'isFamilyAccount' => ['boolean'],
         ];
     }

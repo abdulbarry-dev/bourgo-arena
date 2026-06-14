@@ -176,7 +176,7 @@ class AddMemberFlyout extends Component
                 'before_or_equal:'.now()->subYears(16)->toDateString(),
             ],
             'gender' => ['required', Rule::in(['male', 'female'])],
-            'emergencyContact' => ['nullable', 'string', 'max:255'],
+            'emergencyContact' => ['required', 'string', 'max:255'],
             'isFamilyAccount' => ['boolean'],
             'children.*.name' => [Rule::requiredIf($this->isFamilyAccount), 'string', 'max:255'],
             'children.*.date_of_birth' => [Rule::requiredIf($this->isFamilyAccount), 'date', 'before:today'],

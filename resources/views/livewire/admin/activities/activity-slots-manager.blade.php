@@ -174,20 +174,20 @@
 
                     <flux:field>
                         <flux:label>{{ __('Max Capacity') }}</flux:label>
-                        <flux:input wire:model="activityCapacity" type="number" min="1" placeholder="{{ __('e.g. 10') }}" />
+                        <flux:input wire:model="activityCapacity" type="number" min="1" placeholder="{{ __('e.g. 10') }}" required />
                         <flux:description>{{ __('Informational maximum number of participants.') }}</flux:description>
                         <div class="min-h-[20px]"><flux:error name="activityCapacity" /></div>
                     </flux:field>
 
                     <flux:field>
                         <flux:label>{{ __('Description') }}</flux:label>
-                        <flux:textarea wire:model="activityDescription" rows="3" />
+                        <flux:textarea wire:model="activityDescription" rows="3" required />
                         <div class="min-h-[20px]"><flux:error name="activityDescription" /></div>
                     </flux:field>
 
                     <flux:field>
                         <flux:label>{{ __('Features') }}</flux:label>
-                        <flux:textarea wire:model="activityFeaturesInput" rows="3" :placeholder="__('Covered court, lights, locker room')" />
+                        <flux:textarea wire:model="activityFeaturesInput" rows="3" :placeholder="__('Covered court, lights, locker room')" required />
                     </flux:field>
 
                     <flux:switch wire:model="activityIsActive" :label="$activityIsActive ? __('Active') : __('Inactive')" />
