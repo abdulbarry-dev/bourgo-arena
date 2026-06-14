@@ -6,7 +6,6 @@ use App\Models\Event;
 use App\Models\Service;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
-use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
@@ -91,7 +90,7 @@ class EventManager extends Component
                 break;
             }
         }
-        
+
         $this->uploadQueue = [];
     }
 

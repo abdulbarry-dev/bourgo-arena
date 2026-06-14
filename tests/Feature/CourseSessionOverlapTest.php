@@ -32,6 +32,8 @@ test('it prevents creating overlapping sessions for the same course', function (
         ->set('day_of_week', 0)
         ->set('starts_at', '13:30')
         ->set('duration_minutes', 90)
+        ->set('starts_at_date', now()->toDateString())
+        ->set('ends_at_date', now()->addYear()->toDateString())
         ->call('save')
         ->assertHasErrors(['starts_at']);
 
@@ -41,6 +43,8 @@ test('it prevents creating overlapping sessions for the same course', function (
         ->set('day_of_week', 0)
         ->set('starts_at', '14:00')
         ->set('duration_minutes', 60)
+        ->set('starts_at_date', now()->toDateString())
+        ->set('ends_at_date', now()->addYear()->toDateString())
         ->call('save')
         ->assertHasNoErrors();
 });
@@ -68,6 +72,8 @@ test('it allows same time sessions for different courses', function () {
         ->set('day_of_week', 0)
         ->set('starts_at', '13:00')
         ->set('duration_minutes', 60)
+        ->set('starts_at_date', now()->toDateString())
+        ->set('ends_at_date', now()->addYear()->toDateString())
         ->call('save')
         ->assertHasNoErrors();
 });

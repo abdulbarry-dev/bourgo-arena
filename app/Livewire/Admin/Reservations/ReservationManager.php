@@ -11,6 +11,7 @@ use App\Models\Payment;
 use App\Repositories\ReservationRepository;
 use App\Services\PaymentService;
 use App\Services\ReservationService;
+use Carbon\Carbon;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -136,6 +137,16 @@ class ReservationManager extends Component
     }
 
     public function updatedEditActivityId(): void
+    {
+        $this->editActivitySessionId = null;
+    }
+
+    public function updatedCreateDate(): void
+    {
+        $this->createActivitySessionId = null;
+    }
+
+    public function updatedEditDate(): void
     {
         $this->editActivitySessionId = null;
     }
@@ -393,6 +404,13 @@ class ReservationManager extends Component
             ->orderBy('starts_at');
 
         if ($this->createDate !== '' && $this->createDate !== '0') {
+            try {
+                $dayOfWeek = Carbon::parse($this->createDate)->dayOfWeek;
+                $query->where('day_of_week', $dayOfWeek);
+            } catch (\Exception $e) {
+                // Ignore parsing errors if date is invalid
+            }
+
             $reservedIds = ApiReservation::where('activity_id', $this->createActivityId)
                 ->whereDate('date', $this->createDate)
                 ->where('status', '!=', 'cancelled')
@@ -419,6 +437,13 @@ class ReservationManager extends Component
             ->orderBy('starts_at');
 
         if ($this->editDate !== '' && $this->editDate !== '0') {
+            try {
+                $dayOfWeek = Carbon::parse($this->editDate)->dayOfWeek;
+                $query->where('day_of_week', $dayOfWeek);
+            } catch (\Exception $e) {
+                // Ignore parsing errors if date is invalid
+            }
+
             $reservedIds = ApiReservation::where('activity_id', $this->editActivityId)
                 ->whereDate('date', $this->editDate)
                 ->where('status', '!=', 'cancelled')

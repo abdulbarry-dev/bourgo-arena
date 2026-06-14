@@ -127,7 +127,7 @@ test('member table toggles sorting direction on repeated column sort', function 
 });
 
 test('member table exports a csv file', function () {
-    $this->actingAs(User::factory()->manager()->create());
+    $this->actingAs(User::factory()->admin()->create());
 
     Member::factory()->count(3)->create();
 
@@ -137,7 +137,7 @@ test('member table exports a csv file', function () {
 });
 
 test('member table requires confirmation before exporting a csv file', function () {
-    $this->actingAs(User::factory()->manager()->create());
+    $this->actingAs(User::factory()->admin()->create());
 
     Member::factory()->count(3)->create();
 

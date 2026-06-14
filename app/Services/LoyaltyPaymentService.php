@@ -130,6 +130,12 @@ class LoyaltyPaymentService
                 ]);
             }
 
+            if ($reservation->member_id !== $member->id) {
+                throw ValidationException::withMessages([
+                    'reservation_id' => [__('This reservation does not belong to you.')],
+                ]);
+            }
+
             if ($reservation->status === 'cancelled') {
                 throw ValidationException::withMessages([
                     'reservation_id' => [__('This reservation has been cancelled.')],
@@ -152,6 +158,12 @@ class LoyaltyPaymentService
         if ($subscription === null) {
             throw ValidationException::withMessages([
                 'subscription_id' => [__('Subscription not found.')],
+            ]);
+        }
+
+        if ($subscription->member_id !== $member->id) {
+            throw ValidationException::withMessages([
+                'subscription_id' => [__('This subscription does not belong to you.')],
             ]);
         }
 

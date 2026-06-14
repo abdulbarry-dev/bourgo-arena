@@ -19,5 +19,15 @@ class AdminUserSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
+
+        User::firstOrCreate(
+            ['email' => 'manager@bourgoarena.com'],
+            [
+                'name' => 'Manager',
+                'role' => UserRole::Manager,
+                'password' => 'Test@12345',
+                'email_verified_at' => now(),
+            ]
+        );
     }
 }

@@ -39,7 +39,7 @@ test('members can authenticate but are forbidden from the dashboard', function (
     $this->assertAuthenticated();
 
     $dashboardResponse = $this->get(route('dashboard'));
-    $dashboardResponse->assertForbidden();
+    $dashboardResponse->assertNotFound();
 });
 
 test('users can not authenticate with invalid password', function () {

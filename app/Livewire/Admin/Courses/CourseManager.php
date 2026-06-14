@@ -100,7 +100,7 @@ class CourseManager extends Component
                 break;
             }
         }
-        
+
         $this->uploadQueue = [];
     }
 

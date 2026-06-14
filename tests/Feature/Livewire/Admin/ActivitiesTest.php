@@ -82,6 +82,8 @@ it('can create a session via the create form component', function () {
         ->set('day_of_week', 1)
         ->set('starts_at', '09:00')
         ->set('duration_minutes', 60)
+        ->set('starts_at_date', now()->toDateString())
+        ->set('ends_at_date', now()->addYear()->toDateString())
         ->call('save')
         ->assertHasNoErrors();
 

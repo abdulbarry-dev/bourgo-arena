@@ -351,7 +351,7 @@ class Dashboard extends Component
 
     public function render()
     {
-        $this->authorize('access-dashboard-module', 'notifications');
+        abort_unless(auth()->user()->can('access-dashboard-module', 'notifications'), 404);
 
         $types = NotificationType::query()
             ->orderBy('category')

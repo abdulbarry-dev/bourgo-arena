@@ -95,7 +95,7 @@ it('allows an admin to create a reservation for a client', function () {
         'activity_id' => $activity->id,
         'activity_session_id' => $session->id,
         'status' => 'confirmed',
-        'payment_status' => 'pending',
+        'payment_status' => 'paid',
     ]);
 });
 

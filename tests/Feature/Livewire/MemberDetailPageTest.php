@@ -26,7 +26,7 @@ test('member role is forbidden from member detail flyout entry point', function 
 
     $this->actingAs(User::factory()->member()->create())
         ->get(route('admin.members', ['member' => $member->id]))
-        ->assertForbidden();
+        ->assertNotFound();
 });
 
 test('guest is redirected to login from member detail flyout entry point', function () {

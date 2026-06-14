@@ -70,7 +70,7 @@ class ActivityManager extends Component
                 break;
             }
         }
-        
+
         $this->uploadQueue = [];
     }
 

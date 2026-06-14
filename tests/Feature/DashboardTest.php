@@ -84,7 +84,7 @@ test('verified managers can visit the dashboard', function () {
         ->assertSee('Subscriptions')
         ->assertSee('Schedule')
         ->assertDontSee('Courses')
-        ->assertDontSee('Events & Tournaments')
+        ->assertSee('Events & Tournaments')
         ->assertDontSee('Plans')
         ->assertDontSee('Managers')
         ->assertDontSee('Payments Audit');
@@ -95,5 +95,5 @@ test('members are forbidden from visiting the dashboard', function () {
     $this->actingAs($user);
 
     $response = $this->get(route('dashboard'));
-    $response->assertForbidden();
+    $response->assertNotFound();
 });

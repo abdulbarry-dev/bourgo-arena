@@ -21,6 +21,10 @@ class SubscriptionService
      */
     public function validateEnrollment(Member $member, Plan $plan): bool|string
     {
+        if ($plan->is_child_only && $member->parent_id === null) {
+            return __('This plan is for children only and must be purchased through the family account.');
+        }
+
         Subscription::query()
             ->where('status', 'pending')
             ->where('member_id', $member->id)

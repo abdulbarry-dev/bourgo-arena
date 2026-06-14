@@ -72,7 +72,7 @@ class ServiceManager extends Component
                 break;
             }
         }
-        
+
         $this->uploadQueue = [];
     }
 

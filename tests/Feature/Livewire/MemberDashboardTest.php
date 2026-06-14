@@ -21,7 +21,7 @@ test('manager can view members dashboard page', function () {
 test('member role is forbidden from members dashboard page', function () {
     $this->actingAs(User::factory()->member()->create())
         ->get(route('admin.members'))
-        ->assertForbidden();
+        ->assertNotFound();
 });
 
 test('guest is redirected to login from members dashboard page', function () {

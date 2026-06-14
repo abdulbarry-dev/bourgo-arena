@@ -150,7 +150,7 @@ test('subscription table toggles sorting direction on repeated column sort', fun
 });
 
 test('subscription table requires confirmation before exporting csv and pdf files', function () {
-    $this->actingAs(User::factory()->manager()->create());
+    $this->actingAs(User::factory()->admin()->create());
 
     Livewire::test(SubscriptionTable::class)
         ->call('openExportConfirmModal', 'csv')

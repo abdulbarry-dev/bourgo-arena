@@ -2,18 +2,32 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\Service;
-use App\Models\Plan;
+use App\Models\Activity;
+use App\Models\ActivitySession;
+use App\Models\ActivityTimeSlot;
+use App\Models\ApiReservation;
+use App\Models\Booking;
 use App\Models\Course;
 use App\Models\CourseSession;
-use App\Models\Activity;
-use App\Models\ActivityTimeSlot;
 use App\Models\Event;
+use App\Models\LoyaltyAuditLog;
+use App\Models\LoyaltyPoint;
 use App\Models\Member;
-use App\Models\Booking;
+use App\Models\MemberNotification;
+use App\Models\NotificationLog;
+use App\Models\NotificationType;
+use App\Models\OccupancyHourlyAggregate;
+use App\Models\Payment;
+use App\Models\PaymentTransaction;
+use App\Models\Plan;
 use App\Models\Reservation;
+use App\Models\RevenueSnapshot;
+use App\Models\Service;
+use App\Models\Subscription;
+use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 class DemoDataSeeder extends Seeder
@@ -23,7 +37,7 @@ class DemoDataSeeder extends Seeder
         $images = [
             'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop',
             'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=1470&auto=format&fit=crop',
-            'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=1470&auto=format&fit=crop'
+            'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=1470&auto=format&fit=crop',
         ];
 
         $servicesData = [
@@ -36,22 +50,22 @@ class DemoDataSeeder extends Seeder
             ['name' => 'Boxing Ring', 'desc' => 'Heavy bags and a ring for martial arts and boxing.'],
             ['name' => 'Swimming Pool', 'desc' => 'Olympic-sized heated pool for laps.'],
             ['name' => 'Sauna & Spa', 'desc' => 'Relaxation zone for recovery.'],
-            ['name' => 'Personal Training', 'desc' => '1-on-1 coaching sessions.']
+            ['name' => 'Personal Training', 'desc' => '1-on-1 coaching sessions.'],
         ];
 
         $services = [];
         foreach ($servicesData as $s) {
             $services[] = Service::create([
                 'name' => $s['name'],
-                'slug' => Str::slug($s['name']) . '-' . uniqid(),
+                'slug' => Str::slug($s['name']).'-'.uniqid(),
                 'description' => $s['desc'],
                 'image_url' => $images[0],
                 'images' => $images,
-                'status' => 'active'
+                'status' => 'active',
             ]);
         }
 
-        $this->command->info("Created 10 Services.");
+        $this->command->info('Created 10 Services.');
 
         $planData = [
             ['name' => 'Basic Gym Access', 'price' => 29.99, 'level' => 1, 'dur' => 30],
@@ -79,7 +93,7 @@ class DemoDataSeeder extends Seeder
             ]);
         }
 
-        $this->command->info("Created 10 Plans.");
+        $this->command->info('Created 10 Plans.');
 
         $courseData = [
             ['name' => 'Beginner Yoga', 'desc' => 'Learn the basics of Yoga.'],
@@ -91,7 +105,7 @@ class DemoDataSeeder extends Seeder
             ['name' => 'Aqua Aerobics', 'desc' => 'Low impact pool workout.'],
             ['name' => 'Zumba Dance', 'desc' => 'Fun dance cardio.'],
             ['name' => 'Kettlebell Core', 'desc' => 'Full body kettlebell workout.'],
-            ['name' => 'Stretching & Mobility', 'desc' => 'Improve flexibility and recovery.']
+            ['name' => 'Stretching & Mobility', 'desc' => 'Improve flexibility and recovery.'],
         ];
 
         foreach ($courseData as $idx => $c) {
@@ -103,11 +117,13 @@ class DemoDataSeeder extends Seeder
                 'image_url' => $images[0],
                 'status' => 'active',
             ]);
-            
+
             for ($day = 1; $day <= 30; $day++) {
                 $date = Carbon::create(2026, 6, $day);
-                if ($date->dayOfWeek === Carbon::SUNDAY) continue;
-                
+                if ($date->dayOfWeek === Carbon::SUNDAY) {
+                    continue;
+                }
+
                 CourseSession::create([
                     'course_id' => $course->id,
                     'day_of_week' => $date->dayOfWeek,
@@ -118,7 +134,7 @@ class DemoDataSeeder extends Seeder
                     'capacity' => 20,
                     'is_cancelled' => false,
                 ]);
-                
+
                 CourseSession::create([
                     'course_id' => $course->id,
                     'day_of_week' => $date->dayOfWeek,
@@ -132,7 +148,7 @@ class DemoDataSeeder extends Seeder
             }
         }
 
-        $this->command->info("Created 10 Courses and Sessions for June.");
+        $this->command->info('Created 10 Courses and Sessions for June.');
 
         $activityData = [
             ['name' => 'Open Gym Slot', 'desc' => 'General access.'],
@@ -144,7 +160,7 @@ class DemoDataSeeder extends Seeder
             ['name' => 'PT Hour', 'desc' => '1 on 1 coaching.'],
             ['name' => 'Squash Court', 'desc' => 'Book a court.'],
             ['name' => 'Tennis Court', 'desc' => 'Outdoor tennis.'],
-            ['name' => 'Basketball Court', 'desc' => 'Indoor basketball.']
+            ['name' => 'Basketball Court', 'desc' => 'Indoor basketball.'],
         ];
 
         foreach ($activityData as $idx => $a) {
@@ -159,7 +175,7 @@ class DemoDataSeeder extends Seeder
                 'features' => ['Towels provided', 'Locker access'],
                 'is_active' => true,
             ]);
-            
+
             ActivityTimeSlot::create([
                 'activity_id' => $activity->id,
                 'start_time' => '08:00:00',
@@ -167,7 +183,7 @@ class DemoDataSeeder extends Seeder
                 'max_capacity' => 10,
                 'is_available' => true,
             ]);
-            
+
             ActivityTimeSlot::create([
                 'activity_id' => $activity->id,
                 'start_time' => '17:00:00',
@@ -175,16 +191,18 @@ class DemoDataSeeder extends Seeder
                 'max_capacity' => 10,
                 'is_available' => true,
             ]);
-            
+
             $startDate = Carbon::tomorrow();
             $endDate = Carbon::create(2026, 7, 1);
-            
+
             for ($date = clone $startDate; $date->lte($endDate); $date->addDay()) {
-                if ($date->dayOfWeek === Carbon::SUNDAY) continue;
-                
+                if ($date->dayOfWeek === Carbon::SUNDAY) {
+                    continue;
+                }
+
                 $hours = [8, 10, 12, 14, 16, 18];
                 foreach ($hours as $hour) {
-                    \App\Models\ActivitySession::create([
+                    ActivitySession::create([
                         'activity_id' => $activity->id,
                         'day_of_week' => $date->dayOfWeek,
                         'starts_at' => sprintf('%02d:00:00', $hour),
@@ -197,7 +215,7 @@ class DemoDataSeeder extends Seeder
             }
         }
 
-        $this->command->info("Created 10 Activities, Time Slots, and Sessions for June/July.");
+        $this->command->info('Created 10 Activities, Time Slots, and Sessions for June/July.');
 
         $eventData = [
             ['name' => 'Summer Fitness Challenge', 'desc' => 'Compete for the best transformation.'],
@@ -209,7 +227,7 @@ class DemoDataSeeder extends Seeder
             ['name' => 'CrossFit Games Local', 'desc' => 'Local competition.'],
             ['name' => 'Zumba Party', 'desc' => 'Dance all night.'],
             ['name' => 'Boxing Tournament', 'desc' => 'Amateur fights.'],
-            ['name' => 'Pool Party', 'desc' => 'Celebrate summer.']
+            ['name' => 'Pool Party', 'desc' => 'Celebrate summer.'],
         ];
 
         foreach ($eventData as $idx => $e) {
@@ -228,39 +246,39 @@ class DemoDataSeeder extends Seeder
             ]);
         }
 
-        $this->command->info("Created 10 Events for June.");
+        $this->command->info('Created 10 Events for June.');
 
-        $this->command->info("Seeding 100 Members, Subscriptions, Payments, and Reservations...");
+        $this->command->info('Seeding 100 Members, Subscriptions, Payments, and Reservations...');
 
-        $newMembers = \App\Models\Member::factory()->count(100)->create();
-        
-        $plans = \App\Models\Plan::all();
-        $activitySlots = \App\Models\ActivityTimeSlot::all();
-        $courseSessions = \App\Models\CourseSession::all();
-        $activitySessions = \App\Models\ActivitySession::all();
-        
+        $newMembers = Member::factory()->count(100)->create();
+
+        $plans = Plan::all();
+        $activitySlots = ActivityTimeSlot::all();
+        $courseSessions = CourseSession::all();
+        $activitySessions = ActivitySession::all();
+
         foreach ($newMembers as $member) {
             $createdDate = Carbon::now()->subDays(rand(0, 30));
             $member->update(['created_at' => $createdDate]);
-            $user = \App\Models\User::factory()->create([
+            $user = User::factory()->create([
                 'email' => $member->email,
-                'created_at' => $createdDate
+                'created_at' => $createdDate,
             ]);
-            
+
             // Subscription
             $plan = $plans->random();
             $statuses = ['active', 'active', 'active', 'expiring', 'expiring', 'expired', 'expired', 'suspended', 'pending', 'cancelled'];
-            $statusChoice = \Illuminate\Support\Arr::random($statuses);
-            
+            $statusChoice = Arr::random($statuses);
+
             $status = $statusChoice === 'expiring' ? 'active' : $statusChoice;
             $startsAt = Carbon::now()->subDays(rand(10, 60));
-            $endsAt = match($statusChoice) {
+            $endsAt = match ($statusChoice) {
                 'expired' => Carbon::now()->subDays(rand(1, 10)),
                 'expiring' => Carbon::now()->addDays(rand(1, 5)),
                 default => Carbon::now()->addDays(rand(10, 30)),
             };
 
-            $sub = \App\Models\Subscription::create([
+            $sub = Subscription::create([
                 'member_id' => $member->id,
                 'plan_id' => $plan->id,
                 'status' => $status,
@@ -268,11 +286,11 @@ class DemoDataSeeder extends Seeder
                 'ends_at' => $endsAt,
                 'payment_method' => 'cash',
                 'amount_paid' => $plan->price,
-                'enrolled_by' => \App\Models\User::first()->id ?? 1,
+                'enrolled_by' => User::first()->id ?? 1,
             ]);
 
             // Payment Logs
-            $payment = \App\Models\Payment::create([
+            $payment = Payment::create([
                 'member_id' => $member->id,
                 'subscription_id' => $sub->id,
                 'amount' => $plan->price,
@@ -280,12 +298,12 @@ class DemoDataSeeder extends Seeder
                 'gateway' => 'stripe',
                 'type' => 'subscription',
                 'status' => 'completed',
-                'payment_reference' => 'ref_' . \Illuminate\Support\Str::random(10),
+                'payment_reference' => 'ref_'.Str::random(10),
                 'verified_at' => Carbon::now()->subDays(rand(1, 30)),
             ]);
 
-            \App\Models\PaymentTransaction::create([
-                'transaction_id' => 'txn_' . \Illuminate\Support\Str::random(10),
+            PaymentTransaction::create([
+                'transaction_id' => 'txn_'.Str::random(10),
                 'user_id' => $user->id,
                 'amount' => $payment->amount,
                 'payment_gateway' => 'konnect',
@@ -297,7 +315,7 @@ class DemoDataSeeder extends Seeder
             ]);
 
             // Pending Payment for Dashboard Confirmation
-            \App\Models\Payment::create([
+            Payment::create([
                 'member_id' => $member->id,
                 'subscription_id' => $sub->id,
                 'amount' => $plan->price,
@@ -305,29 +323,29 @@ class DemoDataSeeder extends Seeder
                 'gateway' => 'stripe',
                 'type' => 'subscription',
                 'status' => 'pending',
-                'payment_reference' => 'ref_pend_' . \Illuminate\Support\Str::random(10),
+                'payment_reference' => 'ref_pend_'.Str::random(10),
                 'verified_at' => null,
             ]);
 
             // Loyalty Points
             $points = rand(50, 500);
-            \App\Models\LoyaltyPoint::create([
+            LoyaltyPoint::create([
                 'member_id' => $member->id,
                 'points' => $points,
                 'transaction_type' => 'fixed',
-                'source_type' => \App\Models\Subscription::class,
+                'source_type' => Subscription::class,
                 'source_id' => $sub->id,
-                'idempotency_key' => \Illuminate\Support\Str::uuid(),
+                'idempotency_key' => Str::uuid(),
                 'created_at' => Carbon::now()->subDays(rand(1, 30)),
             ]);
 
-            \App\Models\LoyaltyAuditLog::create([
+            LoyaltyAuditLog::create([
                 'member_id' => $member->id,
                 'action' => 'earned',
                 'points_changed' => $points,
                 'balance_before' => 0,
                 'balance_after' => $points,
-                'source_type' => \App\Models\Subscription::class,
+                'source_type' => Subscription::class,
                 'source_id' => $sub->id,
                 'ip_address' => '127.0.0.1',
                 'user_agent' => 'Seeder',
@@ -338,7 +356,7 @@ class DemoDataSeeder extends Seeder
             // Reservations
             if ($activitySlots->count() > 0) {
                 $slot = $activitySlots->random();
-                \App\Models\Reservation::create([
+                Reservation::create([
                     'user_id' => $user->id,
                     'activity_id' => $slot->activity_id,
                     'activity_time_slot_id' => $slot->id,
@@ -351,7 +369,7 @@ class DemoDataSeeder extends Seeder
 
             if ($activitySessions->count() > 0) {
                 $actSession = $activitySessions->random();
-                \App\Models\ApiReservation::create([
+                ApiReservation::create([
                     'member_id' => $member->id,
                     'activity_id' => $actSession->activity_id,
                     'activity_session_id' => $actSession->id,
@@ -367,7 +385,7 @@ class DemoDataSeeder extends Seeder
             // Bookings
             if ($courseSessions->count() > 0) {
                 $session = $courseSessions->random();
-                \App\Models\Booking::create([
+                Booking::create([
                     'member_id' => $member->id,
                     'course_session_id' => $session->id,
                     'date' => $session->starts_at_date,
@@ -377,10 +395,10 @@ class DemoDataSeeder extends Seeder
                 ]);
             }
         }
-        
-        $this->command->info("Seeding Revenue Snapshots for Analytics...");
+
+        $this->command->info('Seeding Revenue Snapshots for Analytics...');
         for ($i = 0; $i < 30; $i++) {
-            \App\Models\RevenueSnapshot::create([
+            RevenueSnapshot::create([
                 'date' => Carbon::today()->subDays($i),
                 'total_revenue' => rand(500, 5000),
                 'active_subscriptions' => rand(50, 200),
@@ -393,11 +411,11 @@ class DemoDataSeeder extends Seeder
                 'activity_metrics' => [],
             ]);
         }
-        
+
         for ($i = 0; $i < 30; $i++) {
             $date = Carbon::today()->subDays($i);
             for ($hour = 8; $hour <= 20; $hour++) {
-                \App\Models\OccupancyHourlyAggregate::create([
+                OccupancyHourlyAggregate::create([
                     'date' => $date,
                     'hour' => $hour,
                     'entries_count' => rand(5, 30),
@@ -407,7 +425,7 @@ class DemoDataSeeder extends Seeder
             }
         }
 
-        $this->command->info("Created 100 Sample Members with Bookings, Subscriptions, Payments and Analytics.");
+        $this->command->info('Created 100 Sample Members with Bookings, Subscriptions, Payments and Analytics.');
 
         // Notifications
         $notificationTypes = [
@@ -419,7 +437,7 @@ class DemoDataSeeder extends Seeder
         ];
 
         foreach ($notificationTypes as $ntData) {
-            $nt = \App\Models\NotificationType::create([
+            $nt = NotificationType::create([
                 'name' => $ntData['name'],
                 'description' => $ntData['description'],
                 'category' => $ntData['category'],
@@ -431,7 +449,7 @@ class DemoDataSeeder extends Seeder
             ]);
 
             for ($i = 1; $i <= 5; $i++) {
-                \App\Models\NotificationLog::create([
+                NotificationLog::create([
                     'notification_type_id' => $nt->id,
                     'member_id' => $member->id,
                     'channel' => 'email',
@@ -440,8 +458,8 @@ class DemoDataSeeder extends Seeder
                     'status' => $i % 2 == 0 ? 'sent' : 'pending',
                     'sent_at' => Carbon::now()->subDays(rand(1, 10)),
                 ]);
-                
-                \App\Models\MemberNotification::create([
+
+                MemberNotification::create([
                     'member_id' => $member->id,
                     'type' => $nt->slug,
                     'title' => "Sample {$ntData['name']} $i",
@@ -453,6 +471,6 @@ class DemoDataSeeder extends Seeder
                 ]);
             }
         }
-        $this->command->info("Created Notification Types and 5 Layouts each.");
+        $this->command->info('Created Notification Types and 5 Layouts each.');
     }
 }

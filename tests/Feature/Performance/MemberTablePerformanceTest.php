@@ -23,7 +23,7 @@ test('member search with one thousand records stays under five hundred milliseco
 });
 
 test('csv export for five hundred members stays under two seconds', function () {
-    $this->actingAs(User::factory()->manager()->create());
+    $this->actingAs(User::factory()->admin()->create());
     Member::factory()->count(500)->create();
 
     $component = app(MemberTable::class);

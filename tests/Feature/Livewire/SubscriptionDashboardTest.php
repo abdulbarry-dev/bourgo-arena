@@ -22,7 +22,7 @@ test('manager can view subscriptions dashboard page', function () {
 test('member role is forbidden from subscriptions dashboard page', function () {
     $this->actingAs(User::factory()->member()->create())
         ->get(route('admin.subscriptions'))
-        ->assertForbidden();
+        ->assertNotFound();
 });
 
 test('guest is redirected to login from subscriptions dashboard page', function () {

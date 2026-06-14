@@ -33,7 +33,7 @@ it('denies access to managers', function () {
 
     $this->actingAs($manager)
         ->get(route('admin.notifications'))
-        ->assertForbidden();
+        ->assertNotFound();
 });
 
 it('shows the notification dashboard component with stats', function () {
@@ -140,7 +140,7 @@ it('creates a new notification type', function () {
         ->call('openCreateTypeFlyout')
         ->assertSet('typeName', '')
         ->assertSet('typeCategory', 'system')
-        ->set('typeName', 'My Custom Type')
+        ->set('typeName', 'My Custom Type')->set('typeDescription', 'Desc')->set('typeIcon', 'bell')
         ->set('typeCategory', 'promotions')
         ->set('typePushEnabled', true)
         ->set('typeEmailEnabled', true)
@@ -159,7 +159,7 @@ it('creates a type as inactive when all channels are off', function () {
 
     Livewire::test(Dashboard::class)
         ->call('openCreateTypeFlyout')
-        ->set('typeName', 'Inactive Type')
+        ->set('typeName', 'Inactive Type')->set('typeDescription', 'Desc')->set('typeIcon', 'bell')
         ->set('typeCategory', 'system')
         ->set('typePushEnabled', false)
         ->set('typeEmailEnabled', false)
@@ -177,7 +177,7 @@ it('creates a type as active when at least one channel is on', function () {
 
     Livewire::test(Dashboard::class)
         ->call('openCreateTypeFlyout')
-        ->set('typeName', 'Active Type')
+        ->set('typeName', 'Active Type')->set('typeDescription', 'Desc')->set('typeIcon', 'bell')
         ->set('typeCategory', 'system')
         ->set('typePushEnabled', false)
         ->set('typeEmailEnabled', true)
@@ -190,20 +190,17 @@ it('creates a type as active when at least one channel is on', function () {
     ]);
 });
 
-it('creates a type with nullable description as null', function () {
+it('prevents creating a type with an empty description', function () {
     $this->actingAs($this->admin);
 
     Livewire::test(Dashboard::class)
         ->call('openCreateTypeFlyout')
         ->set('typeName', 'No Desc Type')
         ->set('typeCategory', 'system')
+        ->set('typeIcon', 'bell')
         ->set('typeDescription', '')
-        ->call('saveType');
-
-    $this->assertDatabaseHas('notification_types', [
-        'name' => 'No Desc Type',
-        'description' => null,
-    ]);
+        ->call('saveType')
+        ->assertHasErrors('typeDescription');
 });
 
 it('prevents creating a type with an empty category', function () {
@@ -211,7 +208,7 @@ it('prevents creating a type with an empty category', function () {
 
     Livewire::test(Dashboard::class)
         ->call('openCreateTypeFlyout')
-        ->set('typeName', 'No Category')
+        ->set('typeName', 'No Category')->set('typeDescription', 'Desc')->set('typeIcon', 'bell')
         ->set('typeCategory', '')
         ->call('saveType')
         ->assertHasErrors('typeCategory');
@@ -238,7 +235,7 @@ it('edits an existing notification type', function () {
     Livewire::test(Dashboard::class)
         ->call('openEditTypeFlyout', $type->id)
         ->assertSet('typeName', 'Original Name')
-        ->set('typeName', 'Updated Name')
+        ->set('typeName', 'Updated Name')->set('typeDescription', 'Desc')->set('typeIcon', 'bell')
         ->call('saveType');
 
     $this->assertDatabaseHas('notification_types', [
@@ -257,7 +254,7 @@ it('preserves slug when editing a type', function () {
 
     Livewire::test(Dashboard::class)
         ->call('openEditTypeFlyout', $type->id)
-        ->set('typeName', 'Updated Name')
+        ->set('typeName', 'Updated Name')->set('typeDescription', 'Desc')->set('typeIcon', 'bell')
         ->call('saveType');
 
     $this->assertDatabaseHas('notification_types', [

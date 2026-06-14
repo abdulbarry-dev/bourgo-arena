@@ -21,6 +21,7 @@ test('manager can create a parent and multiple children at once', function () {
         ->set('phone', $phone)
         ->set('dateOfBirth', '1990-01-01')
         ->set('gender', 'male')
+        ->set('emergencyContact', '12345678')
         ->set('isFamilyAccount', true)
         ->set('children', [
             ['name' => 'Child One', 'date_of_birth' => '2015-01-01', 'gender' => 'female'],
