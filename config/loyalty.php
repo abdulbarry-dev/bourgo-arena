@@ -34,6 +34,6 @@ return [
     'points_to_tnd' => [
         'rate' => 100,
         'minimum_payment_points' => 100,
-        'maximum_per_transaction' => 10000,
+        'maximum_per_transaction' => 9999999,
     ],
 ];
