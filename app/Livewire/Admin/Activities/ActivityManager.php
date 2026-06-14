@@ -56,7 +56,7 @@ class ActivityManager extends Component
 
     public bool $isActive = true;
 
-    public function updatedUploadQueue()
+    public function processUploadQueue()
     {
         $this->validate([
             'uploadQueue.*' => 'image|max:2048', // 2MB Max
@@ -70,6 +70,8 @@ class ActivityManager extends Component
                 break;
             }
         }
+        
+        $this->uploadQueue = [];
     }
 
     public function confirmImageDeletion($index, $isNew = false)

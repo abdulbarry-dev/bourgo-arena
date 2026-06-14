@@ -58,7 +58,7 @@ class ServiceManager extends Component
         $this->resetPage();
     }
 
-    public function updatedUploadQueue()
+    public function processUploadQueue()
     {
         $this->validate([
             'uploadQueue.*' => 'image|max:2048', // 2MB Max
@@ -72,6 +72,8 @@ class ServiceManager extends Component
                 break;
             }
         }
+        
+        $this->uploadQueue = [];
     }
 
     public function confirmImageDeletion($index, $isNew = false)

@@ -299,7 +299,7 @@
                                             <flux:icon name="plus" variant="mini" class="size-3.5 transition-transform group-hover/add:rotate-90" />
                                             <span>{{ __('Upload') }}</span>
                                         </div>
-                                        <input type="file" wire:model.live="uploadQueue" multiple class="hidden" accept="image/*" wire:key="activity-upload-input-{{ count($newImages) }}">
+                                        <input type="file" x-on:change="$wire.uploadMultiple('uploadQueue', $event.target.files, () => { $wire.processUploadQueue(); $event.target.value = null; })" multiple class="hidden" accept="image/*">
                                     </label>
                                 @endif
                             </div>
@@ -351,7 +351,7 @@
                                         <h5 class="text-sm font-bold text-zinc-700 dark:text-zinc-300">{{ __('No images yet') }}</h5>
                                         <p class="mt-1 text-[11px] text-zinc-400 font-medium">{{ __('Drag files here or click to browse') }}</p>
                                     </div>
-                                    <input type="file" wire:model.live="uploadQueue" multiple class="hidden" accept="image/*">
+                                    <input type="file" x-on:change="$wire.uploadMultiple('uploadQueue', $event.target.files, () => { $wire.processUploadQueue(); $event.target.value = null; })" multiple class="hidden" accept="image/*">
                                 </label>
                             @else
                                 {{-- Premium Interactive Grid --}}
@@ -404,7 +404,7 @@
                                                 <flux:icon name="plus" class="size-5 text-zinc-400 dark:text-zinc-500 group-hover/more:text-blue-500 transition-colors" />
                                             </div>
                                             <span class="mt-3 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{{ __('Add') }}</span>
-                                            <input type="file" wire:model.live="uploadQueue" multiple class="hidden" accept="image/*">
+                                            <input type="file" x-on:change="$wire.uploadMultiple('uploadQueue', $event.target.files, () => { $wire.processUploadQueue(); $event.target.value = null; })" multiple class="hidden" accept="image/*">
                                         </label>
                                     @endif
                                 </div>
