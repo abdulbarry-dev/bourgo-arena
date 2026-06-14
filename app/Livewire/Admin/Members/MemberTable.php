@@ -115,7 +115,7 @@ class MemberTable extends Component
 
     public function exportCsv(): StreamedResponse
     {
-        abort_unless(auth()->user()->isAdmin(), 403);
+        abort_unless(auth()->user()->isAdmin(), 404);
         $this->authorize('viewAny', Member::class);
 
         $membersQuery = $this->filteredMembersQuery()
